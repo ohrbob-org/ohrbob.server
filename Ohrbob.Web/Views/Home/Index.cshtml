@@ -4,5 +4,18 @@
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <p>Hello, @User.Identity.Name!</p>
+        <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    }
+    else
+    {
+        <p>Please log in to continue.</p>
+        <div class="d-flex justify-content-center gap-3 mt-4">
+            <a asp-controller="Home" asp-action="Login" asp-route-provider="Nextcloud" class="btn btn-primary btn-lg">Login with Nextcloud</a>
+            <a asp-controller="Home" asp-action="Login" asp-route-provider="Google" class="btn btn-danger btn-lg">Login with Google</a>
+        </div>
+    }
 </div>
