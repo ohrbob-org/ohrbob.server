@@ -108,11 +108,10 @@ app.UseAuthentication();
 app.UseTwoFactor();
 app.UseAuthorization();
 app.MapRazorPages();
-app.MapMethods("/logout", new[] { "POST", "GET" }, async (HttpContext context) =>
+app.MapMethods("/logout", new[] { "POST", "GET" }, () =>
 {
-    await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-    await context.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
-    context.Response.Redirect("/");
+    return Results.SignOut(new AuthenticationProperties { RedirectUri = "/" }, 
+        new[] { CookieAuthenticationDefaults.AuthenticationScheme, "Nextcloud", "Google" });
 });
 app.MapControllerRoute(
     name: "default",
