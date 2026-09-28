@@ -1,0 +1,68 @@
+@page
+@model Piggy.Pages.TwoFactor.SetupModel
+@{
+    ViewData["Title"] = "Two-Factor Setup";
+}
+
+<h2 class="mb-4">Two-Factor Authentication</h2>
+
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="alert alert-success">@Model.SuccessMessage</div>
+}
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+
+@if (Model.QrCodeSvg != null)
+{
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Scan with Authenticator App</h5>
+                    <div class="mb-3">
+                        @Html.Raw(Model.QrCodeSvg)
+                    </div>
+                    <p class="text-muted small">
+                        Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.).
+                    </p>
+                    <details class="text-start">
+                        <summary class="small text-muted">Or enter manually</summary>
+                        <code class="d-block mt-2 p-2 bg-light rounded">@Model.Secret</code>
+                    </details>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Verify Setup</h5>
+                    <p class="text-muted">Enter the 6-digit code from your authenticator app to confirm setup.</p>
+                    <form method="post">
+                        <input type="hidden" name="secret" value="@Model.Secret" />
+                        <div class="mb-3">
+                            <label for="code" class="form-label">Authenticator Code</label>
+                            <input type="text" name="code" id="code" class="form-control" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" required />
+                        </div>
+                        <button type="submit" class="btn btn-primary">Verify &amp; Enable</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Disable Two-Factor Authentication</h5>
+            <p class="text-muted">Two-factor authentication is currently enabled. You can disable it below.</p>
+            <form method="post" asp-page-handler="Disable" onsubmit="return confirm('Disable two-factor authentication?')">
+                <button type="submit" class="btn btn-danger">Disable</button>
+            </form>
+        </div>
+    </div>
+}

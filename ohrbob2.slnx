@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Ohrbob.Server.Shared/Ohrbob.Server.Shared.csproj" />
+  <Project Path="Ohrbob.Web/Ohrbob.Web.csproj" />
+</Solution>
