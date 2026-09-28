@@ -27,12 +27,15 @@ builder.Services.AddScoped<ITOTPSecretRepository, TOTPSecretRepository>();
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     })
-    .AddCookie()
-    .AddOpenIdConnect(options =>
+    .AddCookie(options =>
     {
-        var oidc = builder.Configuration.GetSection("Oidc");
+        options.LoginPath = "/Home/Index";
+    })
+    .AddOpenIdConnect("Nextcloud", options =>
+    {
+        var oidc = builder.Configuration.GetSection("Oidc:Nextcloud");
         options.Authority = oidc["Authority"];
         options.ClientId = oidc["ClientId"];
         options.ClientSecret = oidc["ClientSecret"];
@@ -41,6 +44,33 @@ builder.Services.AddAuthentication(options =>
         options.GetClaimsFromUserInfoEndpoint = true;
         options.Scope.Add("openid");
         options.Scope.Add("profile");
+        options.CallbackPath = "/signin-nextcloud";
+        options.Events = new OpenIdConnectEvents
+        {
+            OnRedirectToIdentityProvider = context =>
+            {
+                if (context.Request.Scheme == "https")
+                {
+                    context.ProtocolMessage.RedirectUri = context.ProtocolMessage.RedirectUri
+                        .Replace("http://", "https://");
+                }
+                return Task.CompletedTask;
+            }
+        };
+    })
+    .AddOpenIdConnect("Google", options =>
+    {
+        var oidc = builder.Configuration.GetSection("Oidc:Google");
+        options.Authority = oidc["Authority"];
+        options.ClientId = oidc["ClientId"];
+        options.ClientSecret = oidc["ClientSecret"];
+        options.ResponseType = "code";
+        options.SaveTokens = true;
+        options.GetClaimsFromUserInfoEndpoint = true;
+        options.Scope.Add("openid");
+        options.Scope.Add("profile");
+        options.Scope.Add("email");
+        options.CallbackPath = "/signin-google";
         options.Events = new OpenIdConnectEvents
         {
             OnRedirectToIdentityProvider = context =>
