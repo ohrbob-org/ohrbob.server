@@ -111,7 +111,7 @@ app.MapRazorPages();
 app.MapMethods("/logout", new[] { "POST", "GET" }, () =>
 {
     return Results.SignOut(new AuthenticationProperties { RedirectUri = "/" }, 
-        new[] { CookieAuthenticationDefaults.AuthenticationScheme, "Nextcloud", "Google" });
+        new[] { CookieAuthenticationDefaults.AuthenticationScheme });
 });
 app.MapControllerRoute(
     name: "default",
