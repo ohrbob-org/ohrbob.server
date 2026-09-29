@@ -39,6 +39,7 @@ builder.Services.AddOpenApi(options =>
         };
 
         document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
 #pragma warning disable CS8602
         document.Components.SecuritySchemes.Add("ApiKey", new OpenApiSecurityScheme
         {
