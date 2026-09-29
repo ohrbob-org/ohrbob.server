@@ -11,7 +11,10 @@ var configuration = builder.Configuration;
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddMyHealthChecks(configuration, options => {});
+
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddHttpClient();
+
 builder.Services.AddMyApiKeysAuthorization(configuration);
 
 var apiConfig = ApiServerConfiguration.GetFromConfig(configuration);
@@ -21,7 +24,9 @@ builder.Services.AddSingleton(apiConfig);
 
 builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbSettings"));
 builder.Services.AddSingleton<MongoDbContext>();
+
 builder.Services.AddControllers();
+
 builder.Services.AddProblemDetails();
 if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
 {
@@ -32,6 +37,8 @@ var app = builder.Build();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
+app.UseDefaultFiles();
 
 app.MapGet("/", () => "Ok");
 
@@ -44,7 +51,7 @@ if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development
         var versionName = $"v{apiConfig.Version}";
         ConfigureScalarOptions(options, apiConfig, versionName);
         
-        options.AddDocument(versionName, $"Version {apiConfig.Version}", $"/openapi/{apiConfig.Version}.json");
+        options.AddDocument(versionName, $"Version {apiConfig.Version}", $"/openapi/{versionName}.json");
         
     }).AllowAnonymous();
 

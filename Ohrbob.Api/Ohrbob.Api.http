@@ -1,6 +1,0 @@
-@Ohrbob.Api_HostAddress = http://localhost:5116
-
-GET {{Ohrbob.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
