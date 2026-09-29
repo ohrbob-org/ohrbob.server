@@ -2,9 +2,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
-using Ohrbob.Web.Data;
-using Ohrbob.Web.Middleware;
-using Ohrbob.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,7 +18,6 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-builder.Services.AddScoped<ITOTPSecretRepository, TOTPSecretRepository>();
 
 
 builder.Services.AddAuthentication(options =>
@@ -105,14 +101,8 @@ if (!app.Environment.IsDevelopment())
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
-app.UseTwoFactor();
 app.UseAuthorization();
 app.MapRazorPages();
-app.MapMethods("/logout", new[] { "POST", "GET" }, () =>
-{
-    return Results.SignOut(new AuthenticationProperties { RedirectUri = "/" }, 
-        new[] { CookieAuthenticationDefaults.AuthenticationScheme });
-});
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
