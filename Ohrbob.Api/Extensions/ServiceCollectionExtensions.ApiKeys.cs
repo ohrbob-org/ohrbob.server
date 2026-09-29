@@ -20,13 +20,13 @@ public static partial class ServiceCollectionExtensions
             });
         services.AddAuthorization(options =>
         {
-            foreach (var scope in Consts.AllScopes)
+            foreach (var policy in Consts.AllPolicies)
             {
-                options.AddPolicy(scope, policy =>
+                options.AddPolicy(policy, configure =>
                 {
-                    policy.RequireAssertion(ctx =>
+                   configure.RequireAssertion(ctx =>
                         ctx.User.HasClaim(c =>
-                            c.Type == Consts.ScopeClaim && c.Value == scope));
+                            c.Type == Consts.ScopeClaim && c.Value == policy));
                 });
             }
 

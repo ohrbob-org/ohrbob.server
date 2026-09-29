@@ -3,12 +3,28 @@ using Ohrbob.Api;
 using Ohrbob.Api.Configuration;
 using Ohrbob.Api.Extensions;
 using Scalar.AspNetCore;
+using Serilog;
+using Serilog.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+var mongoDbSettings = builder.Configuration.GetSection("MongoDbData").Get<MongoDbSettings>();
+var logsDbSettings = builder.Configuration.GetSection("MongoDbLogs").Get<MongoDbSettings>();
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.Logger(lc =>
+    {
+        lc.Filter.ByIncludingOnly(Matching.WithProperty("AuditScope"))
+            .WriteTo.MongoDBBson(databaseUrl: builder.Configuration.GetConnectionString("MongoDbLogs")
+                                              ?? "mongodb://localhost:27017/AppLogs",
+                collectionName: "logs");
+    }).CreateLogger();
+builder.Host.UseSerilog();
+
 builder.Services.AddOpenApi();
 builder.Services.AddMyHealthChecks(configuration, options => {});
 
@@ -22,7 +38,7 @@ apiConfig.Validate();
 
 builder.Services.AddSingleton(apiConfig);
 
-builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbSettings"));
+builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbData"));
 builder.Services.AddSingleton<MongoDbContext>();
 
 builder.Services.AddControllers();
@@ -35,6 +51,7 @@ if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development
 
 var app = builder.Build();
 
+app.UseSerilogRequestLogging();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
@@ -59,7 +76,7 @@ if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development
 else
 {
     app.MapOpenApi(); // Serve openapi.json
-    app.MapScalarApiReference().RequireAuthorization(Consts.GetScalarScope, ApiKeyDefaults.AuthenticationScheme);
+    app.MapScalarApiReference().RequireAuthorization(Consts.GetScalarPolicy, ApiKeyDefaults.AuthenticationScheme);
 
 }
 

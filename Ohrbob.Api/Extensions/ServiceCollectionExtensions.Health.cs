@@ -29,7 +29,7 @@ public static partial class ServiceCollectionExtensions
                 });
                 await context.Response.WriteAsync(result);
             }
-        }).RequireAuthorization(Consts.GetHealthScope, ApiKeyDefaults.AuthenticationScheme);
+        }).RequireAuthorization(Consts.GetHealthPolicy, ApiKeyDefaults.AuthenticationScheme);
     }
     
     public static void AddMyHealthChecks(this IServiceCollection services, IConfiguration configuration , Action<HealthOptions>? optionsOverride)
