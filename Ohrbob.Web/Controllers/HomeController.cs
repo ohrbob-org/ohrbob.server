@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Ohrbob.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Ohrbob.Web.Controllers;
 
@@ -35,5 +36,12 @@ public class HomeController : Controller
             return RedirectToAction(nameof(Index));
         }
         return Challenge(new AuthenticationProperties { RedirectUri = "/" }, provider);
+    }
+
+    [AllowAnonymous]
+    public async Task<IActionResult> Logout()
+    {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return RedirectToAction(nameof(Index));
     }
 }
