@@ -1,9 +1,13 @@
+using dotenv.net;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
 
+DotEnv.Load();
+
 var builder = WebApplication.CreateBuilder(args);
+
 
 builder.Services.AddRazorPages();
 
@@ -38,6 +42,8 @@ builder.Services.AddAuthentication(options =>
         options.ResponseType = "code";
         options.SaveTokens = true;
         options.GetClaimsFromUserInfoEndpoint = true;
+        options.ClaimActions.MapJsonKey("picture", "picture");
+        options.TokenValidationParameters.NameClaimType = "name";
         options.Scope.Add("openid");
         options.Scope.Add("profile");
         options.CallbackPath = "/signin-nextcloud";
@@ -63,6 +69,8 @@ builder.Services.AddAuthentication(options =>
         options.ResponseType = "code";
         options.SaveTokens = true;
         options.GetClaimsFromUserInfoEndpoint = true;
+        options.ClaimActions.MapJsonKey("picture", "picture");
+        options.TokenValidationParameters.NameClaimType = "name";
         options.Scope.Add("openid");
         options.Scope.Add("profile");
         options.Scope.Add("email");
