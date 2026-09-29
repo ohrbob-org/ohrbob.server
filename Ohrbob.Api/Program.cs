@@ -5,6 +5,7 @@ using Ohrbob.Api.Extensions;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Filters;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -25,7 +26,34 @@ Log.Logger = new LoggerConfiguration()
     }).CreateLogger();
 builder.Host.UseSerilog();
 
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        var requirement = new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecuritySchemeReference("ApiKey", document),
+                new List<string>()
+            }
+        };
+
+        document.Components ??= new OpenApiComponents();
+#pragma warning disable CS8602
+        document.Components.SecuritySchemes.Add("ApiKey", new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.ApiKey,
+            Name = "X-API-KEY",
+            In = ParameterLocation.Header,
+            Description = "API Key authentication"
+        });
+#pragma warning restore CS8602
+
+        document.Security ??= new List<OpenApiSecurityRequirement>();
+        document.Security.Add(requirement);
+        return Task.CompletedTask;
+    });
+});
 builder.Services.AddMyHealthChecks(configuration, options => {});
 
 builder.Services.AddEndpointsApiExplorer();
@@ -44,10 +72,6 @@ builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddControllers();
 
 builder.Services.AddProblemDetails();
-if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
-{
-    builder.Services.AddOpenApi(); // Register OpenAPI schema generator
-}
 
 var app = builder.Build();
 
