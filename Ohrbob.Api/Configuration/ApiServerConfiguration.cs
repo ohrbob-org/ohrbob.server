@@ -1,0 +1,19 @@
+namespace Ohrbob.Api.Configuration;
+
+public class ApiServerConfiguration
+{
+    public const string ConfigSection = nameof(ApiServerConfiguration);
+    public const int MinimumJwtKeyLength = 32;
+
+    public string? Version { get; set; }
+
+    public string? ServerUrl { get; set; }
+
+    public static ApiServerConfiguration GetFromConfig(IConfiguration configuration) => configuration.GetSection(ConfigSection).Get<ApiServerConfiguration>() ?? new ApiServerConfiguration();
+
+    public void Validate()
+    {
+        if(Version == null)
+            throw new Exception("Version is required in Configuration Section: " + ConfigSection);
+    }
+}
