@@ -6,7 +6,7 @@ using Serilog.Context;
 public static class LogAuditExtensions
 {
 
-    private const string AuditPropertyName = "IsAuditEvent";
+    public const string AuditPropertyName = "IsAuditEvent";
 
     public static void LogAudit(this ILogger logger, string messageTemplate, params object[] propertyValues)
     {

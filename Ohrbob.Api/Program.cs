@@ -1,4 +1,5 @@
 using AspNetCore.Authentication.ApiKey;
+using DotNetEnv;
 using Ohrbob.Api;
 using Ohrbob.Api.Configuration;
 using Ohrbob.Api.Extensions;
@@ -6,12 +7,14 @@ using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Filters;
 using Microsoft.OpenApi;
+using Ohrbob.Api.Extensions.Logger;
 
+Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
-var mongoDbSettings = builder.Configuration.GetSection("MongoDbData").Get<MongoDbSettings>();
-var logsDbSettings = builder.Configuration.GetSection("MongoDbLogs").Get<MongoDbSettings>();
+var mongoDbSettings = configuration.GetSection("MongoDbData").Get<MongoDbSettings>()!;
+var logsDbSettings = configuration.GetSection("MongoDbLogs").Get<MongoDbSettings>()!;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -19,10 +22,9 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .WriteTo.Logger(lc =>
     {
-        lc.Filter.ByIncludingOnly(Matching.WithProperty("AuditScope"))
-            .WriteTo.MongoDBBson(databaseUrl: builder.Configuration.GetConnectionString("MongoDbLogs")
-                                              ?? "mongodb://localhost:27017/AppLogs",
-                collectionName: "logs");
+        lc.Filter.ByIncludingOnly(Matching.WithProperty(LogAuditExtensions.AuditPropertyName))
+            .WriteTo.MongoDBBson(databaseUrl: logsDbSettings.ConnectionString,
+                collectionName: logsDbSettings.DatabaseName);
     }).CreateLogger();
 builder.Host.UseSerilog();
 
