@@ -84,7 +84,10 @@ public class StationsController : Controller
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();
 
-        // In a real app we'd verify the station belongs to this accountId first before deleting
+        var station = await _stationsService.GetStationByIdAsync(id);
+        if (station == null || station.AccountId != accountId)
+            return NotFound();
+
         await _stationsService.DeleteStationAsync(id);
         return RedirectToAction(nameof(Index));
     }
