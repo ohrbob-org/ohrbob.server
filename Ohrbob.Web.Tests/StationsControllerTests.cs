@@ -97,6 +97,10 @@ public class StationsControllerTests
     public async Task Delete_Post_ValidId_DeletesAndRedirects()
     {
         var stationId = "station-123";
+        
+        _stationsServiceMock
+            .Setup(s => s.GetStationByIdAsync(stationId))
+            .ReturnsAsync(new Station { Id = stationId, AccountId = TestAccountId });
 
         var result = await _controller.Delete(stationId);
 
