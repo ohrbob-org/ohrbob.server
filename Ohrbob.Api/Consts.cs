@@ -17,6 +17,8 @@ public static class Consts
     public const string GetScalarPolicy = "get_scalar";
 
     public const string CreateAccountPolicy = "CreateAccount";
+    public const string AddIdpPolicy = "AddIdp";
+    public const string GetAccountPolicy = "GetAccount";
 
     
     

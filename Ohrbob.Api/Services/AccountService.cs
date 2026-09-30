@@ -10,6 +10,16 @@ public class AccountService : MongoDbService<Account>
     public AccountService(MongoDbContext dbContext, ILogger<AccountService> logger) : base(dbContext, logger)
     {
     }
+    
+    public override UpdateDefinition<Account> GetUpdateDefinition(Account entryIn)
+    {
+        return Builders<Account>.Update
+            .Set(nameof(Account.Email), entryIn.Email)
+            .Set(nameof(Account.Name), entryIn.Name)
+            .Set(nameof(Account.ProfilePicture), entryIn.ProfilePicture)
+            .Set(nameof(Account.IdentityProviders), entryIn.IdentityProviders)
+            ;
+    }
 
     public async Task<Account?> FindByEmailAddress(string email)
     {

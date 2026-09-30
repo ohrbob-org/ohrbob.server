@@ -20,10 +20,23 @@ public class AccountController : ControllerBase
         _logger = logger;
         _accountService = accountService;
     }
-    [Authorize(Policy = "CreateAccount")]
+    
+    
+    [EndpointSummary("Create an account")]
+    [EndpointDescription(@"Add a new account to the database and return it.
+
+200 - Created and returns the account.
+
+409 - Email already in use")]
+    [Authorize(Policy = Consts.CreateAccountPolicy)]
     [HttpPost("create")]
-    public async Task<IActionResult> CreateAccount(CreateAccountRequest request)
+    public async Task<ActionResult<Account>> CreateAccount(CreateAccountRequest request)
     {
+        var existingAccount = await _accountService.FindByEmailAddress(request.Email);
+        if (existingAccount != null)
+            return Conflict("Email already in use");
+
+        // create
         var account = new Account()
         {
             Email = request.Email,
@@ -33,5 +46,67 @@ public class AccountController : ControllerBase
         };
         var result = await _accountService.CreateAsync(account);
         return Ok(result);
+    }
+    
+    [EndpointSummary("Find Account based on E-Mail. Useful to get Account Id.")]
+    [EndpointDescription(@"200 - Found and returns the account.
+
+404 - Account not found")]
+    [Authorize(Policy = Consts.GetAccountPolicy)]
+    [HttpGet("email/{email}")]
+    public async Task<ActionResult<Account>> GetAccountByEmail(string email)
+    {
+        var existingAccount = await _accountService.FindByEmailAddress(email);
+        if (existingAccount != null)
+            return Ok(existingAccount);
+        return NotFound();
+    }
+    
+    [EndpointSummary("Add Identity Provider to Account based on Account Id")]
+    [EndpointDescription(@"200 - Found Account, added Identity Provider and returns the account.
+
+404 - Account not found
+
+409 - Identity Provider already linked
+")]
+    [Authorize(Policy = Consts.AddIdpPolicy)]
+    [HttpPost("idp")]
+    public async Task<ActionResult<Account>> AddIdp(IdentityProviderRequest request)
+    {
+        var existingAccount = await _accountService.GetAsync(request.AccountId);
+        if (existingAccount == null)
+            return NotFound();
+
+        var existingIdp = existingAccount.IdentityProviders.FirstOrDefault(x => x.Issuer == request.Issuer);
+        if (existingIdp != null)
+            return Conflict("Identity Provider already linked");
+        
+        existingAccount.IdentityProviders.Add(new IdpUser{Issuer = request.Issuer, UserId = request.UserId});
+        var result = await _accountService.UpdateAsync(existingAccount);
+        return Ok(result!);
+    }
+    
+    [EndpointSummary("Remove Identity Provider From Account based on Account Id")]
+    [EndpointDescription(@"200 - Found Account, removed Identity Provider and returns the account.
+
+404 - Account not found
+
+409 - Identity Provider not found
+")]
+    [Authorize(Policy = Consts.AddIdpPolicy)]
+    [HttpDelete("idp")]
+    public async Task<ActionResult<Account>> RemoveIdp(IdentityProviderRequest request)
+    {
+        var existingAccount = await _accountService.GetAsync(request.AccountId);
+        if (existingAccount == null)
+            return NotFound();
+
+        var existingIdp = existingAccount.IdentityProviders.FirstOrDefault(x => x.Issuer == request.Issuer);
+        if (existingIdp == null)
+            return Conflict("Identity Provider not found");
+        
+        existingAccount.IdentityProviders.Remove(existingIdp);
+        var result = await _accountService.UpdateAsync(existingAccount);
+        return Ok(result!);
     }
 }
