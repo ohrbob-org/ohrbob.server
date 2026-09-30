@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
@@ -13,22 +14,25 @@ public class AccountApiService : OhrbobApiService
     {
     }
 
-    public async Task CreateOrUpdateAccountAsync(string name, string email, string picture, string identityProvider, string userId)
+    public async Task<Account?> CreateOrUpdateAccountAsync(string name, string email, string picture, string identityProvider,
+        string userId)
     {
         using var request = BuildRequest(HttpMethod.Post, "/account/create");
-        
+
         request.Content = new StringContent(JsonSerializer.Serialize(new CreateAccountRequest()
         {
             Name = name,
             Email = email,
             ProfilePicture = picture,
-            IdentityProvider = new IdpUser(){ Issuer = identityProvider, UserId = userId}
+            IdentityProvider = new IdpUser() { Issuer = identityProvider, UserId = userId }
         }), Encoding.UTF8, "application/json");
-        using var client =  ClientFactory.CreateClient(nameof(OhrbobApiService));
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
         var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();
+        var account = await response.Content.ReadFromJsonAsync<Account>();
+        return account;
     }
-    
+
     public async Task<Account?> GetAccountAsync(string accountId)
     {
         using var request = BuildRequest(HttpMethod.Get, $"/account/{accountId}");

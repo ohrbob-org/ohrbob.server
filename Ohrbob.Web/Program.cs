@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
 using Ohrbob.Server.Shared.Data;
+using Ohrbob.Web;
 using Ohrbob.Web.Configuration;
 using Ohrbob.Web.Services;
 
@@ -157,11 +158,9 @@ async Task CreateOrGetAccountAsync(TokenValidatedContext context)
 
     // Perform post-login tasks (e.g., sync user record, audit logging)
     
-    await accountService.CreateOrUpdateAccountAsync(name, email, picture, issuer, userId);
-    
-    // 4. Inject additional custom claims into the local ClaimsIdentity
-    /*if (principal?.Identity is ClaimsIdentity identity)
+    var account = await accountService.CreateOrUpdateAccountAsync(name, email, picture, issuer, userId);
+    if (context.Principal?.Identity is ClaimsIdentity identity && account != null)
     {
-        identity.AddClaim(new Claim("CustomAppRole", "StandardUser"));
-    }*/
+        identity.AddClaim(new Claim(Consts.OhrbobAccountIdClaim, account.Id));
+    }
 }
