@@ -8,5 +8,4 @@ public class CreateAccountRequest
     public string Name { get; set; } = string.Empty;
     public string ProfilePicture { get; set; } = string.Empty;
     public IdpUser IdentityProvider { get; set; } = new();
-    public string UserId { get; set; } = string.Empty;
 }

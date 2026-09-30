@@ -14,11 +14,13 @@ public class AccountController : ControllerBase
 {
     private readonly ILogger<AccountController> _logger;
     private readonly AccountService _accountService;
+    private readonly LinkGenerator _linkGenerator;
 
-    public AccountController(ILogger<AccountController> logger, AccountService accountService)
+    public AccountController(ILogger<AccountController> logger, AccountService accountService, LinkGenerator linkGenerator)
     {
         _logger = logger;
         _accountService = accountService;
+        _linkGenerator = linkGenerator;
     }
     
     
@@ -47,11 +49,28 @@ public class AccountController : ControllerBase
         };
         var result = await _accountService.CreateAsync(account);
         if(result != null)
-            return Created(result.Id, result);
+            return Created(_linkGenerator.GetUriByAction(
+                HttpContext,
+                action: nameof(GetAccountById),
+                values: new { id = result.Id }
+                ), result);
         
         return BadRequest();
     }
     
+    [EndpointSummary("Find Account Details based on Id. ")]
+    [EndpointDescription(@"200 - Found and returns the account.
+
+404 - Account not found")]
+    [Authorize(Policy = Consts.GetAccountPolicy)]
+    [HttpGet("id/{id}")]
+    public async Task<ActionResult<Account>> GetAccountById(string id)
+    {
+        var existingAccount = await _accountService.GetAsync(id);
+        if (existingAccount != null)
+            return Ok(existingAccount);
+        return NotFound();
+    }
     [EndpointSummary("Find Account based on E-Mail. Useful to get Account Id.")]
     [EndpointDescription(@"200 - Found and returns the account.
 

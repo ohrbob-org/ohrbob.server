@@ -22,8 +22,7 @@ public class AccountApiService : OhrbobApiService
             Name = name,
             Email = email,
             ProfilePicture = picture,
-            IdentityProvider = new IdpUser(){ Issuer = identityProvider, UserId = userId},
-            UserId = userId
+            IdentityProvider = new IdpUser(){ Issuer = identityProvider, UserId = userId}
         }), Encoding.UTF8, "application/json");
         using var client =  ClientFactory.CreateClient(nameof(OhrbobApiService));
         var response = await client.SendAsync(request);
