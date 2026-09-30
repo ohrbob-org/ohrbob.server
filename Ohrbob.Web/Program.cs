@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
+using Ohrbob.Server.Shared.Data;
 using Ohrbob.Web.Configuration;
 using Ohrbob.Web.Services;
 
@@ -40,7 +41,7 @@ builder.Services.AddHttpClient(nameof(OhrbobApiService))
 
         return handler;
     });
-builder.Services.AddSingleton<OhrbobApiService>();
+builder.Services.AddSingleton<AccountApiService>();
 builder.Services.Configure<OhrbobApiOptions>(builder.Configuration.GetSection("OhrbobApi"));
 
 
@@ -140,7 +141,6 @@ app.Run();
 
 async Task CreateOrGetAccountAsync(TokenValidatedContext context)
 {
-    // 1. Access user claims from the incoming token/principal
     var principal = context.Principal;
     var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value 
                  ?? principal?.FindFirst("sub")?.Value;
@@ -149,19 +149,15 @@ async Task CreateOrGetAccountAsync(TokenValidatedContext context)
     var picture = principal?.FindFirst("picture")?.Value;
     var idp = principal?.FindFirst("idp")?.Value;
 
-    // 2. Issuer claim ("iss") - fallback if "idp" is not explicit
     var issuer = principal?.FindFirst(JwtRegisteredClaimNames.Iss)?.Value 
                  ?? principal?.FindFirst(ClaimTypes.AuthenticationMethod)?.Value;
 
-    // 2. Resolve scoped dependency services (e.g., your DB Context)
-    var dbContext = context.HttpContext.RequestServices.GetRequiredService<OhrbobApiService>();
+    var accountService = context.HttpContext.RequestServices.GetRequiredService<AccountApiService>();
 
-    // 3. Perform post-login tasks (e.g., sync user record, audit logging)
-    if (userId != null)
-    {
-        await dbContext.CreateOrUpdateAccountAsync(name, email, picture, issuer, userId);
-    }
-
+    // Perform post-login tasks (e.g., sync user record, audit logging)
+    
+    await accountService.CreateOrUpdateAccountAsync(name, email, picture, issuer, userId);
+    
     // 4. Inject additional custom claims into the local ClaimsIdentity
     /*if (principal?.Identity is ClaimsIdentity identity)
     {

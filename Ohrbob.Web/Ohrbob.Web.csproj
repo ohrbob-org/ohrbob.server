@@ -22,4 +22,8 @@
     <Folder Include="Middleware\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Client\kiota-lock.json" />
+  </ItemGroup>
+
 </Project>

@@ -25,16 +25,17 @@ public class AccountController : ControllerBase
     [EndpointSummary("Create an account")]
     [EndpointDescription(@"Add a new account to the database and return it.
 
-200 - Created and returns the account.
-
-409 - Email already in use")]
+200 - Returned existing account.
+201 - Created new Account.
+400 - Account could not be created.
+")]
     [Authorize(Policy = Consts.CreateAccountPolicy)]
     [HttpPost("create")]
     public async Task<ActionResult<Account>> CreateAccount(CreateAccountRequest request)
     {
-        var existingAccount = await _accountService.FindByEmailAddress(request.Email);
+        var existingAccount = await _accountService.FindByIdpAsync(request.IdentityProvider);
         if (existingAccount != null)
-            return Conflict("Email already in use");
+            return Ok(existingAccount);
 
         // create
         var account = new Account()
@@ -42,10 +43,13 @@ public class AccountController : ControllerBase
             Email = request.Email,
             Name = request.Name,
             ProfilePicture = request.ProfilePicture,
-            IdentityProviders = [new IdpUser{Issuer = request.IdentityProvider, UserId = request.UserId}]
+            IdentityProviders = [request.IdentityProvider]
         };
         var result = await _accountService.CreateAsync(account);
-        return Ok(result);
+        if(result != null)
+            return Created(result.Id, result);
+        
+        return BadRequest();
     }
     
     [EndpointSummary("Find Account based on E-Mail. Useful to get Account Id.")]

@@ -30,4 +30,12 @@ public class AccountService : MongoDbService<Account>
         return result;
     }
 
+    public async Task<Account?> FindByIdpAsync(IdpUser requestIdentityProvider)
+    {
+        var filter = Builders<Account>.Filter.ElemMatch(x => x.IdentityProviders, idp => idp.Issuer == requestIdentityProvider.Issuer && idp.UserId == requestIdentityProvider.UserId);
+        filter.ExcludeDeleted();
+        var e = await Collection.FindAsync(filter);
+        var result = await e.FirstOrDefaultAsync();
+        return result;
+    }
 }
