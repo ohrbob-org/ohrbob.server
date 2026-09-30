@@ -43,6 +43,40 @@ public class StationsController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Edit(string id)
+    {
+        var accountId = GetAccountId();
+        if (string.IsNullOrEmpty(accountId)) return Forbid();
+
+        var station = await _stationsService.GetStationByIdAsync(id);
+        if (station == null || station.AccountId != accountId)
+            return NotFound();
+
+        return View(station);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(string id, Station station)
+    {
+        var accountId = GetAccountId();
+        if (string.IsNullOrEmpty(accountId)) return Forbid();
+
+        if (id != station.Id)
+            return BadRequest();
+
+        var existingStation = await _stationsService.GetStationByIdAsync(id);
+        if (existingStation == null || existingStation.AccountId != accountId)
+            return NotFound();
+
+        // Ensure AccountId is kept consistent
+        station.AccountId = accountId;
+
+        await _stationsService.UpdateStationAsync(station);
+        return RedirectToAction(nameof(Index));
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(string id)

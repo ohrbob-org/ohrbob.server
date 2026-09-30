@@ -23,6 +23,16 @@ public class StationsApiService : OhrbobApiService
         return await response.Content.ReadFromJsonAsync<List<Station>>();
     }
 
+    public virtual async Task<Station?> GetStationByIdAsync(string id)
+    {
+        using var request = BuildRequest(HttpMethod.Get, $"/stations/{id}");
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Station>();
+    }
+
     public virtual async Task<Station?> CreateStationAsync(string accountId, Station station)
     {
         using var request = BuildRequest(HttpMethod.Post, $"/stations/{accountId}");

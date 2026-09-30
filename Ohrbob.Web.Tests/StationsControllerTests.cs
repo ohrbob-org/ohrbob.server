@@ -107,6 +107,48 @@ public class StationsControllerTests
         _stationsServiceMock.Verify(s => s.DeleteStationAsync(stationId), Times.Once);
     }
 
+    [Test]
+    public async Task Edit_Get_ValidId_ReturnsViewWithStation()
+    {
+        var stationId = "st-123";
+        var station = new Station { Id = stationId, Name = "St To Edit", AccountId = TestAccountId };
+        
+        _stationsServiceMock
+            .Setup(s => s.GetStationByIdAsync(stationId))
+            .ReturnsAsync(station);
+
+        var result = await _controller.Edit(stationId);
+
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult, Is.Not.Null);
+        var model = viewResult.Model as Station;
+        Assert.That(model, Is.Not.Null);
+        Assert.That(model.Name, Is.EqualTo("St To Edit"));
+    }
+
+    [Test]
+    public async Task Edit_Post_ValidStation_UpdatesAndRedirects()
+    {
+        var stationId = "st-123";
+        var station = new Station { Id = stationId, Name = "Updated St", AccountId = TestAccountId };
+
+        _stationsServiceMock
+            .Setup(s => s.GetStationByIdAsync(stationId))
+            .ReturnsAsync(new Station { Id = stationId, AccountId = TestAccountId });
+        
+        _stationsServiceMock
+            .Setup(s => s.UpdateStationAsync(station))
+            .ReturnsAsync(station);
+
+        var result = await _controller.Edit(stationId, station);
+
+        var redirectResult = result as RedirectToActionResult;
+        Assert.That(redirectResult, Is.Not.Null);
+        Assert.That(redirectResult.ActionName, Is.EqualTo(nameof(StationsController.Index)));
+        
+        _stationsServiceMock.Verify(s => s.UpdateStationAsync(station), Times.Once);
+    }
+
     [TearDown]
     public void TearDown()
     {

@@ -43,6 +43,35 @@ public class StationsApiServiceTests
     }
 
     [Test]
+    public async Task GetStationByIdAsync_SendsCorrectRequestAndReturnsStation()
+    {
+        var stationId = "st-123";
+        var station = new Station { Id = stationId, Name = "St 123" };
+        
+        var response = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(JsonSerializer.Serialize(station))
+        };
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req => 
+                    req.Method == HttpMethod.Get && 
+                    req.RequestUri.ToString() == $"https://test.api/stations/{stationId}"),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(response);
+
+        var result = await _service.GetStationByIdAsync(stationId);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Name, Is.EqualTo("St 123"));
+    }
+
+    [Test]
     public async Task GetStationsByAccountIdAsync_SendsCorrectRequestAndReturnsStations()
     {
         var accountId = "acc-123";

@@ -26,6 +26,18 @@ public class StationsController : ControllerBase
         return Ok(stations);
     }
     
+    [EndpointSummary("Get station by id")]
+    [EndpointDescription(@"Returns a station by its id")]
+    [Authorize(policy: Consts.GetStationsPolicy)]
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Station>> GetById(string id)
+    {
+        var station = await _stationsService.GetAsync(id);
+        if (station == null)
+            return NotFound();
+        return Ok(station);
+    }
+
     [EndpointSummary("Create station for accountId")]
     [EndpointDescription(@"Creates station and returns it.")]
     [Authorize(policy: Consts.CreateStationPolicy)]

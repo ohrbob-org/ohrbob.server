@@ -99,6 +99,31 @@ public class StationsControllerTests
     }
 
     [Test]
+    public async Task GetStationById_Works()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var station = new Station { Name = "Station By Id" };
+        var createRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/stations/{accountId}")
+        {
+            Content = JsonContent.Create(station)
+        };
+        createRequest.Headers.Add("X-API-KEY", _testApiKey);
+        var createRes = await _client.SendAsync(createRequest);
+        var createdStation = await createRes.Content.ReadFromJsonAsync<Station>();
+
+        var getRequest = new HttpRequestMessage(HttpMethod.Get, $"/api/stations/{createdStation.Id}");
+        getRequest.Headers.Add("X-API-KEY", _testApiKey);
+
+        var response = await _client.SendAsync(getRequest);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+
+        var fetchedStation = await response.Content.ReadFromJsonAsync<Station>();
+        Assert.That(fetchedStation, Is.Not.Null);
+        Assert.That(fetchedStation.Id, Is.EqualTo(createdStation.Id));
+        Assert.That(fetchedStation.Name, Is.EqualTo("Station By Id"));
+    }
+
+    [Test]
     public async Task UpdateStation_Works()
     {
         var accountId = Guid.NewGuid().ToString();
