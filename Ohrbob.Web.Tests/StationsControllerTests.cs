@@ -78,7 +78,7 @@ public class StationsControllerTests
     [Test]
     public async Task Create_Post_ValidStation_CreatesAndRedirects()
     {
-        var newStation = new Station { Name = "New Station" };
+        var newStation = new Station { Name = "New Station", IsPublic = true };
         
         _stationsServiceMock
             .Setup(s => s.CreateStationAsync(TestAccountId, newStation))
@@ -90,7 +90,7 @@ public class StationsControllerTests
         Assert.That(redirectResult, Is.Not.Null);
         Assert.That(redirectResult.ActionName, Is.EqualTo(nameof(StationsController.Index)));
         
-        _stationsServiceMock.Verify(s => s.CreateStationAsync(TestAccountId, newStation), Times.Once);
+        _stationsServiceMock.Verify(s => s.CreateStationAsync(TestAccountId, It.Is<Station>(st => st.IsPublic == true)), Times.Once);
     }
     
     [Test]
@@ -134,7 +134,7 @@ public class StationsControllerTests
     public async Task Edit_Post_ValidStation_UpdatesAndRedirects()
     {
         var stationId = "st-123";
-        var station = new Station { Id = stationId, Name = "Updated St", AccountId = TestAccountId };
+        var station = new Station { Id = stationId, Name = "Updated St", AccountId = TestAccountId, IsPublic = true };
 
         _stationsServiceMock
             .Setup(s => s.GetStationByIdAsync(stationId))
@@ -150,7 +150,7 @@ public class StationsControllerTests
         Assert.That(redirectResult, Is.Not.Null);
         Assert.That(redirectResult.ActionName, Is.EqualTo(nameof(StationsController.Index)));
         
-        _stationsServiceMock.Verify(s => s.UpdateStationAsync(station), Times.Once);
+        _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.Is<Station>(st => st.IsPublic == true)), Times.Once);
     }
 
     [TearDown]
