@@ -73,6 +73,7 @@ builder.Services.AddSingleton(apiConfig);
 builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbData"));
 builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddSingleton<AccountService>();
+builder.Services.AddSingleton<StationsService>();
 
 builder.Services.AddControllers();
 

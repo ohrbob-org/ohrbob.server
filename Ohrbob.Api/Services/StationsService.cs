@@ -1,5 +1,6 @@
 using MongoDB.Driver;
 using Ohrbob.Api.Configuration;
+using Ohrbob.Api.Extensions.MongoDb;
 using Ohrbob.Server.Shared.Data;
 
 namespace Ohrbob.Api.Services;
@@ -21,6 +22,7 @@ public class StationsService : MongoDbService<Station>
     public async Task<List<Station>> GetByAccountIdAsync(string accountId)
     {
         var filter = Builders<Station>.Filter.Eq(s => s.AccountId, accountId);
+        filter = filter.ExcludeDeleted();
         return await Collection.Find(filter).ToListAsync();
     }
 }
