@@ -97,7 +97,7 @@ public class AccountController : ControllerBase
 
 409 - Identity Provider not found
 ")]
-    [Authorize(Policy = Consts.AddIdpPolicy)]
+    [Authorize(Policy = Consts.RemoveIdpPolicy)]
     [HttpDelete("idp")]
     public async Task<ActionResult<Account>> RemoveIdp(IdentityProviderRequest request)
     {
