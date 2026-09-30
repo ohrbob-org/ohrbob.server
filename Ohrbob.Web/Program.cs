@@ -42,6 +42,7 @@ builder.Services.AddHttpClient(nameof(OhrbobApiService))
         return handler;
     });
 builder.Services.AddSingleton<AccountApiService>();
+builder.Services.AddSingleton<StationsApiService>();
 builder.Services.Configure<OhrbobApiOptions>(builder.Configuration.GetSection("OhrbobApi"));
 
 
