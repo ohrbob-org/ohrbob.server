@@ -1,0 +1,51 @@
+@model List<Ohrbob.Server.Shared.Data.Station>
+
+@{
+    ViewData["Title"] = "My Stations";
+}
+
+<h1>My Stations</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Station</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Is Public</th>
+            <th>Feeds</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@(item.IsPublic ? "Yes" : "No")</td>
+                <td>
+                    @if (item.Feeds != null && item.Feeds.Any())
+                    {
+                        <ul>
+                            @foreach (var feed in item.Feeds)
+                            {
+                                <li>@feed</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <span>No feeds</span>
+                    }
+                </td>
+                <td>
+                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this station?');">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

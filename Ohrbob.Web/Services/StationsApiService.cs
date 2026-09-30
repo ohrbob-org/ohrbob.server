@@ -14,7 +14,7 @@ public class StationsApiService : OhrbobApiService
     {
     }
 
-    public async Task<List<Station>?> GetStationsByAccountIdAsync(string accountId)
+    public virtual async Task<List<Station>?> GetStationsByAccountIdAsync(string accountId)
     {
         using var request = BuildRequest(HttpMethod.Get, $"/stations/account/{accountId}");
         using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
@@ -23,7 +23,7 @@ public class StationsApiService : OhrbobApiService
         return await response.Content.ReadFromJsonAsync<List<Station>>();
     }
 
-    public async Task<Station?> CreateStationAsync(string accountId, Station station)
+    public virtual async Task<Station?> CreateStationAsync(string accountId, Station station)
     {
         using var request = BuildRequest(HttpMethod.Post, $"/stations/{accountId}");
         request.Content = new StringContent(JsonSerializer.Serialize(station), Encoding.UTF8, "application/json");
@@ -33,7 +33,7 @@ public class StationsApiService : OhrbobApiService
         return await response.Content.ReadFromJsonAsync<Station>();
     }
 
-    public async Task<Station?> UpdateStationAsync(Station station)
+    public virtual async Task<Station?> UpdateStationAsync(Station station)
     {
         using var request = BuildRequest(HttpMethod.Put, $"/stations");
         request.Content = new StringContent(JsonSerializer.Serialize(station), Encoding.UTF8, "application/json");
@@ -43,7 +43,7 @@ public class StationsApiService : OhrbobApiService
         return await response.Content.ReadFromJsonAsync<Station>();
     }
 
-    public async Task DeleteStationAsync(string stationId)
+    public virtual async Task DeleteStationAsync(string stationId)
     {
         using var request = BuildRequest(HttpMethod.Delete, $"/stations/{stationId}");
         using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
