@@ -8,6 +8,7 @@ using Serilog;
 using Serilog.Filters;
 using Microsoft.OpenApi;
 using Ohrbob.Api.Extensions.Logger;
+using Ohrbob.Api.Services;
 
 Env.Load();
 var builder = WebApplication.CreateBuilder(args);
@@ -71,6 +72,7 @@ builder.Services.AddSingleton(apiConfig);
 
 builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbData"));
 builder.Services.AddSingleton<MongoDbContext>();
+builder.Services.AddSingleton<AccountService>();
 
 builder.Services.AddControllers();
 

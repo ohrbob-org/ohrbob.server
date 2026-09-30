@@ -1,10 +1,11 @@
+using System;
+
 namespace Ohrbob.Server.Shared.Data;
 
-public class Episode
+public class Episode : DbEntry
 {
-    public string Id { get; set; } = ""; 
-    public string Guid { get; set; } = "";
-    public string FeedUrl { get; set; } = ""; 
-    public string Title { get; set; } = ""; 
-    public string AudioUrl { get; set; } = ""; 
+    public string Guid { get; set; } = string.Empty;
+    public string FeedUrl { get; set; } = string.Empty; 
+    public string Title { get; set; } = string.Empty; 
+    public string AudioUrl { get; set; } = string.Empty;
 }

@@ -1,9 +1,13 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using DotNetEnv;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
+using Ohrbob.Web.Configuration;
+using Ohrbob.Web.Services;
 
 Env.Load();
 
@@ -22,7 +26,22 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient(nameof(OhrbobApiService))
+    .ConfigurePrimaryHttpMessageHandler(() =>
+    {
+        var handler = new HttpClientHandler();
 
+        // Disable certificate checking ONLY in Development
+        if (builder.Environment.IsDevelopment())
+        {
+            handler.ServerCertificateCustomValidationCallback = 
+                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+        }
+
+        return handler;
+    });
+builder.Services.AddSingleton<OhrbobApiService>();
+builder.Services.Configure<OhrbobApiOptions>(builder.Configuration.GetSection("OhrbobApi"));
 
 
 builder.Services.AddAuthentication(options =>
@@ -50,6 +69,7 @@ builder.Services.AddAuthentication(options =>
         options.CallbackPath = "/signin-nextcloud";
         options.Events = new OpenIdConnectEvents
         {
+            OnTokenValidated = CreateOrGetAccountAsync,
             OnRedirectToIdentityProvider = context =>
             {
                 if (context.Request.Scheme == "https")
@@ -78,6 +98,7 @@ builder.Services.AddAuthentication(options =>
         options.CallbackPath = "/signin-google";
         options.Events = new OpenIdConnectEvents
         {
+            OnTokenValidated = CreateOrGetAccountAsync,
             OnRedirectToIdentityProvider = context =>
             {
                 if (context.Request.Scheme == "https")
@@ -116,3 +137,34 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.Run();
+
+async Task CreateOrGetAccountAsync(TokenValidatedContext context)
+{
+    // 1. Access user claims from the incoming token/principal
+    var principal = context.Principal;
+    var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                 ?? principal?.FindFirst("sub")?.Value;
+    var name = principal?.FindFirst(ClaimTypes.Name)?.Value ?? principal?.FindFirst("name")?.Value;
+    var email = principal?.FindFirst(ClaimTypes.Email)?.Value;
+    var picture = principal?.FindFirst("picture")?.Value;
+    var idp = principal?.FindFirst("idp")?.Value;
+
+    // 2. Issuer claim ("iss") - fallback if "idp" is not explicit
+    var issuer = principal?.FindFirst(JwtRegisteredClaimNames.Iss)?.Value 
+                 ?? principal?.FindFirst(ClaimTypes.AuthenticationMethod)?.Value;
+
+    // 2. Resolve scoped dependency services (e.g., your DB Context)
+    var dbContext = context.HttpContext.RequestServices.GetRequiredService<OhrbobApiService>();
+
+    // 3. Perform post-login tasks (e.g., sync user record, audit logging)
+    if (userId != null)
+    {
+        await dbContext.CreateOrUpdateAccountAsync(name, email, picture, issuer, userId);
+    }
+
+    // 4. Inject additional custom claims into the local ClaimsIdentity
+    /*if (principal?.Identity is ClaimsIdentity identity)
+    {
+        identity.AddClaim(new Claim("CustomAppRole", "StandardUser"));
+    }*/
+}

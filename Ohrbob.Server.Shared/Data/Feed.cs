@@ -1,7 +1,8 @@
+using System;
+
 namespace Ohrbob.Server.Shared.Data;
 
-public class Feed
+public class Feed : DbEntry
 {
-    public string Id { get; set; } = "";
-    public string Url { get; set; } = ""; 
+    public string Url { get; set; } = string.Empty;
 }
