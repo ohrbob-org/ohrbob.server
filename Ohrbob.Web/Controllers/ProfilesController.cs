@@ -10,11 +10,13 @@ public class ProfilesController : Controller
 {
     private readonly ProfilesApiService _profilesService;
     private readonly StationsApiService _stationsService;
+    private readonly AccountApiService _accountService;
 
-    public ProfilesController(ProfilesApiService profilesService, StationsApiService stationsService)
+    public ProfilesController(ProfilesApiService profilesService, StationsApiService stationsService, AccountApiService accountService)
     {
         _profilesService = profilesService;
         _stationsService = stationsService;
+        _accountService = accountService;
     }
 
     private string? GetAccountId() => User.FindFirst(Consts.OhrbobAccountIdClaim)?.Value;
@@ -125,5 +127,29 @@ public class ProfilesController : Controller
 
         await _profilesService.DeleteProfileAsync(id);
         return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Select(string id, string? returnUrl)
+    {
+        var accountId = GetAccountId();
+        if (string.IsNullOrEmpty(accountId)) return Forbid();
+
+        var profile = await _profilesService.GetProfileByIdAsync(id);
+        if (profile != null && profile.AccountId == accountId)
+        {
+            await _accountService.SetActiveProfileAsync(accountId, id);
+            Response.Cookies.Append("Ohrbob_ActiveProfileId", id, new CookieOptions { 
+                HttpOnly = true, 
+                Secure = true, 
+                Expires = DateTimeOffset.UtcNow.AddDays(30) 
+            });
+        }
+
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            return Redirect(returnUrl);
+            
+        return RedirectToAction(nameof(Index), "Home");
     }
 }
