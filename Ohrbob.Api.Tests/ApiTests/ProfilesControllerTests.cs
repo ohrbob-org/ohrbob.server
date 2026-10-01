@@ -53,7 +53,7 @@ public class ProfilesControllerTests
     {
         // Workaround to bypass auth policies for unit testing controllers directly
         using var scope = _app.Services.CreateScope();
-        var controller = new Controllers.ProfilesController(scope.ServiceProvider.GetRequiredService<ProfilesService>());
+        var controller = new Controllers.ProfilesController(scope.ServiceProvider.GetRequiredService<ProfilesService>(), scope.ServiceProvider.GetRequiredService<StationsService>());
         var accountId = Guid.NewGuid().ToString();
         var profile = new Profile { AccountId = accountId, Name = "Test Profile" };
         var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
@@ -72,7 +72,7 @@ public class ProfilesControllerTests
     public async Task CreateProfile_ShouldGenerateStreamToken()
     {
         using var scope = _app.Services.CreateScope();
-        var controller = new Controllers.ProfilesController(scope.ServiceProvider.GetRequiredService<ProfilesService>());
+        var controller = new Controllers.ProfilesController(scope.ServiceProvider.GetRequiredService<ProfilesService>(), scope.ServiceProvider.GetRequiredService<StationsService>());
         var accountId = Guid.NewGuid().ToString();
         var profile = new Profile { Name = "New Profile" };
         
@@ -85,5 +85,30 @@ public class ProfilesControllerTests
         Assert.That(created.Name, Is.EqualTo("New Profile"));
         Assert.That(string.IsNullOrEmpty(created.StreamToken), Is.False);
         Assert.That(Guid.TryParse(created.StreamToken, out _), Is.True);
+    }
+
+    [Test]
+    public async Task AddStation_ShouldAddStationId()
+    {
+        using var scope = _app.Services.CreateScope();
+        var controller = new Controllers.ProfilesController(
+            scope.ServiceProvider.GetRequiredService<ProfilesService>(),
+            scope.ServiceProvider.GetRequiredService<StationsService>()
+        );
+        
+        var accountId = Guid.NewGuid().ToString();
+        var profile = new Profile { AccountId = accountId, Name = "Test Profile" };
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        await profilesService.CreateAsync(profile);
+
+        var station = new Station { AccountId = accountId, Name = "Test Station" };
+        var stationsService = scope.ServiceProvider.GetRequiredService<StationsService>();
+        await stationsService.CreateAsync(station);
+
+        var result = await controller.AddStation(profile.Id, station.Id);
+        Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.OkResult>());
+
+        var updatedProfile = await profilesService.GetAsync(profile.Id);
+        Assert.That(updatedProfile.AllowedStationIds, Contains.Item(station.Id));
     }
 }

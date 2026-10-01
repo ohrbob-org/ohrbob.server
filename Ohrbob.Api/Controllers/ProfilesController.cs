@@ -10,10 +10,12 @@ namespace Ohrbob.Api.Controllers;
 public class ProfilesController : ControllerBase
 {
     private readonly ProfilesService _profilesService;
+    private readonly StationsService _stationsService;
 
-    public ProfilesController(ProfilesService profilesService)
+    public ProfilesController(ProfilesService profilesService, StationsService stationsService)
     {
         _profilesService = profilesService;
+        _stationsService = stationsService;
     }
 
     [EndpointSummary("Get all profiles by accountId")]
@@ -71,4 +73,49 @@ public class ProfilesController : ControllerBase
         if (!result) return NotFound();
         return Ok();
     }
+
+
+    [EndpointSummary("Add a station to a profile")]
+    [Authorize(Policy = Consts.GetAccountPolicy)]
+    [HttpPost("{id}/stations/{stationId}")]
+    public async Task<IActionResult> AddStation(string id, string stationId)
+    {
+        var profile = await _profilesService.GetAsync(id);
+        if (profile == null) return NotFound("Profile not found");
+
+        var station = await _stationsService.GetAsync(stationId);
+        if (station == null) return NotFound("Station not found");
+        
+        if (station.AccountId != profile.AccountId) return Forbid();
+
+        var allowedList = profile.AllowedStationIds?.ToList() ?? new List<string>();
+        if (!allowedList.Contains(stationId))
+        {
+            allowedList.Add(stationId);
+            profile.AllowedStationIds = allowedList.ToArray();
+            await _profilesService.UpdateAsync(profile);
+        }
+
+        return Ok();
+    }
+
+    [EndpointSummary("Remove a station from a profile")]
+    [Authorize(Policy = Consts.GetAccountPolicy)]
+    [HttpDelete("{id}/stations/{stationId}")]
+    public async Task<IActionResult> RemoveStation(string id, string stationId)
+    {
+        var profile = await _profilesService.GetAsync(id);
+        if (profile == null) return NotFound("Profile not found");
+
+        var allowedList = profile.AllowedStationIds?.ToList() ?? new List<string>();
+        if (allowedList.Contains(stationId))
+        {
+            allowedList.Remove(stationId);
+            profile.AllowedStationIds = allowedList.ToArray();
+            await _profilesService.UpdateAsync(profile);
+        }
+
+        return Ok();
+    }
+
 }
