@@ -1,0 +1,60 @@
+@model Ohrbob.Server.Shared.Data.Profile
+
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<h1>Edit Profile</h1>
+
+<h4>Profile</h4>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="AccountId" />
+            
+            <div class="form-group mb-3">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" required />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group mb-3">
+                <label class="control-label">Stream Token</label>
+                <input type="text" class="form-control" value="@Model.StreamToken" readonly />
+                <small class="text-muted">Stream tokens are generated automatically and cannot be changed.</small>
+            </div>
+
+            <div class="form-group mb-4">
+                <label class="control-label fw-bold">Allowed Stations</label>
+                <div class="border rounded p-3">
+                @if (ViewBag.Stations != null)
+                {
+                    var allowed = Model.AllowedStationIds?.ToList() ?? new List<string>();
+                    foreach (var station in ViewBag.Stations as IEnumerable<Ohrbob.Server.Shared.Data.Station>)
+                    {
+                        var isChecked = allowed.Contains(station.Id) ? "checked" : "";
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="selectedStations" value="@station.Id" id="station_@station.Id" @isChecked>
+                            <label class="form-check-label" for="station_@station.Id">
+                                @station.Name
+                            </label>
+                        </div>
+                    }
+                }
+                </div>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

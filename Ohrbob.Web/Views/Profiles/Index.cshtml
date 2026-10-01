@@ -1,0 +1,43 @@
+@model IEnumerable<Ohrbob.Server.Shared.Data.Profile>
+
+@{
+    ViewData["Title"] = "Profiles";
+}
+
+<h1>Profiles</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Profile</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>StreamToken</th>
+            <th>Stations</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @item.Name
+            </td>
+            <td>
+                <code>@item.StreamToken</code>
+            </td>
+            <td>
+                @(item.AllowedStationIds?.Length ?? 0)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
+                
+                <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this profile?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
