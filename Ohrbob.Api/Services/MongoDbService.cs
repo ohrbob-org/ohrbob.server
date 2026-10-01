@@ -40,7 +40,7 @@ public abstract class MongoDbService<T> where T : DbEntry
         var filter = Builders<T>.Filter.Eq(x => x.Id, entry.Id);
         var result = await Collection.UpdateOneAsync(filter, GetUpdateDefinition(entry));
         Logger.LogAudit("Update", entry, result);
-        if (!result.IsAcknowledged || result.ModifiedCount == 0)
+        if (!result.IsAcknowledged || result.MatchedCount == 0)
             return null;
         return await GetAsync(entry.Id);
     }

@@ -7,7 +7,7 @@ public class FeedUpdateWorker : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<FeedUpdateWorker> _logger;
-    private readonly TimeSpan _checkInterval = TimeSpan.FromHours(1);
+    private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1);
 
     public FeedUpdateWorker(IServiceProvider serviceProvider, ILogger<FeedUpdateWorker> logger)
     {

@@ -58,7 +58,7 @@ public class StationsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(string id, Station station)
+    public async Task<IActionResult> Edit(string id, [Bind(Prefix = "Station")] Station station)
     {
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();

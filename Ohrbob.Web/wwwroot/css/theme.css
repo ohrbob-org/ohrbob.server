@@ -1,5 +1,18 @@
 @charset "UTF-8";
-@import url("https://fonts.googleapis.com/css2?family=Sulphur+Point:wght@400;700&display=swap");
+@font-face {
+  font-family: "Sulphur Point";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../css/fonts/sulphurpoint-regular.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Sulphur Point";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../css/fonts/sulphurpoint-bold.ttf") format("truetype");
+}
 /*!
  * Bootstrap  v5.3.8 (https://getbootstrap.com/)
  * Copyright 2011-2025 The Bootstrap Authors
@@ -218,7 +231,8 @@ hr {
 h6, .h6, h5, .h5, h4, .h4, h3, .h3, h2, .h2, h1, .h1 {
   margin-top: 0;
   margin-bottom: 0.5rem;
-  font-weight: 500;
+  font-family: "Sulphur Point", sans-serif;
+  font-weight: 700;
   line-height: 1.2;
   color: var(--bs-heading-color);
 }
@@ -11901,6 +11915,54 @@ textarea.form-control-lg {
   color: rgba(11, 28, 93, 0.4);
 }
 
+.btn-glass {
+  background: rgba(11, 28, 93, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.4); /* White-ish highlight border rather than dark outline */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  color: rgba(11, 28, 93, 0.5); /* Lighter opacity for icons */
+  transition: all 0.2s ease;
+  text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.9), -1px -1px 1px rgba(0, 0, 0, 0.1);
+}
+.btn-glass:hover {
+  background: rgba(11, 28, 93, 0.12);
+  border-color: rgba(255, 255, 255, 0.6);
+  color: rgba(11, 28, 93, 0.7); /* Slightly stronger on hover */
+}
+.btn-glass:active {
+  background: rgba(11, 28, 93, 0.15);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+  text-shadow: -1px -1px 1px rgba(255, 255, 255, 0.9), 1px 1px 1px rgba(0, 0, 0, 0.1);
+  transform: translateY(1px);
+  border-color: rgba(11, 28, 93, 0.1);
+  color: rgba(11, 28, 93, 0.8);
+}
+
+.btn-glass-primary {
+  background: rgba(251, 96, 2, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.4); /* White-ish highlight border */
+  box-shadow: 0 4px 8px rgba(251, 96, 2, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  color: rgba(251, 96, 2, 0.8); /* Lighter opacity for icons */
+  transition: all 0.2s ease;
+  text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.6), -1px -1px 1px rgba(0, 0, 0, 0.2);
+}
+.btn-glass-primary:hover {
+  background: rgba(251, 96, 2, 0.25);
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #fb6002; /* Full strength on hover */
+  box-shadow: 0 4px 12px rgba(251, 96, 2, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.btn-glass-primary:active {
+  background: rgba(251, 96, 2, 0.3);
+  box-shadow: inset 0 2px 5px rgba(251, 96, 2, 0.4);
+  text-shadow: -1px -1px 1px rgba(255, 255, 255, 0.6), 1px 1px 1px rgba(0, 0, 0, 0.2);
+  transform: translateY(1px);
+  border-color: rgba(251, 96, 2, 0.2);
+}
+
 .audio-widget {
   position: fixed;
   bottom: 20px;
@@ -11923,8 +11985,41 @@ textarea.form-control-lg {
 }
 .audio-widget .audio-controls {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-evenly;
   align-items: center;
+}
+.audio-widget .audio-controls .btn-play {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0;
+  padding-left: 3px; /* Optical centering for the play triangle */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  line-height: 1;
+  border-radius: 50% !important;
+}
+.audio-widget .audio-controls .btn-icon {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  line-height: 1;
+  border-radius: 50% !important;
+}
+.audio-widget .audio-controls .btn-icon:first-child {
+  padding-right: 2px; /* Optical centering for left arrows */
+}
+.audio-widget .audio-controls .btn-icon:last-child {
+  padding-left: 2px; /* Optical centering for right arrows */
 }
 
 /*# sourceMappingURL=theme.css.map */
