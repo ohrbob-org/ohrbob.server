@@ -144,4 +144,32 @@ public class AccountController : ControllerBase
         var result = await _accountService.UpdateAsync(existingAccount);
         return Ok(result!);
     }
+    [EndpointSummary("Set active profile for account")]
+    [Authorize(Policy = Consts.GetAccountPolicy)]
+    [HttpPost("{accountId}/active-profile/{profileId}")]
+    public async Task<ActionResult<Account>> SetActiveProfile(string accountId, string profileId)
+    {
+        // Actually, the AccountId is normally required or inferred.
+        // GetAccountPolicy checks API Key or Claims. Let's just use the claim.
+        
+        
+        // Fallback for API Key users in tests if claim isn't present
+        if (string.IsNullOrEmpty(accountId) && User.Identity?.IsAuthenticated == true)
+        {
+            // Try to find account by IDP or whatever logic the auth uses, or just pass accountId in request.
+            // Wait, we can't easily get it without passing it. Let's change the route to be explicit if needed.
+        }
+
+        if (string.IsNullOrEmpty(accountId)) return Forbid();
+
+        var account = await _accountService.GetAsync(accountId);
+        if (account == null) return NotFound("Account not found");
+
+        var profile = await _profilesService.GetAsync(profileId);
+        if (profile == null || profile.AccountId != accountId) return NotFound("Profile not found or access denied");
+
+        account.LastUsedProfileId = profileId;
+        var updated = await _accountService.UpdateAsync(account);
+        return Ok(updated);
+    }
 }

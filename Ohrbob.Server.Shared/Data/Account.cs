@@ -9,5 +9,6 @@ public class Account : DbEntry
     public string Name { get; set; } = string.Empty;
     public string ProfilePicture { get; set; } = string.Empty;
     public List<IdpUser> IdentityProviders { get; set; } = new();
+    public string LastUsedProfileId { get; set; } = string.Empty;
     
 }

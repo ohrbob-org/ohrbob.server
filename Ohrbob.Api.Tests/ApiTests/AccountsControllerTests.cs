@@ -1,3 +1,4 @@
+using Ohrbob.Api.Services;
 using System.Net;
 using System.Net.Http.Json;
 using System.Security.Claims;
@@ -186,5 +187,22 @@ public class AccountsControllerTests
         var result = await response.Content.ReadFromJsonAsync<Account>();
         Assert.That(result, Is.Not.Null);
         Assert.That(result.IdentityProviders.Count, Is.EqualTo(0));
+    }
+    [Test]
+    public async Task SetActiveProfile_UpdatesLastUsedProfileId()
+    {
+        var account = await CreateTestAccountAsync();
+        var profileService = _app.Services.CreateScope().ServiceProvider.GetRequiredService<ProfilesService>();
+        var profile = new Profile { AccountId = account.Id, Name = "Test Profile" };
+        await profileService.CreateAsync(profile);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/api/account/{account.Id}/active-profile/{profile.Id}");
+        request.Headers.Add("X-API-KEY", _testApiKey);
+        var response = await _client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        var updatedAccount = await response.Content.ReadFromJsonAsync<Account>();
+        Assert.That(updatedAccount, Is.Not.Null);
+        Assert.That(updatedAccount.LastUsedProfileId, Is.EqualTo(profile.Id));
     }
 }
