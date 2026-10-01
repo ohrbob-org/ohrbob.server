@@ -11,10 +11,14 @@ namespace Ohrbob.Api.Controllers;
 public class StationsController : ControllerBase
 {
     private readonly StationsService _stationsService;
+    private readonly FeedsService _feedsService;
+    private readonly EpisodesService _episodesService;
 
-    public StationsController(StationsService stationsService)
+    public StationsController(StationsService stationsService, FeedsService feedsService, EpisodesService episodesService)
     {
         _stationsService = stationsService;
+        _feedsService = feedsService;
+        _episodesService = episodesService;
     }
     [EndpointSummary("Get all stations by accountId")]
     [EndpointDescription(@"Returns a list of all stations associated with an accountId")]
@@ -36,6 +40,36 @@ public class StationsController : ControllerBase
         if (station == null)
             return NotFound();
         return Ok(station);
+    }
+
+    [EndpointSummary("Get station details with feed stats")]
+    [Authorize(policy: Consts.GetStationsPolicy)]
+    [HttpGet("{id}/details")]
+    public async Task<ActionResult<StationWithFeedsDto>> GetDetailsById(string id)
+    {
+        var station = await _stationsService.GetAsync(id);
+        if (station == null) return NotFound();
+
+        var dto = new StationWithFeedsDto { Station = station };
+        
+        if (station.Feeds != null)
+        {
+            foreach (var url in station.Feeds)
+            {
+                var feed = await _feedsService.FindByUrlAsync(url);
+                var stats = new FeedStatsDto { Url = url };
+                
+                if (feed != null)
+                {
+                    stats.Title = feed.Title;
+                    stats.LastUpdated = feed.LastUpdated;
+                    stats.EpisodeCount = await _episodesService.CountByFeedIdAsync(feed.Id);
+                }
+                dto.Feeds.Add(stats);
+            }
+        }
+        
+        return Ok(dto);
     }
 
     [EndpointSummary("Create station for accountId")]
