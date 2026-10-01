@@ -1,3 +1,4 @@
+using Ohrbob.Server.Shared.Requests;
 using System.Net;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
@@ -75,7 +76,7 @@ public class StationsApiServiceTests
     public async Task GetStationsByAccountIdAsync_SendsCorrectRequestAndReturnsStations()
     {
         var accountId = "acc-123";
-        var stations = new List<Station> { new Station { Name = "St 1" } };
+        var stations = new List<StationWithFeedsDto> { new StationWithFeedsDto { Station = new Station { Name = "St 1" } } };
         
         var response = new HttpResponseMessage
         {
@@ -98,7 +99,7 @@ public class StationsApiServiceTests
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Count, Is.EqualTo(1));
-        Assert.That(result[0].Name, Is.EqualTo("St 1"));
+        Assert.That(result[0].Station.Name, Is.EqualTo("St 1"));
     }
     
     [Test]

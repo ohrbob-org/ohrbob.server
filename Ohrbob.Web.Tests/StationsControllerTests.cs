@@ -1,3 +1,4 @@
+using Ohrbob.Server.Shared.Requests;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -52,7 +53,7 @@ public class StationsControllerTests
     [Test]
     public async Task Index_ReturnsViewWithStationsForCurrentUser()
     {
-        var stations = new List<Station> { new Station { Name = "Station 1" } };
+        var stations = new List<StationWithFeedsDto> { new StationWithFeedsDto { Station = new Station { Name = "Station 1" } } };
         _stationsServiceMock
             .Setup(s => s.GetStationsByAccountIdAsync(TestAccountId))
             .ReturnsAsync(stations);
@@ -61,10 +62,10 @@ public class StationsControllerTests
 
         var viewResult = result as ViewResult;
         Assert.That(viewResult, Is.Not.Null);
-        var model = viewResult.Model as List<Station>;
+        var model = viewResult.Model as List<StationWithFeedsDto>;
         Assert.That(model, Is.Not.Null);
         Assert.That(model.Count, Is.EqualTo(1));
-        Assert.That(model[0].Name, Is.EqualTo("Station 1"));
+        Assert.That(model[0].Station.Name, Is.EqualTo("Station 1"));
     }
     
     [Test]

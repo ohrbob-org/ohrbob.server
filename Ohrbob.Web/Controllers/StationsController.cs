@@ -23,7 +23,7 @@ public class StationsController : Controller
         if (string.IsNullOrEmpty(accountId)) return Forbid();
 
         var stations = await _stationsService.GetStationsByAccountIdAsync(accountId);
-        return View(stations ?? new List<Station>());
+        return View(stations ?? new List<Ohrbob.Server.Shared.Requests.StationWithFeedsDto>());
     }
 
     [HttpGet]

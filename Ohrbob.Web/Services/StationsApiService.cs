@@ -14,13 +14,13 @@ public class StationsApiService : OhrbobApiService
     {
     }
 
-    public virtual async Task<List<Station>?> GetStationsByAccountIdAsync(string accountId)
+    public virtual async Task<List<Ohrbob.Server.Shared.Requests.StationWithFeedsDto>?> GetStationsByAccountIdAsync(string accountId)
     {
         using var request = BuildRequest(HttpMethod.Get, $"/stations/account/{accountId}");
         using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
         var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<List<Station>>();
+        return await response.Content.ReadFromJsonAsync<List<Ohrbob.Server.Shared.Requests.StationWithFeedsDto>>();
     }
 
     public virtual async Task<Station?> GetStationByIdAsync(string id)
