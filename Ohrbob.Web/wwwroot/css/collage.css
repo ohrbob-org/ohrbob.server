@@ -52,3 +52,4 @@
 .btn-check:checked + label .card {
     border: 2px solid #0d6efd !important;
 }
+.cursor-pointer { cursor: pointer; }
