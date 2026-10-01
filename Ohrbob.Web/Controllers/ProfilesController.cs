@@ -60,7 +60,7 @@ public class ProfilesController : Controller
             return NotFound();
 
         var stations = await _stationsService.GetStationsByAccountIdAsync(accountId);
-        ViewBag.Stations = stations ?? new List<Station>();
+        ViewBag.Stations = stations ?? new List<Ohrbob.Server.Shared.Requests.StationWithFeedsDto>();
 
         return View(profile);
     }
@@ -108,7 +108,7 @@ public class ProfilesController : Controller
         }
 
         var stations = await _stationsService.GetStationsByAccountIdAsync(accountId);
-        ViewBag.Stations = stations ?? new List<Station>();
+        ViewBag.Stations = stations ?? new List<Ohrbob.Server.Shared.Requests.StationWithFeedsDto>();
         return View(profile);
     }
 

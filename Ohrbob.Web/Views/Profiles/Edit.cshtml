@@ -33,13 +33,13 @@
                 @if (ViewBag.Stations != null)
                 {
                     var allowed = Model.AllowedStationIds?.ToList() ?? new List<string>();
-                    foreach (var station in ViewBag.Stations as IEnumerable<Ohrbob.Server.Shared.Data.Station>)
+                    foreach (var station in ViewBag.Stations as IEnumerable<Ohrbob.Server.Shared.Requests.StationWithFeedsDto>)
                     {
-                        var isChecked = allowed.Contains(station.Id) ? "checked" : "";
+                        var isChecked = allowed.Contains(station.Station.Id) ? "checked" : "";
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="selectedStations" value="@station.Id" id="station_@station.Id" @isChecked>
-                            <label class="form-check-label" for="station_@station.Id">
-                                @station.Name
+                            <input class="form-check-input" type="checkbox" name="selectedStations" value="@station.Station.Id" id="station_@station.Station.Id" @isChecked>
+                            <label class="form-check-label" for="station_@station.Station.Id">
+                                @station.Station.Name
                             </label>
                         </div>
                     }
