@@ -1,3 +1,4 @@
+using Ohrbob.Server.Shared.Requests;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
@@ -92,10 +93,10 @@ public class StationsControllerTests
         var response = await _client.SendAsync(getRequest);
         Assert.That(response.IsSuccessStatusCode);
 
-        var stations = await response.Content.ReadFromJsonAsync<List<Station>>();
-        Assert.That(stations, Is.Not.Null);
-        Assert.That(stations.Count, Is.GreaterThan(0));
-        Assert.That(stations.Any(s => s.Name == "Station 1"));
+        var dtos = await response.Content.ReadFromJsonAsync<List<StationWithFeedsDto>>();
+        Assert.That(dtos, Is.Not.Null);
+        Assert.That(dtos.Count, Is.GreaterThan(0));
+        Assert.That(dtos.Any(s => s.Station.Name == "Station 1"));
     }
 
     [Test]
@@ -181,7 +182,7 @@ public class StationsControllerTests
         getRequest.Headers.Add("X-API-KEY", _testApiKey);
         
         var getRes = await _client.SendAsync(getRequest);
-        var stations = await getRes.Content.ReadFromJsonAsync<List<Station>>();
-        Assert.That(stations.Any(s => s.Id == createdStation.Id), Is.False);
+        var stations = await getRes.Content.ReadFromJsonAsync<List<StationWithFeedsDto>>();
+        Assert.That(stations.Any(s => s.Station.Id == createdStation.Id), Is.False);
     }
 }

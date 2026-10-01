@@ -24,10 +24,35 @@ public class StationsController : ControllerBase
     [EndpointDescription(@"Returns a list of all stations associated with an accountId")]
     [Authorize(policy: Consts.GetStationsPolicy)]
     [HttpGet("account/{accountId}")]
-    public async Task<ActionResult<List<Station>>> GetByAccountId(string accountId)
+    public async Task<ActionResult<List<StationWithFeedsDto>>> GetByAccountId(string accountId)
     {
         var stations = await _stationsService.GetByAccountIdAsync(accountId);
-        return Ok(stations);
+        var dtos = new List<StationWithFeedsDto>();
+
+        foreach (var station in stations)
+        {
+            var dto = new StationWithFeedsDto { Station = station };
+            if (station.Feeds != null && station.Feeds.Any())
+            {
+                foreach (var url in station.Feeds)
+                {
+                    var feed = await _feedsService.FindByUrlAsync(url);
+                    var stats = new FeedStatsDto { Url = url };
+                    if (feed != null)
+                    {
+                        stats.Title = feed.Title;
+                        stats.LastUpdated = feed.LastUpdated;
+                        stats.ImageUrl = feed.ImageUrl;
+                    
+                        
+                        stats.EpisodeCount = await _episodesService.CountByFeedIdAsync(feed.Id);
+                    }
+                    dto.Feeds.Add(stats);
+                }
+            }
+            dtos.Add(dto);
+        }
+        return Ok(dtos);
     }
     
     [EndpointSummary("Get station by id")]
@@ -63,6 +88,8 @@ public class StationsController : ControllerBase
                 {
                     stats.Title = feed.Title;
                     stats.LastUpdated = feed.LastUpdated;
+                        stats.ImageUrl = feed.ImageUrl;
+                    
                     stats.EpisodeCount = await _episodesService.CountByFeedIdAsync(feed.Id);
                 }
                 dto.Feeds.Add(stats);
