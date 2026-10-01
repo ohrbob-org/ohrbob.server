@@ -30,16 +30,21 @@
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Profiles" asp-action="Index">Profiles</a>
-                            </li>
-                            <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Stations" asp-action="Index">My Stations</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Logout">Logout</a>
                             </li>
                         }
                     </ul>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <ul class="navbar-nav ms-auto">
+                            @await Component.InvokeAsync("ProfileSelector")
+                            <li class="nav-item ms-2">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Logout" title="Logout">
+                                    <i class="bi bi-box-arrow-right fs-5"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    }
                 </div>
             </div>
         </nav>
