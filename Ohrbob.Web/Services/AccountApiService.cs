@@ -35,7 +35,7 @@ public class AccountApiService : OhrbobApiService
 
     public async Task<Account?> GetAccountAsync(string accountId)
     {
-        using var request = BuildRequest(HttpMethod.Get, $"/account/{accountId}");
+        using var request = BuildRequest(HttpMethod.Get, $"/account/id/{accountId}");
         using var client =  ClientFactory.CreateClient(nameof(OhrbobApiService));
         var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();
@@ -76,7 +76,7 @@ public class AccountApiService : OhrbobApiService
     }
     public async Task<Account?> SetActiveProfileAsync(string accountId, string profileId)
     {
-        using var request = BuildRequest(HttpMethod.Post, $"/account/{accountId}/active-profile/{profileId}");
+        using var request = BuildRequest(HttpMethod.Post, $"/account/id/{accountId}/active-profile/{profileId}");
         using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
         var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();
