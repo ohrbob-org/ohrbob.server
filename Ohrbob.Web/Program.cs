@@ -163,5 +163,9 @@ async Task CreateOrGetAccountAsync(TokenValidatedContext context)
     if (context.Principal?.Identity is ClaimsIdentity identity && account != null)
     {
         identity.AddClaim(new Claim(Consts.OhrbobAccountIdClaim, account.Id));
+        if (!string.IsNullOrEmpty(account.LastUsedProfileId))
+        {
+            context.HttpContext.Response.Cookies.Append("Ohrbob_ActiveProfileId", account.LastUsedProfileId, new CookieOptions { HttpOnly = true, Secure = true, Expires = DateTimeOffset.UtcNow.AddDays(30) });
+        }
     }
 }
