@@ -28,6 +28,12 @@ public class FeedsService : MongoDbService<Feed>
         return await Collection.Find(filter).ToListAsync();
     }
 
+    public async Task<Feed?> FindByUrlAsync(string url)
+    {
+        var filter = Builders<Feed>.Filter.Eq(f => f.Url, url);
+        return await Collection.Find(filter).FirstOrDefaultAsync();
+    }
+
     public async Task<Feed?> ValidateAndParseFeedAsync(string url)
     {
         try

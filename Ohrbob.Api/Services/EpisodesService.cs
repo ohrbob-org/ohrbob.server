@@ -29,4 +29,10 @@ public class EpisodesService : MongoDbService<Episode>
         );
         return await Collection.Find(filter).FirstOrDefaultAsync();
     }
+
+    public async Task<long> CountByFeedIdAsync(string feedId)
+    {
+        var filter = Builders<Episode>.Filter.Eq(e => e.FeedId, feedId);
+        return await Collection.CountDocumentsAsync(filter);
+    }
 }
