@@ -116,18 +116,19 @@ public class StationsControllerTests
     {
         var stationId = "st-123";
         var station = new Station { Id = stationId, Name = "St To Edit", AccountId = TestAccountId };
+        var dto = new Ohrbob.Server.Shared.Requests.StationWithFeedsDto { Station = station };
         
         _stationsServiceMock
-            .Setup(s => s.GetStationByIdAsync(stationId))
-            .ReturnsAsync(station);
+            .Setup(s => s.GetStationDetailsByIdAsync(stationId))
+            .ReturnsAsync(dto);
 
         var result = await _controller.Edit(stationId);
 
         var viewResult = result as ViewResult;
         Assert.That(viewResult, Is.Not.Null);
-        var model = viewResult.Model as Station;
+        var model = viewResult.Model as Ohrbob.Server.Shared.Requests.StationWithFeedsDto;
         Assert.That(model, Is.Not.Null);
-        Assert.That(model.Name, Is.EqualTo("St To Edit"));
+        Assert.That(model.Station.Name, Is.EqualTo("St To Edit"));
     }
 
     [Test]
