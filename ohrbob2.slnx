@@ -1,6 +1,8 @@
 <Solution>
   <Project Path="Ohrbob.Api.Tests/Ohrbob.Api.Tests.csproj" />
   <Project Path="Ohrbob.Api/Ohrbob.Api.csproj" />
+  <Project Path="Ohrbob.Player.Tests/Ohrbob.Player.Tests.csproj" />
+  <Project Path="Ohrbob.Player/Ohrbob.Player.csproj" />
   <Project Path="Ohrbob.Server.Shared/Ohrbob.Server.Shared.csproj" />
   <Project Path="Ohrbob.Web.Tests/Ohrbob.Web.Tests.csproj" />
   <Project Path="Ohrbob.Web/Ohrbob.Web.csproj" />
