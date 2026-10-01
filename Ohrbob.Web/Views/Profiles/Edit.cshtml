@@ -48,7 +48,10 @@
                         <div class="col">
                             <input type="checkbox" class="btn-check" name="selectedStations" value="@station.Station.Id" id="station_@station.Station.Id" @isChecked autocomplete="off">
                             <label class="btn btn-outline-primary w-100 p-0 text-start h-100 overflow-hidden" for="station_@station.Station.Id">
-                                <div class="card h-100 border-0 bg-transparent">
+                                <div class="card h-100 border-0 bg-transparent position-relative">
+                                    <div class="station-check-overlay">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                    </div>
                                     <div class="collage-container @gridClass card-img-top">
                                         @if (!displayFeeds.Any())
                                         {
