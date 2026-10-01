@@ -75,6 +75,7 @@ builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddSingleton<AccountService>();
 builder.Services.AddSingleton<StationsService>();
 builder.Services.AddSingleton<EpisodesService>();
+builder.Services.AddSingleton<FeedsService>();
 
 builder.Services.AddControllers();
 
