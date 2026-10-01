@@ -14,12 +14,14 @@ public class AccountController : ControllerBase
 {
     private readonly ILogger<AccountController> _logger;
     private readonly AccountService _accountService;
+    private readonly ProfilesService _profilesService;
     private readonly LinkGenerator _linkGenerator;
 
-    public AccountController(ILogger<AccountController> logger, AccountService accountService, LinkGenerator linkGenerator)
+    public AccountController(ILogger<AccountController> logger, AccountService accountService, ProfilesService profilesService, LinkGenerator linkGenerator)
     {
         _logger = logger;
         _accountService = accountService;
+        _profilesService = profilesService;
         _linkGenerator = linkGenerator;
     }
     
@@ -49,11 +51,21 @@ public class AccountController : ControllerBase
         };
         var result = await _accountService.CreateAsync(account);
         if(result != null)
+        {
+            var profile = new Profile
+            {
+                AccountId = result.Id,
+                Name = "Default",
+                StreamToken = Guid.NewGuid().ToString()
+            };
+            await _profilesService.CreateAsync(profile);
+
             return Created(_linkGenerator.GetUriByAction(
                 HttpContext,
                 action: nameof(GetAccountById),
                 values: new { id = result.Id }
                 ), result);
+        }
         
         return BadRequest();
     }
