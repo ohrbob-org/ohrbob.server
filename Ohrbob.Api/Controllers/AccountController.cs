@@ -55,7 +55,7 @@ public class AccountController : ControllerBase
             var profile = new Profile
             {
                 AccountId = result.Id,
-                Name = "Default",
+                Name = result.Name,
                 StreamToken = Guid.NewGuid().ToString()
             };
             await _profilesService.CreateAsync(profile);
