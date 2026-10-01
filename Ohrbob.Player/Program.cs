@@ -17,6 +17,7 @@ if (mongoDbSettings != null)
 }
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<PlayerContextService>();
+builder.Services.AddSingleton<ListenStateService>();
 
 builder.Services.AddControllers();
 
