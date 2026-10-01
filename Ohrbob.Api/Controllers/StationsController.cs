@@ -72,12 +72,37 @@ public class StationsController : ControllerBase
         return Ok(dto);
     }
 
+    private async Task<bool> ValidateAndEnsureFeedsExistAsync(string[]? feedUrls)
+    {
+        if (feedUrls == null || feedUrls.Length == 0) return true;
+
+        foreach (var url in feedUrls)
+        {
+            var existingFeed = await _feedsService.FindByUrlAsync(url);
+            if (existingFeed == null)
+            {
+                var newFeed = await _feedsService.ValidateAndParseFeedAsync(url);
+                if (newFeed == null)
+                {
+                    return false;
+                }
+                await _feedsService.CreateAsync(newFeed);
+            }
+        }
+        return true;
+    }
+
     [EndpointSummary("Create station for accountId")]
     [EndpointDescription(@"Creates station and returns it.")]
     [Authorize(policy: Consts.CreateStationPolicy)]
     [HttpPost("{accountId}")]
     public async Task<IActionResult> Create(string accountId, [FromBody] Station request)
     {
+        if (!await ValidateAndEnsureFeedsExistAsync(request.Feeds))
+        {
+            return BadRequest(new ProblemDetails { Title = "Invalid Feed", Detail = "One or more feeds could not be validated as RSS/Atom." });
+        }
+
         var station = new Station
         {
             AccountId = accountId,
@@ -93,6 +118,10 @@ public class StationsController : ControllerBase
     [HttpPut()]
     public async Task<IActionResult> Update([FromBody] Station station)
     {
+        if (!await ValidateAndEnsureFeedsExistAsync(station.Feeds))
+        {
+            return BadRequest(new ProblemDetails { Title = "Invalid Feed", Detail = "One or more feeds could not be validated as RSS/Atom." });
+        }
 
         var updatedStation = await _stationsService.UpdateAsync(station);
         if (updatedStation == null)
