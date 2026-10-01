@@ -52,7 +52,7 @@ public class StationsControllerTests
         var station = new Station
         {
             Name = "My Station",
-            Feeds = new[] { "https://feed.com/rss" }
+            Feeds = Array.Empty<string>()
         };
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"/api/stations/{accountId}");
@@ -77,7 +77,7 @@ public class StationsControllerTests
         var accountId = Guid.NewGuid().ToString();
         
         // Create a station first
-        var station = new Station { Name = "Station 1", Feeds = new[] { "url1" } };
+        var station = new Station { Name = "Station 1", Feeds = Array.Empty<string>() };
         var createRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/stations/{accountId}")
         {
             Content = JsonContent.Create(station)
@@ -127,7 +127,7 @@ public class StationsControllerTests
     public async Task UpdateStation_Works()
     {
         var accountId = Guid.NewGuid().ToString();
-        var station = new Station { Name = "Original Name", Feeds = new[] { "url" } };
+        var station = new Station { Name = "Original Name", Feeds = Array.Empty<string>() };
         
         // Create
         var createRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/stations/{accountId}")
