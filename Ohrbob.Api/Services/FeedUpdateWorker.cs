@@ -19,6 +19,17 @@ public class FeedUpdateWorker : BackgroundService
     {
         _logger.LogInformation("FeedUpdateWorker is starting.");
 
+        // Wait a few seconds before the first run. This gives the host time to fully start
+        // and prevents the worker from querying the database during build-time OpenAPI generation.
+        try
+        {
+            await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+        }
+        catch (TaskCanceledException)
+        {
+            return; // Host shut down before the delay finished
+        }
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
