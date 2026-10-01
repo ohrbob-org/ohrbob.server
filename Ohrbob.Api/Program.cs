@@ -74,6 +74,7 @@ builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("Mo
 builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddSingleton<AccountService>();
 builder.Services.AddSingleton<StationsService>();
+builder.Services.AddSingleton<ProfilesService>();
 builder.Services.AddSingleton<EpisodesService>();
 builder.Services.AddSingleton<FeedsService>();
 builder.Services.AddHostedService<FeedUpdateWorker>();
