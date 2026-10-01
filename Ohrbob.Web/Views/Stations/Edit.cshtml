@@ -1,4 +1,4 @@
-@model Ohrbob.Server.Shared.Data.Station
+@model Ohrbob.Server.Shared.Requests.StationWithFeedsDto
 
 @{
     ViewData["Title"] = "Edit Station";
@@ -12,19 +12,19 @@
     <div class="col-md-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <input type="hidden" asp-for="AccountId" />
+            <input type="hidden" asp-for="Station.Id" />
+            <input type="hidden" asp-for="Station.AccountId" />
 
             <div class="form-group mb-3">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+                <label asp-for="Station.Name" class="control-label"></label>
+                <input asp-for="Station.Name" class="form-control" name="Name" />
+                <span asp-validation-for="Station.Name" class="text-danger"></span>
             </div>
             
             <div class="form-group mb-3">
                 <div class="form-check">
-                    <input class="form-check-input" type="checkbox" asp-for="IsPublic">
-                    <label class="form-check-label" asp-for="IsPublic">
+                    <input class="form-check-input" type="checkbox" asp-for="Station.IsPublic" name="IsPublic">
+                    <label class="form-check-label" asp-for="Station.IsPublic">
                         Public Station
                     </label>
                 </div>
@@ -35,19 +35,28 @@
                 <div id="feedsContainer">
                 @if (Model.Feeds != null && Model.Feeds.Any())
                 {
-                    for (int i = 0; i < Model.Feeds.Length; i++)
+                    foreach (var feed in Model.Feeds)
                     {
-                        <div class="input-group mb-2 feed-item">
-                            <input type="url" name="Feeds" class="form-control" value="@Model.Feeds[i]" required />
-                            <button type="button" class="btn btn-outline-danger remove-feed">Remove</button>
+                        <div class="mb-3 p-2 border rounded">
+                            <div class="input-group mb-1 feed-item">
+                                <input type="url" name="Feeds" class="form-control" value="@feed.Url" required />
+                                <button type="button" class="btn btn-outline-danger remove-feed">Remove</button>
+                            </div>
+                            <small class="text-muted">
+                                Title: @(string.IsNullOrEmpty(feed.Title) ? "Unknown" : feed.Title) | 
+                                Episodes: @feed.EpisodeCount | 
+                                Last Updated: @(feed.LastUpdated?.ToString("g") ?? "Never")
+                            </small>
                         </div>
                     }
                 }
                 else
                 {
-                    <div class="input-group mb-2 feed-item">
-                        <input type="url" name="Feeds" class="form-control" placeholder="https://..." required />
-                        <button type="button" class="btn btn-outline-danger remove-feed">Remove</button>
+                    <div class="mb-3 p-2 border rounded">
+                        <div class="input-group mb-1 feed-item">
+                            <input type="url" name="Feeds" class="form-control" placeholder="https://..." required />
+                            <button type="button" class="btn btn-outline-danger remove-feed">Remove</button>
+                        </div>
                     </div>
                 }
                 </div>

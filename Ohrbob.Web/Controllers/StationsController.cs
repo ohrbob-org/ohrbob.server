@@ -49,11 +49,11 @@ public class StationsController : Controller
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();
 
-        var station = await _stationsService.GetStationByIdAsync(id);
-        if (station == null || station.AccountId != accountId)
+        var stationDto = await _stationsService.GetStationDetailsByIdAsync(id);
+        if (stationDto == null || stationDto.Station.AccountId != accountId)
             return NotFound();
 
-        return View(station);
+        return View(stationDto);
     }
 
     [HttpPost]
