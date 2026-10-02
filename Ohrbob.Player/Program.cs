@@ -5,7 +5,9 @@ using Microsoft.IdentityModel.Tokens;
 using Ohrbob.Player.Configuration;
 using Ohrbob.Player.Services;
 using MongoDB.Driver;
+using DotNetEnv;
 
+Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
