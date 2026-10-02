@@ -36,6 +36,17 @@ public class ListenStateService : MongoDbService<ListenState>
         return await Collection.Find(filter).Sort(sort).FirstOrDefaultAsync();
     }
 
+    public async Task<List<string>> GetListenedEpisodeIdsAsync(string userId)
+    {
+        var filter = Builders<ListenState>.Filter.And(
+            Builders<ListenState>.Filter.Eq(s => s.UserId, userId),
+            Builders<ListenState>.Filter.Eq(s => s.IsListened, true),
+            Builders<ListenState>.Filter.Eq(x => x.DeletedAt, null)
+        );
+        var states = await Collection.Find(filter).Project(s => s.EpisodeId).ToListAsync();
+        return states;
+    }
+
     public async Task UpsertStateAsync(string userId, string stationId, string episodeId, int positionSeconds, bool isListened)
     {
         var existing = await GetStateAsync(userId, episodeId);

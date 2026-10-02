@@ -65,7 +65,7 @@ public class StreamController : ControllerBase
         
         if (currentEpisode == null)
         {
-             currentEpisode = await _playbackStrategy.GetNextEpisodeAsync(station, null);
+             currentEpisode = await _playbackStrategy.GetNextEpisodeAsync(station, null, profile.Id);
              if (currentEpisode != null) activeEpisodeId = currentEpisode.Id;
         }
 
@@ -74,10 +74,11 @@ public class StreamController : ControllerBase
         var listenState = await _listenStateService.GetStateAsync(profile.Id, currentEpisode.Id);
         int position = listenState?.PositionSeconds ?? 0;
 
-        var nextEpisode = await _playbackStrategy.GetNextEpisodeAsync(station, currentEpisode.Id);
+        var nextEpisode = await _playbackStrategy.GetNextEpisodeAsync(station, currentEpisode.Id, profile.Id);
 
         return Ok(new 
         { 
+            stationId = station.Id,
             stationName = station.Name, 
             current = new {
                 episodeId = currentEpisode.Id,
@@ -126,7 +127,13 @@ public class StreamController : ControllerBase
         var station = await _stations.Find(s => s.Id == profile.LastActiveStationId).FirstOrDefaultAsync();
         if (station == null) return BadRequest();
 
-        var nextEpisode = await _playbackStrategy.GetNextEpisodeAsync(station, profile.LastActiveEpisodeId);
+        // Current episode has been fully listened
+        if (!string.IsNullOrEmpty(profile.LastActiveEpisodeId))
+        {
+            await _listenStateService.UpsertStateAsync(profile.Id, station.Id, profile.LastActiveEpisodeId, 0, true);
+        }
+
+        var nextEpisode = await _playbackStrategy.GetNextEpisodeAsync(station, profile.LastActiveEpisodeId, profile.Id);
         if (nextEpisode == null) return Ok();
 
         var update = Builders<Profile>.Update.Set(p => p.LastActiveEpisodeId, nextEpisode.Id);
