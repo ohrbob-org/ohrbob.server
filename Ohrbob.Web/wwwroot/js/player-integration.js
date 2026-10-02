@@ -17,7 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch(`${apiUrl}${endpoint}`, { method, headers });
             if (!response.ok) throw new Error('API Error');
-            return await response.json();
+            
+            const text = await response.text();
+            return text ? JSON.parse(text) : null;
         } catch (err) {
             console.error('Player API error:', err);
             return null;
@@ -33,10 +35,18 @@ document.addEventListener('DOMContentLoaded', () => {
             widget.setAttribute('artist', state.artistName || '');
             if (state.coverUrl) widget.setAttribute('cover', state.coverUrl);
             
-            if (state.isPlaying) {
-                // Ensure internal widget logic knows it's playing if needed
-                // widget.play(); 
+            // Sync play state if it has changed
+            if (widget.isPlaying !== state.isPlaying) {
+                widget.isPlaying = state.isPlaying;
+                const btnPlay = widget.querySelector('.js-play');
+                if (btnPlay) {
+                    const playSvg = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="currentColor" stroke-linejoin="round" stroke-linecap="round"><polygon points="7 4 19 12 7 20 7 4"></polygon></svg>`;
+                    const pauseSvg = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="currentColor" stroke-linejoin="round" stroke-linecap="round"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg>`;
+                    btnPlay.innerHTML = widget.isPlaying ? pauseSvg : playSvg;
+                    btnPlay.style.paddingLeft = widget.isPlaying ? '0' : '2px';
+                }
             }
+            
             widget.style.display = 'block'; // Show widget once initialized
         }
     };
