@@ -56,7 +56,8 @@ public class PlayerContextService
                 streamToken = authStr.Substring("Bearer ".Length).Trim();
             }
         }
-        else if (context.Request.Headers.TryGetValue("X-Stream-Token", out var streamTokenHeader))
+        
+        if (string.IsNullOrEmpty(streamToken) && context.Request.Headers.TryGetValue("X-Stream-Token", out var streamTokenHeader))
         {
             streamToken = streamTokenHeader.ToString();
         }
