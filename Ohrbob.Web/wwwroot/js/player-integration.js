@@ -64,9 +64,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (audio.src !== fullStreamUri) {
             audio.src = fullStreamUri;
             audio.currentTime = currentEpisodeData.playheadPositionSeconds || 0;
-            audio.play().catch(e => console.log('Autoplay blocked', e));
-            widget.isPlaying = true;
-            updatePlayButton();
+            audio.play().then(() => {
+                widget.isPlaying = true;
+                updatePlayButton();
+            }).catch(e => {
+                console.log('Autoplay blocked by browser', e);
+                widget.isPlaying = false;
+                updatePlayButton();
+            });
         }
     };
 
