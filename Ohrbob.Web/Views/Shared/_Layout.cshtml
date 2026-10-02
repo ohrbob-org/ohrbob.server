@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="~/css/collage.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Ohrbob.Web.styles.css" asp-append-version="true" />
 </head>
-<body>
+<body hx-boost="true" hx-target="#main-content">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm glass-panel mb-3">
             <div class="container-fluid">
@@ -49,7 +49,7 @@
             </div>
         </nav>
     </header>
-    <div class="container">
+    <div class="container" id="main-content">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
@@ -61,6 +61,7 @@
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
