@@ -56,11 +56,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const showAutoplayToast = () => {
         // Create toast container if it doesn't exist
-        let toastContainer = document.querySelector('.toast-container');
+        let toastContainer = document.querySelector('.toast-container.autoplay-toast-container');
         if (!toastContainer) {
             toastContainer = document.createElement('div');
-            toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            // Remove bottom-0 so we can position it dynamically
+            toastContainer.className = 'toast-container autoplay-toast-container position-fixed end-0 p-3';
             toastContainer.style.zIndex = '1055';
+            
+            // Position it just above the player widget
+            const widgetHeight = widget.offsetHeight || 160; 
+            // 20px is the bottom offset from CSS, plus a 10px gap
+            toastContainer.style.bottom = (20 + widgetHeight + 10) + 'px';
+            
             document.body.appendChild(toastContainer);
         }
 
