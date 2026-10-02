@@ -57,7 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const setupAudio = () => {
         if (!currentEpisodeData) return;
         
-        const fullStreamUri = apiUrl + currentEpisodeData.streamUri; // assuming streamUri is relative to api
+        // streamUri is now an absolute URL directly to the podcast audio file
+        const fullStreamUri = currentEpisodeData.streamUri; 
         
         // If it's a new track, load it
         if (audio.src !== fullStreamUri) {
@@ -107,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
             widget.setAttribute('track', currentEpisodeData.title);
             if (currentEpisodeData.coverUrl) widget.setAttribute('cover', currentEpisodeData.coverUrl);
             
-            const fullStreamUri = apiUrl + currentEpisodeData.streamUri;
+            const fullStreamUri = currentEpisodeData.streamUri;
             audio.src = fullStreamUri;
             audio.currentTime = 0;
             audio.play();
