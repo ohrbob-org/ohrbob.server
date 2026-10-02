@@ -193,6 +193,12 @@ document.addEventListener('DOMContentLoaded', () => {
         syncState();
     });
 
+    widget.addEventListener('settings', () => {
+        if (activeStationId) {
+            window.location.href = `/Stations/Edit/${activeStationId}`;
+        }
+    });
+
     // Initial sync
     syncState();
     
