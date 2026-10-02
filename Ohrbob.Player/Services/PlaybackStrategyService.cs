@@ -26,7 +26,7 @@ public class PlaybackStrategyService
         }
 
         // Just get the newest one not equal to current for this simplified implementation
-        var sort = Builders<Episode>.Sort.Descending(e => e.PublishDate);
+        var sort = Builders<Episode>.Sort.Descending(e => e.PublishedAt);
         return await _episodes.Find(filter).Sort(sort).FirstOrDefaultAsync();
     }
 }

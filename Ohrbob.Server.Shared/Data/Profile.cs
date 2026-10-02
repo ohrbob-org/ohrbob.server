@@ -2,6 +2,7 @@ using System;
 
 namespace Ohrbob.Server.Shared.Data;
 
+#nullable enable
 public class Profile : DbEntry
 {
 
@@ -14,3 +15,4 @@ public class Profile : DbEntry
     public string? LastActiveStationId { get; set; }
     public string? LastActiveEpisodeId { get; set; }
 }
+#nullable disable
