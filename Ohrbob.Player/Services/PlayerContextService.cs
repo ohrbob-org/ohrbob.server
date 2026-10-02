@@ -70,4 +70,13 @@ public class PlayerContextService
 
         return await _profiles.Find(filter).FirstOrDefaultAsync();
     }
+    
+    public async Task UpdateProfileActiveStateAsync(string profileId, string stationId, string episodeId)
+    {
+        var update = Builders<Profile>.Update
+            .Set(p => p.LastActiveStationId, stationId)
+            .Set(p => p.LastActiveEpisodeId, episodeId);
+        
+        await _profiles.UpdateOneAsync(p => p.Id == profileId, update);
+    }
 }
