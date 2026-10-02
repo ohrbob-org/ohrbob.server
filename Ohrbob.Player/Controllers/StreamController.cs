@@ -83,7 +83,7 @@ public class StreamController : ControllerBase
                 episodeId = currentEpisode.Id,
                 title = currentEpisode.Title,
                 description = currentEpisode.Description,
-                coverUrl = currentEpisode.ImageUrl ?? station.ImageUrl,
+                coverUrl = string.IsNullOrWhiteSpace(currentEpisode.ImageUrl) ? null : currentEpisode.ImageUrl,
                 streamUri = currentEpisode.AudioUrl, // Using AudioUrl from Episode
                 playheadPositionSeconds = position
             },
@@ -91,7 +91,7 @@ public class StreamController : ControllerBase
                 episodeId = nextEpisode.Id,
                 title = nextEpisode.Title,
                 description = nextEpisode.Description,
-                coverUrl = nextEpisode.ImageUrl ?? station.ImageUrl,
+                coverUrl = string.IsNullOrWhiteSpace(nextEpisode.ImageUrl) ? null : nextEpisode.ImageUrl,
                 streamUri = nextEpisode.AudioUrl
             }
         });
