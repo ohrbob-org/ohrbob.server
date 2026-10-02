@@ -100,6 +100,18 @@ public class FeedUpdateWorker : BackgroundService
                     var existingEpisode = await episodesService.FindByGuidAndFeedIdAsync(guid, feed.Id);
                     if (existingEpisode == null)
                     {
+                        string episodeImageUrl = feed.ImageUrl; // Fallback to feed image
+                        if (item.SpecificItem?.Element != null)
+                        {
+                            System.Xml.Linq.XNamespace itunes = "http://www.itunes.com/dtds/podcast-1.0.dtd";
+                            var image = item.SpecificItem.Element.Element(itunes + "image");
+                            var href = image?.Attribute("href")?.Value;
+                            if (!string.IsNullOrWhiteSpace(href))
+                            {
+                                episodeImageUrl = href;
+                            }
+                        }
+
                         var newEpisode = new Episode
                         {
                             Guid = guid,
@@ -107,6 +119,7 @@ public class FeedUpdateWorker : BackgroundService
                             FeedUrl = feed.Url,
                             Title = item.Title ?? string.Empty,
                             Description = item.Description ?? string.Empty,
+                            ImageUrl = episodeImageUrl,
                             PublishedAt = item.PublishingDate,
                             AudioUrl = item.Link ?? string.Empty // Can be improved to extract audio enclosure
                         };
