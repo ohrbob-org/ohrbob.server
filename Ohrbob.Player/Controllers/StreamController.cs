@@ -84,7 +84,7 @@ public class StreamController : ControllerBase
                 title = currentEpisode.Title,
                 description = "",
                 coverUrl = (string?)null,
-                streamUri = $"/api/audio/{currentEpisode.Id}", // Adjust to actual audio URI path
+                streamUri = currentEpisode.AudioUrl, // Using AudioUrl from Episode
                 playheadPositionSeconds = position
             },
             next = nextEpisode == null ? null : new {
@@ -92,7 +92,7 @@ public class StreamController : ControllerBase
                 title = nextEpisode.Title,
                 description = "",
                 coverUrl = (string?)null,
-                streamUri = $"/api/audio/{nextEpisode.Id}"
+                streamUri = nextEpisode.AudioUrl
             }
         });
     }
