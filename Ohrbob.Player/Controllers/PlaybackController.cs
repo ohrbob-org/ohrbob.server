@@ -7,7 +7,6 @@ namespace Ohrbob.Player.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class PlaybackController : ControllerBase
 {
     private readonly PlayerContextService _contextService;

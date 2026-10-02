@@ -11,17 +11,22 @@ using Ohrbob.Web;
 using Ohrbob.Web.Configuration;
 using Ohrbob.Web.Services;
 
-Env.Load();
+ using Microsoft.AspNetCore.DataProtection;
+
+Env.NoClobber().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("/app/DataProtection-Keys"))
+    .SetApplicationName("OhrbobWeb");
 
 builder.Services.AddRazorPages();
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownNetworks.Clear();
+    options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 });
 
@@ -56,6 +61,8 @@ builder.Services.AddAuthentication(options =>
     .AddCookie(options =>
     {
         options.LoginPath = "/Home/Index";
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
     })
     .AddOpenIdConnect("Nextcloud", options =>
     {
@@ -64,6 +71,7 @@ builder.Services.AddAuthentication(options =>
         options.ClientId = oidc["ClientId"];
         options.ClientSecret = oidc["ClientSecret"];
         options.ResponseType = "code";
+        options.ResponseMode = "query";
         options.SaveTokens = true;
         options.GetClaimsFromUserInfoEndpoint = true;
         options.ClaimActions.MapJsonKey("picture", "picture");
@@ -71,6 +79,10 @@ builder.Services.AddAuthentication(options =>
         options.Scope.Add("openid");
         options.Scope.Add("profile");
         options.CallbackPath = "/signin-nextcloud";
+        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
+        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.NonceCookie.SameSite = SameSiteMode.Lax;
+        options.NonceCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.Events = new OpenIdConnectEvents
         {
             OnTokenValidated = CreateOrGetAccountAsync,
@@ -92,6 +104,7 @@ builder.Services.AddAuthentication(options =>
         options.ClientId = oidc["ClientId"];
         options.ClientSecret = oidc["ClientSecret"];
         options.ResponseType = "code";
+        options.ResponseMode = "query";
         options.SaveTokens = true;
         options.GetClaimsFromUserInfoEndpoint = true;
         options.ClaimActions.MapJsonKey("picture", "picture");
@@ -100,6 +113,10 @@ builder.Services.AddAuthentication(options =>
         options.Scope.Add("profile");
         options.Scope.Add("email");
         options.CallbackPath = "/signin-google";
+        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
+        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.NonceCookie.SameSite = SameSiteMode.Lax;
+        options.NonceCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.Events = new OpenIdConnectEvents
         {
             OnTokenValidated = CreateOrGetAccountAsync,

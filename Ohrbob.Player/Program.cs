@@ -7,7 +7,7 @@ using Ohrbob.Player.Services;
 using MongoDB.Driver;
 using DotNetEnv;
 
-Env.Load();
+Env.NoClobber().Load();
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
@@ -22,18 +22,6 @@ builder.Services.AddScoped<PlayerContextService>();
 builder.Services.AddSingleton<ListenStateService>();
 
 builder.Services.AddControllers();
-
-// Auth setup (JWT via OIDC token passed from client)
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        var oidc = configuration.GetSection("Oidc:Nextcloud"); // Or other provider
-        options.Authority = oidc["Authority"];
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateAudience = false, // Configurable per deployment
-        };
-    });
 
 builder.Services.AddAuthorization();
 

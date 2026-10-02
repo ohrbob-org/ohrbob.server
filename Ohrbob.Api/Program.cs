@@ -9,25 +9,38 @@ using Serilog.Filters;
 using Microsoft.OpenApi;
 using Ohrbob.Api.Extensions.Logger;
 using Ohrbob.Api.Services;
+using MongoDB.Bson;
+using MongoDB.Driver;
 
-Env.Load();
+Env.NoClobber().Load();
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
-var mongoDbSettings = configuration.GetSection("MongoDbData").Get<MongoDbSettings>()!;
-var logsDbSettings = configuration.GetSection("MongoDbLogs").Get<MongoDbSettings>()!;
+var logsDbSettings = configuration.GetSection("MongoDbLogs").Get<MongoDbSettings>();
+var dataDbSettings = configuration.GetSection("MongoDbData").Get<MongoDbSettings>();
 
-Log.Logger = new LoggerConfiguration()
+
+
+var loggerConfig = new LoggerConfiguration()
     .MinimumLevel.Information()
     .Enrich.FromLogContext()
-    .WriteTo.Console()
-    .WriteTo.Logger(lc =>
+    .WriteTo.Console();
+
+if (logsDbSettings != null && !string.IsNullOrEmpty(logsDbSettings.ConnectionString))
+{
+    loggerConfig.WriteTo.Logger(lc =>
     {
         lc.Filter.ByIncludingOnly(Matching.WithProperty(LogAuditExtensions.AuditPropertyName))
             .WriteTo.MongoDBBson(databaseUrl: logsDbSettings.ConnectionString,
                 collectionName: logsDbSettings.DatabaseName);
-    }).CreateLogger();
+    });
+}
+
+Log.Logger = loggerConfig.CreateLogger();
 builder.Host.UseSerilog();
+Log.Information("Starting application");
+Log.Information("LogsDb: {db}", logsDbSettings?.ConnectionString);
+Log.Information("DataDb: {db}", dataDbSettings?.ConnectionString);
 
 builder.Services.AddOpenApi(options =>
 {
@@ -84,6 +97,51 @@ builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 
 var app = builder.Build();
+
+var maxRetries = 5;
+var retryDelaySeconds = 3;
+
+var mongoSettings = builder.Configuration.GetSection("MongoDbData").Get<MongoDbSettings>();
+if (mongoSettings != null && !string.IsNullOrEmpty(mongoSettings.ConnectionString))
+{
+    for (int i = 0; i < maxRetries; i++)
+    {
+        try
+        {
+            using var scope = app.Services.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<MongoDbContext>();
+            var db = dbContext.GetDatabase();
+            
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            
+            if (db != null)
+            {
+                db.RunCommand((Command<BsonDocument>)"{ping:1}", cancellationToken: cts.Token);
+                Log.Information("Successfully connected to MongoDB (Data).");
+            }
+
+            if (logsDbSettings != null && !string.IsNullOrEmpty(logsDbSettings.ConnectionString))
+            {
+                var logsClient = new MongoClient(logsDbSettings.ConnectionString);
+                logsClient.GetDatabase(logsDbSettings.DatabaseName).RunCommand((Command<BsonDocument>)"{ping:1}", cancellationToken: cts.Token);
+                Log.Information("Successfully connected to MongoDB (Logs).");
+            }
+            
+            break; // Stop retrying on success
+        }
+        catch (Exception ex)
+        {
+            Log.Warning("Failed to connect to MongoDB {ConnectionString}. Retrying in {Delay} seconds... ({Attempt}/{MaxAttempts})", mongoSettings.ConnectionString, retryDelaySeconds, i + 1, maxRetries);
+            if (i == maxRetries - 1)
+            {
+                Log.Fatal(ex, "Failed to connect to one or more MongoDB databases within timeout. Exiting application.");
+                Log.CloseAndFlush();
+                Environment.Exit(1);
+            }
+            Thread.Sleep(TimeSpan.FromSeconds(retryDelaySeconds));
+        }
+    }
+}
 
 app.UseSerilogRequestLogging();
 app.UseAuthentication();
