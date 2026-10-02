@@ -9,10 +9,12 @@ namespace Ohrbob.Web.Controllers;
 public class StationsController : Controller
 {
     private readonly StationsApiService _stationsService;
+    private readonly ProfilesApiService _profilesService;
 
-    public StationsController(StationsApiService stationsService)
+    public StationsController(StationsApiService stationsService, ProfilesApiService profilesService)
     {
         _stationsService = stationsService;
+        _profilesService = profilesService;
     }
 
     private string? GetAccountId() => User.FindFirst(Consts.OhrbobAccountIdClaim)?.Value;
@@ -52,6 +54,18 @@ public class StationsController : Controller
         var stationDto = await _stationsService.GetStationDetailsByIdAsync(id);
         if (stationDto == null || stationDto.Station.AccountId != accountId)
             return NotFound();
+
+        var activeId = HttpContext.Request.Cookies["Ohrbob_ActiveProfileId"];
+        if (string.IsNullOrEmpty(activeId))
+        {
+            var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId);
+            activeId = profiles?.FirstOrDefault()?.Id;
+        }
+
+        if (!string.IsNullOrEmpty(activeId))
+        {
+            ViewBag.Playlist = await _stationsService.GetStationPlaylistAsync(id, activeId);
+        }
 
         return View(stationDto);
     }
