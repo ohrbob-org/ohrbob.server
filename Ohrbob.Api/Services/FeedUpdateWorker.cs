@@ -101,6 +101,8 @@ public class FeedUpdateWorker : BackgroundService
                     if (existingEpisode == null)
                     {
                         string episodeImageUrl = feed.ImageUrl; // Fallback to feed image
+                        string audioUrl = item.Link ?? string.Empty;
+
                         if (item.SpecificItem?.Element != null)
                         {
                             System.Xml.Linq.XNamespace itunes = "http://www.itunes.com/dtds/podcast-1.0.dtd";
@@ -109,6 +111,14 @@ public class FeedUpdateWorker : BackgroundService
                             if (!string.IsNullOrWhiteSpace(href))
                             {
                                 episodeImageUrl = href;
+                            }
+
+                            // Extract audio enclosure URL
+                            var enclosure = item.SpecificItem.Element.Element("enclosure");
+                            var enclosureUrl = enclosure?.Attribute("url")?.Value;
+                            if (!string.IsNullOrWhiteSpace(enclosureUrl))
+                            {
+                                audioUrl = enclosureUrl;
                             }
                         }
 
@@ -121,7 +131,7 @@ public class FeedUpdateWorker : BackgroundService
                             Description = item.Description ?? string.Empty,
                             ImageUrl = episodeImageUrl,
                             PublishedAt = item.PublishingDate,
-                            AudioUrl = item.Link ?? string.Empty // Can be improved to extract audio enclosure
+                            AudioUrl = audioUrl
                         };
                         await episodesService.CreateAsync(newEpisode);
                     }
