@@ -13,12 +13,16 @@ public class StationsController : ControllerBase
     private readonly StationsService _stationsService;
     private readonly FeedsService _feedsService;
     private readonly EpisodesService _episodesService;
+    private readonly ListenStateService _listenStateService;
+    private readonly ProfilesService _profilesService;
 
-    public StationsController(StationsService stationsService, FeedsService feedsService, EpisodesService episodesService)
+    public StationsController(StationsService stationsService, FeedsService feedsService, EpisodesService episodesService, ListenStateService listenStateService, ProfilesService profilesService)
     {
         _stationsService = stationsService;
         _feedsService = feedsService;
         _episodesService = episodesService;
+        _listenStateService = listenStateService;
+        _profilesService = profilesService;
     }
     [EndpointSummary("Get all stations by accountId")]
     [EndpointDescription(@"Returns a list of all stations associated with an accountId")]
@@ -97,6 +101,42 @@ public class StationsController : ControllerBase
         }
         
         return Ok(dto);
+    }
+
+    [EndpointSummary("Get station playlist")]
+    [Authorize(policy: Consts.GetStationsPolicy)]
+    [HttpGet("{id}/playlist")]
+    public async Task<ActionResult<List<EpisodePlayStateDto>>> GetPlaylist(string id, [FromQuery] string profileId)
+    {
+        var station = await _stationsService.GetAsync(id);
+        if (station == null || station.Feeds == null || !station.Feeds.Any()) 
+            return NotFound();
+
+        var profile = await _profilesService.GetAsync(profileId);
+        if (profile == null) return NotFound();
+
+        var episodes = await _episodesService.FindByFeedUrlsAsync(station.Feeds);
+        var listenStates = await _listenStateService.GetStatesByUserIdAsync(profileId);
+        
+        var listenedIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
+        
+        var orderedEpisodes = Ohrbob.Server.Shared.Helpers.PlaybackStrategyHelper.GetOrderedPlaylist(
+            episodes, station.Strategy, listenedIds, profile.LastActiveEpisodeId);
+
+        var result = new List<EpisodePlayStateDto>();
+        foreach(var ep in orderedEpisodes)
+        {
+            var state = listenStates.FirstOrDefault(s => s.EpisodeId == ep.Id);
+            result.Add(new EpisodePlayStateDto
+            {
+                Episode = ep,
+                PositionSeconds = state?.PositionSeconds ?? 0,
+                IsActive = profile.LastActiveEpisodeId == ep.Id
+            });
+        }
+        
+        // Limit to 50 for UI performance
+        return Ok(result.Take(50).ToList());
     }
 
     private async Task<bool> ValidateAndEnsureFeedsExistAsync(string[]? feedUrls)
