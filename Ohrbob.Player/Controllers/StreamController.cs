@@ -82,7 +82,7 @@ public class StreamController : ControllerBase
             current = new {
                 episodeId = currentEpisode.Id,
                 title = currentEpisode.Title,
-                description = "",
+                description = currentEpisode.Description,
                 coverUrl = (string?)null,
                 streamUri = currentEpisode.AudioUrl, // Using AudioUrl from Episode
                 playheadPositionSeconds = position
@@ -90,7 +90,7 @@ public class StreamController : ControllerBase
             next = nextEpisode == null ? null : new {
                 episodeId = nextEpisode.Id,
                 title = nextEpisode.Title,
-                description = "",
+                description = nextEpisode.Description,
                 coverUrl = (string?)null,
                 streamUri = nextEpisode.AudioUrl
             }

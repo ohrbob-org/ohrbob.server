@@ -84,6 +84,7 @@ public class FeedUpdateWorker : BackgroundService
                             FeedId = feed.Id,
                             FeedUrl = feed.Url,
                             Title = item.Title ?? string.Empty,
+                            Description = item.Description ?? string.Empty,
                             PublishedAt = item.PublishingDate,
                             AudioUrl = item.Link ?? string.Empty // Can be improved to extract audio enclosure
                         };
