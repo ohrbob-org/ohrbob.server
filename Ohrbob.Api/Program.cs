@@ -89,6 +89,7 @@ builder.Services.AddSingleton<AccountService>();
 builder.Services.AddSingleton<StationsService>();
 builder.Services.AddSingleton<ProfilesService>();
 builder.Services.AddSingleton<EpisodesService>();
+builder.Services.AddSingleton<ListenStateService>();
 builder.Services.AddSingleton<FeedsService>();
 builder.Services.AddHostedService<FeedUpdateWorker>();
 
