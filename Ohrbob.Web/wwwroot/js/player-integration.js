@@ -35,11 +35,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    let activeStationId = null;
+
     const applyStateToWidget = (state) => {
         if (!state || !state.current) return;
         
         currentEpisodeData = state.current;
         nextEpisodeData = state.next;
+        activeStationId = state.stationId;
 
         widget.setAttribute('station', state.stationName || 'Unknown Station');
         widget.setAttribute('track', currentEpisodeData.title || '');
@@ -76,12 +79,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const reportPlayhead = async () => {
-        if (!widget.isPlaying || !currentEpisodeData) return;
+        if (!widget.isPlaying || !currentEpisodeData || !activeStationId) return;
         
         // Currently playing
         await apiCall('/stream/status', 'POST', {
             episodeId: currentEpisodeData.episodeId,
-            stationId: widget.getAttribute('station'), // In a real app we'd have a station ID instead of name here, but server handles it or ignores stationId if profile active station handles it. Actually, wait. Server expects StationId. Let's pass what we have. It might fail if it's name. But according to StreamController it reads from Profile.LastActiveStationId if we pass an empty string, or we need the actual StationId. The backend handles it by storing it, but for our simple mock we can just pass empty or we'd need to add stationId to the status response.
+            stationId: activeStationId,
             positionSeconds: Math.floor(audio.currentTime)
         });
     };
