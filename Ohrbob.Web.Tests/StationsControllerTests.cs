@@ -13,6 +13,7 @@ namespace Ohrbob.Web.Tests;
 public class StationsControllerTests
 {
     private Mock<StationsApiService> _stationsServiceMock;
+    private Mock<ProfilesApiService> _profilesServiceMock;
     private StationsController _controller;
     private const string TestAccountId = "test-account-id";
 
@@ -28,8 +29,9 @@ public class StationsControllerTests
         var clientFactoryMock = new Mock<IHttpClientFactory>();
         
         _stationsServiceMock = new Mock<StationsApiService>(loggerMock.Object, optionsMock, clientFactoryMock.Object);
+        _profilesServiceMock = new Mock<ProfilesApiService>(loggerMock.Object, optionsMock, clientFactoryMock.Object);
         
-        _controller = new StationsController(_stationsServiceMock.Object);
+        _controller = new StationsController(_stationsServiceMock.Object, _profilesServiceMock.Object);
 
         // Setup mock user context with the Consts.OhrbobAccountIdClaim
         var claims = new List<Claim>
