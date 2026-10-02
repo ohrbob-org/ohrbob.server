@@ -1,6 +1,9 @@
 using MongoDB.Driver;
 using Ohrbob.Player.Configuration;
 using Ohrbob.Server.Shared.Data;
+using Ohrbob.Server.Shared.Helpers;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Ohrbob.Player.Services;
 
@@ -20,38 +23,15 @@ public class PlaybackStrategyService
         if (station.Feeds == null || station.Feeds.Length == 0) return null;
         
         var filter = Builders<Episode>.Filter.In(e => e.FeedUrl, station.Feeds);
-        
-        if (!string.IsNullOrEmpty(currentEpisodeId))
-        {
-             filter = Builders<Episode>.Filter.And(filter, Builders<Episode>.Filter.Ne(e => e.Id, currentEpisodeId));
-        }
+        var episodes = await _episodes.Find(filter).ToListAsync();
 
-        // Fetch all listened episode IDs for this profile to exclude them
         var listenedEpisodeIds = await _listenStateService.GetListenedEpisodeIdsAsync(profileId);
-        if (listenedEpisodeIds.Any())
-        {
-            filter = Builders<Episode>.Filter.And(filter, Builders<Episode>.Filter.Nin(e => e.Id, listenedEpisodeIds));
-        }
+        var listenedSet = listenedEpisodeIds.ToHashSet();
 
-        switch (station.Strategy)
-        {
-            case PlaybackStrategy.Random:
-                // Let's use a simpler aggregation that avoids manually rendering the filter with BsonSerializer overhead
-                var randomCursor = await _episodes.Aggregate()
-                    .Match(filter)
-                    .Sample(1)
-                    .ToListAsync();
-                return randomCursor.FirstOrDefault();
-                
-            case PlaybackStrategy.ChronologicalRoundRobin:
-                // Simplified implementation: just chronologically for now, true round-robin requires complex state tracking across feeds
-                goto case PlaybackStrategy.Chronological;
-
-            case PlaybackStrategy.Chronological:
-            default:
-                // Oldest unplayed episode
-                var sort = Builders<Episode>.Sort.Ascending(e => e.PublishedAt);
-                return await _episodes.Find(filter).Sort(sort).FirstOrDefaultAsync();
-        }
+        var ordered = PlaybackStrategyHelper.GetOrderedPlaylist(episodes, station.Strategy, listenedSet, currentEpisodeId);
+        
+        // We want the next episode after currentEpisodeId, or the first one if no current
+        var unplayedOrdered = ordered.Where(e => !listenedSet.Contains(e.Id) && e.Id != currentEpisodeId).ToList();
+        return unplayedOrdered.FirstOrDefault();
     }
 }
