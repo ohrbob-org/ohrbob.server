@@ -27,7 +27,7 @@
     else
     {
         <p>Please log in to continue.</p>
-        <div class="d-flex justify-content-center gap-3 mt-4">
+        <div class="d-flex justify-content-center gap-3 mt-4" hx-boost="false">
             <a asp-controller="Home" asp-action="Login" asp-route-provider="Nextcloud" class="btn btn-primary btn-lg">Login with Nextcloud</a>
             <a asp-controller="Home" asp-action="Login" asp-route-provider="Google" class="btn btn-danger btn-lg">Login with Google</a>
         </div>
