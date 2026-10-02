@@ -27,6 +27,15 @@ public class ListenStateService : MongoDbService<ListenState>
         return await Collection.Find(filter).FirstOrDefaultAsync();
     }
 
+    public async Task<ListenState?> GetLastStateAsync(string userId)
+    {
+        var filter = Builders<ListenState>.Filter.Eq(s => s.UserId, userId);
+        filter = Builders<ListenState>.Filter.And(filter, Builders<ListenState>.Filter.Eq(x => x.DeletedAt, null));
+        // Sort by CreatedAt as a proxy for "last updated" if no UpdatedAt exists.
+        var sort = Builders<ListenState>.Sort.Descending(s => s.CreatedAt);
+        return await Collection.Find(filter).Sort(sort).FirstOrDefaultAsync();
+    }
+
     public async Task UpsertStateAsync(string userId, string stationId, string episodeId, int positionSeconds, bool isListened)
     {
         var existing = await GetStateAsync(userId, episodeId);

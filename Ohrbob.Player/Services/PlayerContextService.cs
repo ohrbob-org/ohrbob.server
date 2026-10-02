@@ -40,4 +40,34 @@ public class PlayerContextService
 
         return await _profiles.Find(filter).FirstOrDefaultAsync();
     }
+
+    public async Task<Profile?> GetProfileByStreamTokenAsync()
+    {
+        var context = _httpContextAccessor.HttpContext;
+        if (context == null) return null;
+
+        string? streamToken = null;
+        
+        if (context.Request.Headers.TryGetValue("Authorization", out var authHeader))
+        {
+            var authStr = authHeader.ToString();
+            if (authStr.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                streamToken = authStr.Substring("Bearer ".Length).Trim();
+            }
+        }
+        else if (context.Request.Headers.TryGetValue("X-Stream-Token", out var streamTokenHeader))
+        {
+            streamToken = streamTokenHeader.ToString();
+        }
+
+        if (string.IsNullOrEmpty(streamToken)) return null;
+
+        var filter = Builders<Profile>.Filter.And(
+            Builders<Profile>.Filter.Eq(p => p.StreamToken, streamToken),
+            Builders<Profile>.Filter.Eq(p => p.DeletedAt, null)
+        );
+
+        return await _profiles.Find(filter).FirstOrDefaultAsync();
+    }
 }

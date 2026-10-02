@@ -1,5 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Ohrbob.Player.Services;
+using Ohrbob.Player.Configuration;
+using Ohrbob.Server.Shared.Data;
+using MongoDB.Driver;
 
 namespace Ohrbob.Player.Controllers;
 
@@ -7,44 +11,105 @@ namespace Ohrbob.Player.Controllers;
 [Route("stream")]
 public class StreamController : ControllerBase
 {
-    // The widget script does not pass the Authorization header by default 
-    // without the token being configured, but since it has a token in its config,
-    // let's leave this open or simple for now so it doesn't fail if the token setup isn't perfect yet.
-    // In a real app we'd add [Authorize] once the Player API verifies tokens via JWT.
-    
-    [HttpGet("status")]
-    public IActionResult GetStatus()
+    private readonly PlayerContextService _contextService;
+    private readonly ListenStateService _listenStateService;
+    private readonly IMongoCollection<Station> _stations;
+    private readonly IMongoCollection<Episode> _episodes;
+
+    // Simple static in-memory state to simulate playback state
+    private static readonly Dictionary<string, bool> _playingState = new();
+
+    public StreamController(
+        PlayerContextService contextService, 
+        ListenStateService listenStateService, 
+        MongoDbContext dbContext)
     {
+        _contextService = contextService;
+        _listenStateService = listenStateService;
+        _stations = dbContext.GetCollection<Station>("StationCollection");
+        _episodes = dbContext.GetCollection<Episode>("EpisodeCollection");
+    }
+
+    private async Task<Profile?> GetProfile()
+    {
+        return await _contextService.GetProfileByStreamTokenAsync();
+    }
+
+    [HttpGet("status")]
+    public async Task<IActionResult> GetStatus()
+    {
+        var profile = await GetProfile();
+        if (profile == null) return Unauthorized();
+
+        var lastState = await _listenStateService.GetLastStateAsync(profile.Id);
+
+        string stationName = "Ohrbob Radio";
+        string trackName = "Welcome to Ohrbob";
+        string artistName = "Ohrbob";
+        string? coverUrl = null;
+
+        if (lastState != null)
+        {
+            var station = await _stations.Find(s => s.Id == lastState.StationId).FirstOrDefaultAsync();
+            if (station != null) stationName = station.Name;
+
+            var episode = await _episodes.Find(e => e.Id == lastState.EpisodeId).FirstOrDefaultAsync();
+            if (episode != null)
+            {
+                trackName = episode.Title;
+            }
+        }
+        else if (profile.AllowedStationIds?.Length > 0)
+        {
+            var firstStation = await _stations.Find(s => s.Id == profile.AllowedStationIds[0]).FirstOrDefaultAsync();
+            if (firstStation != null) stationName = firstStation.Name;
+        }
+
+        _playingState.TryGetValue(profile.Id, out bool isPlaying);
+
         return Ok(new 
         { 
-            stationName = "Ohrbob Radio", 
-            trackName = "Welcome to Ohrbob", 
-            artistName = "Ohrbob", 
-            isPlaying = false 
+            stationName, 
+            trackName, 
+            artistName, 
+            coverUrl,
+            isPlaying 
         });
     }
 
     [HttpPost("play")]
-    public IActionResult Play()
+    public async Task<IActionResult> Play()
     {
+        var profile = await GetProfile();
+        if (profile == null) return Unauthorized();
+
+        _playingState[profile.Id] = true;
         return Ok();
     }
 
     [HttpPost("pause")]
-    public IActionResult Pause()
+    public async Task<IActionResult> Pause()
     {
+        var profile = await GetProfile();
+        if (profile == null) return Unauthorized();
+
+        _playingState[profile.Id] = false;
         return Ok();
     }
 
     [HttpPost("next")]
-    public IActionResult Next()
+    public async Task<IActionResult> Next()
     {
+        var profile = await GetProfile();
+        if (profile == null) return Unauthorized();
         return Ok();
     }
 
     [HttpPost("prev")]
-    public IActionResult Prev()
+    public async Task<IActionResult> Prev()
     {
+        var profile = await GetProfile();
+        if (profile == null) return Unauthorized();
         return Ok();
     }
 }
