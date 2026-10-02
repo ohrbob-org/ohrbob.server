@@ -134,6 +134,8 @@ public class StationsController : ControllerBase
         {
             AccountId = accountId,
             Name = request.Name,
+            Strategy = request.Strategy,
+            IsPublic = request.IsPublic,
             Feeds = request.Feeds
         };
         var createdStation = await _stationsService.CreateAsync(station);

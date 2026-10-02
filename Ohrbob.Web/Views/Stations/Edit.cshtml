@@ -22,6 +22,12 @@
             </div>
             
             <div class="form-group mb-3">
+                <label asp-for="Station.Strategy" class="control-label">Playback Strategy</label>
+                <select asp-for="Station.Strategy" class="form-select" asp-items="Html.GetEnumSelectList<Ohrbob.Server.Shared.Data.PlaybackStrategy>()"></select>
+                <span asp-validation-for="Station.Strategy" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" asp-for="Station.IsPublic">
                     <label class="form-check-label" asp-for="Station.IsPublic">
