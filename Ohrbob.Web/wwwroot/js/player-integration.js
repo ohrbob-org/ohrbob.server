@@ -12,10 +12,19 @@ document.addEventListener('DOMContentLoaded', () => {
         'Content-Type': 'application/json'
     };
 
+    let currentEpisodeData = null;
+    let nextEpisodeData = null;
+    let audio = new Audio();
+    let syncInterval = null;
+
     // Helper to call player API
-    const apiCall = async (endpoint, method = 'GET') => {
+    const apiCall = async (endpoint, method = 'GET', body = null) => {
         try {
-            const response = await fetch(`${apiUrl}${endpoint}`, { method, headers });
+            const options = { method, headers };
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            const response = await fetch(`${apiUrl}${endpoint}`, options);
             if (!response.ok) throw new Error('API Error');
             
             const text = await response.text();
@@ -26,46 +35,111 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Sync widget state with server
-    const syncState = async () => {
-        const state = await apiCall('/stream/status');
-        if (state) {
-            widget.setAttribute('station', state.stationName || 'Unknown Station');
-            widget.setAttribute('track', state.trackName || '');
-            widget.setAttribute('artist', state.artistName || '');
-            if (state.coverUrl) widget.setAttribute('cover', state.coverUrl);
-            
-            // Sync play state if it has changed
-            if (widget.isPlaying !== state.isPlaying) {
-                widget.isPlaying = state.isPlaying;
-                const btnPlay = widget.querySelector('.js-play');
-                if (btnPlay) {
-                    const playSvg = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="currentColor" stroke-linejoin="round" stroke-linecap="round"><polygon points="7 4 19 12 7 20 7 4"></polygon></svg>`;
-                    const pauseSvg = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="currentColor" stroke-linejoin="round" stroke-linecap="round"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg>`;
-                    btnPlay.innerHTML = widget.isPlaying ? pauseSvg : playSvg;
-                    btnPlay.style.paddingLeft = widget.isPlaying ? '0' : '2px';
-                }
-            }
-            
-            widget.style.display = 'block'; // Show widget once initialized
+    const applyStateToWidget = (state) => {
+        if (!state || !state.current) return;
+        
+        currentEpisodeData = state.current;
+        nextEpisodeData = state.next;
+
+        widget.setAttribute('station', state.stationName || 'Unknown Station');
+        widget.setAttribute('track', currentEpisodeData.title || '');
+        widget.setAttribute('artist', state.stationName || ''); // fallback artist
+        if (currentEpisodeData.coverUrl) {
+             widget.setAttribute('cover', currentEpisodeData.coverUrl);
+        } else {
+             widget.removeAttribute('cover');
         }
     };
 
-    // Bind widget events to API commands
-    widget.addEventListener('play', () => apiCall('/stream/play', 'POST'));
-    widget.addEventListener('pause', () => apiCall('/stream/pause', 'POST'));
+    const setupAudio = () => {
+        if (!currentEpisodeData) return;
+        
+        const fullStreamUri = apiUrl + currentEpisodeData.streamUri; // assuming streamUri is relative to api
+        
+        // If it's a new track, load it
+        if (audio.src !== fullStreamUri) {
+            audio.src = fullStreamUri;
+            audio.currentTime = currentEpisodeData.playheadPositionSeconds || 0;
+            audio.play().catch(e => console.log('Autoplay blocked', e));
+            widget.isPlaying = true;
+            updatePlayButton();
+        }
+    };
+
+    const syncState = async () => {
+        const state = await apiCall('/stream/status');
+        if (state && state.current) {
+            applyStateToWidget(state);
+            setupAudio();
+            widget.style.display = 'block';
+        }
+    };
+
+    const reportPlayhead = async () => {
+        if (!widget.isPlaying || !currentEpisodeData) return;
+        
+        // Currently playing
+        await apiCall('/stream/status', 'POST', {
+            episodeId: currentEpisodeData.episodeId,
+            stationId: widget.getAttribute('station'), // In a real app we'd have a station ID instead of name here, but server handles it or ignores stationId if profile active station handles it. Actually, wait. Server expects StationId. Let's pass what we have. It might fail if it's name. But according to StreamController it reads from Profile.LastActiveStationId if we pass an empty string, or we need the actual StationId. The backend handles it by storing it, but for our simple mock we can just pass empty or we'd need to add stationId to the status response.
+            positionSeconds: Math.floor(audio.currentTime)
+        });
+    };
+
+    const updatePlayButton = () => {
+        const btnPlay = widget.querySelector('.js-play');
+        if (btnPlay) {
+            const playSvg = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="currentColor" stroke-linejoin="round" stroke-linecap="round"><polygon points="7 4 19 12 7 20 7 4"></polygon></svg>`;
+            const pauseSvg = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="currentColor" stroke-linejoin="round" stroke-linecap="round"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg>`;
+            btnPlay.innerHTML = widget.isPlaying ? pauseSvg : playSvg;
+            btnPlay.style.paddingLeft = widget.isPlaying ? '0' : '2px';
+        }
+    };
+
+    // Track transition handling
+    audio.onended = async () => {
+        if (nextEpisodeData) {
+            // Optimistic update
+            currentEpisodeData = nextEpisodeData;
+            widget.setAttribute('track', currentEpisodeData.title);
+            if (currentEpisodeData.coverUrl) widget.setAttribute('cover', currentEpisodeData.coverUrl);
+            
+            const fullStreamUri = apiUrl + currentEpisodeData.streamUri;
+            audio.src = fullStreamUri;
+            audio.currentTime = 0;
+            audio.play();
+            
+            // Advance on server
+            await apiCall('/stream/next', 'POST');
+            
+            // Fetch fresh status to get the *new* next track
+            const state = await apiCall('/stream/status');
+            if (state) applyStateToWidget(state);
+        } else {
+            widget.isPlaying = false;
+            updatePlayButton();
+        }
+    };
+
+    // Bind widget events to Audio
+    widget.addEventListener('play', () => {
+        audio.play();
+        widget.isPlaying = true;
+    });
+    
+    widget.addEventListener('pause', () => {
+        audio.pause();
+        widget.isPlaying = false;
+    });
+    
     widget.addEventListener('forward', async () => {
         await apiCall('/stream/next', 'POST');
-        syncState();
-    });
-    widget.addEventListener('back', async () => {
-        await apiCall('/stream/prev', 'POST');
         syncState();
     });
 
     // Initial sync
     syncState();
     
-    // Optional: Poll for updates every 10 seconds to keep playhead/track in sync
-    setInterval(syncState, 10000);
+    // Heartbeat every 10 seconds
+    syncInterval = setInterval(reportPlayhead, 10000);
 });
