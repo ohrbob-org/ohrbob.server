@@ -54,6 +54,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const showAutoplayToast = () => {
+        // Create toast container if it doesn't exist
+        let toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+            toastContainer.style.zIndex = '1055';
+            document.body.appendChild(toastContainer);
+        }
+
+        // Create the toast element
+        const toastEl = document.createElement('div');
+        toastEl.className = 'toast align-items-center text-bg-warning border-0';
+        toastEl.setAttribute('role', 'alert');
+        toastEl.setAttribute('aria-live', 'assertive');
+        toastEl.setAttribute('aria-atomic', 'true');
+        
+        toastEl.innerHTML = `
+          <div class="d-flex">
+            <div class="toast-body">
+              <strong>Autoplay blocked by browser.</strong><br/>
+              Please click the play button in the widget to start listening.
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+        `;
+        
+        toastContainer.appendChild(toastEl);
+        
+        // Initialize and show via Bootstrap
+        const toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 10000 });
+        toast.show();
+        
+        // Clean up DOM after it hides
+        toastEl.addEventListener('hidden.bs.toast', () => {
+            toastEl.remove();
+        });
+    };
+
     const setupAudio = () => {
         if (!currentEpisodeData) return;
         
@@ -71,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('Autoplay blocked by browser', e);
                 widget.isPlaying = false;
                 updatePlayButton();
+                showAutoplayToast();
             });
         }
     };
