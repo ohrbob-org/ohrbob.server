@@ -67,6 +67,28 @@ public class FeedUpdateWorker : BackgroundService
                 feed.Description = parsedFeed.Description ?? feed.Description;
                 feed.ImageUrl = parsedFeed.ImageUrl ?? feed.ImageUrl;
                 feed.LastUpdated = DateTime.UtcNow;
+
+                if (parsedFeed.OriginalDocument is string xmlContent && !string.IsNullOrWhiteSpace(xmlContent))
+                {
+                    try
+                    {
+                        var xDoc = System.Xml.Linq.XDocument.Parse(xmlContent);
+                        System.Xml.Linq.XNamespace itunes = "http://www.itunes.com/dtds/podcast-1.0.dtd";
+                        var keywordsElement = xDoc.Descendants(itunes + "keywords").FirstOrDefault();
+                        if (keywordsElement != null && !string.IsNullOrWhiteSpace(keywordsElement.Value))
+                        {
+                            feed.Keywords = keywordsElement.Value.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                                                                 .Select(k => k.Trim())
+                                                                 .Where(k => !string.IsNullOrEmpty(k))
+                                                                 .ToArray();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to parse XML for keywords for feed: {Url}", feed.Url);
+                    }
+                }
+
                 await feedsService.UpdateAsync(feed);
 
                 // Update Episodes
