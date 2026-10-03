@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="~/css/profiles.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/collage.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/Ohrbob.Web.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body hx-boost="true" hx-target="#main-content">
     <header>
@@ -38,11 +39,6 @@
                     {
                         <ul class="navbar-nav ms-auto">
                             @await Component.InvokeAsync("ProfileSelector")
-                            <li class="nav-item ms-2">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Logout" title="Logout">
-                                    <i class="bi bi-box-arrow-right fs-5"></i>
-                                </a>
-                            </li>
                         </ul>
                     }
                 </div>
