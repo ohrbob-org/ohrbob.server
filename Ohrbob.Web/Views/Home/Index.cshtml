@@ -1,33 +1,80 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using Ohrbob.Server.Shared.Requests
+@model List<StationWithFeedsDto>
+@{
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <h2 class="mb-4">Listen</h2>
     
-    @if (User.Identity?.IsAuthenticated == true)
+    @if (Model == null || !Model.Any())
     {
-        var picture = User.FindFirst("picture")?.Value;
-        var email = User.FindFirst("email")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-
-        if (!string.IsNullOrEmpty(picture))
-        {
-            <img src="@picture" alt="Profile Picture" class="rounded-circle mb-3" width="100" height="100" />
-        }
-
-        <p>Hello, @User.Identity.Name!</p>
-
-        if (!string.IsNullOrEmpty(email))
-        {
-            <p>Email: @email</p>
-        }
+        <div class="alert alert-info">
+            You don't have any stations assigned to this profile yet. 
+            Go to <a asp-controller="Stations" asp-action="Index">Manage Stations</a> to create some, or use the Discover tab.
+        </div>
     }
     else
     {
-        <p>Please log in to continue.</p>
-        <div class="d-flex justify-content-center gap-3 mt-4" hx-boost="false">
-            <a asp-controller="Home" asp-action="Login" asp-route-provider="Nextcloud" class="btn btn-primary btn-lg">Login with Nextcloud</a>
-            <a asp-controller="Home" asp-action="Login" asp-route-provider="Google" class="btn btn-danger btn-lg">Login with Google</a>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+            @foreach (var dto in Model)
+            {
+                var feedCount = dto.Feeds?.Count ?? 0;
+                string gridClass = "collage-grid-1";
+                if (feedCount > 1 && feedCount <= 4) gridClass = "collage-grid-2";
+                else if (feedCount > 4 && feedCount <= 9) gridClass = "collage-grid-3";
+                else if (feedCount > 9) gridClass = "collage-grid-4";
+                
+                var displayFeeds = dto.Feeds?.Take(16).ToList() ?? new List<FeedStatsDto>();
+
+                <div class="col">
+                    <div class="card h-100 shadow-sm" style="cursor: pointer;" onclick="document.querySelector('#ohrbob-player').playStation('@dto.Station.Id')">
+                        <div class="collage-container @gridClass card-img-top">
+                            @if (!displayFeeds.Any())
+                            {
+                                <div class="collage-fallback">?</div>
+                            }
+                            else
+                            {
+                                foreach (var feed in displayFeeds)
+                                {
+                                    if (!string.IsNullOrEmpty(feed.ImageUrl))
+                                    {
+                                        <img src="@feed.ImageUrl" class="collage-item" alt="@feed.Title" onerror="this.outerHTML='<div class=\'collage-fallback\'>@((feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper())</div>'" />
+                                    }
+                                    else
+                                    {
+                                        <div class="collage-fallback">@((feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper())</div>
+                                    }
+                                }
+                            }
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-truncate">@dto.Station.Name</h5>
+                            <p class="card-text">
+                                <small class="text-muted">@feedCount podcasts</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     }
-</div>
+}
+else
+{
+    <div class="text-center mt-5">
+        <h1 class="display-4 fw-bold text-primary mb-3">Ohrbob</h1>
+        <p class="lead text-muted mb-4">Your personalized podcast radio.</p>
+        
+        <div class="d-flex justify-content-center gap-3 mt-4" hx-boost="false">
+            <a asp-controller="Home" asp-action="Login" asp-route-provider="Nextcloud" class="btn btn-outline-primary btn-lg px-4 rounded-pill">
+                <i class="bi bi-cloud-check me-2"></i> Nextcloud
+            </a>
+            <a asp-controller="Home" asp-action="Login" asp-route-provider="Google" class="btn btn-outline-danger btn-lg px-4 rounded-pill">
+                <i class="bi bi-google me-2"></i> Google
+            </a>
+        </div>
+    </div>
+}
