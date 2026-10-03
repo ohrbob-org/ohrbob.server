@@ -45,6 +45,8 @@ public class StationsControllerTests
         {
             User = claimsPrincipal
         };
+        httpContext.Request.ContentType = "application/x-www-form-urlencoded";
+        httpContext.Request.Form = new FormCollection(new Dictionary<string, Microsoft.Extensions.Primitives.StringValues>());
 
         _controller.ControllerContext = new ControllerContext
         {

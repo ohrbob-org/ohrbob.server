@@ -41,6 +41,12 @@ public class StationsController : Controller
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();
 
+        // Ensure Feeds array is fully populated from form
+        if (Request.Form.TryGetValue("Feeds", out var formFeeds))
+        {
+            station.Feeds = formFeeds.ToArray();
+        }
+
         await _stationsService.CreateStationAsync(accountId, station);
         return RedirectToAction(nameof(Index));
     }
@@ -79,6 +85,12 @@ public class StationsController : Controller
 
         if (id != station.Id)
             return BadRequest();
+
+        // Ensure Feeds array is fully populated from form
+        if (Request.Form.TryGetValue("Station.Feeds", out var formFeeds))
+        {
+            station.Feeds = formFeeds.ToArray();
+        }
 
         var existingStation = await _stationsService.GetStationByIdAsync(id);
         if (existingStation == null || existingStation.AccountId != accountId)
