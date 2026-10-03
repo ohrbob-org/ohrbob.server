@@ -38,6 +38,12 @@ public class AccountApiService : OhrbobApiService
         using var request = BuildRequest(HttpMethod.Get, $"/account/id/{accountId}");
         using var client =  ClientFactory.CreateClient(nameof(OhrbobApiService));
         var response = await client.SendAsync(request);
+        
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+        
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<Account>();
     }
