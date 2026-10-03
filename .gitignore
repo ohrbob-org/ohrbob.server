@@ -1,2 +1,18 @@
-.idea/
-.env
+# Ignore bin and obj folders
+[Bb]in/
+[Oo]bj/
+bin/
+obj/
+
+# Other standard ignores
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.dll
+*.exe
+*.pdb
+*.cache
+*.up2date
