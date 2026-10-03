@@ -1,0 +1,15 @@
+# API Keys Configuration
+# Define keys that are allowed to access the API. The Web project or other clients will need a matching key.
+ApiKeys__0__Key=your_secret_api_key_here
+ApiKeys__0__Name=web
+ApiKeys__0__Scopes__0=all
+
+# MongoDB Configuration for Application Data
+# The connection string to your MongoDB instance (use localhost:27017 for local development, or mongodb:27017 in Docker)
+MongoDbData__ConnectionString=mongodb://localhost:27017/OhrbobData
+MongoDbData__DatabaseName=OhrbobData
+
+# MongoDB Configuration for Logs
+# The connection string to your MongoDB instance for Serilog logs
+MongoDbLogs__ConnectionString=mongodb://localhost:27017/OhrbobLogs
+MongoDbLogs__DatabaseName=OhrbobLogs
