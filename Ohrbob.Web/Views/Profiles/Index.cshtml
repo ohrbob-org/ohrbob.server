@@ -17,13 +17,22 @@
         var gradientIndex = Math.Abs(item.Id.GetHashCode()) % 16;
         var initial = string.IsNullOrEmpty(item.Name) ? "?" : item.Name[0].ToString().ToUpper();
         
+        var isActive = item.Id == activeProfileId;
+        var cardClass = isActive ? "card h-100 shadow-sm border-primary" : "card h-100 shadow-sm";
+        
         <div class="col">
-            <div class="card h-100 shadow-sm">
+            <div class="@cardClass">
                 <div class="profile-avatar profile-gradient-@gradientIndex card-img-top">
                     @initial
                 </div>
                 <div class="card-body">
-                    <h5 class="card-title">@item.Name</h5>
+                    <h5 class="card-title d-flex align-items-center justify-content-between">
+                        @item.Name
+                        @if (isActive)
+                        {
+                            <span class="badge bg-primary rounded-pill" style="font-size: 0.7em;">Active</span>
+                        }
+                    </h5>
                     <p class="card-text">
                         <small class="text-muted d-block text-truncate" title="@item.StreamToken">
                             Token: <code>@item.StreamToken</code>
