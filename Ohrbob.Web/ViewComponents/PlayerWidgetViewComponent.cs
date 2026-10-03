@@ -22,11 +22,17 @@ public class PlayerWidgetViewComponent : ViewComponent
 
     public async Task<IViewComponentResult> InvokeAsync()
     {
+        var model = new PlayerWidgetViewModel
+        {
+            StreamToken = string.Empty,
+            PlayerApiUrl = _options.PlayerApiUrl
+        };
+
         var accountId = HttpContext.User.FindFirst(Consts.OhrbobAccountIdClaim)?.Value;
-        if (string.IsNullOrEmpty(accountId)) return Content(string.Empty);
+        if (string.IsNullOrEmpty(accountId)) return View(model);
 
         var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId) ?? new List<Profile>();
-        if (!profiles.Any()) return Content(string.Empty);
+        if (!profiles.Any()) return View(model);
 
         var activeId = HttpContext.Request.Cookies["Ohrbob_ActiveProfileId"];
         
@@ -42,12 +48,7 @@ public class PlayerWidgetViewComponent : ViewComponent
         }
 
         var activeProfile = profiles.First(p => p.Id == activeId);
-
-        var model = new PlayerWidgetViewModel
-        {
-            StreamToken = activeProfile.StreamToken,
-            PlayerApiUrl = _options.PlayerApiUrl
-        };
+        model.StreamToken = activeProfile.StreamToken;
 
         return View(model);
     }
