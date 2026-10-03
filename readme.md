@@ -32,11 +32,24 @@ The project includes a `docker-compose.yml` file to easily spin up the entire st
 *   .NET 10 SDK
 *   An IDE (Rider, Visual Studio, or VS Code)
 
+### Environment Configuration
+
+Before running the application, create `.env` files from the provided `.env-example` files for each project:
+
+```bash
+cp Ohrbob.Api/.env-example Ohrbob.Api/.env
+cp Ohrbob.Player/.env-example Ohrbob.Player/.env
+cp Ohrbob.Web/.env-example Ohrbob.Web/.env
+```
+
+Update the values i n these `.env` files as needed (API keys, MongoDB connection strings, etc.).
+
 ### Running Locally
 
 1. **Clone the repository.**
-2. **Configure OIDC (Optional for basic API testing, required for Web Login):** Update the `appsettings.Development.json` in `Ohrbob.Web` and `Ohrbob.Player` with your OIDC provider details (e.g., Nextcloud authority and client secrets).
-3. **Start the stack:**
+2. **Configure environment variables:** Follow the step above to create your `.env` files.
+3. **Configure OIDC (Optional for basic API testing, required for Web Login):** Update the `appsettings.Development.json` in `Ohrbob.Web` and `Ohrbob.Player` with your OIDC provider details (e.g., Nextcloud authority and client secrets).
+4. **Start the stack:**
    ```bash
    docker compose up --build
    ```
