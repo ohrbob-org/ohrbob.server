@@ -16,3 +16,5 @@ obj/
 *.pdb
 *.cache
 *.up2date
+
+.idea/
