@@ -127,7 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state && state.current) {
             applyStateToWidget(state);
             setupAudio();
-            widget.style.display = 'block';
         }
     };
 
