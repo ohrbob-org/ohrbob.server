@@ -1,37 +1,49 @@
 @model Ohrbob.Web.ViewComponents.ProfileSelectorViewModel
 @{
-    var activeInitial = string.IsNullOrEmpty(Model.ActiveProfile.Name) ? "?" : Model.ActiveProfile.Name[0].ToString().ToUpper();
-    var activeGradient = Math.Abs(Model.ActiveProfile.Id.GetHashCode()) % 16;
+    var hasActive = Model.ActiveProfile != null && !string.IsNullOrEmpty(Model.ActiveProfile.Id);
+    var activeInitial = hasActive && !string.IsNullOrEmpty(Model.ActiveProfile.Name) ? Model.ActiveProfile.Name[0].ToString().ToUpper() : "?";
+    var activeGradient = hasActive ? Math.Abs(Model.ActiveProfile.Id.GetHashCode()) % 16 : 0;
 }
 
 <li class="nav-item dropdown">
     <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-        <div class="profile-gradient-@activeGradient text-white d-flex align-items-center justify-content-center rounded-circle fw-bold shadow-sm" style="width: 32px; height: 32px; font-size: 1rem;">
-            @activeInitial
-        </div>
-        <span class="d-none d-sm-inline">@Model.ActiveProfile.Name</span>
+        @if (hasActive)
+        {
+            <div class="profile-gradient-@activeGradient text-white d-flex align-items-center justify-content-center rounded-circle fw-bold shadow-sm" style="width: 32px; height: 32px; font-size: 1rem;">
+                @activeInitial
+            </div>
+            <span class="d-none d-sm-inline">@Model.ActiveProfile.Name</span>
+        }
+        else
+        {
+            <i class="bi bi-person-circle fs-4"></i>
+            <span class="d-none d-sm-inline">No Profile</span>
+        }
     </a>
     <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="profileDropdown">
-        @foreach (var profile in Model.AllProfiles.Where(p => p.Id != Model.ActiveProfile.Id))
+        @if (Model.AllProfiles.Any())
         {
-            var initial = string.IsNullOrEmpty(profile.Name) ? "?" : profile.Name[0].ToString().ToUpper();
-            var gradient = Math.Abs(profile.Id.GetHashCode()) % 16;
-            <li>
-                <form asp-controller="Profiles" asp-action="Select" method="post">
-                    <input type="hidden" name="id" value="@profile.Id" />
-                    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
-                    <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2">
-                        <div class="profile-gradient-@gradient text-white d-flex align-items-center justify-content-center rounded-circle fw-bold" style="width: 24px; height: 24px; font-size: 0.8rem;">
-                            @initial
-                        </div>
-                        @profile.Name
-                    </button>
-                </form>
-            </li>
-        }
-        @if (Model.AllProfiles.Count > 1)
-        {
-            <li><hr class="dropdown-divider"></li>
+            @foreach (var profile in Model.AllProfiles.Where(p => p.Id != Model.ActiveProfile.Id))
+            {
+                var initial = string.IsNullOrEmpty(profile.Name) ? "?" : profile.Name[0].ToString().ToUpper();
+                var gradient = Math.Abs(profile.Id.GetHashCode()) % 16;
+                <li>
+                    <form asp-controller="Profiles" asp-action="Select" method="post">
+                        <input type="hidden" name="id" value="@profile.Id" />
+                        <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                        <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2">
+                            <div class="profile-gradient-@gradient text-white d-flex align-items-center justify-content-center rounded-circle fw-bold" style="width: 24px; height: 24px; font-size: 0.8rem;">
+                                @initial
+                            </div>
+                            @profile.Name
+                        </button>
+                    </form>
+                </li>
+            }
+            @if (Model.AllProfiles.Count > 1)
+            {
+                <li><hr class="dropdown-divider"></li>
+            }
         }
         <li><a class="dropdown-item py-2" asp-controller="Profiles" asp-action="Index"><i class="bi bi-people me-2"></i> Manage Profiles</a></li>
     </ul>

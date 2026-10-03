@@ -23,7 +23,10 @@ public class ProfileSelectorViewComponent : ViewComponent
         if (string.IsNullOrEmpty(accountId)) return Content(string.Empty);
 
         var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId) ?? new List<Profile>();
-        if (!profiles.Any()) return Content(string.Empty);
+        if (!profiles.Any())
+        {
+            return View(new ProfileSelectorViewModel());
+        }
 
         var activeId = HttpContext.Request.Cookies["Ohrbob_ActiveProfileId"];
         
