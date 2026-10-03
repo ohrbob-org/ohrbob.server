@@ -44,7 +44,15 @@
                     }
                 </div>
                 <div class="card-body">
-                    <h5 class="card-title">@dto.Station.Name</h5>
+                    <h5 class="card-title d-flex align-items-center">
+                        @dto.Station.Name
+                        @if (dto.IsUpdating)
+                        {
+                            <div class="spinner-border spinner-border-sm text-primary ms-2" role="status" title="Updating feeds...">
+                                <span class="visually-hidden">Updating...</span>
+                            </div>
+                        }
+                    </h5>
                     <p class="card-text">
                         <span class="badge @(dto.Station.IsPublic ? "bg-success" : "bg-secondary")">
                             @(dto.Station.IsPublic ? "Public" : "Private")
