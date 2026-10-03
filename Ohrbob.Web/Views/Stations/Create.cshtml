@@ -51,13 +51,12 @@
     </div>
 </div>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const container = document.getElementById('feedsContainer');
-            const addBtn = document.getElementById('addFeedBtn');
+<script>
+    (function() {
+        const container = document.getElementById('feedsContainer');
+        const addBtn = document.getElementById('addFeedBtn');
 
+        if (addBtn && container) {
             addBtn.addEventListener('click', function () {
                 const div = document.createElement('div');
                 div.className = 'input-group mb-2 feed-item';
@@ -79,6 +78,10 @@
                     }
                 }
             });
-        });
-    </script>
+        }
+    })();
+</script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

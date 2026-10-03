@@ -104,13 +104,12 @@
     </div>
 </div>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const container = document.getElementById('feedsContainer');
-            const addBtn = document.getElementById('addFeedBtn');
+<script>
+    (function() {
+        const container = document.getElementById('feedsContainer');
+        const addBtn = document.getElementById('addFeedBtn');
 
+        if (addBtn && container) {
             addBtn.addEventListener('click', function () {
                 const div = document.createElement('div');
                 div.className = 'input-group mb-2 feed-item';
@@ -125,13 +124,18 @@
                 if (e.target && e.target.classList.contains('remove-feed')) {
                     const items = container.querySelectorAll('.feed-item');
                     if (items.length > 1) {
-                        e.target.closest('.feed-item').remove();
+                        const wrapper = e.target.closest('.mb-3.p-2.border') || e.target.closest('.feed-item');
+                        if (wrapper) wrapper.remove();
                     } else {
                         // Just clear it if it's the last one
                         e.target.previousElementSibling.value = '';
                     }
                 }
             });
-        });
-    </script>
+        }
+    })();
+</script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
