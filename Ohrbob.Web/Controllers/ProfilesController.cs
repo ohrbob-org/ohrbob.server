@@ -147,9 +147,14 @@ public class ProfilesController : Controller
             });
         }
 
-        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-            return Redirect(returnUrl);
-            
-        return RedirectToAction(nameof(Index), "Home");
+        var targetUrl = (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)) ? returnUrl : Url.Action(nameof(Index), "Home");
+
+        if (Request.Headers.ContainsKey("HX-Request"))
+        {
+            Response.Headers["HX-Redirect"] = targetUrl;
+            return Ok();
+        }
+
+        return Redirect(targetUrl!);
     }
 }
