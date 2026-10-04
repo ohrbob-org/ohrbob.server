@@ -103,15 +103,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentLoadedUri = null;
 
     const setupAudio = () => {
-        if (!currentEpisodeData || !currentEpisodeData.streamUri) return;
+        if (!currentEpisodeData || !currentEpisodeData.streamUri) {
+            console.warn("setupAudio: No streamUri found in currentEpisodeData", currentEpisodeData);
+            return;
+        }
         
         // streamUri is now an absolute URL directly to the podcast audio file
         const fullStreamUri = currentEpisodeData.streamUri; 
         
         // If it's a new track, load it
-        if (currentLoadedUri !== fullStreamUri) {
+        if (currentLoadedUri !== fullStreamUri || !audio.src || audio.src === window.location.href) {
+            console.log('setupAudio: Setting src to', fullStreamUri);
             currentLoadedUri = fullStreamUri;
             audio.src = fullStreamUri;
+            audio.load(); // Force load
             audio.currentTime = currentEpisodeData.playheadPositionSeconds || 0;
             
             const playPromise = audio.play();
@@ -197,7 +202,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (currentLoadedUri !== currentEpisodeData.streamUri) {
+        console.log('Attempting to play. URI:', currentEpisodeData.streamUri, 'Current src:', audio.src);
+
+        if (currentLoadedUri !== currentEpisodeData.streamUri || !audio.src || audio.src === window.location.href) {
             setupAudio();
         } else {
             const playPromise = audio.play();
