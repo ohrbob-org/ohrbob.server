@@ -30,11 +30,12 @@
             <div class="form-group mb-4">
                 <label class="control-label fw-bold">Allowed Stations</label>
                 <div class="border rounded p-3">
-                @if (ViewBag.Stations != null)
+                @{ var stationsList = ViewBag.Stations as IEnumerable<Ohrbob.Server.Shared.Requests.StationWithFeedsDto>; }
+                @if (stationsList != null && stationsList.Any())
                 {
                     var allowed = Model.AllowedStationIds?.ToList() ?? new List<string>();
                     <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-6 g-3 mt-1">
-                    @foreach (var station in ViewBag.Stations as IEnumerable<Ohrbob.Server.Shared.Requests.StationWithFeedsDto>)
+                    @foreach (var station in stationsList)
                     {
                         var isChecked = allowed.Contains(station.Station.Id) ? "checked" : "";
                         var feedCount = station.Feeds?.Count ?? 0;
@@ -80,6 +81,13 @@
                             </label>
                         </div>
                     }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info mb-0">
+                        You don't have any stations assigned to this profile yet. 
+                        Go to <a asp-controller="Stations" asp-action="Index">Manage Stations</a> to create some, or use the Discover tab.
                     </div>
                 }
                 </div>
