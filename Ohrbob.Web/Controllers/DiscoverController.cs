@@ -10,11 +10,13 @@ public class DiscoverController : Controller
 {
     private readonly PodcastIndexApiService _podcastIndexApi;
     private readonly StationsApiService _stationsService;
+    private readonly ProfilesApiService _profilesService;
 
-    public DiscoverController(PodcastIndexApiService podcastIndexApi, StationsApiService stationsService)
+    public DiscoverController(PodcastIndexApiService podcastIndexApi, StationsApiService stationsService, ProfilesApiService profilesService)
     {
         _podcastIndexApi = podcastIndexApi;
         _stationsService = stationsService;
+        _profilesService = profilesService;
     }
 
     private string? GetAccountId() => User.FindFirst(Consts.OhrbobAccountIdClaim)?.Value;
@@ -64,7 +66,21 @@ public class DiscoverController : Controller
                     Name = feedTitle,
                     Feeds = new[] { feedUrl }
                 };
-                await _stationsService.CreateStationAsync(accountId, newStation);
+                var created = await _stationsService.CreateStationAsync(accountId, newStation);
+                
+                // Add to active profile
+                var activeId = HttpContext.Request.Cookies["Ohrbob_ActiveProfileId"];
+                if (string.IsNullOrEmpty(activeId))
+                {
+                    var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId);
+                    activeId = profiles?.FirstOrDefault()?.Id;
+                }
+                if (!string.IsNullOrEmpty(activeId) && created != null)
+                {
+                    await _profilesService.AddStationToProfileAsync(activeId, created.Id);
+                }
+
+                Response.Headers["HX-Trigger"] = "stationAdded";
                 return Content($"<div class='alert alert-success p-2 mb-0'>Created new station: {feedTitle}</div>");
             }
             else
@@ -79,6 +95,8 @@ public class DiscoverController : Controller
                     station.Feeds = feeds.ToArray();
                     await _stationsService.UpdateStationAsync(station);
                 }
+                
+                Response.Headers["HX-Trigger"] = "stationAdded";
                 return Content($"<div class='alert alert-success p-2 mb-0'>Added to station: {station.Name}</div>");
             }
         }

@@ -248,5 +248,26 @@ document.addEventListener('DOMContentLoaded', () => {
     syncState();
     
     // Heartbeat every 10 seconds
-    syncInterval = setInterval(reportPlayhead, 10000);
+    syncInterval = setInterval(() => {
+        if (widget.isPlaying && currentEpisodeData && activeStationId) {
+            reportPlayhead();
+        } else if (!currentEpisodeData) {
+            // If the player is empty, poll to see if the backend has prepared an episode
+            syncState();
+        }
+    }, 10000);
+
+    // Listen for HTMX events when a station is added to start playing quickly
+    document.body.addEventListener('stationAdded', () => {
+        if (currentEpisodeData) return; // already playing something
+        
+        let attempts = 0;
+        const fastPoll = setInterval(async () => {
+            attempts++;
+            await syncState();
+            if (currentEpisodeData || attempts >= 10) {
+                clearInterval(fastPoll);
+            }
+        }, 2000); // Check every 2 seconds up to 20 seconds
+    });
 });

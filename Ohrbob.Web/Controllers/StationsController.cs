@@ -47,7 +47,20 @@ public class StationsController : Controller
             station.Feeds = formFeeds.ToArray();
         }
 
-        await _stationsService.CreateStationAsync(accountId, station);
+        var created = await _stationsService.CreateStationAsync(accountId, station);
+
+        // Add to active profile automatically
+        var activeId = HttpContext.Request.Cookies["Ohrbob_ActiveProfileId"];
+        if (string.IsNullOrEmpty(activeId))
+        {
+            var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId);
+            activeId = profiles?.FirstOrDefault()?.Id;
+        }
+        if (!string.IsNullOrEmpty(activeId) && created != null)
+        {
+            await _profilesService.AddStationToProfileAsync(activeId, created.Id);
+        }
+
         return RedirectToAction(nameof(Index));
     }
 
