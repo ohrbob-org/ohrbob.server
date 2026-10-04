@@ -50,6 +50,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - OhrbobApi__BaseUrl=http://ohrbob.api:8080/api
+      - OhrbobApi__PlayerApiUrl=http://localhost:5002
     ports:
       - "5003:8080"
     depends_on:

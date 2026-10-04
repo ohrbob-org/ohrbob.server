@@ -18,7 +18,7 @@ Env.NoClobber().Load();
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo("/app/DataProtection-Keys"))
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "DataProtection-Keys")))
     .SetApplicationName("OhrbobWeb");
 
 builder.Services.AddRazorPages();

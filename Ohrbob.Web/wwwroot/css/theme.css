@@ -12327,5 +12327,74 @@ textarea.form-control-lg {
     font-size: 0.65rem;
   }
 }
+.ohrbob-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Sulphur Point", sans-serif;
+  font-weight: 700;
+  line-height: 1;
+}
+.ohrbob-logo .ohrbob-logo-text {
+  display: inline-flex;
+  letter-spacing: -0.02em;
+}
+.ohrbob-logo .ohrbob-logo-text .char-1 {
+  color: #544ff4;
+}
+.ohrbob-logo .ohrbob-logo-text .char-2 {
+  color: #001957;
+}
+.ohrbob-logo .ohrbob-logo-text .char-3 {
+  color: #fc5d00;
+}
+.ohrbob-logo .ohrbob-logo-text .char-4 {
+  color: #544ff4;
+}
+.ohrbob-logo .ohrbob-logo-text .char-5 {
+  color: #fc5d00;
+}
+.ohrbob-logo .ohrbob-logo-text .char-6 {
+  color: #001957;
+}
+.ohrbob-logo .ohrbob-logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ohrbob-logo .ohrbob-logo-icon img, .ohrbob-logo .ohrbob-logo-icon svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.ohrbob-logo.ohrbob-logo-left {
+  flex-direction: row;
+}
+.ohrbob-logo.ohrbob-logo-left .ohrbob-logo-icon {
+  height: 1em;
+  margin-right: 0.25em;
+}
+.ohrbob-logo.ohrbob-logo-left .ohrbob-logo-icon img, .ohrbob-logo.ohrbob-logo-left .ohrbob-logo-icon svg {
+  height: 100%;
+  width: auto;
+}
+.ohrbob-logo.ohrbob-logo-above {
+  display: inline-grid;
+  grid-template-columns: min-content;
+  justify-items: center;
+  align-items: center;
+}
+.ohrbob-logo.ohrbob-logo-above .ohrbob-logo-icon {
+  grid-row: 1;
+  grid-column: 1;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 0.15em;
+}
+.ohrbob-logo.ohrbob-logo-above .ohrbob-logo-text {
+  grid-row: 2;
+  grid-column: 1;
+  width: max-content;
+}
 
 /*# sourceMappingURL=theme.css.map */

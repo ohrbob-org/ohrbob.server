@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  .ohrbob-logo-above {
+    display: inline-grid;
+    grid-template-columns: min-content;
+    justify-items: center;
+    border: 1px solid blue;
+    font-size: 4rem;
+  }
+  .ohrbob-logo-text {
+    grid-row: 2;
+    grid-column: 1;
+    width: max-content;
+    background: #ccc;
+  }
+  .ohrbob-logo-icon {
+    grid-row: 1;
+    grid-column: 1;
+    width: 100%;
+    min-width: 0;
+    background: #f99;
+  }
+  .ohrbob-logo-icon img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+</style>
+</head>
+<body>
+  <div class="ohrbob-logo-above">
+    <div class="ohrbob-logo-icon"><img src="favicon.png" style="width:500px; max-width:none;"></div>
+    <div class="ohrbob-logo-text">ohrbob</div>
+  </div>
+</body>
+</html>
