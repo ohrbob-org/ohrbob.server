@@ -51,7 +51,7 @@ public class AccountApiService : OhrbobApiService
     
     public async Task<Account?> AddIdentityProviderAsync(string accountId, IdpUser idpUser)
     {
-        using var request = BuildRequest(HttpMethod.Post, $"/idp");
+        using var request = BuildRequest(HttpMethod.Post, $"/account/idp");
         
         request.Content = new StringContent(JsonSerializer.Serialize(new IdentityProviderRequest()
         {
@@ -67,7 +67,7 @@ public class AccountApiService : OhrbobApiService
     
     public async Task<Account?> DeleteIdentityProviderAsync(string accountId, IdpUser idpUser)
     {
-        using var request = BuildRequest(HttpMethod.Delete, $"/idp");
+        using var request = BuildRequest(HttpMethod.Delete, $"/account/idp");
         
         request.Content = new StringContent(JsonSerializer.Serialize(new IdentityProviderRequest()
         {
@@ -82,7 +82,7 @@ public class AccountApiService : OhrbobApiService
     }
     public async Task<Account?> SetActiveProfileAsync(string accountId, string profileId)
     {
-        using var request = BuildRequest(HttpMethod.Post, $"/account/id/{accountId}/active-profile/{profileId}");
+        using var request = BuildRequest(HttpMethod.Post, $"/account/{accountId}/active-profile/{profileId}");
         using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
         var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();

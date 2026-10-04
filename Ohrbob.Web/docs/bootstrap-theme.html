@@ -118,7 +118,7 @@
         <input type="text" class="form-control glass-input mb-4" placeholder="Glass Input">
 
         <h4 class="mb-3 mt-4">Audio Widget</h4>
-        <p>The <code>&lt;audio-widget&gt;</code> is a custom web component styled as a glass panel with a frosted glass edge. It's fixed to hover over the UI at the bottom right. Here is the code structure used for it:</p>
+        <p>The <code>&lt;audio-widget&gt;</code> is a custom web component styled as a glass panel with a frosted glass edge. It's a full-width player bar docked to the bottom of the viewport. Here is the code structure used for it:</p>
         <div class="card glass-panel mb-5">
             <div class="card-body">
                 <pre class="mb-0" style="color: var(--bs-body-color); overflow-x: auto;"><code>&lt;audio-widget 
@@ -150,11 +150,42 @@
 
     <script src="js/audio-widget.js"></script>
     <script>
-        // Example event listeners for the audio widget
         const widget = document.querySelector('audio-widget');
+        widget.duration = 2532; // 42:12
+        let interval = null;
         
-        widget.addEventListener('play', () => console.log('Playing...'));
-        widget.addEventListener('pause', () => console.log('Paused.'));
+        widget.addEventListener('play', () => {
+            console.log('Playing...');
+            interval = setInterval(() => {
+                if (widget.currentTime < widget.duration) {
+                    widget.currentTime += 1;
+                } else {
+                    widget.isPlaying = false;
+                    clearInterval(interval);
+                }
+            }, 1000);
+        });
+        
+        widget.addEventListener('pause', () => {
+            console.log('Paused.');
+            clearInterval(interval);
+        });
+        
+        widget.addEventListener('seek', (e) => {
+            console.log('Seeked to', e.detail.time);
+            widget.currentTime = e.detail.time;
+        });
+
+        widget.addEventListener('volumechange', (e) => console.log('Volume:', e.detail.volume));
+        widget.addEventListener('mutechange', (e) => console.log('Muted:', e.detail.muted));
+        widget.addEventListener('skipback', (e) => {
+            console.log('Skip back', e.detail.seconds);
+            widget.currentTime = Math.max(0, widget.currentTime - e.detail.seconds);
+        });
+        widget.addEventListener('skipforward', (e) => {
+            console.log('Skip forward', e.detail.seconds);
+            widget.currentTime = Math.min(widget.duration, widget.currentTime + e.detail.seconds);
+        });
         widget.addEventListener('forward', () => console.log('Next track requested.'));
         widget.addEventListener('back', () => console.log('Previous track requested.'));
         widget.addEventListener('settings', () => console.log('Settings opened.'));
