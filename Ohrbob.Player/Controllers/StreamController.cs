@@ -117,6 +117,25 @@ public class StreamController : ControllerBase
         return Ok();
     }
 
+    [HttpPost("play-station/{stationId}")]
+    public async Task<IActionResult> PlayStation(string stationId)
+    {
+        var profile = await GetProfile();
+        if (profile == null) return Unauthorized();
+
+        var station = await _stations.Find(s => s.Id == stationId).FirstOrDefaultAsync();
+        if (station == null) return NotFound();
+
+        // Clear active episode to let the strategy pick the next one based on the new station
+        var update = Builders<Profile>.Update
+            .Set(p => p.LastActiveStationId, stationId)
+            .Set(p => p.LastActiveEpisodeId, null);
+            
+        await _profiles.UpdateOneAsync(p => p.Id == profile.Id, update);
+        
+        return Ok();
+    }
+
     [HttpPost("next")]
     public async Task<IActionResult> Next()
     {

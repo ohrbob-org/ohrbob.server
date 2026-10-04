@@ -198,6 +198,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    widget.addEventListener('seek', (e) => {
+        const time = e.detail.time;
+        if (Number.isFinite(time)) {
+            audio.currentTime = time;
+        }
+    });
+
+    widget.addEventListener('volumechange', (e) => {
+        const vol = e.detail.volume;
+        if (Number.isFinite(vol)) {
+            audio.volume = vol;
+        }
+    });
+
+    widget.addEventListener('mutechange', (e) => {
+        audio.muted = Boolean(e.detail.muted);
+    });
+
+    widget.addEventListener('skipback', (e) => {
+        audio.currentTime = Math.max(0, audio.currentTime - (e.detail.seconds || 15));
+    });
+
+    widget.addEventListener('skipforward', (e) => {
+        audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + (e.detail.seconds || 30));
+    });
+
+    // Handle station switching from the dashboard cards
+    widget.playStation = async (stationId) => {
+        console.log("Switching to station:", stationId);
+        await apiCall(`/stream/play-station/${stationId}`, 'POST');
+        // Let the state re-sync and start playing
+        await syncState();
+    };
+
+    // Update widget duration & current time periodically from the actual audio element
+    setInterval(() => {
+        if (audio.readyState > 0 && widget.isPlaying) {
+            if (widget.duration !== audio.duration && Number.isFinite(audio.duration)) {
+                widget.duration = audio.duration;
+            }
+            if (widget.currentTime !== audio.currentTime && Number.isFinite(audio.currentTime)) {
+                widget.currentTime = audio.currentTime;
+            }
+        }
+    }, 500);
+
     // Initial sync
     syncState();
     
