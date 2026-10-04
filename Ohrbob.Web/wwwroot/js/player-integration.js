@@ -100,25 +100,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    let currentLoadedUri = null;
+
     const setupAudio = () => {
-        if (!currentEpisodeData) return;
+        if (!currentEpisodeData || !currentEpisodeData.streamUri) return;
         
         // streamUri is now an absolute URL directly to the podcast audio file
         const fullStreamUri = currentEpisodeData.streamUri; 
         
         // If it's a new track, load it
-        if (audio.src !== fullStreamUri) {
+        if (currentLoadedUri !== fullStreamUri) {
+            currentLoadedUri = fullStreamUri;
             audio.src = fullStreamUri;
             audio.currentTime = currentEpisodeData.playheadPositionSeconds || 0;
-            audio.play().then(() => {
-                widget.isPlaying = true;
-                updatePlayButton();
-            }).catch(e => {
-                console.log('Autoplay blocked by browser', e);
-                widget.isPlaying = false;
-                updatePlayButton();
-                showAutoplayToast();
-            });
+            
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    widget.isPlaying = true;
+                    updatePlayButton();
+                }).catch(e => {
+                    console.log('Autoplay blocked by browser or source not supported', e);
+                    widget.isPlaying = false;
+                    updatePlayButton();
+                    showAutoplayToast();
+                });
+            }
         }
     };
 
@@ -153,16 +160,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Track transition handling
     audio.onended = async () => {
-        if (nextEpisodeData) {
+        if (nextEpisodeData && nextEpisodeData.streamUri) {
             // Optimistic update
             currentEpisodeData = nextEpisodeData;
             widget.setAttribute('track', currentEpisodeData.title);
             if (currentEpisodeData.coverUrl) widget.setAttribute('cover', currentEpisodeData.coverUrl);
             
             const fullStreamUri = currentEpisodeData.streamUri;
+            currentLoadedUri = fullStreamUri;
             audio.src = fullStreamUri;
             audio.currentTime = 0;
-            audio.play();
+            
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(e => console.error('Play blocked or failed:', e));
+            }
             
             // Advance on server
             await apiCall('/stream/next', 'POST');
@@ -178,8 +190,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Bind widget events to Audio
     widget.addEventListener('play', () => {
-        audio.play();
-        widget.isPlaying = true;
+        if (!audio.src || audio.src === '' || audio.src === window.location.href) {
+            setupAudio();
+        }
+        
+        if (audio.src && audio.src !== '' && audio.src !== window.location.href) {
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(e => console.error('Play blocked or failed:', e));
+            }
+            widget.isPlaying = true;
+        }
     });
     
     widget.addEventListener('pause', () => {
