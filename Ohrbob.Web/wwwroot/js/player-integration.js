@@ -190,16 +190,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Bind widget events to Audio
     widget.addEventListener('play', () => {
-        if (!audio.src || audio.src === '' || audio.src === window.location.href) {
-            setupAudio();
+        if (!currentEpisodeData || !currentEpisodeData.streamUri) {
+            console.warn('No episode loaded to play');
+            widget.isPlaying = false;
+            updatePlayButton();
+            return;
         }
-        
-        if (audio.src && audio.src !== '' && audio.src !== window.location.href) {
+
+        if (currentLoadedUri !== currentEpisodeData.streamUri) {
+            setupAudio();
+        } else {
             const playPromise = audio.play();
             if (playPromise !== undefined) {
-                playPromise.catch(e => console.error('Play blocked or failed:', e));
+                playPromise.then(() => {
+                    widget.isPlaying = true;
+                }).catch(e => {
+                    console.error('Play blocked or failed:', e);
+                    widget.isPlaying = false;
+                    updatePlayButton();
+                });
             }
-            widget.isPlaying = true;
         }
     });
     
