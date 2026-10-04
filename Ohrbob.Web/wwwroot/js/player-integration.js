@@ -102,6 +102,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentLoadedUri = null;
 
+    audio.addEventListener('error', (e) => {
+        console.error("Audio element error:", audio.error);
+        widget.isPlaying = false;
+        updatePlayButton();
+    });
+
     const setupAudio = () => {
         if (!currentEpisodeData || !currentEpisodeData.streamUri) {
             console.warn("setupAudio: No streamUri found in currentEpisodeData", currentEpisodeData);
