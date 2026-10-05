@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 
 namespace Ohrbob.E2ETests.Infrastructure;
 
@@ -36,10 +37,33 @@ public class PlaywrightWebApplicationFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.ConfigureAppConfiguration((context, config) =>
+        {
+            config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                { "OhrbobApi:BaseUrl", "https://localhost:7250/api" },
+                { "OhrbobApi:ApiKey", "***REMOVED***" },
+                { "OhrbobApi:PlayerApiUrl", "https://localhost:7244" },
+                { "PodcastIndex:ApiKey", "***REMOVED***" },
+                { "PodcastIndex:ApiSecret", "***REMOVED***" },
+                { "Oidc:Nextcloud:Authority", "https://localhost" },
+                { "Oidc:Nextcloud:ClientId", "dummy-client-id" },
+                { "Oidc:Nextcloud:ClientSecret", "dummy-client-secret" },
+                { "Oidc:Google:Authority", "https://localhost" },
+                { "Oidc:Google:ClientId", "dummy-client-id" },
+                { "Oidc:Google:ClientSecret", "dummy-client-secret" }
+            });
+        });
+
         builder.ConfigureServices(services =>
         {
-            services.AddAuthentication("Test")
-                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", options => { });
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = "Test";
+                options.DefaultChallengeScheme = "Test";
+                options.DefaultScheme = "Test";
+            })
+            .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", options => { });
         });
     }
 
