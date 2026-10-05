@@ -186,4 +186,4 @@ async Task CreateOrGetAccountAsync(TokenValidatedContext context)
             context.HttpContext.Response.Cookies.Append("Ohrbob_ActiveProfileId", account.LastUsedProfileId, new CookieOptions { HttpOnly = true, Secure = true, Expires = DateTimeOffset.UtcNow.AddDays(30) });
         }
     }
-}
+}public partial class Program { }
