@@ -154,11 +154,11 @@ app.Use(async (context, next) =>
     {
         await next();
     }
-    catch (HttpRequestException ex) when (ex.InnerException is System.Net.Sockets.SocketException || ex.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
-    {
-        context.Response.Redirect("/Home/ServiceUnavailable");
-    }
-    catch (System.Net.Sockets.SocketException)
+    catch (Exception ex) when (ex is HttpRequestException || 
+                               ex.GetBaseException() is HttpRequestException || 
+                               ex.GetBaseException() is System.Net.Sockets.SocketException ||
+                               (ex is HttpRequestException hx && hx.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable) ||
+                               (ex.GetBaseException() is HttpRequestException bhx && bhx.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable))
     {
         context.Response.Redirect("/Home/ServiceUnavailable");
     }
