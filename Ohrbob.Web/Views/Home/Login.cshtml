@@ -46,3 +46,74 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <style>
+        #lynx-head {
+            transform-origin: center center;
+            transition: transform 0.1s ease-out;
+        }
+        #lynx-head.is-nodding {
+            animation: nod 0.5s ease-in-out forwards;
+        }
+        @keyframes nod {
+            0% { transform: translateY(0) scaleY(1); }
+            40% { transform: translateY(0.15px) scaleY(0.95); }
+            100% { transform: translateY(0) scaleY(1); }
+        }
+        
+        #Eye, #Eye_mirrored {
+            transition: transform 0.05s linear;
+        }
+    </style>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const eyeL = document.getElementById("Eye");
+            const eyeR = document.getElementById("Eye_mirrored");
+            
+            // Eye tracking
+            document.addEventListener("mousemove", (e) => {
+                if (!eyeL || !eyeR) return;
+                
+                const maxMovement = 0.08; // SVG coordinate units
+
+                // Calculate center of screen
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+
+                // Delta from center
+                const deltaX = (e.clientX - centerX) / centerX;
+                const deltaY = (e.clientY - centerY) / centerY;
+
+                // Apply clamped transform
+                const moveX = deltaX * maxMovement;
+                const moveY = deltaY * maxMovement;
+                
+                eyeL.style.transform = `translate(${moveX}px, ${moveY}px)`;
+                eyeR.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            });
+
+            // Nodding animation
+            const lynxHead = document.getElementById("lynx-head");
+            const loginBtns = document.querySelectorAll(".login-btn");
+
+            loginBtns.forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    if (!lynxHead) {
+                        window.location.href = btn.href;
+                        return;
+                    }
+                    
+                    lynxHead.classList.add("is-nodding");
+                    
+                    // Wait for animation, then redirect
+                    setTimeout(() => {
+                        window.location.href = btn.href;
+                    }, 500); 
+                });
+            });
+        });
+    </script>
+}
