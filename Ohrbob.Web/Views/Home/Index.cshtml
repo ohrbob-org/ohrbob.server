@@ -250,8 +250,10 @@ else
             // New continuous directional broadcast animation (Pooling System)
             const broadcastNode = document.querySelector('.broadcast-node');
             if (broadcastNode) {
-                // Create a pool of 6 SVG rings (15s duration / 3s stagger = 5 active rings + 1 buffer)
-                const poolSize = 6;
+                // We need more rings and a longer travel time to cover the entire page
+                // The landing page is tall. Let's make it travel 15000px up over 90 seconds.
+                // 90s duration / 3s stagger = 30 rings needed in the pool
+                const poolSize = 30;
                 const rings = [];
                 for (let i = 0; i < poolSize; i++) {
                     const ring = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -269,9 +271,13 @@ else
                     rings.push(ring);
                 }
                 
-                // Travel distance: well above the screen
-                // Ensure we have a height even if calculated before layout finishes
-                const travelDistance = -((window.innerHeight || 1000) * 2);
+                // Calculate actual document height. If it hasn't fully rendered, fallback to a huge number.
+                const docHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight, 10000);
+                const travelDistance = -(docHeight + 2000); // well above the very top of the page
+                
+                // To keep the speed somewhat consistent with before (2000px in 15s = ~133px/s)
+                // New duration = distance / 133
+                const travelDuration = Math.abs(travelDistance) / 133;
 
                 // Instead of waiting for ScrollTrigger, we hand all rings to GSAP immediately.
                 // We use stagger with repeat: -1 to guarantee they are permanently and perfectly spaced.
@@ -285,12 +291,12 @@ else
                         y: 0 
                     }, 
                     {
-                        width: "2000px", // Expand outward reasonably
-                        height:"2000px",
+                        width: "6000px", // Expand massively as it goes way up
+                        height:"6000px",
                         xPercent: -50,
                         yPercent: -50,
                         y: travelDistance, // ALSO travel up the entire page
-                        duration: 15, // Travel time
+                        duration: travelDuration, // Calculated dynamically
                         ease: "none", // Natural expanding ease
                         stagger: {
                             each: 3,
@@ -299,9 +305,9 @@ else
                     }
                 );
                 
-                // Fast-forward the animation by exactly one full 15-second cycle 
-                // so the screen is already pre-populated with distributed waves on load!
-                broadcastAnim.totalTime(15);
+                // Fast-forward the animation by exactly one full cycle 
+                // so the screen is already pre-populated with distributed waves all the way to the top on load!
+                broadcastAnim.totalTime(travelDuration);
             }
 
             // Animate each step's waves and content reveal
