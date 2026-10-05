@@ -62,7 +62,14 @@
 
     <footer class="border-top footer text-muted" style="@(User.Identity?.IsAuthenticated == true ? "margin-bottom: 100px;" : "")">
         <div class="container">
-            &copy; 2026 - Ohrbob.Web
+            
+            <div style="font-size: 1rem;">
+                <div class="ohrbob-logo">
+                    <span class="ohrbob-logo-text">
+                        <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
+                    </span>
+                </div>
+            </div>
         </div>
     </footer>
     @if (User.Identity?.IsAuthenticated == true)

@@ -12,6 +12,10 @@ html {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
+h1,h2,h3,h4,h5,h6{
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Noto Sans, Liberation Sans, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+}
+
 html {
   position: relative;
   min-height: 100%;
@@ -74,8 +78,8 @@ header .nav-item.dropdown {
 .floating-nav-pill-center a {
     text-decoration: none;
     color: #444;
-    font-weight: 500;
-    font-size: 0.95rem;
+    font-weight: 700;
+    font-size: 1rem;
 }
 .floating-nav-pill-center a:hover {
     color: var(--bs-primary);
