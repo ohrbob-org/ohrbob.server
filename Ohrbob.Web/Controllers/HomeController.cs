@@ -40,6 +40,7 @@ public class HomeController : Controller
         if (profiles == null || !profiles.Any()) return View(new List<StationWithFeedsDto>());
 
         var activeProfile = profiles.FirstOrDefault(p => p.Id == activeId) ?? profiles.First();
+        ViewBag.ActiveStationId = activeProfile.LastActiveStationId;
         
         var allStations = await _stationsService.GetStationsByAccountIdAsync(accountId) ?? new List<StationWithFeedsDto>();
         
