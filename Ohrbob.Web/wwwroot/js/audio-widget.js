@@ -210,6 +210,11 @@ class AudioWidget extends HTMLElement {
         this.querySelector('.js-skipforward').addEventListener('click', () => this.dispatchEvent(new CustomEvent('skipforward', { bubbles: true, detail: { seconds: 30 } })));
         this.querySelector('.js-settings').addEventListener('click', () => this.dispatchEvent(new CustomEvent('settings', { bubbles: true })));
 
+        const coverEl = this.querySelector('.track-cover');
+        if (coverEl) {
+            coverEl.addEventListener('click', () => this.dispatchEvent(new CustomEvent('coverclick', { bubbles: true })));
+        }
+
         const mute = this.querySelector('.js-mute');
         mute.addEventListener('click', () => {
             this.muted = !this.muted;
