@@ -280,19 +280,22 @@ else
                     const ring = ringObj.el;
 
                     // Travel distance: well above the screen
-                    const travelDistance = -(window.innerHeight + 1000); 
+                    const travelDistance = -(window.innerHeight * 2); // Calculate height dynamically
 
                     gsap.fromTo(ring, 
                         { 
                             width: "50px", 
                             height: "50px", 
-                            opacity: .3 
+                            opacity: .3,
+                            y: 0 
                         }, 
                         {
-                            width: "3000px", // Expand outward massively so the edge travels up the screen
-                            height: "3000px", 
+                            width: "2000px", // Expand outward reasonably
+                            height:"2000px",
+                            y: travelDistance, // ALSO travel up the entire page
+                            opacity: 0, // Fade out entirely near the end
                             duration: 15, // Travel time
-                            ease: "power1.out", // Natural expanding ease
+                            ease: "none", // Natural expanding ease
                             onComplete: () => {
                                 ringObj.active = false; // Return to pool
                             }
