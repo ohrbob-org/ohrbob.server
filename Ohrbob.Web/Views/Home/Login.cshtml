@@ -59,7 +59,7 @@
         }
         @keyframes nod {
             0% { transform: translateY(0) scaleY(1); }
-            40% { transform: translateY(10px) scaleY(0.95); }
+            40% { transform: translateY(0.15px) scaleY(0.95); }
             100% { transform: translateY(0) scaleY(1); }
         }
         
@@ -91,8 +91,8 @@
                 const moveX = deltaX * maxMovement;
                 const moveY = deltaY * maxMovement;
                 
-                eyeL.style.transform = `translate(${moveX}px, ${moveY}px)`;
-                eyeR.style.transform = `translate(${moveX}px, ${moveY}px)`;
+                eyeL.style.transform = `translate(${moveX}, ${moveY})`;
+                eyeR.style.transform = `translate(${moveX}, ${moveY})`;
             });
 
             // Nodding animation
