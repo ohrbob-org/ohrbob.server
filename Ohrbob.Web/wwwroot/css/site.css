@@ -29,3 +29,46 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+/* Floating Navigation */
+.floating-nav-pill {
+    position: sticky;
+    top: 20px;
+    margin: 0 auto 2rem auto;
+    width: 90%;
+    max-width: 1000px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 50px;
+    padding: 0.5rem 1rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1050;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+.floating-nav-pill-center {
+    display: flex;
+    gap: 2rem;
+}
+.floating-nav-pill-center a {
+    text-decoration: none;
+    color: #444;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+.floating-nav-pill-center a:hover {
+    color: var(--bs-primary);
+}
+
+/* Layout Utilities */
+.full-width-escape {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    overflow-x: hidden;
+}
