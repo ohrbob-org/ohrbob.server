@@ -285,11 +285,15 @@ else
                                 width: "50px", 
                                 height: "50px", 
                                 opacity: .3,
+                                xPercent: -50, // Keep horizontally centered
+                                yPercent: -50, // Keep vertically centered as base
                                 y: 0 
                             }, 
                             {
                                 width: "2000px", // Expand outward reasonably
                                 height:"2000px",
+                                xPercent: -50,
+                                yPercent: -50,
                                 y: travelDistance, // ALSO travel up the entire page
                                 opacity: 0, // Fade out entirely near the end
                                 duration: 15, // Travel time
