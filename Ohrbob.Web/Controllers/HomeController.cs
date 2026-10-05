@@ -75,7 +75,7 @@ public class HomeController : Controller
     {
         if (string.IsNullOrEmpty(provider))
         {
-            return RedirectToAction(nameof(Index));
+            return View();
         }
         return Challenge(new AuthenticationProperties { RedirectUri = "/" }, provider);
     }
