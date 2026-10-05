@@ -73,7 +73,7 @@ public class AudioPlaybackTests : PageTest
         await Page.ClickAsync("input[type='submit']");
 
         // Now we are redirected to Stations index. Go to Home (Dashboard)
-        await Page.ClickAsync("a.navbar-brand");
+        await Page.ClickAsync(".floating-nav-pill a");
 
         // Wait for the station to appear and process
         var stationCard = Page.Locator(".card-body:has-text('Test E2E Station')");
