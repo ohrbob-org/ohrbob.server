@@ -134,10 +134,13 @@ else
         }
     </style>
     var landingSteps = new[] {
-        new { Title = "Build radio stations", Desc = "<p>You take your favorite podcasts and build radio stations that you can tune into when you want.</p><p>The twist is that your stations are only for you and they are waiting for your return before the broadcast continues. </p>", Card = "Stations View" },
-        new { Title = "Multiple profiles", Desc = "<p>You want to share your favorite stations with your peers as your taste is unique so are your social circles. </p><p>With ohrbob Profiles you keep different listening states for each individual listener. ", Card = "Profiles View" },
+        new { Title = "Build radio stations", Desc = "<p>You take your favorite podcasts and build radio stations that you can tune into when you want.</p><p>The twist is that your stations are only for you and they are waiting for your return before the broadcast continues. </p>", 
+            Card = "images/screenshots/stations.png" },
+        new { Title = "Multiple profiles", Desc = "<p>You want to share your favorite stations with your peers as your taste is unique so are your social circles. </p><p>With ohrbob Profiles you keep different listening states for each individual listener. ", 
+            Card = "images/screenshots/profiles.png" },
         new { Title = "Sharing Stations", Desc = "<p>You can also listen to the same episodes with your friends. So they don't spoil your true crime experience anymore. </p>", Card = "Social Sharing" },
-        new { Title = "Listen anywhere", Desc = "<p>For you internet radio listeners, you can stream directly to your wifi radio box with ohrbob. </p>", Card = "Web Player" },
+        new { Title = "Listen anywhere", Desc = "<p>For you internet radio listeners, you can stream directly to your wifi radio box with ohrbob. </p>", 
+            Card = "images/screenshots/radio.png" },
         new { Title = "Open Source", Desc = "<p>Fully transparent, you can use our service or host it yourself. </p><p>Missing a feature? Join us to become a contributor!</p>", Card = "Open-Source" }
     };
 
@@ -165,7 +168,7 @@ else
                             <p class="lead text-muted">@Html.Raw(landingSteps[i].Desc)</p>
                         </div>
                         <div class="step-card-box">
-                            <div class="screenshot-card shadow-lg">@landingSteps[i].Card</div>
+                            <div class="screenshot-card shadow-lg"><img src="@Url.Content($"~/{landingSteps[i].Card}")" asp-append-version="true" alt="@landingSteps[i].Title" /></div>
                         </div>
                     </div>
                 </div>

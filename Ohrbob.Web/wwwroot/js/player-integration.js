@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let nextEpisodeData = null;
     let audio = new Audio();
     let syncInterval = null;
+    let lastConnectionErrorTime = 0;
 
     // Helper to call player API
     const apiCall = async (endpoint, method = 'GET', body = null) => {
@@ -31,6 +32,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return text ? JSON.parse(text) : null;
         } catch (err) {
             console.error('Player API error:', err);
+            
+            if (err instanceof TypeError && err.message === 'Failed to fetch') {
+                const now = Date.now();
+                if (now - lastConnectionErrorTime > 30000) { // show once every 30s
+                    showToast('Connection Error', 'Cannot reach the player API. Please check your connection or wait for the service to become available.', true);
+                    lastConnectionErrorTime = now;
+                }
+            }
+            
             return null;
         }
     };
@@ -54,13 +64,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const showAutoplayToast = () => {
+    const showToast = (title, message, isError = false) => {
         // Create toast container if it doesn't exist
-        let toastContainer = document.querySelector('.toast-container.autoplay-toast-container');
+        let toastContainer = document.querySelector('.toast-container.player-toast-container');
         if (!toastContainer) {
             toastContainer = document.createElement('div');
             // Remove bottom-0 so we can position it dynamically
-            toastContainer.className = 'toast-container autoplay-toast-container position-fixed end-0 p-3';
+            toastContainer.className = 'toast-container player-toast-container position-fixed end-0 p-3';
             toastContainer.style.zIndex = '1055';
             
             // Position it just above the player widget
@@ -73,7 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Create the toast element
         const toastEl = document.createElement('div');
-        toastEl.className = 'toast align-items-center text-bg-warning border-0';
+        const bgClass = isError ? 'text-bg-danger' : 'text-bg-warning';
+        toastEl.className = `toast align-items-center ${bgClass} border-0`;
         toastEl.setAttribute('role', 'alert');
         toastEl.setAttribute('aria-live', 'assertive');
         toastEl.setAttribute('aria-atomic', 'true');
@@ -81,8 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
         toastEl.innerHTML = `
           <div class="d-flex">
             <div class="toast-body">
-              <strong>Autoplay blocked by browser.</strong><br/>
-              Please click the play button in the widget to start listening.
+              <strong>${title}</strong><br/>
+              ${message}
             </div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
           </div>
@@ -98,6 +109,10 @@ document.addEventListener('DOMContentLoaded', () => {
         toastEl.addEventListener('hidden.bs.toast', () => {
             toastEl.remove();
         });
+    };
+
+    const showAutoplayToast = () => {
+        showToast('Autoplay blocked by browser.', 'Please click the play button in the widget to start listening.', false);
     };
 
     let currentLoadedUri = null;
