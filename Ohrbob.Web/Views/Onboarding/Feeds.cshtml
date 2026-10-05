@@ -42,6 +42,8 @@
             <span id="selected-count" class="badge bg-primary fs-6">0</span> <span class="fw-bold">podcasts added</span>
         </div>
         <form asp-action="Finish" method="post" id="finish-form">
+            <input type="hidden" name="profileId" value="@ViewBag.ProfileId" />
+            <input type="hidden" name="stationName" value="@ViewBag.StationName" />
             <!-- Hidden inputs added dynamically -->
             <button type="submit" class="btn btn-success btn-lg rounded-pill px-5">Complete Setup <i class="bi bi-check-circle ms-2"></i></button>
         </form>
@@ -49,7 +51,7 @@
 </div>
 
 <script>
-    let selectedFeeds = new Set();
+    var selectedFeeds = new Set();
     
     @if (Model != null && Model.Any())
     {
@@ -59,7 +61,7 @@
         }
     }
 
-    function applyButtonStates() {
+    window.applyButtonStates = function() {
         document.querySelectorAll('.add-feed-btn').forEach(btn => {
             const url = btn.getAttribute('data-url');
             if (selectedFeeds.has(url)) {
@@ -68,49 +70,19 @@
                 btn.innerHTML = '<i class="bi bi-check-circle"></i> Added';
             }
         });
-    }
+    };
 
-    document.addEventListener("DOMContentLoaded", function() {
-        applyButtonStates();
-        updateFinishBar();
-    });
-
-    document.body.addEventListener('htmx:afterSwap', function(evt) {
-        if (evt.detail.target.id === 'search-results') {
-            applyButtonStates();
-        }
-    });
-
-    document.addEventListener("click", function(e) {
-        if (e.target && e.target.closest('.add-feed-btn')) {
-            const btn = e.target.closest('.add-feed-btn');
-            const url = btn.getAttribute('data-url');
-            
-            if (selectedFeeds.has(url)) {
-                selectedFeeds.delete(url);
-                btn.classList.remove('btn-success');
-                btn.classList.add('btn-outline-primary');
-                btn.innerHTML = '<i class="bi bi-plus-circle"></i> Add';
-            } else {
-                selectedFeeds.add(url);
-                btn.classList.remove('btn-outline-primary');
-                btn.classList.add('btn-success');
-                btn.innerHTML = '<i class="bi bi-check-circle"></i> Added';
-            }
-            
-            updateFinishBar();
-        }
-    });
-
-    function updateFinishBar() {
+    window.updateFinishBar = function() {
         const bar = document.getElementById('finish-bar');
         const count = document.getElementById('selected-count');
         const form = document.getElementById('finish-form');
         
+        if (!bar || !count || !form) return;
+
         count.innerText = selectedFeeds.size;
         
         // Update hidden inputs
-        form.querySelectorAll('input[type="hidden"]').forEach(el => el.remove());
+        form.querySelectorAll('input[name="selectedFeeds"]').forEach(el => el.remove());
         selectedFeeds.forEach(url => {
             const input = document.createElement('input');
             input.type = 'hidden';
@@ -124,5 +96,45 @@
         } else {
             bar.style.display = 'none';
         }
+    };
+
+    if (typeof window.onboardingFeedsInitialized === 'undefined') {
+        window.onboardingFeedsInitialized = true;
+
+        document.addEventListener("DOMContentLoaded", function() {
+            window.applyButtonStates();
+            window.updateFinishBar();
+        });
+
+        document.body.addEventListener('htmx:afterSwap', function(evt) {
+            if (evt.detail.target && evt.detail.target.id === 'search-results') {
+                window.applyButtonStates();
+            }
+        });
+
+        document.addEventListener("click", function(e) {
+            if (e.target && e.target.closest('.add-feed-btn')) {
+                const btn = e.target.closest('.add-feed-btn');
+                const url = btn.getAttribute('data-url');
+                
+                if (selectedFeeds.has(url)) {
+                    selectedFeeds.delete(url);
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-primary');
+                    btn.innerHTML = '<i class="bi bi-plus-circle"></i> Add';
+                } else {
+                    selectedFeeds.add(url);
+                    btn.classList.remove('btn-outline-primary');
+                    btn.classList.add('btn-success');
+                    btn.innerHTML = '<i class="bi bi-check-circle"></i> Added';
+                }
+                
+                window.updateFinishBar();
+            }
+        });
     }
+
+    // Call on script execution (e.g. HTMX swap)
+    window.applyButtonStates();
+    window.updateFinishBar();
 </script>

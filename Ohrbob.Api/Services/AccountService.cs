@@ -19,6 +19,7 @@ public class AccountService : MongoDbService<Account>
             .Set(nameof(Account.ProfilePicture), entryIn.ProfilePicture)
             .Set(nameof(Account.IdentityProviders), entryIn.IdentityProviders)
             .Set(nameof(Account.LastUsedProfileId), entryIn.LastUsedProfileId)
+            .Set(nameof(Account.NeedsOnboarding), entryIn.NeedsOnboarding)
             ;
     }
 

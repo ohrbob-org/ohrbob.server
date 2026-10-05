@@ -59,20 +59,20 @@ public class OnboardingController : Controller
         };
 
         var created = await _profilesService.CreateProfileAsync(accountId, profile);
+        if (string.IsNullOrEmpty(created?.Id)) {
+            throw new Exception("CreateProfileAsync returned a null or empty Id! " + System.Text.Json.JsonSerializer.Serialize(created));
+        }
         
-        // Store profile ID in TempData for the next step
-        TempData["OnboardingProfileId"] = created?.Id;
-        
-        return RedirectToAction(nameof(Station));
+        return RedirectToAction(nameof(Station), new { profileId = created.Id });
     }
 
     [HttpGet]
-    public IActionResult Station()
+    public IActionResult Station(string profileId)
     {
-        if (TempData["OnboardingProfileId"] == null)
+        if (string.IsNullOrEmpty(profileId))
             return RedirectToAction(nameof(Index));
             
-        TempData.Keep("OnboardingProfileId");
+        ViewBag.ProfileId = profileId;
         
         var suggestions = new[] { 
             "Morning Commute", "News", "True Crime", "24h Chill", "Kids Party", 
@@ -88,27 +88,21 @@ public class OnboardingController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult CreateStation(string stationName)
+    public IActionResult CreateStation(string profileId, string stationName)
     {
-        if (TempData["OnboardingProfileId"] == null || string.IsNullOrWhiteSpace(stationName))
+        if (string.IsNullOrEmpty(profileId) || string.IsNullOrWhiteSpace(stationName))
             return RedirectToAction(nameof(Index));
             
-        TempData.Keep("OnboardingProfileId");
-        TempData["OnboardingStationName"] = stationName;
-        
-        return RedirectToAction("Feeds");
+        return RedirectToAction("Feeds", new { profileId, stationName });
     }
 
     [HttpGet]
-    public async Task<IActionResult> Feeds()
+    public async Task<IActionResult> Feeds(string profileId, string stationName)
     {
-        if (TempData["OnboardingProfileId"] == null || TempData["OnboardingStationName"] == null)
+        if (string.IsNullOrEmpty(profileId) || string.IsNullOrEmpty(stationName))
             return RedirectToAction(nameof(Index));
             
-        TempData.Keep("OnboardingProfileId");
-        TempData.Keep("OnboardingStationName");
-        
-        var stationName = TempData["OnboardingStationName"] as string;
+        ViewBag.ProfileId = profileId;
         ViewBag.StationName = stationName;
         
         // Auto-populate 4 podcasts based on station name
@@ -128,14 +122,13 @@ public class OnboardingController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Finish(List<string> selectedFeeds)
+    public async Task<IActionResult> Finish(List<string> selectedFeeds, string profileId, string stationName)
     {
         var accountId = GetAccountId();
-        var profileId = TempData["OnboardingProfileId"] as string;
-        var stationName = TempData["OnboardingStationName"] as string;
 
         if (string.IsNullOrEmpty(accountId) || string.IsNullOrEmpty(profileId) || string.IsNullOrEmpty(stationName))
-            return RedirectToAction(nameof(Index));
+            throw new Exception($"Finish failed. accountId={accountId}, profileId={profileId}, stationName={stationName}");
+
 
         // Create Station
         var newStation = new Station
@@ -160,6 +153,12 @@ public class OnboardingController : Controller
 
         // Complete onboarding
         await _accountService.CompleteOnboardingAsync(accountId);
+
+        if (Request.Headers.ContainsKey("HX-Request"))
+        {
+            Response.Headers["HX-Redirect"] = "/";
+            return Ok();
+        }
 
         return RedirectToAction("Index", "Home");
     }
