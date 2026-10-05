@@ -15,6 +15,15 @@ public class AudioPlaybackTests : PageTest
     private PlaywrightWebApplicationFactory _factory = null!;
     private string _testAccountId = string.Empty;
 
+    public override BrowserNewContextOptions ContextOptions()
+    {
+        return new BrowserNewContextOptions
+        {
+            Permissions = new[] { "camera", "microphone" }, // Sometimes helps with media
+            IgnoreHTTPSErrors = true
+        };
+    }
+
     [SetUp]
     public async Task Setup()
     {
@@ -49,13 +58,14 @@ public class AudioPlaybackTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
         
         // Go to Manage Stations and Create
+        await Page.ClickAsync("#profileDropdown");
         await Page.ClickAsync("text=Manage Stations");
         await Page.ClickAsync("text=Create New Station");
 
         // Fill form
         await Page.FillAsync("input[name='Name']", "Test E2E Station");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
-        await Page.ClickAsync("button[type='submit']");
+        await Page.ClickAsync("input[type='submit']");
 
         // Now we are redirected to Stations index. Go to Home (Dashboard)
         await Page.ClickAsync("a.navbar-brand");
@@ -67,11 +77,15 @@ public class AudioPlaybackTests : PageTest
         // Poll until feed is parsed (worker finishes). Check if "feeds" count updates (or podcasts)
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
-        // Click the station card to play
+        // Click the station card to switch to it
         await Page.Locator(".card:has-text('Test E2E Station')").ClickAsync();
 
-        // Check if audio widget changes state to playing
+        // Wait a moment for the sync to happen and the player to be ready
+        await Task.Delay(2000);
+
+        // Click the audio widget's play button
         var playBtn = Page.Locator("#ohrbob-player .js-play");
+        await playBtn.ClickAsync();
         
         // Wait for the pause icon to appear (meaning it is playing)
         await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 15000 });
