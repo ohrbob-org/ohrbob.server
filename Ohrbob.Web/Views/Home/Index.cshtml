@@ -289,6 +289,7 @@ else
                 ScrollTrigger.create({
                     trigger: ".landing-dynamic-logo",
                     start: "top 95%",
+                    once: true,
                     onEnter: () => {
                         emitRing(); // Emit first immediately
                         broadcastTimer = setInterval(emitRing, 3000); // Then every 3s
