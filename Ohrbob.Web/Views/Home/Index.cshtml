@@ -80,6 +80,19 @@
 }
 else
 {
+    <style>
+        /* Landing page specific layout: 
+           Make header fixed so it doesn't take up space, eliminating the white bar above the landing container.
+           Also set the body background to match the landing page color. */
+        header { 
+            position: fixed !important; 
+            width: 100%; 
+            left: 0; 
+        }
+        body { 
+            background-color: #f8f9fa; 
+        }
+    </style>
     var landingSteps = new[] {
         new { Title = "Build radio stations", Desc = "From your podcasts.", Card = "Stations View" },
         new { Title = "Multiple profiles", Desc = "Keep listening separated.", Card = "Profiles View" },
@@ -88,12 +101,12 @@ else
         new { Title = "Open Source", Desc = "Fully transparent, host it yourself.", Card = "Open-Source" }
     };
 
-    <div class="full-width-escape">
+    <div class="full-width-escape" style="position: relative;">
+        <div class="radio-axis">
+            <div class="radio-dial"></div>
+        </div>
         <div class="radio-landing-container">
-            <div class="radio-axis">
-                <div class="radio-dial"></div>
-            </div>
-            
+
             @for (int i = 0; i < landingSteps.Length; i++)
             {
                 var isEven = i % 2 == 0;
@@ -118,10 +131,15 @@ else
         
         <div class="landing-footer">
             <h1 class="display-4 fw-bold text-primary mb-3" style="display:none">Ohrbob</h1>
-            <div style="font-size: 4rem;">
-                <div class="ohrbob-logo ohrbob-logo-above">
+            <div class="landing-logo-wrapper">
+                <div class="ohrbob-logo landing-dynamic-logo">
                     <span class="ohrbob-logo-icon">
-                        <img src="~/images/ohrbob-logo.svg" alt="Icon">
+                        <div class="wave-node logo-wave-node">
+                            <div class="wave-ring logo-ring-1"></div>
+                            <div class="wave-ring logo-ring-2"></div>
+                            <div class="wave-ring logo-ring-3"></div>
+                        </div>
+                        <img src="~/images/ohrbob-logo.svg" alt="Icon" style="position: relative; z-index: 2;">
                     </span>
                     <span class="ohrbob-logo-text">
                         <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
@@ -131,10 +149,10 @@ else
             <p class="lead text-muted mb-4">Start your journey.</p>
             
             <div class="d-flex justify-content-center gap-3 mt-4" hx-boost="false">
-                <a asp-controller="Home" asp-action="Login" asp-route-provider="Nextcloud" class="btn btn-outline-primary btn-lg px-4 rounded-pill">
+                <a asp-controller="Home" asp-action="Login" asp-route-provider="Nextcloud" class="btn btn-outline-primary btn-lg px-4 rounded-pill" hx-boost="false">
                     <i class="bi bi-cloud-check me-2"></i> Nextcloud
                 </a>
-                <a asp-controller="Home" asp-action="Login" asp-route-provider="Google" class="btn btn-outline-danger btn-lg px-4 rounded-pill">
+                <a asp-controller="Home" asp-action="Login" asp-route-provider="Google" class="btn btn-outline-danger btn-lg px-4 rounded-pill" hx-boost="false">
                     <i class="bi bi-google me-2"></i> Google
                 </a>
             </div>
@@ -148,17 +166,60 @@ else
             
             gsap.registerPlugin(ScrollTrigger);
 
+            // Calculate dynamic axis height to end exactly at the logo icon center
+            function updateAxisHeight() {
+                const axis = document.querySelector('.radio-axis');
+                const logoIcon = document.querySelector('.landing-dynamic-logo .ohrbob-logo-icon');
+                const container = document.querySelector('.full-width-escape');
+                
+                if (axis && logoIcon && container) {
+                    const containerRect = container.getBoundingClientRect();
+                    const logoRect = logoIcon.getBoundingClientRect();
+                    // Distance from top of container to center of logo icon
+                    const logoCenterY = (logoRect.top - containerRect.top) + (logoRect.height / 2);
+                    axis.style.height = logoCenterY + 'px';
+                    
+                    // Refresh ScrollTrigger to recalculate heights
+                    ScrollTrigger.refresh();
+                }
+            }
+            
+            // Run on load, and shortly after (images loading), and resize
+            updateAxisHeight();
+            setTimeout(updateAxisHeight, 500);
+            window.addEventListener('resize', updateAxisHeight);
+
             // Animate the radio dial moving down the axis
             gsap.to(".radio-dial", {
                 top: "100%",
                 ease: "none",
                 scrollTrigger: {
-                    trigger: ".radio-landing-container",
+                    trigger: ".radio-axis",
                     start: "top center",
                     end: "bottom center",
                     scrub: true
                 }
             });
+
+            // Ping animation when dial hits the logo
+            const logoRings = document.querySelectorAll('.logo-wave-node .wave-ring');
+            if (logoRings.length > 0) {
+                gsap.timeline({
+                    scrollTrigger: {
+                        trigger: ".radio-axis",
+                        start: "bottom center", // Fires exactly when the dial hits the end of the line
+                        toggleActions: "play none none reverse"
+                    }
+                })
+                .to(logoRings, {
+                    scale: 12,
+                    opacity: 0,
+                    duration: 3,
+                    stagger: 0.3,
+                    ease: "power2.out",
+                    startAt: { opacity: 0.8, scale: 0.5 }
+                });
+            }
 
             // Animate each step's waves and content reveal
             const steps = document.querySelectorAll('.radio-step');

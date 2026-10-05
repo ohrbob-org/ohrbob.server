@@ -22,11 +22,19 @@ body {
 }
 
 header {
-    margin-top: 1em;
+    position: sticky;
+    top: 1em;
+    z-index: 1050;
 }
+
+.landing-footer {
+    background: #f8f9fa;
+}
+
 header .floating-nav-pill {
     padding-right: 10px ;
     padding-left: 12px ;
+    width: 60%;
 }
 
 header .nav-item.dropdown {
@@ -43,8 +51,7 @@ header .nav-item.dropdown {
 }
 /* Floating Navigation */
 .floating-nav-pill {
-    position: sticky;
-    top: 20px;
+    /* position: sticky handled by header */
     margin: 0 auto 2rem auto;
     width: 90%;
     max-width: 1000px;
@@ -96,7 +103,7 @@ header .nav-item.dropdown {
     position: absolute;
     left: 50%;
     top: 0;
-    bottom: 0;
+    /* bottom: 0; */ z-index: 2; /* Height set by JS */
     width: 4px;
     background: rgba(37, 140, 251, 0.15);
     transform: translateX(-50%);
@@ -181,8 +188,8 @@ header .nav-item.dropdown {
     width: 100%;
 }
 @media (max-width: 768px) {
-    .radio-axis { left: 30px; }
-    .wave-node { left: 30px; }
+    .radio-axis { left: 32px; }
+    .wave-node { left: 32px; }
     .step-content {
         flex-direction: column !important;
         padding-left: 50px;
@@ -202,4 +209,78 @@ header .nav-item.dropdown {
     align-items: center;
     justify-content: center;
     background: white;
+}
+
+
+.landing-logo-wrapper {
+    font-size: 4rem;
+}
+/* Dynamic Landing Logo */
+.landing-dynamic-logo {
+  display: inline-grid;
+  grid-template-columns: min-content;
+  justify-items: center;
+  align-items: center;
+}
+.landing-dynamic-logo .ohrbob-logo-icon {
+  grid-row: 1;
+  grid-column: 1;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 0.15em;
+  position: relative;
+  z-index: 10;
+}
+.landing-dynamic-logo .ohrbob-logo-text {
+  grid-row: 2;
+  grid-column: 1;
+  width: max-content;
+}
+
+@media (max-width: 768px) {
+  .landing-dynamic-logo {
+    display: inline-flex !important;
+    flex-direction: row !important;
+  }
+  .landing-dynamic-logo .ohrbob-logo-icon {
+    height: 1em;
+    width: auto !important;
+    margin-right: 0.25em;
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+  }
+  .landing-dynamic-logo .ohrbob-logo-icon img,
+  .landing-dynamic-logo .ohrbob-logo-icon svg {
+    height: 1em !important;
+    width: auto !important;
+  }
+  .landing-dynamic-logo .ohrbob-logo-text {
+    width: auto;
+  }
+  
+  /* Left align the footer on mobile so icon is at ~30px */
+  .landing-footer {
+      align-items: flex-start !important;
+      padding-left: 0; padding-right: 1rem; overflow-x: hidden;
+  }
+  
+  .landing-logo-wrapper { font-size: 2.5rem; padding-left: 12px; }
+  .landing-footer p.lead, .landing-footer .d-flex {
+      justify-content: flex-start !important;
+      padding-left: 50px;
+  }
+}
+
+.logo-wave-node {
+    /* inherit from .wave-node but override to fit inside the logo icon exactly */
+    width: 0;
+    height: 0;
+    left: 50% !important;
+    top: 50% !important;
+}
+.logo-wave-node .wave-ring {
+    border-width: 3px;
+    border-color: #fc5d00; /* Use Ohrbob orange for the grand finale */
+    box-shadow: 0 0 20px rgba(252, 93, 0, 0.4);
 }
