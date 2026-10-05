@@ -96,12 +96,12 @@ else
             z-index: 1; /* Below the logo image */
         }
         .broadcast-ring {
-            clip-path: inset(0 0 50% 0); /* Cuts off bottom half, creating an arch */
+            clip-path: inset(0 15% 50% 15%); /* Cuts off bottom and sides to create a narrower 90-degree arch */
             border-color: rgba(var(--bs-primary-rgb), 0.3) !important; /* 30% alpha */
             position: absolute;
             left: 50%;
             top: 50%;
-            transform: translate(-50%, -50%) scale(0.5); /* Centered default */
+            transform: translate(-50%, -50%); /* Center perfectly */
             opacity: 0;
             width: 100px;
             height: 100px;
@@ -269,16 +269,16 @@ else
 
                     gsap.fromTo(ring, 
                         { 
-                            y: 0, 
-                            scale: 0.5, 
-                            opacity: 1 // Alpha is handled by CSS border-color
+                            width: "50px", 
+                            height: "50px", 
+                            opacity: 1 
                         }, 
                         {
-                            y: travelDistance,
-                            scale: 4, // Widen as it goes
+                            width: "3000px", // Expand outward massively so the edge travels up the screen
+                            height: "3000px", 
                             opacity: 0, // Fade out entirely near the end
                             duration: 15, // Travel time
-                            ease: "none",
+                            ease: "power1.out", // Natural expanding ease
                             onComplete: () => {
                                 ringObj.active = false; // Return to pool
                             }
