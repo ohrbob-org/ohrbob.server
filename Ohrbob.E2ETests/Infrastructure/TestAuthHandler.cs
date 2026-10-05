@@ -9,12 +9,18 @@ namespace Ohrbob.E2ETests.Infrastructure;
 public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     public static string TestAccountId { get; set; } = string.Empty;
+    public static bool IsAuthenticated { get; set; } = true;
 
     public TestAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder)
         : base(options, logger, encoder) { }
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        if (!IsAuthenticated)
+        {
+            return Task.FromResult(AuthenticateResult.NoResult());
+        }
+
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, "test-user-id"),
