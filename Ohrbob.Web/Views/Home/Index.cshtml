@@ -99,6 +99,7 @@ else
             position: absolute;
             left: 50%;
             top: 50%;
+            z-index:-1;
             transform: translate(-50%, -50%); /* Center perfectly */
             opacity: 0;
             pointer-events: none;
@@ -106,7 +107,7 @@ else
         }
         .broadcast-ring circle {
             stroke: rgba(var(--bs-primary-rgb), 0.3);
-            stroke-width: 4px;
+            stroke-width: 16px;
             stroke-linecap: round;
             fill: none;
             /* 100 pathLength; 25 is exactly a 90-degree arc */
