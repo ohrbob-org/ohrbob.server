@@ -47,19 +47,12 @@ public class AccountController : ControllerBase
             Email = request.Email,
             Name = request.Name,
             ProfilePicture = request.ProfilePicture,
-            IdentityProviders = [request.IdentityProvider]
+            IdentityProviders = [request.IdentityProvider],
+            NeedsOnboarding = true
         };
         var result = await _accountService.CreateAsync(account);
         if(result != null)
         {
-            var profile = new Profile
-            {
-                AccountId = result.Id,
-                Name = result.Name,
-                StreamToken = Guid.NewGuid().ToString()
-            };
-            await _profilesService.CreateAsync(profile);
-
             return Created(_linkGenerator.GetUriByAction(
                 HttpContext,
                 action: nameof(GetAccountById),
@@ -68,6 +61,19 @@ public class AccountController : ControllerBase
         }
         
         return BadRequest();
+    }
+
+    [EndpointSummary("Mark onboarding as complete")]
+    [Authorize(Policy = Consts.GetAccountPolicy)]
+    [HttpPost("id/{id}/complete-onboarding")]
+    public async Task<ActionResult> CompleteOnboarding(string id)
+    {
+        var account = await _accountService.FindByIdAsync(id);
+        if (account == null) return NotFound();
+
+        account.NeedsOnboarding = false;
+        await _accountService.UpdateAsync(account);
+        return Ok();
     }
     
     [EndpointSummary("Find Account Details based on Id. ")]

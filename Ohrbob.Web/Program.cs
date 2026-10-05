@@ -32,7 +32,10 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<Ohrbob.Web.Filters.OnboardingFilter>();
+});
 builder.Services.AddHttpClient(nameof(OhrbobApiService))
     .ConfigurePrimaryHttpMessageHandler(() =>
     {

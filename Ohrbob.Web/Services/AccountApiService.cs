@@ -33,6 +33,14 @@ public class AccountApiService : OhrbobApiService
         return account;
     }
 
+    public async Task CompleteOnboardingAsync(string accountId)
+    {
+        using var request = BuildRequest(HttpMethod.Post, $"/account/id/{accountId}/complete-onboarding");
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+    }
+
     public async Task<Account?> GetAccountAsync(string accountId)
     {
         using var request = BuildRequest(HttpMethod.Get, $"/account/id/{accountId}");
