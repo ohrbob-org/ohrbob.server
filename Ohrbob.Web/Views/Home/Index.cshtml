@@ -92,6 +92,13 @@ else
         body { 
             background-color: #f8f9fa; 
         }
+        .broadcast-node {
+            z-index: 1; /* Below the logo image */
+        }
+        .broadcast-ring {
+            clip-path: inset(0 0 50% 0); /* Cuts off bottom half, creating an arch */
+            border-color: rgba(var(--bs-primary-rgb), 0.5); /* Match existing wave aesthetic if not already inherited */
+        }
     </style>
     var landingSteps = new[] {
         new { Title = "Build radio stations", Desc = "From your podcasts.", Card = "Stations View" },
@@ -138,6 +145,11 @@ else
                             <div class="wave-ring logo-ring-1"></div>
                             <div class="wave-ring logo-ring-2"></div>
                             <div class="wave-ring logo-ring-3"></div>
+                        </div>
+                        <div class="wave-node broadcast-node">
+                            <div class="wave-ring broadcast-ring"></div>
+                            <div class="wave-ring broadcast-ring"></div>
+                            <div class="wave-ring broadcast-ring"></div>
                         </div>
                         <img src="~/images/ohrbob-logo.svg" alt="Icon" style="position: relative; z-index: 2;">
                     </span>
