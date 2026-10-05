@@ -1,0 +1,30 @@
+@{
+    ViewData["Title"] = "Welcome";
+    Layout = "_Layout_Minimal";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0 glass-panel">
+                <div class="card-body p-5 text-center">
+                    <h1 class="display-5 fw-bold mb-4 text-primary">Welcome to Ohrbob!</h1>
+                    
+                    <p class="lead mb-4">
+                        Ohrbob allows you to create multiple <strong>Profiles</strong> under a single account. 
+                        This is perfect for families—each person can have their own stations, listening history, and recommendations.
+                    </p>
+                    
+                    <form asp-action="CreateProfile" method="post">
+                        <div class="mb-4 text-start">
+                            <label for="profileName" class="form-label fw-bold">Name your first Profile</label>
+                            <input type="text" class="form-control form-control-lg" id="profileName" name="profileName" value="@ViewBag.DefaultName" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill">Continue <i class="bi bi-arrow-right ms-2"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
