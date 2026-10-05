@@ -4,6 +4,7 @@
 
 <div class="container d-flex justify-content-center align-items-center mt-5">
     <div class="card shadow-sm p-4 text-center" style="max-width: 400px; width: 100%; border-radius: 1rem;">
+        <h2 class="visually-hidden">Log in to ohrbob</h2>
         <div id="logo-container" style="max-width: 200px; margin: 0 auto 1.5rem auto;">
             <svg viewBox="-1.9426 -2.3531 3.8851 3.8506" version="1.1" xmlns="http://www.w3.org/2000/svg">
                 <g id="lynx-head">
@@ -37,10 +38,10 @@
             </svg>
         </div>
         <div class="d-grid gap-3">
-            <a href="/Home/Login?provider=Nextcloud" class="btn btn-outline-primary btn-lg rounded-pill login-btn" hx-boost="false">
+            <a asp-controller="Home" asp-action="Login" asp-route-provider="Nextcloud" class="btn btn-outline-primary btn-lg rounded-pill login-btn" hx-boost="false">
                 <i class="bi bi-cloud-fill me-2"></i> Continue with Nextcloud
             </a>
-            <a href="/Home/Login?provider=Google" class="btn btn-outline-danger btn-lg rounded-pill login-btn" hx-boost="false">
+            <a asp-controller="Home" asp-action="Login" asp-route-provider="Google" class="btn btn-outline-danger btn-lg rounded-pill login-btn" hx-boost="false">
                 <i class="bi bi-google me-2"></i> Continue with Google
             </a>
         </div>
@@ -58,7 +59,7 @@
         }
         @keyframes nod {
             0% { transform: translateY(0) scaleY(1); }
-            40% { transform: translateY(0.15px) scaleY(0.95); }
+            40% { transform: translateY(10px) scaleY(0.95); }
             100% { transform: translateY(0) scaleY(1); }
         }
         
