@@ -98,4 +98,63 @@ public class OnboardingController : Controller
         
         return RedirectToAction("Feeds");
     }
+
+    [HttpGet]
+    public IActionResult Feeds()
+    {
+        if (TempData["OnboardingProfileId"] == null || TempData["OnboardingStationName"] == null)
+            return RedirectToAction(nameof(Index));
+            
+        TempData.Keep("OnboardingProfileId");
+        TempData.Keep("OnboardingStationName");
+        
+        ViewBag.StationName = TempData["OnboardingStationName"] as string;
+        return View();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> SearchFeeds(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query)) return Content(""); 
+        var results = await _podcastApi.SearchAsync(query);
+        return PartialView("_FeedSearchResults", results);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Finish(List<string> selectedFeeds)
+    {
+        var accountId = GetAccountId();
+        var profileId = TempData["OnboardingProfileId"] as string;
+        var stationName = TempData["OnboardingStationName"] as string;
+
+        if (string.IsNullOrEmpty(accountId) || string.IsNullOrEmpty(profileId) || string.IsNullOrEmpty(stationName))
+            return RedirectToAction(nameof(Index));
+
+        // Create Station
+        var newStation = new Station
+        {
+            AccountId = accountId,
+            Name = stationName,
+            Feeds = selectedFeeds?.ToArray() ?? Array.Empty<string>()
+        };
+        var createdStation = await _stationsService.CreateStationAsync(accountId, newStation);
+
+        if (createdStation != null)
+        {
+            // Link station to profile
+            await _profilesService.AddStationToProfileAsync(profileId, createdStation.Id);
+            
+            // Set active profile via cookie so they land straight into it
+            Response.Cookies.Append("Ohrbob_ActiveProfileId", profileId, new CookieOptions { 
+                HttpOnly = true, Secure = true, Expires = DateTimeOffset.UtcNow.AddDays(30) 
+            });
+            await _accountService.SetActiveProfileAsync(accountId, profileId);
+        }
+
+        // Complete onboarding
+        await _accountService.CompleteOnboardingAsync(accountId);
+
+        return RedirectToAction("Index", "Home");
+    }
 }

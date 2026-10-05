@@ -1,0 +1,94 @@
+@{
+    ViewData["Title"] = "Add Podcasts";
+    Layout = "_Layout_Minimal";
+}
+
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-12 col-md-10 mx-auto text-center">
+            <h2 class="fw-bold text-primary mb-2">Fill "@ViewBag.StationName"</h2>
+            <p class="text-muted">Search for your favorite podcasts and add them to your station.</p>
+            
+            <div class="input-group input-group-lg mt-4 shadow-sm">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="search" 
+                       class="form-control border-start-0" 
+                       placeholder="Search podcasts by name..." 
+                       name="query"
+                       hx-get="/Onboarding/SearchFeeds"
+                       hx-target="#search-results"
+                       hx-trigger="keyup changed delay:500ms, search" />
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12 col-md-8 mx-auto">
+            <div id="search-results" class="row row-cols-1 row-cols-sm-2 g-3">
+                <!-- Search results injected here via HTMX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Finish Button -->
+<div class="position-fixed bottom-0 start-0 w-100 p-3 bg-white border-top shadow-lg" id="finish-bar" style="display: none; z-index: 1050;">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div>
+            <span id="selected-count" class="badge bg-primary fs-6">0</span> <span class="fw-bold">podcasts added</span>
+        </div>
+        <form asp-action="Finish" method="post" id="finish-form">
+            <!-- Hidden inputs added dynamically -->
+            <button type="submit" class="btn btn-success btn-lg rounded-pill px-5">Complete Setup <i class="bi bi-check-circle ms-2"></i></button>
+        </form>
+    </div>
+</div>
+
+<script>
+    let selectedFeeds = new Set();
+
+    document.addEventListener("click", function(e) {
+        if (e.target && e.target.closest('.add-feed-btn')) {
+            const btn = e.target.closest('.add-feed-btn');
+            const url = btn.getAttribute('data-url');
+            
+            if (selectedFeeds.has(url)) {
+                selectedFeeds.delete(url);
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-outline-primary');
+                btn.innerHTML = '<i class="bi bi-plus-circle"></i> Add';
+            } else {
+                selectedFeeds.add(url);
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-success');
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> Added';
+            }
+            
+            updateFinishBar();
+        }
+    });
+
+    function updateFinishBar() {
+        const bar = document.getElementById('finish-bar');
+        const count = document.getElementById('selected-count');
+        const form = document.getElementById('finish-form');
+        
+        count.innerText = selectedFeeds.size;
+        
+        // Update hidden inputs
+        form.querySelectorAll('input[type="hidden"]').forEach(el => el.remove());
+        selectedFeeds.forEach(url => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'selectedFeeds';
+            input.value = url;
+            form.appendChild(input);
+        });
+
+        if (selectedFeeds.size > 0) {
+            bar.style.display = 'block';
+        } else {
+            bar.style.display = 'none';
+        }
+    }
+</script>
