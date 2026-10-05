@@ -287,35 +287,50 @@ else
                 // Ensure we have a height even if calculated before layout finishes
                 const travelDistance = -((window.innerHeight || 1000) * 2);
 
-                // Instead of waiting for ScrollTrigger, we hand all rings to GSAP immediately.
-                // We use stagger with repeat: -1 to guarantee they are permanently and perfectly spaced.
-                const broadcastAnim = gsap.fromTo(rings, 
-                    { 
-                        width: "50px", 
-                        height: "50px", 
-                        opacity: .3,
-                        xPercent: -50, // Keep horizontally centered
-                        yPercent: -50, // Keep vertically centered as base
-                        y: 0 
-                    }, 
-                    {
-                        width: "2000px", // Expand outward reasonably
-                        height:"2000px",
-                        xPercent: -50,
-                        yPercent: -50,
-                        y: travelDistance, // ALSO travel up the entire page
-                        duration: 15, // Travel time
-                        ease: "none", // Natural expanding ease
-                        stagger: {
-                            each: 3,
-                            repeat: -1
-                        }
-                    }
-                );
-                
-                // Fast-forward the animation by exactly one full 15-second cycle 
-                // so the screen is already pre-populated with distributed waves on load!
-                broadcastAnim.totalTime(15);
+                // Instead of a single stagger tween, we build a timeline for each ring
+                // so we can animate opacity independently near the end of its life.
+                rings.forEach((ring, index) => {
+                    const tl = gsap.timeline({ 
+                        repeat: -1, 
+                        delay: index * 3 
+                    });
+                    
+                    // 1. The main expansion and upward movement (15s total)
+                    tl.fromTo(ring, 
+                        { 
+                            width: "50px", 
+                            height: "50px", 
+                            opacity: .3,
+                            xPercent: -50, // Keep horizontally centered
+                            yPercent: -50, // Keep vertically centered as base
+                            y: 0 
+                        }, 
+                        {
+                            width: "2000px", // Expand outward reasonably
+                            height:"2000px",
+                            xPercent: -50,
+                            yPercent: -50,
+                            y: travelDistance, // ALSO travel up the entire page
+                            duration: 15, // Travel time
+                            ease: "none" // Natural expanding ease
+                        }, 
+                        0 // Start at time 0 of the timeline
+                    );
+
+                    // 2. The fade out ONLY at the end (starts at 12s, lasts 3s)
+                    tl.to(ring, 
+                        {
+                            opacity: 0,
+                            duration: 3,
+                            ease: "power1.inOut" // smooth fade
+                        }, 
+                        12 // Start at 12s mark
+                    );
+                    
+                    // Fast-forward exactly one full 15-second cycle 
+                    // so the screen is already pre-populated with distributed waves on load!
+                    tl.totalTime(15);
+                });
             }
 
             // Animate each step's waves and content reveal
