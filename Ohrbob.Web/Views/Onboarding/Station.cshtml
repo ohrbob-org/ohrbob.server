@@ -45,6 +45,22 @@
             btn.addEventListener("click", function() {
                 input.value = this.innerText;
                 input.focus();
+                
+                // Remove active styling from all buttons, apply to the clicked one
+                btns.forEach(b => {
+                    b.classList.remove("btn-primary", "text-white");
+                    b.classList.add("btn-outline-secondary");
+                });
+                this.classList.remove("btn-outline-secondary");
+                this.classList.add("btn-primary", "text-white");
+            });
+        });
+        
+        // When user types in input manually, un-highlight all buttons
+        input.addEventListener("input", function() {
+            btns.forEach(b => {
+                b.classList.remove("btn-primary", "text-white");
+                b.classList.add("btn-outline-secondary");
             });
         });
     });
