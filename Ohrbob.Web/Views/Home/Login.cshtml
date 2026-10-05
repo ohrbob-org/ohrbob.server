@@ -91,8 +91,8 @@
                 const moveX = deltaX * maxMovement;
                 const moveY = deltaY * maxMovement;
                 
-                eyeL.style.transform = `translate(${moveX}, ${moveY})`;
-                eyeR.style.transform = `translate(${moveX}, ${moveY})`;
+                eyeL.setAttribute("transform", `translate(${moveX}, ${moveY})`);
+                eyeR.setAttribute("transform", `translate(${moveX}, ${moveY})`);
             });
 
             // Nodding animation
