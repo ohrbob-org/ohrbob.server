@@ -3,7 +3,6 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Ohrbob.Server.Shared.Data;
 
 namespace Ohrbob.E2ETests.Infrastructure;
 
@@ -20,7 +19,7 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
         {
             new Claim(ClaimTypes.NameIdentifier, "test-user-id"),
             new Claim(ClaimTypes.Name, "E2E Test User"),
-            new Claim(Consts.OhrbobAccountIdClaim, TestAccountId)
+            new Claim("ohrbob_account_id", TestAccountId)
         };
         var identity = new ClaimsIdentity(claims, "Test");
         var principal = new ClaimsPrincipal(identity);
