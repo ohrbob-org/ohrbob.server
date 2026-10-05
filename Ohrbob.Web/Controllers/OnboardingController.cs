@@ -100,7 +100,7 @@ public class OnboardingController : Controller
     }
 
     [HttpGet]
-    public IActionResult Feeds()
+    public async Task<IActionResult> Feeds()
     {
         if (TempData["OnboardingProfileId"] == null || TempData["OnboardingStationName"] == null)
             return RedirectToAction(nameof(Index));
@@ -108,8 +108,14 @@ public class OnboardingController : Controller
         TempData.Keep("OnboardingProfileId");
         TempData.Keep("OnboardingStationName");
         
-        ViewBag.StationName = TempData["OnboardingStationName"] as string;
-        return View();
+        var stationName = TempData["OnboardingStationName"] as string;
+        ViewBag.StationName = stationName;
+        
+        // Auto-populate 4 podcasts based on station name
+        var results = await _podcastApi.SearchAsync(stationName ?? "Podcast");
+        var topResults = results?.Take(4).ToList() ?? new List<Ohrbob.Web.Models.PodcastSearchResult>();
+        
+        return View(topResults);
     }
 
     [HttpGet]

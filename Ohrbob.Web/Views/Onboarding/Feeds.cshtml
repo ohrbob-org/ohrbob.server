@@ -1,3 +1,4 @@
+@model List<Ohrbob.Web.Models.PodcastSearchResult>
 @{
     ViewData["Title"] = "Add Podcasts";
     Layout = "_Layout_Minimal";
@@ -25,7 +26,10 @@
     <div class="row">
         <div class="col-12 col-md-8 mx-auto">
             <div id="search-results" class="row row-cols-1 row-cols-sm-2 g-3">
-                <!-- Search results injected here via HTMX -->
+                @if (Model != null && Model.Any())
+                {
+                    <partial name="_FeedSearchResults" model="Model" />
+                }
             </div>
         </div>
     </div>
@@ -46,6 +50,36 @@
 
 <script>
     let selectedFeeds = new Set();
+    
+    @if (Model != null && Model.Any())
+    {
+        foreach(var feed in Model)
+        {
+            <text>selectedFeeds.add("@Html.Raw(feed.Url)");</text>
+        }
+    }
+
+    function applyButtonStates() {
+        document.querySelectorAll('.add-feed-btn').forEach(btn => {
+            const url = btn.getAttribute('data-url');
+            if (selectedFeeds.has(url)) {
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-success');
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> Added';
+            }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        applyButtonStates();
+        updateFinishBar();
+    });
+
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        if (evt.detail.target.id === 'search-results') {
+            applyButtonStates();
+        }
+    });
 
     document.addEventListener("click", function(e) {
         if (e.target && e.target.closest('.add-feed-btn')) {
