@@ -24,6 +24,10 @@ body {
 header {
     margin-top: 1em;
 }
+header .floating-nav-pill {
+    padding-right: 10px ;
+    padding-left: 12px ;
+}
 
 header .nav-item.dropdown {
     list-style: none;
