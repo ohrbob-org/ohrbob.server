@@ -80,37 +80,40 @@
 }
 else
 {
+    var landingSteps = new[] {
+        new { Title = "Build radio stations", Desc = "From your podcasts.", Card = "Stations View" },
+        new { Title = "Multiple profiles", Desc = "Keep listening separated.", Card = "Profiles View" },
+        new { Title = "Listening position", Desc = "Remembered for each profile.", Card = "Listening Progress" },
+        new { Title = "Listen anywhere", Desc = "Your personalized radio, always ready.", Card = "Web Player" },
+        new { Title = "Open Source", Desc = "Fully transparent, host it yourself.", Card = "Open-Source" }
+    };
+
     <div class="full-width-escape">
-        <div class="landing-wrapper">
-            <div class="landing-pinned-container">
-                <div class="landing-left">
-                    <div class="step-text step-1" style="opacity: 1;">
-                        <h2>Build radio stations</h2>
-                        <p>From your podcasts.</p>
-                    </div>
-                    <div class="step-text step-2">
-                        <h2>Multiple profiles</h2>
-                        <p>Keep listening separated.</p>
-                    </div>
-                    <div class="step-text step-3">
-                        <h2>Listening position</h2>
-                        <p>Remembered for each profile.</p>
-                    </div>
-                    <div class="step-text step-4">
-                        <h2>Listen anywhere</h2>
-                        <p>Your personalized radio, always ready.</p>
-                    </div>
-                </div>
-                <div class="landing-right">
-                    <div class="wheel-arc">
-                        <!-- Placeholders for actual screenshots later -->
-                        <div class="wheel-card card-1">Stations View</div>
-                        <div class="wheel-card card-2">Profiles View</div>
-                        <div class="wheel-card card-3">Listening Progress</div>
-                        <div class="wheel-card card-4">Web Player</div>
-                    </div>
-                </div>
+        <div class="radio-landing-container">
+            <div class="radio-axis">
+                <div class="radio-dial"></div>
             </div>
+            
+            @for (int i = 0; i < landingSteps.Length; i++)
+            {
+                var isEven = i % 2 == 0;
+                <div class="radio-step @(isEven ? "step-left" : "step-right")">
+                    <div class="wave-node">
+                        <div class="wave-ring ring-1"></div>
+                        <div class="wave-ring ring-2"></div>
+                        <div class="wave-ring ring-3"></div>
+                    </div>
+                    <div class="step-content">
+                        <div class="step-text-box">
+                            <h2 class="display-5 fw-bold">@landingSteps[i].Title</h2>
+                            <p class="lead text-muted">@landingSteps[i].Desc</p>
+                        </div>
+                        <div class="step-card-box">
+                            <div class="screenshot-card shadow-lg">@landingSteps[i].Card</div>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
         
         <div class="landing-footer">
@@ -145,46 +148,53 @@ else
             
             gsap.registerPlugin(ScrollTrigger);
 
-            const radius = 400;
-            const cards = document.querySelectorAll('.wheel-card');
-            
-            // Angles in degrees. Left edge is 180.
-            const startAngles = [180, 215, 250, 285]; 
-            
-            cards.forEach((card, i) => {
-                const angleRad = startAngles[i] * (Math.PI / 180);
-                const x = radius * Math.cos(angleRad);
-                const y = radius * Math.sin(angleRad);
-                const rotation = startAngles[i] - 180; 
-                gsap.set(card, { x: x, y: y, rotation: rotation });
-            });
-
-            const tl = gsap.timeline({
+            // Animate the radio dial moving down the axis
+            gsap.to(".radio-dial", {
+                top: "100%",
+                ease: "none",
                 scrollTrigger: {
-                    trigger: ".landing-wrapper",
-                    start: "top top",
-                    end: "bottom bottom",
-                    scrub: 1, 
-                    pin: ".landing-pinned-container"
+                    trigger: ".radio-landing-container",
+                    start: "top center",
+                    end: "bottom center",
+                    scrub: true
                 }
             });
 
-            // Step 1 to 2
-            tl.to(".step-1", { opacity: 0, y: -20, duration: 1 })
-              .to(".step-2", { opacity: 1, y: 0, duration: 1 }, "<")
-              .to(".wheel-arc", { rotation: 35, duration: 1 }, "<");
+            // Animate each step's waves and content reveal
+            const steps = document.querySelectorAll('.radio-step');
+            
+            steps.forEach((step) => {
+                const rings = step.querySelectorAll('.wave-ring');
+                const text = step.querySelector('.step-text-box');
+                const card = step.querySelector('.step-card-box');
+                
+                const tl = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: step,
+                        start: "top 65%", // Trigger when step is 65% down the viewport
+                        toggleActions: "play none none reverse"
+                    }
+                });
 
-            // Step 2 to 3
-            tl.to(".step-2", { opacity: 0, y: -20, duration: 1 })
-              .to(".step-3", { opacity: 1, y: 0, duration: 1 }, "<")
-              .to(".wheel-arc", { rotation: 70, duration: 1 }, "<");
+                // Wave pulse effect
+                tl.to(rings, {
+                    scale: 6,
+                    opacity: 0,
+                    duration: 2.5,
+                    stagger: 0.2,
+                    ease: "power2.out",
+                    startAt: { opacity: 0.6, scale: 0.5 }
+                }, 0);
 
-            // Step 3 to 4
-            tl.to(".step-3", { opacity: 0, y: -20, duration: 1 })
-              .to(".step-4", { opacity: 1, y: 0, duration: 1 }, "<")
-              .to(".wheel-arc", { rotation: 105, duration: 1 }, "<");
-              
-            tl.to({}, { duration: 0.5 });
+                // Content reveal
+                tl.to([text, card], {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.8,
+                    stagger: 0.2,
+                    ease: "back.out(1.2)"
+                }, 0.3); // Start slightly after waves begin
+            });
         });
     </script>
 }

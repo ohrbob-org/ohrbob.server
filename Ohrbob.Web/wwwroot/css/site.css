@@ -86,73 +86,113 @@ header .nav-item.dropdown {
 }
 
 /* Landing Page Layout */
-.landing-wrapper {
-    height: 400vh;
+.radio-landing-container {
     position: relative;
+    padding: 10vh 0;
     background: #f8f9fa;
-}
-.landing-pinned-container {
-    height: 100vh;
-    width: 100%;
-    display: flex;
     overflow: hidden;
 }
-.landing-left {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 10%;
-    position: relative;
+.radio-axis {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: rgba(37, 140, 251, 0.15);
+    transform: translateX(-50%);
+    border-radius: 2px;
 }
-.landing-right {
-    flex: 1;
+.radio-dial {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--bs-primary);
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 20px rgba(37, 140, 251, 0.8);
+    z-index: 10;
+}
+.radio-step {
     position: relative;
+    min-height: 80vh;
     display: flex;
     align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
 }
-.step-text {
+.wave-node {
     position: absolute;
-    opacity: 0;
-    max-width: 400px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
 }
-.step-text h2 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    color: #212529;
-}
-.step-text p {
-    font-size: 1.25rem;
-    color: #6c757d;
-}
-
-/* The Wheel */
-.wheel-arc {
-    width: 800px;
-    height: 800px;
+.wave-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    width: 100px;
+    height: 100px;
+    border: 2px solid var(--bs-primary);
     border-radius: 50%;
-    position: absolute;
-    right: -200px; /* Off center */
+    opacity: 0;
 }
-.wheel-card {
-    position: absolute;
-    width: 320px;
-    height: 200px;
+.step-content {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4rem;
+    position: relative;
+    z-index: 5;
+}
+.step-left .step-content {
+    flex-direction: row;
+}
+.step-right .step-content {
+    flex-direction: row-reverse;
+}
+.step-text-box, .step-card-box {
+    width: 45%;
+    opacity: 0; 
+    transform: translateY(40px);
+}
+.step-text-box h2 {
+    color: #212529;
+    margin-bottom: 1rem;
+}
+.screenshot-card {
     background: white;
     border-radius: 16px;
-    box-shadow: -15px 20px 40px rgba(0,0,0,0.1);
+    height: 350px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    color: #999;
-    border: 2px solid #eee;
-    /* Centered in the arc, will be moved radially by GSAP */
-    top: 50%;
-    left: 50%;
-    margin-top: -100px;
-    margin-left: -160px;
+    color: #adb5bd;
+    font-size: 1.5rem;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    width: 100%;
+}
+@media (max-width: 768px) {
+    .radio-axis { left: 30px; }
+    .wave-node { left: 30px; }
+    .step-content {
+        flex-direction: column !important;
+        padding-left: 50px;
+    }
+    .step-text-box, .step-card-box {
+        width: 100%;
+    }
+    .step-card-box {
+        margin-top: 2rem;
+    }
 }
 
 .landing-footer {
