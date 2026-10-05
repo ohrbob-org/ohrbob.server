@@ -1,0 +1,23 @@
+@{
+    ViewData["Title"] = "Service Unavailable";
+}
+
+<div class="container mt-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0 glass-panel">
+                <div class="card-body p-5">
+                    <i class="bi bi-hdd-network text-danger mb-4" style="font-size: 4rem;"></i>
+                    <h1 class="display-5 fw-bold mb-3">Service Unavailable</h1>
+                    <p class="lead text-muted mb-4">
+                        Ohrbob is currently unable to connect to its backend services. 
+                        Please ensure the API and database are running.
+                    </p>
+                    <button class="btn btn-primary px-4 py-2 rounded-pill" onclick="window.location.reload();">
+                        <i class="bi bi-arrow-clockwise me-2"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

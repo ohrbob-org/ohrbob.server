@@ -145,6 +145,22 @@ var app = builder.Build();
 
 app.UseForwardedHeaders();
 
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (HttpRequestException ex) when (ex.InnerException is System.Net.Sockets.SocketException || ex.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
+    {
+        context.Response.Redirect("/Home/ServiceUnavailable");
+    }
+    catch (System.Net.Sockets.SocketException)
+    {
+        context.Response.Redirect("/Home/ServiceUnavailable");
+    }
+});
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");

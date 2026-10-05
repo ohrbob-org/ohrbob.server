@@ -63,6 +63,13 @@ public class HomeController : Controller
     }
 
     [AllowAnonymous]
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public IActionResult ServiceUnavailable()
+    {
+        return View();
+    }
+
+    [AllowAnonymous]
     public IActionResult Login(string provider)
     {
         if (string.IsNullOrEmpty(provider))
