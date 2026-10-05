@@ -33,6 +33,11 @@ public class AudioPlaybackTests : PageTest
         var accountService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.AccountApiService>();
         var account = await accountService.CreateOrUpdateAccountAsync("E2E Test", "e2e@test.com", "", "Test", Guid.NewGuid().ToString());
         
+        // Since we introduced onboarding, we need to mark it as complete so the test can navigate to the normal dashboard
+        if (account != null) {
+            await accountService.CompleteOnboardingAsync(account.Id);
+        }
+        
         _testAccountId = account!.Id;
         TestAuthHandler.TestAccountId = _testAccountId;
     }
