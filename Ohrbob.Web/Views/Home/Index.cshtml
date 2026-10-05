@@ -233,6 +233,34 @@ else
                 });
             }
 
+            // New continuous directional broadcast animation
+            const broadcastRings = document.querySelectorAll('.broadcast-node .broadcast-ring');
+            if (broadcastRings.length > 0) {
+                gsap.timeline({
+                    scrollTrigger: {
+                        trigger: ".landing-dynamic-logo",
+                        start: "top 95%", // Start when logo just enters the viewport
+                        toggleActions: "play none none none" // Just play and let it run
+                    }
+                })
+                .to(broadcastRings, {
+                    y: -600,            // Travel upwards 
+                    scale: 3,           // Widen slightly
+                    opacity: 0,         // Fade out entirely
+                    duration: 4.5,      // Slow, steady travel
+                    stagger: {
+                        each: 1.5,      // Gap between each ring emitting
+                        repeat: -1      // Loop indefinitely
+                    },
+                    ease: "none",       // Linear travel speed
+                    startAt: { 
+                        opacity: 0.6, 
+                        scale: 0.5,
+                        y: 0
+                    }
+                });
+            }
+
             // Animate each step's waves and content reveal
             const steps = document.querySelectorAll('.radio-step');
             
