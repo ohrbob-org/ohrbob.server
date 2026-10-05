@@ -65,4 +65,37 @@ public class OnboardingController : Controller
         
         return RedirectToAction(nameof(Station));
     }
+
+    [HttpGet]
+    public IActionResult Station()
+    {
+        if (TempData["OnboardingProfileId"] == null)
+            return RedirectToAction(nameof(Index));
+            
+        TempData.Keep("OnboardingProfileId");
+        
+        var suggestions = new[] { 
+            "Morning Commute", "News", "True Crime", "24h Chill", "Kids Party", 
+            "Wake-Up", "Tech News", "Comedy", "History", "Science", 
+            "Focus", "Workout", "Bedtime", "Storytelling", "Interviews", 
+            "Politics", "Economics", "Pop Culture", "Gaming", "Sports", 
+            "Philosophy", "Language Learning", "Food & Drink", "Arts" 
+        };
+        
+        ViewBag.Suggestions = suggestions;
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult CreateStation(string stationName)
+    {
+        if (TempData["OnboardingProfileId"] == null || string.IsNullOrWhiteSpace(stationName))
+            return RedirectToAction(nameof(Index));
+            
+        TempData.Keep("OnboardingProfileId");
+        TempData["OnboardingStationName"] = stationName;
+        
+        return RedirectToAction("Feeds");
+    }
 }

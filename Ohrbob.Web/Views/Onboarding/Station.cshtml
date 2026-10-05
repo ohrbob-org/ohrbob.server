@@ -1,0 +1,51 @@
+@{
+    ViewData["Title"] = "Create Station";
+    Layout = "_Layout_Minimal";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="card shadow-sm border-0 glass-panel">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="fw-bold text-center mb-4 text-primary">Create Your First Station</h2>
+                    
+                    <p class="text-center mb-4">
+                        A Station is like a personalized radio channel. You fill it with podcasts, and Ohrbob plays them back continuously. What do you want to listen to?
+                    </p>
+                    
+                    <form asp-action="CreateStation" method="post">
+                        <div class="mb-4 text-start">
+                            <input type="text" class="form-control form-control-lg text-center" id="stationName" name="stationName" placeholder="e.g. My Awesome Mix" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <p class="text-muted small text-center mb-2">Need inspiration?</p>
+                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                @foreach(var suggestion in ViewBag.Suggestions)
+                                {
+                                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill suggestion-btn">@suggestion</button>
+                                }
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill mt-3">Next Step <i class="bi bi-arrow-right ms-2"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var input = document.getElementById("stationName");
+        var btns = document.querySelectorAll(".suggestion-btn");
+        btns.forEach(function(btn) {
+            btn.addEventListener("click", function() {
+                input.value = this.innerText;
+                input.focus();
+            });
+        });
+    });
+</script>
