@@ -62,10 +62,6 @@
             40% { transform: translateY(0.15px) scaleY(0.95); }
             100% { transform: translateY(0) scaleY(1); }
         }
-        
-        #Eye, #Eye_mirrored {
-            transition: transform 0.05s linear;
-        }
     </style>
     
     <script>
@@ -101,6 +97,9 @@
 
             loginBtns.forEach(btn => {
                 btn.addEventListener("click", (e) => {
+                    if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) {
+                        return;
+                    }
                     e.preventDefault();
                     if (!lynxHead) {
                         window.location.href = btn.href;
