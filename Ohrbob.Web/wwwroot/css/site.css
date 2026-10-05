@@ -72,3 +72,82 @@ body {
     margin-right: -50vw;
     overflow-x: hidden;
 }
+
+/* Landing Page Layout */
+.landing-wrapper {
+    height: 400vh;
+    position: relative;
+    background: #f8f9fa;
+}
+.landing-pinned-container {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    overflow: hidden;
+}
+.landing-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 10%;
+    position: relative;
+}
+.landing-right {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.step-text {
+    position: absolute;
+    opacity: 0;
+    max-width: 400px;
+}
+.step-text h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #212529;
+}
+.step-text p {
+    font-size: 1.25rem;
+    color: #6c757d;
+}
+
+/* The Wheel */
+.wheel-arc {
+    width: 800px;
+    height: 800px;
+    border-radius: 50%;
+    position: absolute;
+    right: -200px; /* Off center */
+}
+.wheel-card {
+    position: absolute;
+    width: 320px;
+    height: 200px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: -15px 20px 40px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #999;
+    border: 2px solid #eee;
+    /* Centered in the arc, will be moved radially by GSAP */
+    top: 50%;
+    left: 50%;
+    margin-top: -100px;
+    margin-left: -160px;
+}
+
+.landing-footer {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: white;
+}
