@@ -38,30 +38,32 @@
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var input = document.getElementById("stationName");
-        var btns = document.querySelectorAll(".suggestion-btn");
-        btns.forEach(function(btn) {
-            btn.addEventListener("click", function() {
-                input.value = this.innerText;
+    document.addEventListener("click", function(e) {
+        if (e.target && e.target.classList.contains("suggestion-btn")) {
+            var input = document.getElementById("stationName");
+            if (input) {
+                input.value = e.target.innerText;
                 input.focus();
                 
                 // Remove active styling from all buttons, apply to the clicked one
+                var btns = document.querySelectorAll(".suggestion-btn");
                 btns.forEach(b => {
                     b.classList.remove("btn-primary", "text-white");
                     b.classList.add("btn-outline-secondary");
                 });
-                this.classList.remove("btn-outline-secondary");
-                this.classList.add("btn-primary", "text-white");
-            });
-        });
-        
-        // When user types in input manually, un-highlight all buttons
-        input.addEventListener("input", function() {
+                e.target.classList.remove("btn-outline-secondary");
+                e.target.classList.add("btn-primary", "text-white");
+            }
+        }
+    });
+
+    document.addEventListener("input", function(e) {
+        if (e.target && e.target.id === "stationName") {
+            var btns = document.querySelectorAll(".suggestion-btn");
             btns.forEach(b => {
                 b.classList.remove("btn-primary", "text-white");
                 b.classList.add("btn-outline-secondary");
             });
-        });
+        }
     });
 </script>
