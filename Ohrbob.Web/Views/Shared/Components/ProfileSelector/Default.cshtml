@@ -6,7 +6,7 @@
 }
 
 <li class="nav-item dropdown">
-    <a class="nav-link d-flex align-items-center gap-2" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <a class="nav-link d-flex align-items-center gap-2" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="@(hasActive ? Model.ActiveProfile.Name : "No Profile")">
         @if (hasActive)
         {
             <div class="profile-gradient-@activeGradient text-white d-flex align-items-center justify-content-center rounded-circle fw-bold shadow-sm" style="width: 32px; height: 32px; font-size: 1rem;">
