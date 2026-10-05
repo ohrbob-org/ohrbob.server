@@ -250,9 +250,9 @@ else
             // New continuous directional broadcast animation (Pooling System)
             const broadcastNode = document.querySelector('.broadcast-node');
             if (broadcastNode) {
-                // Create a pool of 6 SVG rings
+                // Create a pool of 6 SVG rings (15s duration / 3s stagger = 5 active rings + 1 buffer)
                 const poolSize = 6;
-                const ringPool = [];
+                const rings = [];
                 for (let i = 0; i < poolSize; i++) {
                     const ring = document.createElementNS("http://www.w3.org/2000/svg", "svg");
                     ring.setAttribute("class", "broadcast-ring");
@@ -266,41 +266,7 @@ else
                     
                     ring.appendChild(circle);
                     broadcastNode.appendChild(ring);
-                    ringPool.push({ el: ring, active: false });
-                }
-
-                let broadcastTimer;
-
-                function emitRing() {
-                    // Find an inactive ring
-                    const ringObj = ringPool.find(r => !r.active);
-                    if (!ringObj) return; // Pool exhausted, though 6 should be plenty for 3s interval
-
-                    ringObj.active = true;
-                    const ring = ringObj.el;
-
-                    // Travel distance: well above the screen
-                    const travelDistance = -(window.innerHeight * 2); // Calculate height dynamically
-
-                    gsap.fromTo(ring, 
-                        { 
-                            width: "50px", 
-                            height: "50px", 
-                            opacity: .3,
-                            y: 0 
-                        }, 
-                        {
-                            width: "2000px", // Expand outward reasonably
-                            height:"2000px",
-                            y: travelDistance, // ALSO travel up the entire page
-                            opacity: 0, // Fade out entirely near the end
-                            duration: 15, // Travel time
-                            ease: "none", // Natural expanding ease
-                            onComplete: () => {
-                                ringObj.active = false; // Return to pool
-                            }
-                        }
-                    );
+                    rings.push(ring);
                 }
 
                 ScrollTrigger.create({
@@ -308,11 +274,32 @@ else
                     start: "top 95%",
                     once: true,
                     onEnter: () => {
-                        emitRing(); // Emit first immediately
-                        broadcastTimer = setInterval(emitRing, 3000); // Then every 3s
-                    },
-                    onLeaveBack: () => {
-                        // Optional: pause if scrolling way back up, but spec says continuous once triggered
+                        // Travel distance: well above the screen
+                        const travelDistance = -(window.innerHeight * 2); // Calculate height dynamically
+
+                        // Instead of a manual JS setInterval which drifts, we hand all rings to GSAP
+                        // and use stagger with repeat: -1. This guarantees they are permanently and 
+                        // perfectly spaced out like items on a conveyor belt.
+                        gsap.fromTo(rings, 
+                            { 
+                                width: "50px", 
+                                height: "50px", 
+                                opacity: .3,
+                                y: 0 
+                            }, 
+                            {
+                                width: "2000px", // Expand outward reasonably
+                                height:"2000px",
+                                y: travelDistance, // ALSO travel up the entire page
+                                opacity: 0, // Fade out entirely near the end
+                                duration: 15, // Travel time
+                                ease: "none", // Natural expanding ease
+                                stagger: {
+                                    each: 3,
+                                    repeat: -1
+                                }
+                            }
+                        );
                     }
                 });
             }
