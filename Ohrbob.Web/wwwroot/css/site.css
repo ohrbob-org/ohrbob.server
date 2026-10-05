@@ -25,6 +25,26 @@ body {
   margin-bottom: 60px;
 }
 
+body.with-player {
+    /* 60px for footer + 100px for player area */
+    margin-bottom: 160px;
+}
+body.with-player .footer {
+    /* Lift the footer above the player */
+    bottom: 100px !important;
+}
+
+@media (max-width: 767.98px) {
+    body.with-player {
+        /* On mobile the player is slightly shorter, but 140px total is safe */
+        margin-bottom: 140px;
+    }
+    body.with-player .footer {
+        bottom: 80px !important;
+    }
+}
+
+
 header {
     position: sticky;
     top: 1em;
@@ -36,12 +56,11 @@ header {
 }
 
 header .floating-nav-pill {
-    padding-right: 10px ;
-    padding-left: 12px ;
-    width: 60%;
+    padding-right: 10px;
+    padding-left: 12px;
 }
 
-header .nav-item.dropdown {
+    header .nav-item.dropdown {
     list-style: none;
 }
 
@@ -287,4 +306,28 @@ header .nav-item.dropdown {
     border-width: 3px;
     border-color: #fc5d00; /* Use Ohrbob orange for the grand finale */
     box-shadow: 0 0 20px rgba(252, 93, 0, 0.4);
+}
+
+@media (max-width: 767.98px) {
+    header {
+        top: 0;
+    }
+    .floating-nav-pill {
+        width: 100%;
+        max-width: none;
+        border-radius: 0;
+        margin-top: 0;
+        margin-bottom: 1rem;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    .floating-nav-pill-center {
+        gap: 0.75rem;
+    }
+    .floating-nav-pill-center a {
+        font-size: 0.9rem;
+    }
+    .floating-nav-pill img {
+        height: 24px;
+    }
 }
