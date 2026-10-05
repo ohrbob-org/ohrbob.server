@@ -96,18 +96,24 @@ else
             z-index: 1; /* Below the logo image */
         }
         .broadcast-ring {
-            clip-path: inset(0 15% 50% 15%); /* Cuts off bottom and sides to create a narrower 90-degree arch */
-            border-color: rgba(var(--bs-primary-rgb), 0.3) !important; /* 30% alpha */
             position: absolute;
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%); /* Center perfectly */
             opacity: 0;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            border: 2px solid;
             pointer-events: none;
+            overflow: visible;
+        }
+        .broadcast-ring circle {
+            stroke: rgba(var(--bs-primary-rgb), 0.3);
+            stroke-width: 4px;
+            stroke-linecap: round;
+            fill: none;
+            /* 100 pathLength; 25 is exactly a 90-degree arc */
+            stroke-dasharray: 25 100;
+            transform-origin: center;
+            /* Starts at right (0deg). Rotate -135deg puts the 90deg arc from top-left to top-right */
+            transform: rotate(-135deg);
         }
     </style>
     var landingSteps = new[] {
@@ -236,7 +242,7 @@ else
                     opacity: 0,
                     duration: 3,
                     stagger: 0.3,
-                    ease: "power2.out",
+                    ease: "none",
                     startAt: { opacity: 0.8, scale: 0.5 }
                 });
             }
@@ -244,12 +250,21 @@ else
             // New continuous directional broadcast animation (Pooling System)
             const broadcastNode = document.querySelector('.broadcast-node');
             if (broadcastNode) {
-                // Create a pool of 6 rings (enough to cover 3s intervals over ~15s travel time)
+                // Create a pool of 6 SVG rings
                 const poolSize = 6;
                 const ringPool = [];
                 for (let i = 0; i < poolSize; i++) {
-                    const ring = document.createElement('div');
-                    ring.className = 'wave-ring broadcast-ring';
+                    const ring = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                    ring.setAttribute("class", "broadcast-ring");
+                    
+                    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    circle.setAttribute("cx", "50%");
+                    circle.setAttribute("cy", "50%");
+                    // 2px less than 50% radius to ensure the 4px stroke stays inside bounding box if needed
+                    circle.setAttribute("r", "calc(50% - 2px)");
+                    circle.setAttribute("pathLength", "100");
+                    
+                    ring.appendChild(circle);
                     broadcastNode.appendChild(ring);
                     ringPool.push({ el: ring, active: false });
                 }
@@ -271,12 +286,11 @@ else
                         { 
                             width: "50px", 
                             height: "50px", 
-                            opacity: 1 
+                            opacity: .3 
                         }, 
                         {
                             width: "3000px", // Expand outward massively so the edge travels up the screen
                             height: "3000px", 
-                            opacity: 0, // Fade out entirely near the end
                             duration: 15, // Travel time
                             ease: "power1.out", // Natural expanding ease
                             onComplete: () => {
