@@ -93,5 +93,9 @@ public class AudioPlaybackTests : PageTest
         // Verify via DOM property
         var isPlaying = await Page.EvaluateAsync<bool>("() => document.querySelector('#ohrbob-player').isPlaying");
         Assert.That(isPlaying, Is.True);
+        
+        // Assert that the station card has the active highlight class
+        var cardContainer = Page.Locator(".active-station-card").First;
+        await Expect(cardContainer).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("border-primary"));
     }
 }

@@ -1,7 +1,7 @@
 ﻿@using Ohrbob.Server.Shared.Requests
 @model List<StationWithFeedsDto>
 @{
-    ViewData["Title"] = "Home";
+    ViewData["Title"] = "Listen";
 }
 
 @if (User.Identity?.IsAuthenticated == true)
@@ -27,9 +27,12 @@
                 else if (feedCount > 9) gridClass = "collage-grid-4";
                 
                 var displayFeeds = dto.Feeds?.Take(16).ToList() ?? new List<FeedStatsDto>();
+                
+                var isActive = ViewBag.ActiveStationId == dto.Station.Id;
+                var cardClass = isActive ? "border-primary border-3 shadow" : "shadow-sm";
 
                 <div class="col">
-                    <div class="card h-100 shadow-sm" style="cursor: pointer;" onclick="document.querySelector('#ohrbob-player').playStation('@dto.Station.Id')">
+                    <div class="card h-100 @cardClass active-station-card" data-station-id="@dto.Station.Id" style="cursor: pointer;" onclick="document.querySelector('#ohrbob-player').playStation('@dto.Station.Id')">
                         <div class="collage-container @gridClass card-img-top">
                             @if (!displayFeeds.Any())
                             {
@@ -78,3 +81,19 @@ else
         </div>
     </div>
 }
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var cards = document.querySelectorAll(".active-station-card");
+        cards.forEach(function(card) {
+            card.addEventListener("click", function() {
+                cards.forEach(function(c) {
+                    c.classList.remove("border-primary", "border-3", "shadow");
+                    c.classList.add("shadow-sm");
+                });
+                this.classList.remove("shadow-sm");
+                this.classList.add("border-primary", "border-3", "shadow");
+            });
+        });
+    });
+</script>
