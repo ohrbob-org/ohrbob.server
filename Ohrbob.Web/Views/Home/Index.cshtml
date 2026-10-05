@@ -268,44 +268,41 @@ else
                     broadcastNode.appendChild(ring);
                     rings.push(ring);
                 }
+                
+                // Travel distance: well above the screen
+                // Ensure we have a height even if calculated before layout finishes
+                const travelDistance = -((window.innerHeight || 1000) * 2);
 
-                ScrollTrigger.create({
-                    trigger: ".landing-dynamic-logo",
-                    start: "top 95%",
-                    once: true,
-                    onEnter: () => {
-                        // Travel distance: well above the screen
-                        const travelDistance = -(window.innerHeight * 2); // Calculate height dynamically
-
-                        // Instead of a manual JS setInterval which drifts, we hand all rings to GSAP
-                        // and use stagger with repeat: -1. This guarantees they are permanently and 
-                        // perfectly spaced out like items on a conveyor belt.
-                        gsap.fromTo(rings, 
-                            { 
-                                width: "50px", 
-                                height: "50px", 
-                                opacity: .3,
-                                xPercent: -50, // Keep horizontally centered
-                                yPercent: -50, // Keep vertically centered as base
-                                y: 0 
-                            }, 
-                            {
-                                width: "2000px", // Expand outward reasonably
-                                height:"2000px",
-                                xPercent: -50,
-                                yPercent: -50,
-                                y: travelDistance, // ALSO travel up the entire page
-                                opacity: 0, // Fade out entirely near the end
-                                duration: 15, // Travel time
-                                ease: "none", // Natural expanding ease
-                                stagger: {
-                                    each: 3,
-                                    repeat: -1
-                                }
-                            }
-                        );
+                // Instead of waiting for ScrollTrigger, we hand all rings to GSAP immediately.
+                // We use stagger with repeat: -1 to guarantee they are permanently and perfectly spaced.
+                const broadcastAnim = gsap.fromTo(rings, 
+                    { 
+                        width: "50px", 
+                        height: "50px", 
+                        opacity: .3,
+                        xPercent: -50, // Keep horizontally centered
+                        yPercent: -50, // Keep vertically centered as base
+                        y: 0 
+                    }, 
+                    {
+                        width: "2000px", // Expand outward reasonably
+                        height:"2000px",
+                        xPercent: -50,
+                        yPercent: -50,
+                        y: travelDistance, // ALSO travel up the entire page
+                        opacity: 0, // Fade out entirely near the end
+                        duration: 15, // Travel time
+                        ease: "none", // Natural expanding ease
+                        stagger: {
+                            each: 3,
+                            repeat: -1
+                        }
                     }
-                });
+                );
+                
+                // Fast-forward the animation by exactly one full 15-second cycle 
+                // so the screen is already pre-populated with distributed waves on load!
+                broadcastAnim.totalTime(15);
             }
 
             // Animate each step's waves and content reveal
