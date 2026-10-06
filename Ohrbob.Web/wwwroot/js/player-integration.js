@@ -1,13 +1,9 @@
 
 (function() {
     function initPlayer() {
-        const widget = document.getElementById('ohrbob-player');
+        let widget = document.getElementById('ohrbob-player');
         if (!widget) return;
         
-        // Prevent multiple initialization
-        if (widget._playerIntegrationInitialized) return;
-        widget._playerIntegrationInitialized = true;
-
         const apiUrl = widget.getAttribute('data-player-api-url');
         const token = widget.getAttribute('data-stream-token');
 
@@ -18,33 +14,21 @@
             'Content-Type': 'application/json'
         };
 
-        // We can attach `window._ohrbobAudio` so we don't create multiple audio elements?
-        // Actually, if HTMX restores the body, the old widget is destroyed.
-        // But the old Audio object might still be playing!
-        // To be safe, let's reuse window.ohrbobAudio if it exists, otherwise create it.
         if (!window._ohrbobAudio) {
             window._ohrbobAudio = new Audio();
+            window._ohrbobAudio._managed = true;
         }
         let audio = window._ohrbobAudio;
         
-        // clear old listeners if any (by replacing the audio object or just letting them be if we only create one? 
-        // No, if we add multiple `ended` or `error` listeners, it's bad.
-        // Let's recreate the audio element to be safe and pause the old one.
-        if (window._ohrbobAudio && window._ohrbobAudio._managed) {
-            window._ohrbobAudio.pause();
-            window._ohrbobAudio.onended = null;
-            window._ohrbobAudio.onerror = null;
-        }
-        audio = new Audio();
-        audio._managed = true;
-        window._ohrbobAudio = audio;
+        // Remove old event listeners
+        audio.onended = null;
+        audio.onerror = null;
+        if (window._ohrbobSyncInterval) clearInterval(window._ohrbobSyncInterval);
 
         let currentEpisodeData = null;
         let nextEpisodeData = null;
-        let syncInterval = null;
         let lastConnectionErrorTime = 0;
         let activeStationId = null;
-        let currentLoadedUri = null;
 
         const apiCall = async (endpoint, method = 'GET', body = null) => {
             try {
@@ -58,16 +42,6 @@
                 const text = await response.text();
                 return text ? JSON.parse(text) : null;
             } catch (err) {
-                console.error('Player API error:', err);
-                
-                if (err instanceof TypeError && err.message === 'Failed to fetch') {
-                    const now = Date.now();
-                    if (now - lastConnectionErrorTime > 30000) { 
-                        showToast('Connection Error', 'Cannot reach the player API. Please check your connection or wait for the service to become available.', true);
-                        lastConnectionErrorTime = now;
-                    }
-                }
-                
                 return null;
             }
         };
@@ -89,52 +63,17 @@
             }
         };
 
-        const showToast = (title, message, isError = false) => {
-            let toastContainer = document.querySelector('.toast-container.player-toast-container');
-            if (!toastContainer) {
-                toastContainer = document.createElement('div');
-                toastContainer.className = 'toast-container player-toast-container position-fixed end-0 p-3';
-                toastContainer.style.zIndex = '1055';
-                
-                const widgetHeight = widget.offsetHeight || 160; 
-                toastContainer.style.bottom = (20 + widgetHeight + 10) + 'px';
-                
-                document.body.appendChild(toastContainer);
+        const updatePlayButton = () => {
+            const btnPlay = widget.querySelector('.js-play');
+            if (btnPlay) {
+                const playSvg = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="currentColor" stroke-linejoin="round" stroke-linecap="round"><polygon points="7 4 19 12 7 20 7 4"></polygon></svg>`;
+                const pauseSvg = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="currentColor" stroke-linejoin="round" stroke-linecap="round"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg>`;
+                btnPlay.innerHTML = widget.isPlaying ? pauseSvg : playSvg;
+                btnPlay.style.paddingLeft = widget.isPlaying ? '0' : '2px';
             }
-
-            const toastEl = document.createElement('div');
-            const bgClass = isError ? 'text-bg-danger' : 'text-bg-warning';
-            toastEl.className = `toast align-items-center ${bgClass} border-0`;
-            toastEl.setAttribute('role', 'alert');
-            toastEl.setAttribute('aria-live', 'assertive');
-            toastEl.setAttribute('aria-atomic', 'true');
-            
-            toastEl.innerHTML = `
-              <div class="d-flex">
-                <div class="toast-body">
-                  <strong>${title}</strong><br/>
-                  ${message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-              </div>
-            `;
-            
-            toastContainer.appendChild(toastEl);
-            
-            const toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 10000 });
-            toast.show();
-            
-            toastEl.addEventListener('hidden.bs.toast', () => {
-                toastEl.remove();
-            });
-        };
-
-        const showAutoplayToast = () => {
-            showToast('Autoplay blocked by browser.', 'Please click the play button in the widget to start listening.', false);
         };
 
         audio.addEventListener('error', (e) => {
-            console.error("Audio element error:", audio.error);
             widget.isPlaying = false;
             updatePlayButton();
         });
@@ -146,8 +85,8 @@
             
             const fullStreamUri = currentEpisodeData.streamUri; 
             
-            if (currentLoadedUri !== fullStreamUri || !audio.src || audio.src === window.location.href) {
-                currentLoadedUri = fullStreamUri;
+            if (window._ohrbobCurrentLoadedUri !== fullStreamUri || !audio.src || audio.src === window.location.href) {
+                window._ohrbobCurrentLoadedUri = fullStreamUri;
                 audio.src = fullStreamUri;
                 audio.load(); 
                 audio.currentTime = currentEpisodeData.playheadPositionSeconds || 0;
@@ -160,9 +99,12 @@
                     }).catch(e => {
                         widget.isPlaying = false;
                         updatePlayButton();
-                        showAutoplayToast();
                     });
                 }
+            } else {
+                // If it is already loaded, ensure widget.isPlaying reflects audio state!
+                widget.isPlaying = !audio.paused;
+                updatePlayButton();
             }
         };
 
@@ -184,16 +126,6 @@
             });
         };
 
-        const updatePlayButton = () => {
-            const btnPlay = widget.querySelector('.js-play');
-            if (btnPlay) {
-                const playSvg = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="currentColor" stroke-linejoin="round" stroke-linecap="round"><polygon points="7 4 19 12 7 20 7 4"></polygon></svg>`;
-                const pauseSvg = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="currentColor" stroke-linejoin="round" stroke-linecap="round"><rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect></svg>`;
-                btnPlay.innerHTML = widget.isPlaying ? pauseSvg : playSvg;
-                btnPlay.style.paddingLeft = widget.isPlaying ? '0' : '2px';
-            }
-        };
-
         audio.onended = async () => {
             if (nextEpisodeData && nextEpisodeData.streamUri) {
                 currentEpisodeData = nextEpisodeData;
@@ -201,7 +133,7 @@
                 if (currentEpisodeData.coverUrl) widget.setAttribute('cover', currentEpisodeData.coverUrl);
                 
                 const fullStreamUri = currentEpisodeData.streamUri;
-                currentLoadedUri = fullStreamUri;
+                window._ohrbobCurrentLoadedUri = fullStreamUri;
                 audio.src = fullStreamUri;
                 audio.currentTime = 0;
                 
@@ -220,89 +152,110 @@
             }
         };
 
-        widget.addEventListener('play', () => {
-            if (!currentEpisodeData || !currentEpisodeData.streamUri) {
+        // Clear existing listeners on the widget by cloning it? No, hx-preserve might need it.
+        // We can just use an abort controller or a flag on the widget.
+        if (!widget._ohrbobListenersBound) {
+            widget._ohrbobListenersBound = true;
+            widget.addEventListener('play', () => {
+                if (!currentEpisodeData || !currentEpisodeData.streamUri) {
+                    widget.isPlaying = false;
+                    updatePlayButton();
+                    return;
+                }
+
+                if (window._ohrbobCurrentLoadedUri !== currentEpisodeData.streamUri || !audio.src || audio.src === window.location.href) {
+                    setupAudio();
+                } else {
+                    const playPromise = audio.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            widget.isPlaying = true;
+                        }).catch(e => {
+                            widget.isPlaying = false;
+                            updatePlayButton();
+                        });
+                    }
+                }
+            });
+            
+            widget.addEventListener('pause', () => {
+                audio.pause();
                 widget.isPlaying = false;
                 updatePlayButton();
-                return;
-            }
+            });
+            
+            widget.addEventListener('forward', async () => {
+                await apiCall('/stream/next', 'POST');
+                syncState();
+            });
 
-            if (currentLoadedUri !== currentEpisodeData.streamUri || !audio.src || audio.src === window.location.href) {
-                setupAudio();
-            } else {
-                const playPromise = audio.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        widget.isPlaying = true;
-                    }).catch(e => {
-                        widget.isPlaying = false;
-                        updatePlayButton();
-                    });
+            widget.addEventListener('settings', () => {
+                if (activeStationId) {
+                    window.location.href = `/Stations/Edit/${activeStationId}`;
                 }
-            }
-        });
-        
-        widget.addEventListener('pause', () => {
-            audio.pause();
-            widget.isPlaying = false;
-        });
-        
-        widget.addEventListener('forward', async () => {
-            await apiCall('/stream/next', 'POST');
-            syncState();
-        });
+            });
 
-        widget.addEventListener('settings', () => {
-            if (activeStationId) {
-                window.location.href = `/Stations/Edit/${activeStationId}`;
-            }
-        });
-
-        widget.addEventListener('seek', (e) => {
-            const time = e.detail.time;
-            if (Number.isFinite(time)) {
-                audio.currentTime = time;
-            }
-        });
-
-        widget.addEventListener('volumechange', (e) => {
-            const vol = e.detail.volume;
-            if (Number.isFinite(vol)) {
-                audio.volume = vol;
-            }
-        });
-
-        widget.addEventListener('mutechange', (e) => {
-            audio.muted = Boolean(e.detail.muted);
-        });
-
-        widget.addEventListener('skipback', (e) => {
-            audio.currentTime = Math.max(0, audio.currentTime - (e.detail.seconds || 15));
-        });
-
-        widget.addEventListener('skipforward', (e) => {
-            audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + (e.detail.seconds || 30));
-        });
-
-        widget.playStation = async (stationId) => {
-            await apiCall(`/stream/play-station/${stationId}`, 'POST');
-            await syncState();
-        };
-
-        setInterval(() => {
-            if (audio.readyState > 0 && widget.isPlaying) {
-                if (widget.duration !== audio.duration && Number.isFinite(audio.duration)) {
-                    widget.duration = audio.duration;
+            widget.addEventListener('seek', (e) => {
+                const time = e.detail.time;
+                if (Number.isFinite(time)) {
+                    audio.currentTime = time;
                 }
-                if (widget.currentTime !== audio.currentTime && Number.isFinite(audio.currentTime)) {
-                    widget.currentTime = audio.currentTime;
+            });
+
+            widget.addEventListener('volumechange', (e) => {
+                const vol = e.detail.volume;
+                if (Number.isFinite(vol)) {
+                    audio.volume = vol;
+                }
+            });
+
+            widget.addEventListener('mutechange', (e) => {
+                audio.muted = Boolean(e.detail.muted);
+            });
+
+            widget.addEventListener('skipback', (e) => {
+                audio.currentTime = Math.max(0, audio.currentTime - (e.detail.seconds || 15));
+            });
+
+            widget.addEventListener('skipforward', (e) => {
+                audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + (e.detail.seconds || 30));
+            });
+
+            widget.playStation = async (stationId) => {
+                await apiCall(`/stream/play-station/${stationId}`, 'POST');
+                await syncState();
+            };
+        }
+
+        // Always replace the interval so we don't have multiple
+        if (window._ohrbobRenderInterval) clearInterval(window._ohrbobRenderInterval);
+        window._ohrbobRenderInterval = setInterval(() => {
+            widget = document.getElementById('ohrbob-player');
+            if (!widget) return;
+            
+            if (audio.readyState > 0) {
+                if (!audio.paused && !widget.isPlaying) {
+                    widget.isPlaying = true;
+                    updatePlayButton();
+                } else if (audio.paused && widget.isPlaying) {
+                    widget.isPlaying = false;
+                    updatePlayButton();
+                }
+                
+                if (widget.isPlaying) {
+                    if (widget.duration !== audio.duration && Number.isFinite(audio.duration)) {
+                        widget.duration = audio.duration;
+                    }
+                    if (widget.currentTime !== audio.currentTime && Number.isFinite(audio.currentTime)) {
+                        widget.currentTime = audio.currentTime;
+                    }
                 }
             }
         }, 500);
 
         syncState();
         
-        syncInterval = setInterval(() => {
+        window._ohrbobSyncInterval = setInterval(() => {
             if (widget.isPlaying && currentEpisodeData && activeStationId) {
                 reportPlayhead();
             } else if (!currentEpisodeData) {
@@ -324,9 +277,14 @@
         });
     }
 
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPlayer);
     } else {
         initPlayer();
     }
+    
+    // Support HTMX navigation
+    document.body.addEventListener('htmx:afterSettle', initPlayer);
+
 })();

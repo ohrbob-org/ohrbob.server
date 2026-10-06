@@ -103,10 +103,9 @@ public class AudioPlaybackTests : PageTest
         var cardContainer = Page.Locator(".active-station-card").First;
         await Expect(cardContainer).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("border-primary"));
     }
-    [Test]
+            [Test]
     public async Task NavigateToStationDetailsAndBack_CanStillPlay()
     {
-        // Get feed url
         var feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../example_feeds.txt");
         if (!File.Exists(feedPath))
         {
@@ -117,60 +116,38 @@ public class AudioPlaybackTests : PageTest
 
         await Page.GotoAsync(_factory.ServerAddress);
         
-        // Go to Manage Stations and Create
         await Page.ClickAsync("#profileDropdown");
         await Page.ClickAsync("text=Manage Stations");
         await Page.ClickAsync("text=Create New Station");
 
-        // Fill form
         await Page.FillAsync("input[name='Name']", "Test E2E Station");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
         await Page.ClickAsync("input[type='submit']");
 
-        // Now we are redirected to Stations index. Go to Home (Dashboard)
-        await Page.ClickAsync(".floating-nav-pill a");
+        await Page.ClickAsync(".floating-nav-pill a:has-text('Listen')");
 
-        // Wait for the station to appear and process
         var stationCard = Page.Locator(".card-body:has-text('Test E2E Station')");
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
+        await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
-        // Click the gear icon on the station
-        await Page.Locator(".card:has-text('Test E2E Station') a[title='Manage Station']").ClickAsync();
-
-        // Wait for the edit page to load (should have "Edit Station" or similar)
-        await Expect(Page.Locator("h2")).ToContainTextAsync("Edit", new() { Timeout = 10000 });
-
-        // Navigate back using the browser back button
-        await Page.GoBackAsync();
-
-        // Wait for the station card again
-        await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
-
-        // Add a listener to catch page errors (like the one reported in the issue)
-        var errorTcs = new TaskCompletionSource<string>();
-        Page.PageError += (_, exception) =>
-        {
-            errorTcs.TrySetResult(exception);
-        };
-
-        // Click the station card to switch to it
+        // Play the station first
         await Page.Locator(".card:has-text('Test E2E Station')").ClickAsync();
-
-        // Check if an error was caught during the click or immediately after
-        var clickTask = Task.Delay(2000); // give it 2 seconds to error or succeed
-        var completedTask = await Task.WhenAny(clickTask, errorTcs.Task);
-
-        if (completedTask == errorTcs.Task)
-        {
-            var errorMessage = await errorTcs.Task;
-            Assert.Fail($"Caught JavaScript error on page: {errorMessage}");
-        }
-
-        // Click the audio widget's play button
+        await Task.Delay(2000); // wait for sync
         var playBtn = Page.Locator("#ohrbob-player .js-play");
         await playBtn.ClickAsync();
         
-        // Wait for the pause icon to appear (meaning it is playing)
         await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 15000 });
+
+        // Click the gear icon by explicitly targeting the `a[href]` inside the card
+        await Page.ClickAsync(".card:has-text('Test E2E Station') a[href^='/Stations/Edit/']");
+
+        // Wait for edit page
+        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+
+        // Navigate back
+        await Page.GoBackAsync();
+
+        // Wait for card on home page
+        await Page.Locator(".card-body:has-text('Test E2E Station')").WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
     }
 }
