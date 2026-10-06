@@ -18,3 +18,5 @@ obj/
 *.up2date
 
 .idea/
+
+.superpowers/
