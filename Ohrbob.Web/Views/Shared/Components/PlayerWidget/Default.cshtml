@@ -1,6 +1,7 @@
 @model Ohrbob.Web.ViewComponents.PlayerWidgetViewModel
 
 <audio-widget 
+    hx-preserve="true"
     id="ohrbob-player"
     data-player-api-url="@Model.PlayerApiUrl"
     data-stream-token="@Model.StreamToken">
