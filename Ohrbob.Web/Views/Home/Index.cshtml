@@ -141,7 +141,7 @@ else
         new { Title = "Listen together", Desc = "<p>Share your favorite stations and listen to the same episodes with your friends. Say goodbye to unwanted true crime spoilers!</p>", Card = "Social Sharing" },
         new { Title = "Stream anywhere", Desc = "<p>Take your stations wherever you go. Whether you're on the move or relaxing at home, stream directly to your Wi-Fi radio or any web-enabled device.</p>", 
             Card = "images/screenshots/radio.png" },
-        new { Title = "Proudly Open Source", Desc = "<p>We believe in full transparency. Enjoy our hosted service, or take control and host it yourself.</p><p>Missing a feature? Our community is always growing, and we'd love for you to join us as a contributor!</p>", 
+        new { Title = "Proudly Open Source", Desc = "<p>We believe in full transparency. Enjoy our hosted service, or take control and host it yourself.</p><p>Missing a feature? Our community is always growing, and we'd love for you to join us as a contributor! Check us out on <a href=\"https://github.com/ohrbob-org/\" target=\"_blank\" rel=\"noopener\">GitHub</a>.</p>", 
             Card = "images/screenshots/opensource.png" }
     };
 
@@ -199,7 +199,9 @@ else
                 <a asp-controller="Home" asp-action="Login" class="btn btn-primary btn-lg px-4 rounded-pill" hx-boost="false">
                     Sign-Up for free!
                 </a>
-                
+                <a href="https://github.com/ohrbob-org/" target="_blank" rel="noopener" class="btn btn-outline-dark btn-lg px-4 rounded-pill" title="ohrbob on GitHub">
+                    <i class="bi bi-github me-2"></i>GitHub
+                </a>
             </div>
         </div>
     </div>
