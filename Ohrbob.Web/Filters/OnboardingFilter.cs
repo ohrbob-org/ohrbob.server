@@ -30,7 +30,7 @@ public class OnboardingFilter : IAsyncActionFilter
         
         if (string.Equals(controllerName, "Onboarding", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(controllerName, "Home", StringComparison.OrdinalIgnoreCase) && 
-            (string.Equals(actionName, "Logout", StringComparison.OrdinalIgnoreCase) || string.Equals(actionName, "Error", StringComparison.OrdinalIgnoreCase) || string.Equals(actionName, "ServiceUnavailable", StringComparison.OrdinalIgnoreCase)))
+            (string.Equals(actionName, "Logout", StringComparison.OrdinalIgnoreCase) || string.Equals(actionName, "Error", StringComparison.OrdinalIgnoreCase) || string.Equals(actionName, "ServiceUnavailable", StringComparison.OrdinalIgnoreCase) || string.Equals(actionName, "Legal", StringComparison.OrdinalIgnoreCase)))
         {
             await next();
             return;

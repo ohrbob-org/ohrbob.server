@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Ohrbob.Server.Shared.Data;
+using Ohrbob.Web.Configuration;
 using Ohrbob.Web.Services;
 
 namespace Ohrbob.Web.Controllers;
@@ -12,17 +14,20 @@ public class OnboardingController : Controller
     private readonly StationsApiService _stationsService;
     private readonly AccountApiService _accountService;
     private readonly PodcastIndexApiService _podcastApi;
+    private readonly LegalOptions _legalOptions;
 
     public OnboardingController(
         ProfilesApiService profilesService, 
         StationsApiService stationsService, 
         AccountApiService accountService,
-        PodcastIndexApiService podcastApi)
+        PodcastIndexApiService podcastApi,
+        IOptions<LegalOptions> legalOptions)
     {
         _profilesService = profilesService;
         _stationsService = stationsService;
         _accountService = accountService;
         _podcastApi = podcastApi;
+        _legalOptions = legalOptions.Value;
     }
 
     private string? GetAccountId() => User.FindFirst(Consts.OhrbobAccountIdClaim)?.Value;
@@ -41,13 +46,19 @@ public class OnboardingController : Controller
 
         // Default profile name based on OIDC claim
         ViewBag.DefaultName = User.Identity?.Name ?? "My Profile";
+        ViewBag.LegalShown = _legalOptions.IsConfigured;
         return View();
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateProfile(string profileName)
+    public async Task<IActionResult> CreateProfile(string profileName, bool acceptTerms = false)
     {
+        if (_legalOptions.IsConfigured && !acceptTerms)
+        {
+            TempData["TermsRequired"] = true;
+            return RedirectToAction(nameof(Index));
+        }
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId) || string.IsNullOrWhiteSpace(profileName)) return RedirectToAction(nameof(Index));
 

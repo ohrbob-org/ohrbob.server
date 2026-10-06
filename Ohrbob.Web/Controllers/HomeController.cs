@@ -85,16 +85,11 @@ public class HomeController : Controller
     }
 
     [AllowAnonymous]
-    public IActionResult Login(string provider, bool accepted = false)
+    public IActionResult Login(string provider)
     {
         if (string.IsNullOrEmpty(provider))
         {
             return View();
-        }
-        if (_legalOptions.IsConfigured && !accepted)
-        {
-            TempData["TermsRequired"] = true;
-            return RedirectToAction(nameof(Login));
         }
         return Challenge(new AuthenticationProperties { RedirectUri = "/" }, provider);
     }

@@ -1,9 +1,5 @@
-@using Microsoft.Extensions.Options
-@using Ohrbob.Web.Configuration
-@inject IOptions<LegalOptions> LegalOptions
 @{
     ViewData["Title"] = "Log in";
-    var legalShown = LegalOptions.Value.IsConfigured;
 }
 
 <div class="container d-flex justify-content-center align-items-center mt-5">
@@ -49,21 +45,8 @@
                 <i class="bi bi-google me-2"></i> Continue with Google
             </a>
         </div>
-        @if (legalShown)
-        {
-            <div class="d-flex justify-content-center mt-4">
-                <div class="form-check text-start">
-                    <input class="form-check-input" type="checkbox" id="acceptTerms" />
-                    <label class="form-check-label" for="acceptTerms">
-                        I accept the <a asp-controller="Home" asp-action="Legal" hx-boost="false">terms</a>
-                    </label>
-                </div>
-            </div>
-            @if (TempData["TermsRequired"] is true)
-            {
-                <div class="alert alert-warning mt-3" role="alert">Please accept the terms to continue.</div>
-            }
-        }
+    </div>
+</div>
     </div>
 </div>
 
@@ -113,42 +96,24 @@
             // Nodding animation
             const lynxHead = document.getElementById("lynx-head");
             const loginBtns = document.querySelectorAll(".login-btn");
-            const acceptTerms = document.getElementById("acceptTerms");
-
-            const termsAccepted = () => !acceptTerms || acceptTerms.checked;
-
-            if (acceptTerms) {
-                const toggleBtns = () => loginBtns.forEach(btn => btn.classList.toggle("disabled", !acceptTerms.checked));
-                acceptTerms.addEventListener("change", toggleBtns);
-                toggleBtns();
-            }
 
             loginBtns.forEach(btn => {
                 btn.addEventListener("click", (e) => {
                     if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) {
                         return;
                     }
-                    if (!termsAccepted()) {
-                        e.preventDefault();
-                        acceptTerms.focus();
-                        acceptTerms.classList.add("is-invalid");
-                        return;
-                    }
                     e.preventDefault();
-                    const url = new URL(btn.href, window.location.origin);
-                    url.searchParams.set("accepted", "true");
-                    const target = url.toString();
                     if (!lynxHead) {
-                        window.location.href = target;
+                        window.location.href = btn.href;
                         return;
                     }
-
+                    
                     lynxHead.classList.add("is-nodding");
-
+                    
                     // Wait for animation, then redirect
                     setTimeout(() => {
-                        window.location.href = target;
-                    }, 500);
+                        window.location.href = btn.href;
+                    }, 500); 
                 });
             });
         });

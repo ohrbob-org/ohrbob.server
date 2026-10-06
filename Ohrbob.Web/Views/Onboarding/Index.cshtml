@@ -20,6 +20,22 @@
                             <label for="profileName" class="form-label fw-bold">Name your first Profile</label>
                             <input type="text" class="form-control form-control-lg" id="profileName" name="profileName" value="@ViewBag.DefaultName" required>
                         </div>
+
+                        @if (ViewBag.LegalShown is true)
+                        {
+                            <div class="mb-4 text-start">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="acceptTerms" name="acceptTerms" value="true" required>
+                                    <label class="form-check-label" for="acceptTerms">
+                                        I accept the <a asp-controller="Home" asp-action="Legal">terms</a>
+                                    </label>
+                                </div>
+                                @if (TempData["TermsRequired"] is true)
+                                {
+                                    <div class="alert alert-warning mt-3" role="alert">Please accept the terms to continue.</div>
+                                }
+                            </div>
+                        }
                         
                         <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill">Continue <i class="bi bi-arrow-right ms-2"></i></button>
                     </form>
