@@ -61,6 +61,17 @@
             } else {
                  widget.removeAttribute('cover');
             }
+
+            document.querySelectorAll(".active-station-card").forEach(c => {
+                if (c.getAttribute('data-station-id') === state.stationId) {
+                    c.classList.remove("shadow-sm");
+                    c.classList.add("border-primary", "border-3", "shadow");
+                } else {
+                    c.classList.remove("border-primary", "border-3", "shadow");
+                    c.classList.add("shadow-sm");
+                }
+            });
+
         };
 
         const updatePlayButton = () => {

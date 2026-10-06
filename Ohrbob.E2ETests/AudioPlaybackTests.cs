@@ -71,7 +71,7 @@ public class AudioPlaybackTests : PageTest
         await Page.FillAsync("input[name='Name']", "Test E2E Station");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
         await Page.ClickAsync("input[type='submit']");
-
+        
         // Now we are redirected to Stations index. Go to Home (Dashboard)
         await Page.ClickAsync(".floating-nav-pill a");
 
@@ -123,7 +123,7 @@ public class AudioPlaybackTests : PageTest
         await Page.FillAsync("input[name='Name']", "Test E2E Station");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
         await Page.ClickAsync("input[type='submit']");
-
+        
         await Page.ClickAsync(".floating-nav-pill a:has-text('Listen')");
 
         var stationCard = Page.Locator(".card-body:has-text('Test E2E Station')");

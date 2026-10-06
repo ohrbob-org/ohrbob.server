@@ -25,6 +25,8 @@ function formatTime(seconds) {
     return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
+if (typeof window._AudioWidgetDefined === 'undefined') {
+window._AudioWidgetDefined = true;
 class AudioWidget extends HTMLElement {
     constructor() {
         super();
@@ -241,3 +243,4 @@ class AudioWidget extends HTMLElement {
 }
 
 if (!customElements.get('audio-widget')) { customElements.define('audio-widget', AudioWidget); }
+}
