@@ -4,6 +4,8 @@ using Ohrbob.Web.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Options;
+using Ohrbob.Web.Configuration;
 using Ohrbob.Web.Services;
 using Ohrbob.Server.Shared.Data;
 using Ohrbob.Server.Shared.Requests;
@@ -14,11 +16,13 @@ public class HomeController : Controller
 {
     private readonly StationsApiService _stationsService;
     private readonly ProfilesApiService _profilesService;
+    private readonly LegalOptions _legalOptions;
 
-    public HomeController(StationsApiService stationsService, ProfilesApiService profilesService)
+    public HomeController(StationsApiService stationsService, ProfilesApiService profilesService, IOptions<LegalOptions> legalOptions)
     {
         _stationsService = stationsService;
         _profilesService = profilesService;
+        _legalOptions = legalOptions.Value;
     }
 
     private string? GetAccountId() => User.FindFirst(Consts.OhrbobAccountIdClaim)?.Value;
@@ -54,6 +58,16 @@ public class HomeController : Controller
     public IActionResult Privacy()
     {
         return View();
+    }
+
+    [AllowAnonymous]
+    public IActionResult Legal()
+    {
+        if (!_legalOptions.IsConfigured)
+        {
+            return NotFound();
+        }
+        return View(_legalOptions);
     }
 
     [AllowAnonymous]

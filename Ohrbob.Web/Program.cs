@@ -55,6 +55,7 @@ builder.Services.AddSingleton<StationsApiService>();
 builder.Services.AddSingleton<ProfilesApiService>();
 builder.Services.AddHttpClient<PodcastIndexApiService>();
 builder.Services.Configure<OhrbobApiOptions>(builder.Configuration.GetSection("OhrbobApi"));
+builder.Services.Configure<LegalOptions>(builder.Configuration.GetSection(LegalOptions.SectionName));
 
 
 builder.Services.AddAuthentication(options =>
