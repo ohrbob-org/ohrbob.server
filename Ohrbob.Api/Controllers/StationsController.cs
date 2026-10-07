@@ -15,14 +15,18 @@ public class StationsController : ControllerBase
     private readonly EpisodesService _episodesService;
     private readonly ListenStateService _listenStateService;
     private readonly ProfilesService _profilesService;
+    private readonly AccountService? _accountService;
+    private readonly SubscriptionPolicy? _policy;
 
-    public StationsController(StationsService stationsService, FeedsService feedsService, EpisodesService episodesService, ListenStateService listenStateService, ProfilesService profilesService)
+    public StationsController(StationsService stationsService, FeedsService feedsService, EpisodesService episodesService, ListenStateService listenStateService, ProfilesService profilesService, AccountService? accountService = null, SubscriptionPolicy? policy = null)
     {
         _stationsService = stationsService;
         _feedsService = feedsService;
         _episodesService = episodesService;
         _listenStateService = listenStateService;
         _profilesService = profilesService;
+        _accountService = accountService;
+        _policy = policy;
     }
     [EndpointSummary("Get all stations by accountId")]
     [EndpointDescription(@"Returns a list of all stations associated with an accountId")]
@@ -165,6 +169,17 @@ public class StationsController : ControllerBase
     [HttpPost("{accountId}")]
     public async Task<IActionResult> Create(string accountId, [FromBody] Station request)
     {
+        if (_accountService != null && _policy != null)
+        {
+            var account = await _accountService.GetAsync(accountId);
+            var limits = _policy.For(account);
+            var existing = await _stationsService.GetByAccountIdAsync(accountId);
+            if (!_policy.CanCreateStation(existing.Count, limits))
+                return StatusCode(403, new ProblemDetails { Title = "Limit exceeded", Detail = $"Station limit reached for {account?.Tier} tier." });
+            if (!_policy.CanSetFeedCount(request.Feeds?.Length ?? 0, limits))
+                return StatusCode(403, new ProblemDetails { Title = "Limit exceeded", Detail = "Feed limit per station exceeded." });
+        }
+
         if (!await ValidateAndEnsureFeedsExistAsync(request.Feeds))
         {
             return BadRequest(new ProblemDetails { Title = "Invalid Feed", Detail = "One or more feeds could not be validated as RSS/Atom." });
@@ -187,6 +202,17 @@ public class StationsController : ControllerBase
     [HttpPut()]
     public async Task<IActionResult> Update([FromBody] Station station)
     {
+        if (_accountService != null && _policy != null)
+        {
+            var existingStation = await _stationsService.GetAsync(station.Id);
+            if (existingStation == null)
+                return NotFound();
+            var updateAccount = await _accountService.GetAsync(existingStation.AccountId);
+            var updateLimits = _policy.For(updateAccount);
+            if (!_policy.CanSetFeedCount(station.Feeds?.Length ?? 0, updateLimits))
+                return StatusCode(403, new ProblemDetails { Title = "Limit exceeded", Detail = "Feed limit per station exceeded." });
+        }
+
         if (!await ValidateAndEnsureFeedsExistAsync(station.Feeds))
         {
             return BadRequest(new ProblemDetails { Title = "Invalid Feed", Detail = "One or more feeds could not be validated as RSS/Atom." });

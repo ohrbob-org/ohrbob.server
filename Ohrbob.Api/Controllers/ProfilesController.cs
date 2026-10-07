@@ -11,11 +11,15 @@ public class ProfilesController : ControllerBase
 {
     private readonly ProfilesService _profilesService;
     private readonly StationsService _stationsService;
+    private readonly AccountService? _accountService;
+    private readonly SubscriptionPolicy? _policy;
 
-    public ProfilesController(ProfilesService profilesService, StationsService stationsService)
+    public ProfilesController(ProfilesService profilesService, StationsService stationsService, AccountService? accountService = null, SubscriptionPolicy? policy = null)
     {
         _profilesService = profilesService;
         _stationsService = stationsService;
+        _accountService = accountService;
+        _policy = policy;
     }
 
     [EndpointSummary("Get all profiles by accountId")]
@@ -42,6 +46,16 @@ public class ProfilesController : ControllerBase
     [HttpPost("{accountId}")]
     public async Task<ActionResult<Profile>> Create(string accountId, [FromBody] Profile request)
     {
+        if (_accountService != null && _policy != null)
+        {
+            var account = await _accountService.GetAsync(accountId);
+            if (account == null) return NotFound("Account not found");
+            var limits = _policy.For(account);
+            var existing = await _profilesService.GetByAccountIdAsync(accountId);
+            if (!_policy.CanCreateProfile(existing.Count, limits))
+                return StatusCode(403, new ProblemDetails { Title = "Limit exceeded", Detail = $"Profile limit reached for {account.Tier} tier." });
+        }
+
         var profile = new Profile
         {
             AccountId = accountId,

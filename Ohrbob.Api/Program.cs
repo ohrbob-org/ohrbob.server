@@ -92,6 +92,7 @@ builder.Services.AddSingleton<ProfilesService>();
 builder.Services.AddSingleton<EpisodesService>();
 builder.Services.AddSingleton<ListenStateService>();
 builder.Services.AddSingleton<FeedsService>();
+builder.Services.AddSingleton<SubscriptionPolicy>();
 builder.Services.AddHostedService<FeedUpdateWorker>();
 
 builder.Services.AddControllers();
