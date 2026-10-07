@@ -9,10 +9,10 @@ COPY ["Ohrbob.Server.Shared/Ohrbob.Server.Shared.csproj", "Ohrbob.Server.Shared/
 RUN dotnet restore "Ohrbob.Api/Ohrbob.Api.csproj"
 COPY . .
 WORKDIR "/src/Ohrbob.Api"
-RUN dotnet build "Ohrbob.Api.csproj" -c Release -o /app/build
+RUN dotnet build "Ohrbob.Api.csproj" -c Release -o /app/build /p:OpenApiGenerateDocuments=false
 
 FROM build AS publish
-RUN dotnet publish "Ohrbob.Api.csproj" -c Release -o /app/publish
+RUN dotnet publish "Ohrbob.Api.csproj" -c Release -o /app/publish /p:OpenApiGenerateDocuments=false
 
 FROM base AS final
 WORKDIR /app

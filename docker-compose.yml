@@ -9,7 +9,7 @@ services:
       - mongodb_data:/data/db
 
   ohrbob.api:
-    image: ${DOCKER_REGISTRY-}ohrbobapi
+    image: ${DOCKER_REGISTRY-}ohrbob.api:${RELEASE_TAG:-beta}
     build:
       context: .
       dockerfile: Ohrbob.Api/Dockerfile
@@ -33,7 +33,7 @@ services:
       - mongodb
 
   ohrbob.player:
-    image: ${DOCKER_REGISTRY-}ohrbobplayer
+    image: ${DOCKER_REGISTRY-}ohrbob.player:${RELEASE_TAG:-beta}
     build:
       context: .
       dockerfile: Ohrbob.Player/Dockerfile
@@ -54,7 +54,7 @@ services:
       - mongodb
 
   ohrbob.web:
-    image: ${DOCKER_REGISTRY-}ohrbobweb
+    image: ${DOCKER_REGISTRY-}ohrbob.web:${RELEASE_TAG:-beta}
     build:
       context: .
       dockerfile: Ohrbob.Web/Dockerfile
