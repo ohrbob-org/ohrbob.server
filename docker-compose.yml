@@ -13,6 +13,9 @@ services:
     build:
       context: .
       dockerfile: Ohrbob.Api/Dockerfile
+      args:
+        GIT_COMMIT: ${GIT_COMMIT:-dev-local}
+        RELEASE_TAG: ${RELEASE_TAG:-beta}
     env_file:
       - Ohrbob.Api/.env
     environment:
@@ -29,6 +32,9 @@ services:
     build:
       context: .
       dockerfile: Ohrbob.Player/Dockerfile
+      args:
+        GIT_COMMIT: ${GIT_COMMIT:-dev-local}
+        RELEASE_TAG: ${RELEASE_TAG:-beta}
     env_file:
       - Ohrbob.Player/.env
     environment:
@@ -45,6 +51,9 @@ services:
     build:
       context: .
       dockerfile: Ohrbob.Web/Dockerfile
+      args:
+        GIT_COMMIT: ${GIT_COMMIT:-dev-local}
+        RELEASE_TAG: ${RELEASE_TAG:-beta}
     env_file:
       - Ohrbob.Web/.env
     environment:

@@ -17,4 +17,8 @@ RUN dotnet publish "Ohrbob.Player.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+ARG GIT_COMMIT=dev-local
+ARG RELEASE_TAG=beta
+ENV AppVersion__Version=${GIT_COMMIT}
+ENV AppVersion__Tag=${RELEASE_TAG}
 ENTRYPOINT ["dotnet", "Ohrbob.Player.dll"]
