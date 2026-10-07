@@ -19,7 +19,7 @@ And why not open that up to others.
     *   *Chronological:* Plays all episodes in the station strictly based on their publish date.
     *   *Chronological Round-Robin:* Plays one episode per feed in chronological order, cycling through the feeds.
 *   **Profile:** An Account can have multiple profiles (e.g., for a parent and a child). Each profile has its own assigned Stations (`AllowedStationIds`), an independent listen state (playhead position per episode), last-active station/episode pointers (`LastActiveStationId`, `LastActiveEpisodeId`), and a unique `StreamToken` used for playback authentication.
-*   **Account:** The root identity of a user. Accounts are managed exclusively via OIDC (Nextcloud, Google). We do not store passwords.
+*   **Account:** The root identity of a user. Accounts are managed exclusively via external providers (Nextcloud and Google via OIDC, GitHub via OAuth). We do not store passwords.
 
 ## Architecture
 
