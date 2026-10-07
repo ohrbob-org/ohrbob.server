@@ -15,10 +15,17 @@ public class VersionPollingService(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
-        await PollOnceAsync(stoppingToken);
-        while (await timer.WaitForNextTickAsync(stoppingToken))
+        try
+        {
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
             await PollOnceAsync(stoppingToken);
+            while (await timer.WaitForNextTickAsync(stoppingToken))
+                await PollOnceAsync(stoppingToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when stopping
+        }
     }
 
     public async Task PollOnceAsync(CancellationToken ct)

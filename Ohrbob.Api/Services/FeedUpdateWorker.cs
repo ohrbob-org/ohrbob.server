@@ -41,7 +41,14 @@ public class FeedUpdateWorker : BackgroundService
                 _logger.LogError(ex, "Error occurred executing FeedUpdateWorker.");
             }
 
-            await Task.Delay(_checkInterval, stoppingToken);
+            try 
+            {
+                await Task.Delay(_checkInterval, stoppingToken);
+            }
+            catch (TaskCanceledException)
+            {
+                break;
+            }
         }
 
         _logger.LogInformation("FeedUpdateWorker is stopping.");

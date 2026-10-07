@@ -41,9 +41,9 @@ public class PlaywrightWebApplicationFactory : WebApplicationFactory<Program>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                { "OhrbobApi:BaseUrl", "https://localhost:7250/api" },
+                { "OhrbobApi:BaseUrl", "http://localhost:5001/api" },
                 { "OhrbobApi:ApiKey", "***REMOVED***" },
-                { "OhrbobApi:PlayerApiUrl", "https://localhost:7244" },
+                { "OhrbobApi:PlayerApiUrl", "http://localhost:5002" },
                 { "PodcastIndex:ApiKey", "***REMOVED***" },
                 { "PodcastIndex:ApiSecret", "***REMOVED***" },
                 { "Oidc:Nextcloud:Authority", "https://localhost" },
