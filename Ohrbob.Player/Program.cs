@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Bson;
 using Ohrbob.Player.Configuration;
+using Ohrbob.Player.Health;
 using Ohrbob.Player.Services;
 using MongoDB.Driver;
 using DotNetEnv;
@@ -53,7 +54,8 @@ app.MapGet("/health", async (IOptions<AppVersionOptions> version, IServiceProvid
 {
     string mongoStatus;
     var dbContext = services.GetService<MongoDbContext>();
-    if (dbContext?.GetDatabase() is null)
+    var database = dbContext?.GetDatabase();
+    if (PlayerHealthStatus.GetMongoStatus(database) == "NotConfigured")
     {
         mongoStatus = "NotConfigured";
     }
@@ -61,7 +63,7 @@ app.MapGet("/health", async (IOptions<AppVersionOptions> version, IServiceProvid
     {
         try
         {
-            await dbContext.GetDatabase()!.RunCommandAsync((Command<BsonDocument>)"{ping:1}");
+            await database!.RunCommandAsync((Command<BsonDocument>)"{ping:1}");
             mongoStatus = "Healthy";
         }
         catch

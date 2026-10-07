@@ -14,7 +14,9 @@ public class ApiServerConfiguration
 
     public void Validate()
     {
-        if(Version == null)
+        if(string.IsNullOrWhiteSpace(Version))
             throw new Exception("Version is required in Configuration Section: " + ConfigSection);
+        if(string.IsNullOrWhiteSpace(Tag))
+            throw new Exception("Tag is required in Configuration Section: " + ConfigSection);
     }
 }
