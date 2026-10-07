@@ -84,6 +84,7 @@ apiConfig.Validate();
 builder.Services.AddSingleton(apiConfig);
 
 builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbData"));
+builder.Services.Configure<SubscriptionTiersOptions>(builder.Configuration.GetSection(SubscriptionTiersOptions.ConfigSection));
 builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddSingleton<AccountService>();
 builder.Services.AddSingleton<StationsService>();
