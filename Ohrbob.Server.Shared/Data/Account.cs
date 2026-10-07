@@ -11,4 +11,5 @@ public class Account : DbEntry
     public List<IdpUser> IdentityProviders { get; set; } = new();
     public string LastUsedProfileId { get; set; } = string.Empty;
     public bool NeedsOnboarding { get; set; } = true;
+    public SubscriptionTier Tier { get; set; } = SubscriptionTier.Free;
 }
