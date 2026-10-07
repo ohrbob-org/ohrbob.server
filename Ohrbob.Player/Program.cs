@@ -10,6 +10,7 @@ using DotNetEnv;
 Env.NoClobber().Load();
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
+builder.Services.Configure<AppVersionOptions>(configuration.GetSection(AppVersionOptions.SectionName));
 
 // MongoDB Setup
 var mongoDbSettings = configuration.GetSection("MongoDbData").Get<MongoDbSettings>();

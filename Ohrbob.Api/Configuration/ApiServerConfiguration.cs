@@ -5,7 +5,8 @@ public class ApiServerConfiguration
     public const string ConfigSection = nameof(ApiServerConfiguration);
     public const int MinimumJwtKeyLength = 32;
 
-    public string? Version { get; set; }
+    public string Version { get; set; } = "dev-local";
+    public string Tag { get; set; } = "beta";
 
     public string? ServerUrl { get; set; }
 
