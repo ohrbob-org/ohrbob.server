@@ -4,6 +4,7 @@ using DotNetEnv;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Options;
@@ -154,6 +155,56 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
+var githubSection = builder.Configuration.GetSection("Oidc:GitHub");
+var githubId = githubSection["ClientId"];
+var githubSecret = githubSection["ClientSecret"];
+if (!string.IsNullOrWhiteSpace(githubId) && !string.IsNullOrWhiteSpace(githubSecret))
+{
+    builder.Services.AddAuthentication().AddGitHub("GitHub", options =>
+    {
+        options.ClientId = githubId!;
+        options.ClientSecret = githubSecret!;
+        options.CallbackPath = "/signin-github";
+        options.Scope.Add("user:email");
+        options.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
+        options.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+        options.ClaimActions.MapJsonKey("picture", "avatar_url");
+        options.SaveTokens = true;
+        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
+        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.Events = new OAuthEvents
+        {
+            OnCreatingTicket = context =>
+            {
+                if (context.Identity != null && string.IsNullOrEmpty(context.Identity.FindFirst("iss")?.Value))
+                {
+                    context.Identity.AddClaim(new Claim("iss", "https://github.com"));
+                }
+                return Task.CompletedTask;
+            },
+            OnTicketReceived = context =>
+            {
+                return CreateOrGetAccountCore(context.Principal, context.HttpContext, context.Scheme.Name);
+            },
+            OnRemoteFailure = context =>
+            {
+                context.Response.Redirect("/Home/Error");
+                context.HandleResponse();
+                return Task.CompletedTask;
+            },
+            OnRedirectToAuthorizationEndpoint = context =>
+            {
+                if (context.HttpContext.Request.Scheme == "https")
+                {
+                    context.RedirectUri = context.RedirectUri.Replace("http://", "https://");
+                }
+                context.Response.Redirect(context.RedirectUri);
+                return Task.CompletedTask;
+            }
+        };
+    });
+}
+
 builder.Services.AddAuthorization(options =>
 {
     options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
@@ -210,28 +261,34 @@ app.Run();
 
 async Task CreateOrGetAccountAsync(TokenValidatedContext context)
 {
-    var principal = context.Principal;
+    await CreateOrGetAccountCore(context.Principal, context.HttpContext, context.Scheme.Name);
+}
+
+async Task CreateOrGetAccountCore(ClaimsPrincipal? principal, HttpContext httpContext, string schemeName)
+{
     var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value 
-                 ?? principal?.FindFirst("sub")?.Value;
+                 ?? principal?.FindFirst("sub")?.Value
+                 ?? principal?.FindFirst("id")?.Value;
     var name = principal?.FindFirst(ClaimTypes.Name)?.Value ?? principal?.FindFirst("name")?.Value;
     var email = principal?.FindFirst(ClaimTypes.Email)?.Value;
     var picture = principal?.FindFirst("picture")?.Value;
     var idp = principal?.FindFirst("idp")?.Value;
 
     var issuer = principal?.FindFirst(JwtRegisteredClaimNames.Iss)?.Value 
-                 ?? principal?.FindFirst(ClaimTypes.AuthenticationMethod)?.Value;
+                 ?? principal?.FindFirst("iss")?.Value
+                 ?? (schemeName == "GitHub" ? "https://github.com" : principal?.FindFirst(ClaimTypes.AuthenticationMethod)?.Value);
 
-    var accountService = context.HttpContext.RequestServices.GetRequiredService<AccountApiService>();
+    var accountService = httpContext.RequestServices.GetRequiredService<AccountApiService>();
 
     // Perform post-login tasks (e.g., sync user record, audit logging)
     
     var account = await accountService.CreateOrUpdateAccountAsync(name, email, picture, issuer, userId);
-    if (context.Principal?.Identity is ClaimsIdentity identity && account != null)
+    if (principal?.Identity is ClaimsIdentity identity && account != null)
     {
         identity.AddClaim(new Claim(Consts.OhrbobAccountIdClaim, account.Id));
         if (!string.IsNullOrEmpty(account.LastUsedProfileId))
         {
-            context.HttpContext.Response.Cookies.Append("Ohrbob_ActiveProfileId", account.LastUsedProfileId, new CookieOptions { HttpOnly = true, Secure = true, Expires = DateTimeOffset.UtcNow.AddDays(30) });
+            httpContext.Response.Cookies.Append("Ohrbob_ActiveProfileId", account.LastUsedProfileId, new CookieOptions { HttpOnly = true, Secure = true, Expires = DateTimeOffset.UtcNow.AddDays(30) });
         }
     }
 }public partial class Program { }
