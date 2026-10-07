@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Options;
 using Ohrbob.Server.Shared.Data;
 using Ohrbob.Web;
 using Ohrbob.Web.Configuration;
@@ -55,6 +56,21 @@ builder.Services.AddSingleton<StationsApiService>();
 builder.Services.AddSingleton<ProfilesApiService>();
 builder.Services.AddHttpClient<PodcastIndexApiService>();
 builder.Services.Configure<OhrbobApiOptions>(builder.Configuration.GetSection("OhrbobApi"));
+builder.Services.AddSingleton<BackendVersionCache>();
+builder.Services.AddHostedService<VersionPollingService>();
+builder.Services.AddHttpClient(VersionPollingService.ApiClientName, (sp, c) =>
+{
+    var api = sp.GetRequiredService<IOptions<OhrbobApiOptions>>().Value;
+    api.Initialize();
+    c.BaseAddress = new Uri(api.BaseUrl);
+    c.DefaultRequestHeaders.Add("X-API-KEY", api.ApiKey);
+});
+builder.Services.AddHttpClient(VersionPollingService.PlayerClientName, (sp, c) =>
+{
+    var api = sp.GetRequiredService<IOptions<OhrbobApiOptions>>().Value;
+    api.Initialize();
+    c.BaseAddress = new Uri(api.PlayerApiUrl);
+});
 builder.Services.Configure<AppVersionOptions>(builder.Configuration.GetSection(AppVersionOptions.SectionName));
 builder.Services.Configure<LegalOptions>(builder.Configuration.GetSection(LegalOptions.SectionName));
 
