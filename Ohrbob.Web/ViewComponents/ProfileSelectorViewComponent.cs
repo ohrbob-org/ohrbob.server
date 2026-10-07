@@ -23,16 +23,17 @@ public class ProfileSelectorViewComponent : ViewComponent
         if (string.IsNullOrEmpty(accountId)) return Content(string.Empty);
 
         var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId) ?? new List<Profile>();
+        var account = await _accountService.GetAccountAsync(accountId);
+        var tier = account?.Tier ?? SubscriptionTier.Free;
         if (!profiles.Any())
         {
-            return View(new ProfileSelectorViewModel());
+            return View(new ProfileSelectorViewModel { Tier = tier });
         }
 
         var activeId = HttpContext.Request.Cookies["Ohrbob_ActiveProfileId"];
         
         if (string.IsNullOrEmpty(activeId) || !profiles.Any(p => p.Id == activeId))
         {
-            var account = await _accountService.GetAccountAsync(accountId);
             activeId = account?.LastUsedProfileId;
 
             if (string.IsNullOrEmpty(activeId) || !profiles.Any(p => p.Id == activeId))
@@ -49,7 +50,8 @@ public class ProfileSelectorViewComponent : ViewComponent
         var model = new ProfileSelectorViewModel
         {
             ActiveProfile = activeProfile,
-            AllProfiles = profiles
+            AllProfiles = profiles,
+            Tier = tier
         };
 
         return View(model);
@@ -60,4 +62,5 @@ public class ProfileSelectorViewModel
 {
     public Profile ActiveProfile { get; set; } = new Profile();
     public List<Profile> AllProfiles { get; set; } = new List<Profile>();
+    public SubscriptionTier Tier { get; set; } = SubscriptionTier.Free;
 }
