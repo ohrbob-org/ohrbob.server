@@ -41,7 +41,7 @@ public class AccountApiService : OhrbobApiService
         response.EnsureSuccessStatusCode();
     }
 
-    public async Task<Account?> GetAccountAsync(string accountId)
+    public virtual async Task<Account?> GetAccountAsync(string accountId)
     {
         using var request = BuildRequest(HttpMethod.Get, $"/account/id/{accountId}");
         using var client =  ClientFactory.CreateClient(nameof(OhrbobApiService));
@@ -95,5 +95,25 @@ public class AccountApiService : OhrbobApiService
         var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<Account>();
+    }
+
+    public virtual async Task<Account?> SetTierAsync(string accountId, SubscriptionTier tier)
+    {
+        using var request = BuildRequest(HttpMethod.Post, $"/account/id/{accountId}/tier");
+        request.Content = new StringContent(JsonSerializer.Serialize(new { tier = tier.ToString() }), Encoding.UTF8, "application/json");
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Account>();
+    }
+
+    public virtual async Task<TierLimits?> GetLimitsAsync(string accountId)
+    {
+        using var request = BuildRequest(HttpMethod.Get, $"/account/id/{accountId}/limits");
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        if (response.StatusCode == HttpStatusCode.NotFound) return null;
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<TierLimits>();
     }
 }

@@ -1,0 +1,23 @@
+@model Ohrbob.Web.Models.ManageAccountViewModel
+@{
+    ViewData["Title"] = "Manage Account";
+    string Limit(int v) => v < 0 ? "Unlimited" : v.ToString();
+}
+<h1>Manage Account</h1>
+@if (TempData["Notice"] != null) { <div class="alert alert-success">@TempData["Notice"]</div> }
+<p><span class="badge @(Model.Tier == Ohrbob.Server.Shared.Data.SubscriptionTier.Premium ? "bg-success" : "bg-secondary")">@Model.Tier</span></p>
+<table class="table">
+    <tr><th>Stations</th><td>@Model.StationCount / @Limit(Model.Limits.MaxStations)</td></tr>
+    <tr><th>Profiles</th><td>@Model.ProfileCount / @Limit(Model.Limits.MaxProfiles)</td></tr>
+    <tr><th>Max feeds per station</th><td>@Limit(Model.Limits.MaxFeedsPerStation) (most used: @Model.MaxFeedsPerStationUsed)</td></tr>
+    <tr><th>Streaming</th><td>@(Model.Limits.StreamEnabled ? "On" : "Off")</td></tr>
+</table>
+@if (Model.Tier != Ohrbob.Server.Shared.Data.SubscriptionTier.Premium)
+{
+    <form asp-action="Upgrade" method="post">@Html.AntiForgeryToken()<button class="btn btn-primary" type="submit">Upgrade to Premium</button></form>
+    <p class="text-muted small mt-2">Beta: upgrade applies immediately. Card billing via Stripe is coming soon.</p>
+}
+else
+{
+    <p class="text-success">You are on Premium. Manage billing via Stripe portal (coming soon).</p>
+}
