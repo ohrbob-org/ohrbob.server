@@ -2,6 +2,38 @@
 
 Ohrbob is a highly scalable, multi-profile podcast station manager and streaming control plane. It allows users to curate their own "radio stations" built from various podcast feeds and stream them across different devices, tracking their listen state.
 
+## 🚀 Roadmap & Todo List
+
+I'm working on bringing cross-platform apps and direct network streaming to the project. Here is what's coming:
+
+### 1. Multi-Platform Apps (Avalonia UI)
+Unifying mobile and desktop apps into a single codebase.
+
+* [ ] **Core Setup:** Cross-platform solution (Android, iOS, Windows, macOS, Linux) with shared C# MVVM logic.
+* [ ] **Adaptive UI:** Responsive touch and desktop interfaces with native platform integrations.
+* [ ] **CI/CD:** Automated builds for mobile and desktop binaries.
+
+> **Why Avalonia?** Maximum C# code reuse with near-native performance across all platforms.
+
+### 2. Streaming to Wi-Fi Radios & Clients
+Broadcasting streams directly to external hardware receivers.
+
+* [ ] **FFmpeg Engine:** Live audio transcoding and direct broadcasting pipeline.
+* [ ] **Scalable Backend:** Infrastructure to handle multi-session FFmpeg streaming.
+* [ ] **Web Control Interface:** Built-in web interface to control and manage radio streams from any browser.
+* [ ] **Device Discovery:** Auto-detect network radios + remote playback control.
+
+> **Why FFmpeg & Web Interface?** Ensures broad stream compatibility across hardware receivers while allowing convenient playback management from any web browser.
+
+### 3. Premium Tier (Infrastructure Costs)
+Sustaining cloud compute costs for live transcoding.
+
+* [ ] **Free Tier:** Core app features, local playback, capped feeds & stations.
+* [ ] **Premium Tier:** Unlimited Stations, unlimited Feeds, and hosted FFmpeg live transcoding.
+* [ ] **Self-Hosting:** Complete open-source self-hosting options remain fully available.
+
+> **Why Premium?** Live FFmpeg transcoding generates ongoing cloud compute costs. This tier keeps the infrastructure self-sustaining while keeping the core open source.
+
 ## Motivation
 
 I have been using open-source software for so long, I want to give something back.
@@ -96,3 +128,7 @@ You only need this if you want to hack on the C# code directly.
 *   Start a MongoDB you can reach from the host, then export the `localhost` equivalents documented at the top of `.env-example` (e.g. `MongoDbData__ConnectionString=mongodb://localhost:27017/OhrbobData`, `OhrbobApi__BaseUrl=http://localhost:5001/api`, `OhrbobApi__PlayerApiUrl=http://localhost:5002`) — the Docker-internal hostnames (`mongodb`, `ohrbob.api`, `ohrbob.player`) only resolve inside the Compose network.
 *   Run services with `dotnet run` per project, or run `dotnet test` for the xUnit suites.
 *   Populate the appsettings.json files with the content you would put into .env 
+
+
+## 🤝 How to Contribute
+Pull requests and feedback are welcome! Check out open issues tagged `help-wanted` if you'd like to jump in.
