@@ -49,8 +49,15 @@ public class AccountController : Controller
     {
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();
-        await _accounts.SetTierAsync(accountId, SubscriptionTier.Premium);
-        TempData["Notice"] = "Upgraded to Premium (beta — billing integration coming soon).";
+        try
+        {
+            await _accounts.SetTierAsync(accountId, SubscriptionTier.Premium);
+            TempData["Notice"] = "Upgraded to Premium (beta — billing integration coming soon).";
+        }
+        catch
+        {
+            TempData["Error"] = "Upgrade failed. Please try again.";
+        }
         return RedirectToAction(nameof(Index));
     }
 }

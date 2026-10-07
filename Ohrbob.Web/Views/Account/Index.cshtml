@@ -5,6 +5,7 @@
 }
 <h1>Manage Account</h1>
 @if (TempData["Notice"] != null) { <div class="alert alert-success">@TempData["Notice"]</div> }
+@if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
 <p><span class="badge @(Model.Tier == Ohrbob.Server.Shared.Data.SubscriptionTier.Premium ? "bg-success" : "bg-secondary")">@Model.Tier</span></p>
 <table class="table">
     <tr><th>Stations</th><td>@Model.StationCount / @Limit(Model.Limits.MaxStations)</td></tr>
