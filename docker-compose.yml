@@ -68,6 +68,7 @@ services:
       - OhrbobApi__BaseUrl=${OhrbobApi__BaseUrl:-http://ohrbob.api:8080/api}
       - OhrbobApi__ApiKey=${OhrbobApi__ApiKey:-}
       - OhrbobApi__PlayerApiUrl=${OhrbobApi__PlayerApiUrl:-http://ohrbob.player:8080}
+      - OhrbobApi__PlayerPublicUrl=${OhrbobApi__PlayerPublicUrl:-https://player.ohrbob.org}
       - Oidc__Google__Authority=${Oidc__Google__Authority:-https://accounts.google.com}
       - Oidc__Google__ClientId=${Oidc__Google__ClientId:-}
       - Oidc__Google__ClientSecret=${Oidc__Google__ClientSecret:-}

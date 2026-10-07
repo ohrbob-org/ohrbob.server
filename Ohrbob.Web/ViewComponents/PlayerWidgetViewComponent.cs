@@ -25,7 +25,7 @@ public class PlayerWidgetViewComponent : ViewComponent
         var model = new PlayerWidgetViewModel
         {
             StreamToken = string.Empty,
-            PlayerApiUrl = _options.PlayerApiUrl
+            PlayerApiUrl = _options.FrontendPlayerUrl
         };
 
         var accountId = HttpContext.User.FindFirst(Consts.OhrbobAccountIdClaim)?.Value;
