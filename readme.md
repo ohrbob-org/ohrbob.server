@@ -2,6 +2,12 @@
 
 Ohrbob is a highly scalable, multi-profile podcast station manager and streaming control plane. It allows users to curate their own "radio stations" built from various podcast feeds and stream them across different devices, tracking their listen state.
 
+## Current status
+
+Currently the service on https://ohrbob.org is in beta - it is a hobby project, it might be we have to drop the database, but I am trying my (almost) best to keep you going ;-). 
+
+For now, I am trying to make the current implementation resilient and fix any bugs and basic UX issues. Further implementation is going to happen in the meantime.  
+
 ## 🚀 Roadmap & Todo List
 
 I'm working on bringing cross-platform apps and direct network streaming to the project. Here is what's coming:

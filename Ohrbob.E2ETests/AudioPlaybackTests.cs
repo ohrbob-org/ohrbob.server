@@ -62,9 +62,9 @@ public class AudioPlaybackTests : PageTest
 
         await Page.GotoAsync(_factory.ServerAddress);
         
-        // Go to Manage Stations and Create
+        // Go to Stations and Create
         await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=Manage Stations");
+        await Page.ClickAsync("text=\"Stations\"");
         await Page.ClickAsync("text=Create New Station");
 
         // Fill form
@@ -117,7 +117,7 @@ public class AudioPlaybackTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
         
         await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=Manage Stations");
+        await Page.ClickAsync("text=\"Stations\"");
         await Page.ClickAsync("text=Create New Station");
 
         await Page.FillAsync("input[name='Name']", "Test E2E Station");
