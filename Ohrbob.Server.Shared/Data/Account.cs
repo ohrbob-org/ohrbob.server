@@ -12,4 +12,6 @@ public class Account : DbEntry
     public string LastUsedProfileId { get; set; } = string.Empty;
     public bool NeedsOnboarding { get; set; } = true;
     public SubscriptionTier Tier { get; set; } = SubscriptionTier.Free;
+    public string? StripeCustomerId { get; set; }
+    public string? StripeSubscriptionId { get; set; }
 }

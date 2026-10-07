@@ -21,6 +21,8 @@ public class AccountService : MongoDbService<Account>
             .Set(nameof(Account.LastUsedProfileId), entryIn.LastUsedProfileId)
             .Set(nameof(Account.NeedsOnboarding), entryIn.NeedsOnboarding)
             .Set(nameof(Account.Tier), entryIn.Tier)
+            .Set(nameof(Account.StripeCustomerId), entryIn.StripeCustomerId)
+            .Set(nameof(Account.StripeSubscriptionId), entryIn.StripeSubscriptionId)
             ;
     }
 

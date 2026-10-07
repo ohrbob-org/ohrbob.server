@@ -178,4 +178,30 @@ public class AccountController : ControllerBase
         var updated = await _accountService.UpdateAsync(account);
         return Ok(updated);
     }
+
+    public record SetTierRequest(string Tier);
+
+    [EndpointSummary("Set subscription tier for account (stub, admin/API-key only)")]
+    [Authorize(Policy = Consts.GetAccountPolicy)]
+    [HttpPost("id/{id}/tier")]
+    public async Task<ActionResult<Account>> SetTier(string id, [FromBody] SetTierRequest request)
+    {
+        var account = await _accountService.GetAsync(id);
+        if (account == null) return NotFound();
+        if (!Enum.TryParse<SubscriptionTier>(request.Tier, true, out var tier))
+            return BadRequest("Unknown tier. Use Free or Premium.");
+        account.Tier = tier;
+        var updated = await _accountService.UpdateAsync(account);
+        return Ok(updated);
+    }
+
+    [EndpointSummary("Get effective tier limits for account")]
+    [Authorize(Policy = Consts.GetAccountPolicy)]
+    [HttpGet("id/{id}/limits")]
+    public async Task<ActionResult<TierLimits>> GetLimits(string id, [FromServices] SubscriptionPolicy policy)
+    {
+        var account = await _accountService.GetAsync(id);
+        if (account == null) return NotFound();
+        return Ok(policy.For(account));
+    }
 }
