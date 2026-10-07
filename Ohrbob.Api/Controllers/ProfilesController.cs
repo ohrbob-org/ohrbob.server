@@ -46,16 +46,7 @@ public class ProfilesController : ControllerBase
     [HttpPost("{accountId}")]
     public async Task<ActionResult<Profile>> Create(string accountId, [FromBody] Profile request)
     {
-        if (_accountService != null && _policy != null)
-        {
-            var account = await _accountService.GetAsync(accountId);
-            if (account == null) return NotFound("Account not found");
-            var limits = _policy.For(account);
-            var existing = await _profilesService.GetByAccountIdAsync(accountId);
-            if (!_policy.CanCreateProfile(existing.Count, limits))
-                return StatusCode(403, new ProblemDetails { Status = 403, Title = "Limit exceeded", Detail = $"Profile limit reached for {account.Tier} tier." });
-        }
-
+        
         var profile = new Profile
         {
             AccountId = accountId,
@@ -63,6 +54,18 @@ public class ProfilesController : ControllerBase
             StreamToken = Guid.NewGuid().ToString(),
             AllowedStationIds = request.AllowedStationIds ?? Array.Empty<string>()
         };
+        
+        if (_accountService != null && _policy != null)
+        {
+            var account = await _accountService.GetAsync(accountId);
+            if (account == null) return NotFound("Account not found");
+            var limits = _policy.For(account);
+            var existing = await _profilesService.GetByAccountIdAsync(accountId);
+            if(existing.Count > 0)
+                profile = existing.First();
+        }
+
+        
         
         var created = await _profilesService.CreateAsync(profile);
         return Ok(created);
