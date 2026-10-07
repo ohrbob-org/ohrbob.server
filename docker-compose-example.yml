@@ -1,0 +1,106 @@
+# Ohrbob — example compose file for INSTALLING released images.
+#
+# Quick start:
+#   1. cp .env-example .env   (or create a minimal .env, see below)
+#   2. Edit .env (API key, OIDC providers, PodcastIndex, ...).
+#   3. RELEASE_TAG=0.0.1 docker compose -f docker-compose-example.yml up -d
+#
+# Minimal .env for this file:
+#   RELEASE_TAG=0.0.1            # released tag from Docker Hub (or: latest)
+#   ApiKeys__0__Key=<long-random-string>     # also set OhrbobApi__ApiKey to the same value
+#   OhrbobApi__ApiKey=<same-long-random-string>
+#
+# Everything else falls back to the defaults below. See .env-example
+# for the full list (ports, OIDC logins, legal notice, PodcastIndex).
+
+networks:
+  web-network:
+    - external: true
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: ohrbob-mongo
+    restart: unless-stopped
+    ports:
+      - "${MONGO_PORT:-27019}:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - web-network
+
+  ohrbob.api:
+    image: kaiwegner/ohrbob.api:${RELEASE_TAG:-latest}
+    container_name: ohrbob-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+      - MongoDbData__ConnectionString=${MongoDbData__ConnectionString:-mongodb://mongodb:27017/OhrbobData}
+      - MongoDbData__DatabaseName=${MongoDbData__DatabaseName:-OhrbobData}
+      - MongoDbLogs__ConnectionString=${MongoDbLogs__ConnectionString:-mongodb://mongodb:27017/OhrbobLogs}
+      - MongoDbLogs__DatabaseName=${MongoDbLogs__DatabaseName:-OhrbobLogs}
+      - ApiKeys__0__Key=${ApiKeys__0__Key:-}
+      - ApiKeys__0__Name=${ApiKeys__0__Name:-web}
+      - ApiKeys__0__Scopes__0=${ApiKeys__0__Scopes__0:-all}
+    ports:
+      - "${API_PORT:-5001}:8080"
+    depends_on:
+      - mongodb
+    networks:
+      - web-network
+
+  ohrbob.player:
+    image: kaiwegner/ohrbob.player:${RELEASE_TAG:-latest}
+    container_name: ohrbob-player
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+      - MongoDbData__ConnectionString=${MongoDbData__ConnectionString:-mongodb://mongodb:27017/OhrbobData}
+      - MongoDbData__DatabaseName=${MongoDbData__DatabaseName:-OhrbobData}
+      - MongoDbLogs__ConnectionString=${MongoDbLogs__ConnectionString:-mongodb://mongodb:27017/OhrbobLogs}
+      - MongoDbLogs__DatabaseName=${MongoDbLogs__DatabaseName:-OhrbobLogs}
+    ports:
+      - "${PLAYER_PORT:-5002}:8080"
+    depends_on:
+      - mongodb
+    networks:
+      - web-network
+
+  ohrbob.web:
+    image: kaiwegner/ohrbob.web:${RELEASE_TAG:-latest}
+    container_name: ohrbob-web
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+      - OhrbobApi__BaseUrl=${OhrbobApi__BaseUrl:-http://ohrbob.api:8080/api}
+      - OhrbobApi__ApiKey=${OhrbobApi__ApiKey:-}
+      - OhrbobApi__PlayerApiUrl=${OhrbobApi__PlayerApiUrl:-http://ohrbob.player:8080}
+      - OhrbobApi__PlayerPublicUrl=${OhrbobApi__PlayerPublicUrl:-https://player.ohrbob.org}
+      - Oidc__Google__Authority=${Oidc__Google__Authority:-https://accounts.google.com}
+      - Oidc__Google__ClientId=${Oidc__Google__ClientId:-}
+      - Oidc__Google__ClientSecret=${Oidc__Google__ClientSecret:-}
+      - Oidc__Nextcloud__Authority=${Oidc__Nextcloud__Authority:-}
+      - Oidc__Nextcloud__ClientId=${Oidc__Nextcloud__ClientId:-}
+      - Oidc__Nextcloud__ClientSecret=${Oidc__Nextcloud__ClientSecret:-}
+      - Oidc__GitHub__ClientId=${Oidc__GitHub__ClientId:-}
+      - Oidc__GitHub__ClientSecret=${Oidc__GitHub__ClientSecret:-}
+      - Legal__Show=${Legal__Show:-false}
+      - Legal__Name=${Legal__Name:-}
+      - Legal__Address=${Legal__Address:-}
+      - Legal__Email=${Legal__Email:-}
+      - PodcastIndex__ApiKey=${PodcastIndex__ApiKey:-}
+      - PodcastIndex__ApiSecret=${PodcastIndex__ApiSecret:-}
+    ports:
+      - "${WEB_PORT:-5003}:8080"
+    depends_on:
+      - ohrbob.api
+    networks:
+      - web-network
+
+volumes:
+  mongodb_data:
