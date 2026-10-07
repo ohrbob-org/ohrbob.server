@@ -15,7 +15,7 @@ public static partial class ServiceCollectionExtensions
     {
         var serverConfig = ApiServerConfiguration.GetFromConfig(
             app.ServiceProvider.GetRequiredService<IConfiguration>());
-        app.MapHealthChecks("/_health", new HealthCheckOptions
+        app.MapHealthChecks("/health", new HealthCheckOptions
         {
             ResponseWriter = async (context, report) =>
             {
@@ -34,7 +34,7 @@ public static partial class ServiceCollectionExtensions
                 });
                 await context.Response.WriteAsync(result);
             }
-        }).RequireAuthorization(Consts.GetHealthPolicy);
+        }).AllowAnonymous();
     }
     
     public static void AddMyHealthChecks(this IServiceCollection services, IConfiguration configuration , Action<HealthOptions>? optionsOverride)

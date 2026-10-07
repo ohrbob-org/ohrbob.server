@@ -63,7 +63,6 @@ builder.Services.AddHttpClient(VersionPollingService.ApiClientName, (sp, c) =>
     var api = sp.GetRequiredService<IOptions<OhrbobApiOptions>>().Value;
     api.Initialize();
     c.BaseAddress = new Uri(api.BaseUrl);
-    c.DefaultRequestHeaders.Add("X-API-KEY", api.ApiKey);
 });
 builder.Services.AddHttpClient(VersionPollingService.PlayerClientName, (sp, c) =>
 {

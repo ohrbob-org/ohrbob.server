@@ -33,7 +33,7 @@ public class VersionPollingService(
         try
         {
             var client = clientFactory.CreateClient(clientName);
-            using var response = await client.GetAsync(clientName == ApiClientName ? "/_health" : "/health", ct);
+            using var response = await client.GetAsync("/health", ct);
             response.EnsureSuccessStatusCode();
             using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
             var root = json.RootElement;

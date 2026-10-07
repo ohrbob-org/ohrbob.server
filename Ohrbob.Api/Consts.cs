@@ -8,7 +8,6 @@ public static class Consts
 
     public static readonly IEnumerable<ApiPolicy> AllPolicies =
     [
-        new ApiPolicy(GetHealthPolicy, AllScope),
         new ApiPolicy(GetScalarPolicy, AllScope),
         new ApiPolicy(CreateAccountPolicy, AllScope),
         new ApiPolicy(AddIdpPolicy, AllScope),
@@ -20,7 +19,6 @@ public static class Consts
         new ApiPolicy(DeleteStationPolicy, AllScope)
     ];
     
-    public const string GetHealthPolicy = "get_health";
     public const string GetScalarPolicy = "get_scalar";
 
     public const string CreateAccountPolicy = nameof(CreateAccountPolicy);

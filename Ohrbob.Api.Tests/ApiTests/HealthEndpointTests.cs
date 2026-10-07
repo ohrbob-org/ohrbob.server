@@ -11,7 +11,6 @@ public class HealthEndpointTests
 {
     private ApiTestApp<Program> _app;
     private HttpClient _client;
-    private const string TestApiKey = "123456";
 
     [SetUp]
     public void Setup()
@@ -24,10 +23,6 @@ public class HealthEndpointTests
             {
                 MongoDbLogs = new MongoDbSettings() { ConnectionString = "mongodb://localhost:27017/TestsOhrbobLogs", DatabaseName = "TestsOhrbobLogs" },
                 MongoDbData = new MongoDbSettings() { ConnectionString = "mongodb://localhost:27017/TestsOhrbobData", DatabaseName = "TestsOhrbobData" },
-                ApiKeys = new[] { new {
-                    Key = TestApiKey,
-                    Name = "test",
-                    Scopes = new [] { "all" } } }
             };
             var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(configContainer);
             configuration.AddJsonStream(new MemoryStream(jsonBytes));
@@ -45,9 +40,7 @@ public class HealthEndpointTests
     [Test]
     public async Task Health_ReturnsVersionAndTag()
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, "/_health");
-        request.Headers.Add("X-API-KEY", TestApiKey);
-        var response = await _client.SendAsync(request);
+        var response = await _client.GetAsync("/health");
         response.EnsureSuccessStatusCode();
         var json = await response.Content.ReadFromJsonAsync<JsonDocument>();
         Assert.That(json.RootElement.GetProperty("version").GetString(), Is.Not.Null);
