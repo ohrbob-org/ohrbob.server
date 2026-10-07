@@ -184,10 +184,11 @@ public class AccountController : ControllerBase
     [EndpointSummary("Set subscription tier for account (stub, admin/API-key only)")]
     [Authorize(Policy = Consts.GetAccountPolicy)]
     [HttpPost("id/{id}/tier")]
-    public async Task<ActionResult<Account>> SetTier(string id, [FromBody] SetTierRequest request)
+    public async Task<ActionResult<Account>> SetTier(string id, [FromBody] SetTierRequest? request)
     {
         var account = await _accountService.GetAsync(id);
         if (account == null) return NotFound();
+        if (string.IsNullOrWhiteSpace(request?.Tier)) return BadRequest("Unknown tier. Use Free or Premium.");
         if (!Enum.TryParse<SubscriptionTier>(request.Tier, true, out var tier))
             return BadRequest("Unknown tier. Use Free or Premium.");
         account.Tier = tier;
