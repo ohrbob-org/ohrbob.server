@@ -4,7 +4,7 @@ services:
     image: mongo:latest
     container_name: ohrbob-mongo
     ports:
-      - "27019:27017"
+      - "${MONGO_PORT:-27019}:27017"
     volumes:
       - mongodb_data:/data/db
 
@@ -17,13 +17,18 @@ services:
         GIT_COMMIT: ${GIT_COMMIT:-dev-local}
         RELEASE_TAG: ${RELEASE_TAG:-beta}
     env_file:
-      - Ohrbob.Api/.env
+      - .env
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - MongoDbLogs__ConnectionString=mongodb://mongodb:27017/OhrbobLogs
-      - MongoDbData__ConnectionString=mongodb://mongodb:27017/OhrbobData
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - MongoDbData__ConnectionString=${MongoDbData__ConnectionString:-mongodb://mongodb:27017/OhrbobData}
+      - MongoDbData__DatabaseName=${MongoDbData__DatabaseName:-OhrbobData}
+      - MongoDbLogs__ConnectionString=${MongoDbLogs__ConnectionString:-mongodb://mongodb:27017/OhrbobLogs}
+      - MongoDbLogs__DatabaseName=${MongoDbLogs__DatabaseName:-OhrbobLogs}
+      - ApiKeys__0__Key=${ApiKeys__0__Key:-}
+      - ApiKeys__0__Name=${ApiKeys__0__Name:-web}
+      - ApiKeys__0__Scopes__0=${ApiKeys__0__Scopes__0:-all}
     ports:
-      - "5001:8080"
+      - "${API_PORT:-5001}:8080"
     depends_on:
       - mongodb
 
@@ -36,13 +41,15 @@ services:
         GIT_COMMIT: ${GIT_COMMIT:-dev-local}
         RELEASE_TAG: ${RELEASE_TAG:-beta}
     env_file:
-      - Ohrbob.Player/.env
+      - .env
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - MongoDbLogs__ConnectionString=mongodb://mongodb:27017/OhrbobLogs
-      - MongoDbData__ConnectionString=mongodb://mongodb:27017/OhrbobData
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - MongoDbData__ConnectionString=${MongoDbData__ConnectionString:-mongodb://mongodb:27017/OhrbobData}
+      - MongoDbData__DatabaseName=${MongoDbData__DatabaseName:-OhrbobData}
+      - MongoDbLogs__ConnectionString=${MongoDbLogs__ConnectionString:-mongodb://mongodb:27017/OhrbobLogs}
+      - MongoDbLogs__DatabaseName=${MongoDbLogs__DatabaseName:-OhrbobLogs}
     ports:
-      - "5002:8080"
+      - "${PLAYER_PORT:-5002}:8080"
     depends_on:
       - mongodb
 
@@ -55,13 +62,28 @@ services:
         GIT_COMMIT: ${GIT_COMMIT:-dev-local}
         RELEASE_TAG: ${RELEASE_TAG:-beta}
     env_file:
-      - Ohrbob.Web/.env
+      - .env
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - OhrbobApi__BaseUrl=http://ohrbob.api:8080/api
-      - OhrbobApi__PlayerApiUrl=http://localhost:5002
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - OhrbobApi__BaseUrl=${OhrbobApi__BaseUrl:-http://ohrbob.api:8080/api}
+      - OhrbobApi__ApiKey=${OhrbobApi__ApiKey:-}
+      - OhrbobApi__PlayerApiUrl=${OhrbobApi__PlayerApiUrl:-http://ohrbob.player:8080}
+      - Oidc__Google__Authority=${Oidc__Google__Authority:-https://accounts.google.com}
+      - Oidc__Google__ClientId=${Oidc__Google__ClientId:-}
+      - Oidc__Google__ClientSecret=${Oidc__Google__ClientSecret:-}
+      - Oidc__Nextcloud__Authority=${Oidc__Nextcloud__Authority:-}
+      - Oidc__Nextcloud__ClientId=${Oidc__Nextcloud__ClientId:-}
+      - Oidc__Nextcloud__ClientSecret=${Oidc__Nextcloud__ClientSecret:-}
+      - Oidc__GitHub__ClientId=${Oidc__GitHub__ClientId:-}
+      - Oidc__GitHub__ClientSecret=${Oidc__GitHub__ClientSecret:-}
+      - Legal__Show=${Legal__Show:-false}
+      - Legal__Name=${Legal__Name:-}
+      - Legal__Address=${Legal__Address:-}
+      - Legal__Email=${Legal__Email:-}
+      - PodcastIndex__ApiKey=${PodcastIndex__ApiKey:-}
+      - PodcastIndex__ApiSecret=${PodcastIndex__ApiSecret:-}
     ports:
-      - "5003:8080"
+      - "${WEB_PORT:-5003}:8080"
     depends_on:
       - ohrbob.api
 

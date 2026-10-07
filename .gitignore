@@ -20,3 +20,6 @@ obj/
 .idea/
 
 .superpowers/
+
+# Local environment (copy from .env-example)
+.env

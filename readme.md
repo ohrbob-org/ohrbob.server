@@ -31,37 +31,48 @@ Ohrbob is built using a microservice architecture with ASP.NET Core (.NET 10) an
 *   **Ohrbob.Server.Shared:** A class library containing shared data models and DTOs used across the backend services.
 *   **MongoDB:** The single source of truth database.
 
-## Development Setup
+## Installation (local, with Docker Compose)
 
-The project includes a `docker-compose.yml` file to easily spin up the entire stack, including a local MongoDB instance.
+The recommended way to run Ohrbob locally is via Docker Compose. It starts MongoDB plus the three services (Api, Player, Web) with a single command. No .NET SDK needed for this path.
 
 ### Prerequisites
-*   Docker & Docker Compose
-*   .NET 10 SDK
-*   An IDE (Rider, Visual Studio, or VS Code)
+*   Docker & Docker Compose (Docker Desktop, or Docker Engine + Compose plugin)
+*   Git
 
-### Environment Configuration
-
-Before running the application, create `.env` files from the provided `.env-example` files for each project:
-
+### 1. Clone the repository
 ```bash
-cp Ohrbob.Api/.env-example Ohrbob.Api/.env
-cp Ohrbob.Player/.env-example Ohrbob.Player/.env
-cp Ohrbob.Web/.env-example Ohrbob.Web/.env
+git clone <your-repo-url> ohrbob2
+cd ohrbob2
 ```
 
-Update the values in these `.env` files as needed (API keys, MongoDB connection strings, etc.).
+### 2. Create your environment file
+All configuration lives in one top-level `.env` file. A commented template is provided as `.env-example`:
 
-### Running Locally
+```bash
+cp .env-example .env
+```
 
-1. **Clone the repository.**
-2. **Configure environment variables:** Follow the step above to create your `.env` files.
-3. **Configure OIDC (Optional for basic API testing, required for Web Login):** Update the `appsettings.Development.json` in `Ohrbob.Web` and `Ohrbob.Player` with your OIDC provider details (e.g., Nextcloud authority and client secrets).
-4. **Start the stack:**
-   ```bash
-   docker compose up --build
-   ```
-   *Alternatively, if using JetBrains Rider, you can simply run the `docker-compose.yml` run configuration directly from the IDE.*
+Docker Compose loads `.env` automatically and distributes the values to each container (see `env_file` / `environment` in `docker-compose.yml`).
+
+### 3. Adjust the values in `.env`
+At minimum, review these entries (everything else works with the defaults):
+
+| Variable | What to do |
+|---|---|
+| `ApiKeys__0__Key` / `OhrbobApi__ApiKey` | Set both to the same long random string (the Web portal uses it to call the Api). Generate one e.g. with `openssl rand -hex 32`. |
+| `Oidc__Google__*`, `Oidc__Nextcloud__*`, `Oidc__GitHub__*` | Fill in the login provider(s) you want. Unused providers can stay empty — that login button is then disabled. For GitHub, create an OAuth App and set the callback URL to `https://<your-host>/signin-github`. |
+| `Legal__*` | Set `Legal__Show=true` plus your name/address/email if you need the legal notice (Impressum) page. |
+| `PodcastIndex__ApiKey` / `PodcastIndex__ApiSecret` | Required for podcast search/discovery in the Web UI. |
+| `*_PORT`, `MongoDb*` | Only change if the defaults clash with ports on your machine. |
+
+### 4. Build and start the stack
+```bash
+docker compose up --build -d
+docker compose logs -f   # optional: follow startup logs
+```
+
+### 5. Open the app
+Navigate to `http://localhost:5003` in your browser to access the Web UI.
 
 ### Exposed Services
 When running via Docker Compose, the following services are exposed to your host machine:
@@ -70,10 +81,18 @@ When running via Docker Compose, the following services are exposed to your host
 *   **Ohrbob.Player:** `localhost:5002`
 *   **Ohrbob.Web:** `localhost:5003`
 
-You can navigate to `http://localhost:5003` in your browser to access the Web UI.
-
-### Testing
-The solution includes xUnit test projects for the various components. You can run them using the .NET CLI:
+### Updating / stopping
 ```bash
-dotnet test
+docker compose pull && docker compose up --build -d   # update to latest images/code
+docker compose down        # stop (keeps data in the mongodb_data volume)
+docker compose down -v     # stop AND delete all data
 ```
+
+## Development (without Docker)
+
+You only need this if you want to hack on the C# code directly.
+
+*   Install the .NET 10 SDK.
+*   Start a MongoDB you can reach from the host, then export the `localhost` equivalents documented at the top of `.env-example` (e.g. `MongoDbData__ConnectionString=mongodb://localhost:27017/OhrbobData`, `OhrbobApi__BaseUrl=http://localhost:5001/api`, `OhrbobApi__PlayerApiUrl=http://localhost:5002`) — the Docker-internal hostnames (`mongodb`, `ohrbob.api`, `ohrbob.player`) only resolve inside the Compose network.
+*   Run services with `dotnet run` per project, or run `dotnet test` for the xUnit suites.
+*   Populate the appsettings.json files with the content you would put into .env 
