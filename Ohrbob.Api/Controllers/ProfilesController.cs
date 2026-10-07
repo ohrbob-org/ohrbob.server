@@ -53,7 +53,7 @@ public class ProfilesController : ControllerBase
             var limits = _policy.For(account);
             var existing = await _profilesService.GetByAccountIdAsync(accountId);
             if (!_policy.CanCreateProfile(existing.Count, limits))
-                return StatusCode(403, new ProblemDetails { Title = "Limit exceeded", Detail = $"Profile limit reached for {account.Tier} tier." });
+                return StatusCode(403, new ProblemDetails { Status = 403, Title = "Limit exceeded", Detail = $"Profile limit reached for {account.Tier} tier." });
         }
 
         var profile = new Profile

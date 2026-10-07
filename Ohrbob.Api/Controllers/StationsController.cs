@@ -175,9 +175,9 @@ public class StationsController : ControllerBase
             var limits = _policy.For(account);
             var existing = await _stationsService.GetByAccountIdAsync(accountId);
             if (!_policy.CanCreateStation(existing.Count, limits))
-                return StatusCode(403, new ProblemDetails { Title = "Limit exceeded", Detail = $"Station limit reached for {account?.Tier} tier." });
+                return StatusCode(403, new ProblemDetails { Status = 403, Title = "Limit exceeded", Detail = $"Station limit reached for {(account?.Tier ?? SubscriptionTier.Free)} tier." });
             if (!_policy.CanSetFeedCount(request.Feeds?.Length ?? 0, limits))
-                return StatusCode(403, new ProblemDetails { Title = "Limit exceeded", Detail = "Feed limit per station exceeded." });
+                return StatusCode(403, new ProblemDetails { Status = 403, Title = "Limit exceeded", Detail = "Feed limit per station exceeded." });
         }
 
         if (!await ValidateAndEnsureFeedsExistAsync(request.Feeds))
@@ -210,7 +210,7 @@ public class StationsController : ControllerBase
             var updateAccount = await _accountService.GetAsync(existingStation.AccountId);
             var updateLimits = _policy.For(updateAccount);
             if (!_policy.CanSetFeedCount(station.Feeds?.Length ?? 0, updateLimits))
-                return StatusCode(403, new ProblemDetails { Title = "Limit exceeded", Detail = "Feed limit per station exceeded." });
+                return StatusCode(403, new ProblemDetails { Status = 403, Title = "Limit exceeded", Detail = "Feed limit per station exceeded." });
         }
 
         if (!await ValidateAndEnsureFeedsExistAsync(station.Feeds))
