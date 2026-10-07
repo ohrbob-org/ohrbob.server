@@ -102,8 +102,15 @@ var app = builder.Build();
 var maxRetries = 5;
 var retryDelaySeconds = 3;
 
+// Skip the startup MongoDB probe when the app is being run by the
+// OpenAPI document generator at build time (dotnet-getdocument.dll).
+// There is no MongoDB available in that context, and exiting here
+// fails the Docker build with MSB3073.
+var entryAssemblyName = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
+var isOpenApiBuildGeneration = entryAssemblyName.Contains("getdocument", StringComparison.OrdinalIgnoreCase);
+
 var mongoSettings = builder.Configuration.GetSection("MongoDbData").Get<MongoDbSettings>();
-if (mongoSettings != null && !string.IsNullOrEmpty(mongoSettings.ConnectionString))
+if (!isOpenApiBuildGeneration && mongoSettings != null && !string.IsNullOrEmpty(mongoSettings.ConnectionString))
 {
     for (int i = 0; i < maxRetries; i++)
     {
