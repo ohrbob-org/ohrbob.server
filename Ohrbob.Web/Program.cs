@@ -198,6 +198,12 @@ if (!string.IsNullOrWhiteSpace(githubId) && !string.IsNullOrWhiteSpace(githubSec
                 {
                     context.RedirectUri = context.RedirectUri.Replace("http://", "https://");
                 }
+                // NOTE: RedirectContext<OAuthOptions> does NOT derive from HandleRequestContext,
+                // so there is no HandleResponse() here (verified: CS1061 on .NET 10). Unlike
+                // OnRemoteFailure, no HandleResponse call is possible or needed: OAuthHandler.
+                // HandleChallengeAsync performs no redirect after this event, so this
+                // Response.Redirect (same as the framework's default handler) is the single,
+                // terminal redirect — no double-redirect risk.
                 context.Response.Redirect(context.RedirectUri);
                 return Task.CompletedTask;
             }
@@ -291,4 +297,5 @@ async Task CreateOrGetAccountCore(ClaimsPrincipal? principal, HttpContext httpCo
             httpContext.Response.Cookies.Append("Ohrbob_ActiveProfileId", account.LastUsedProfileId, new CookieOptions { HttpOnly = true, Secure = true, Expires = DateTimeOffset.UtcNow.AddDays(30) });
         }
     }
-}public partial class Program { }
+}
+public partial class Program { }
