@@ -195,6 +195,17 @@ app.MapRazorPages();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+app.MapGet("/health", (BackendVersionCache cache, IOptions<AppVersionOptions> v) =>
+{
+    var up = cache.ApiReachable || cache.PlayerReachable;
+    return Results.Ok(new
+    {
+        status = up ? "Healthy" : "Degraded",
+        version = v.Value.Version,
+        tag = v.Value.Tag,
+        checks = new { api = cache.ApiReachable ? "Healthy" : "Unhealthy", player = cache.PlayerReachable ? "Healthy" : "Unhealthy" }
+    });
+}).AllowAnonymous();
 app.Run();
 
 async Task CreateOrGetAccountAsync(TokenValidatedContext context)

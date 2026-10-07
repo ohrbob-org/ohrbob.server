@@ -17,12 +17,16 @@ public class HomeController : Controller
     private readonly StationsApiService _stationsService;
     private readonly ProfilesApiService _profilesService;
     private readonly LegalOptions _legalOptions;
+    private readonly BackendVersionCache _cache;
+    private readonly AppVersionOptions _appVersion;
 
-    public HomeController(StationsApiService stationsService, ProfilesApiService profilesService, IOptions<LegalOptions> legalOptions)
+    public HomeController(StationsApiService stationsService, ProfilesApiService profilesService, IOptions<LegalOptions> legalOptions, BackendVersionCache cache, IOptions<AppVersionOptions> appVersion)
     {
         _stationsService = stationsService;
         _profilesService = profilesService;
         _legalOptions = legalOptions.Value;
+        _cache = cache;
+        _appVersion = appVersion.Value;
     }
 
     private string? GetAccountId() => User.FindFirst(Consts.OhrbobAccountIdClaim)?.Value;
@@ -68,6 +72,24 @@ public class HomeController : Controller
             return NotFound();
         }
         return View(_legalOptions);
+    }
+
+    [AllowAnonymous]
+    public IActionResult About()
+    {
+        var v = _appVersion;
+        return View(new AboutViewModel
+        {
+            WebVersion = v.Version,
+            WebTag = v.Tag,
+            ApiVersion = _cache.ApiVersion,
+            ApiTag = _cache.ApiTag,
+            ApiReachable = _cache.ApiReachable,
+            PlayerVersion = _cache.PlayerVersion,
+            PlayerTag = _cache.PlayerTag,
+            PlayerReachable = _cache.PlayerReachable,
+            LastCheckedUtc = _cache.LastCheckedUtc
+        });
     }
 
     [AllowAnonymous]

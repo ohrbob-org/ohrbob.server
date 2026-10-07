@@ -1,0 +1,14 @@
+@model Ohrbob.Web.Models.AboutViewModel
+@{
+    ViewData["Title"] = "About";
+}
+<h1>About ohrbob</h1>
+<p class="text-muted">Service versions, refreshed every 5 seconds. Last checked: @(Model.LastCheckedUtc == DateTime.MinValue ? "never" : Model.LastCheckedUtc.ToString("u"))</p>
+<table class="table">
+    <thead><tr><th>Service</th><th>Version</th><th>Tag</th><th>Status</th></tr></thead>
+    <tbody>
+        <tr><td>ohrbob.web</td><td>@Model.WebVersion</td><td>@Model.WebTag</td><td><span class="badge bg-success">running</span></td></tr>
+        <tr><td>ohrbob.api</td><td>@(Model.ApiReachable ? Model.ApiVersion : "unknown")</td><td>@Model.ApiTag</td><td>@(Model.ApiReachable ? "reachable" : "unreachable")</td></tr>
+        <tr><td>ohrbob.player</td><td>@(Model.PlayerReachable ? Model.PlayerVersion : "unknown")</td><td>@Model.PlayerTag</td><td>@(Model.PlayerReachable ? "reachable" : "unreachable")</td></tr>
+    </tbody>
+</table>
