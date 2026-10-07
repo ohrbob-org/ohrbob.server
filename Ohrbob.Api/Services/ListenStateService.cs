@@ -28,4 +28,14 @@ public class ListenStateService : MongoDbService<ListenState>
         );
         return await Collection.Find(filter).ToListAsync();
     }
+
+    public async Task<ListenState?> GetStateAsync(string userId, string episodeId)
+    {
+        var filter = Builders<ListenState>.Filter.And(
+            Builders<ListenState>.Filter.Eq(s => s.UserId, userId),
+            Builders<ListenState>.Filter.Eq(s => s.EpisodeId, episodeId),
+            Builders<ListenState>.Filter.Eq(x => x.DeletedAt, null)
+        );
+        return await Collection.Find(filter).FirstOrDefaultAsync();
+    }
 }

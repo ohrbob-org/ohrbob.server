@@ -80,4 +80,12 @@ public class StationsApiService : OhrbobApiService
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<List<Ohrbob.Server.Shared.Requests.EpisodePlayStateDto>>();
     }
+
+    public virtual async Task MarkEpisodeCompletedAsync(string stationId, string episodeId, string profileId)
+    {
+        using var request = BuildRequest(HttpMethod.Post, $"/stations/{stationId}/episodes/{episodeId}/complete?profileId={profileId}");
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+    }
 }

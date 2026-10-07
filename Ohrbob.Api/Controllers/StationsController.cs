@@ -143,6 +143,38 @@ public class StationsController : ControllerBase
         return Ok(result.Take(50).ToList());
     }
 
+    [EndpointSummary("Mark episode as completed for a profile")]
+    [Authorize(policy: Consts.GetStationsPolicy)]
+    [HttpPost("{id}/episodes/{episodeId}/complete")]
+    public async Task<IActionResult> MarkEpisodeCompleted(string id, string episodeId, [FromQuery] string profileId)
+    {
+        var station = await _stationsService.GetAsync(id);
+        if (station == null) return NotFound();
+
+        var profile = await _profilesService.GetAsync(profileId);
+        if (profile == null) return NotFound();
+
+        var state = await _listenStateService.GetStateAsync(profileId, episodeId);
+        if (state == null)
+        {
+            state = new ListenState
+            {
+                UserId = profileId,
+                EpisodeId = episodeId,
+                StationId = id,
+                IsListened = true
+            };
+            await _listenStateService.CreateAsync(state);
+        }
+        else
+        {
+            state.IsListened = true;
+            await _listenStateService.UpdateAsync(state);
+        }
+
+        return Ok();
+    }
+
     private async Task<bool> ValidateAndEnsureFeedsExistAsync(string[]? feedUrls)
     {
         if (feedUrls == null || feedUrls.Length == 0) return true;

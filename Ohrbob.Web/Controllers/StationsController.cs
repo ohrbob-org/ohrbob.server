@@ -130,4 +130,30 @@ public class StationsController : Controller
         await _stationsService.DeleteStationAsync(id);
         return RedirectToAction(nameof(Index));
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> MarkCompleted(string id, string episodeId)
+    {
+        var accountId = GetAccountId();
+        if (string.IsNullOrEmpty(accountId)) return Forbid();
+
+        var station = await _stationsService.GetStationByIdAsync(id);
+        if (station == null || station.AccountId != accountId)
+            return NotFound();
+
+        var activeId = HttpContext.Request.Cookies["Ohrbob_ActiveProfileId"];
+        if (string.IsNullOrEmpty(activeId))
+        {
+            var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId);
+            activeId = profiles?.FirstOrDefault()?.Id;
+        }
+
+        if (string.IsNullOrEmpty(activeId))
+            return BadRequest("No active profile found.");
+
+        await _stationsService.MarkEpisodeCompletedAsync(id, episodeId, activeId);
+        
+        return RedirectToAction(nameof(Edit), new { id });
+    }
 }
