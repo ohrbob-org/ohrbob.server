@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 using Ohrbob.Web.Configuration;
 using Ohrbob.Web.Services;
 using Ohrbob.Server.Shared.Data;
@@ -120,7 +121,14 @@ public class HomeController : Controller
     [AllowAnonymous]
     public IActionResult Login(string provider)
     {
+        var githubId = HttpContext.RequestServices.GetRequiredService<IConfiguration>()["Oidc:GitHub:ClientId"];
+        var githubSecret = HttpContext.RequestServices.GetRequiredService<IConfiguration>()["Oidc:GitHub:ClientSecret"];
+        ViewBag.GitHubEnabled = !string.IsNullOrWhiteSpace(githubId) && !string.IsNullOrWhiteSpace(githubSecret);
         if (string.IsNullOrEmpty(provider))
+        {
+            return View();
+        }
+        if (provider == "GitHub" && ViewBag.GitHubEnabled == false)
         {
             return View();
         }
