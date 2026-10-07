@@ -37,20 +37,21 @@ builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add<Ohrbob.Web.Filters.OnboardingFilter>();
 });
-builder.Services.AddHttpClient(nameof(OhrbobApiService))
-    .ConfigurePrimaryHttpMessageHandler(() =>
+HttpMessageHandler CreateHttpHandler()
+{
+    var handler = new HttpClientHandler();
+
+    // Disable certificate checking ONLY in Development (self-signed dev certs)
+    if (builder.Environment.IsDevelopment())
     {
-        var handler = new HttpClientHandler();
+        handler.ServerCertificateCustomValidationCallback =
+            HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+    }
 
-        // Disable certificate checking ONLY in Development
-        if (builder.Environment.IsDevelopment())
-        {
-            handler.ServerCertificateCustomValidationCallback = 
-                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
-        }
-
-        return handler;
-    });
+    return handler;
+}
+builder.Services.AddHttpClient(nameof(OhrbobApiService))
+    .ConfigurePrimaryHttpMessageHandler(CreateHttpHandler);
 builder.Services.AddSingleton<AccountApiService>();
 builder.Services.AddSingleton<StationsApiService>();
 builder.Services.AddSingleton<ProfilesApiService>();
@@ -63,13 +64,13 @@ builder.Services.AddHttpClient(VersionPollingService.ApiClientName, (sp, c) =>
     var api = sp.GetRequiredService<IOptions<OhrbobApiOptions>>().Value;
     api.Initialize();
     c.BaseAddress = new Uri(api.BaseUrl);
-});
+}).ConfigurePrimaryHttpMessageHandler(CreateHttpHandler);
 builder.Services.AddHttpClient(VersionPollingService.PlayerClientName, (sp, c) =>
 {
     var api = sp.GetRequiredService<IOptions<OhrbobApiOptions>>().Value;
     api.Initialize();
     c.BaseAddress = new Uri(api.PlayerApiUrl);
-});
+}).ConfigurePrimaryHttpMessageHandler(CreateHttpHandler);
 builder.Services.Configure<AppVersionOptions>(builder.Configuration.GetSection(AppVersionOptions.SectionName));
 builder.Services.Configure<LegalOptions>(builder.Configuration.GetSection(LegalOptions.SectionName));
 
