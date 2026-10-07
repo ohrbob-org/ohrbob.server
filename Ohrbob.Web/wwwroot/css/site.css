@@ -321,6 +321,27 @@ header {
     box-shadow: 0 0 20px rgba(252, 93, 0, 0.4);
 }
 
+/* About page: pulsing status dot */
+.status-dot {
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+    animation: status-ping 2s ease-out infinite;
+}
+@keyframes status-ping {
+    0% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.5); }
+    70% { box-shadow: 0 0 0 8px rgba(25, 135, 84, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
+}
+.status-dot.bg-danger { animation-name: status-ping-red; }
+@keyframes status-ping-red {
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.5); }
+    70% { box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+}
+
 @media (max-width: 767.98px) {
     header {
         top: 0;

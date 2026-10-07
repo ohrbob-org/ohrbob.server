@@ -1,0 +1,54 @@
+@model Ohrbob.Web.Models.AboutViewModel
+@{
+    string lastChecked = Model.LastCheckedUtc == DateTime.MinValue ? "never" : Model.LastCheckedUtc.ToString("u");
+    int reachableCount = (Model.ApiReachable ? 1 : 0) + (Model.PlayerReachable ? 1 : 0) + 1;
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h5 mb-0"><i class="bi bi-activity me-2"></i>Live system status <span class="badge bg-primary rounded-pill ms-1">@reachableCount/3 up</span></h2>
+    <small class="text-muted">Last checked: @lastChecked &middot; auto-refreshes every 5s</small>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-3 mb-5">
+    <div class="col">
+        <div class="card h-100 shadow-sm border-success">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="status-dot bg-success"></span>
+                    <i class="bi bi-globe fs-4 text-primary"></i>
+                    <strong>ohrbob.web</strong>
+                    <span class="badge bg-success ms-auto">running</span>
+                </div>
+                <div><code>@Model.WebVersion</code> @if (!string.IsNullOrEmpty(Model.WebTag)) { <span class="badge bg-light text-dark border">@Model.WebTag</span> }</div>
+                <small class="text-muted">This portal. If you see this, it's up.</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 shadow-sm @(Model.ApiReachable ? "border-success" : "border-danger")">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="status-dot @(Model.ApiReachable ? "bg-success" : "bg-danger")"></span>
+                    <i class="bi bi-hdd-network fs-4 text-primary"></i>
+                    <strong>ohrbob.api</strong>
+                    <span class="badge @(Model.ApiReachable ? "bg-success" : "bg-danger") ms-auto">@(Model.ApiReachable ? "reachable" : "unreachable")</span>
+                </div>
+                <div><code>@(Model.ApiReachable ? Model.ApiVersion : "unknown")</code> @if (!string.IsNullOrEmpty(Model.ApiTag)) { <span class="badge bg-light text-dark border">@Model.ApiTag</span> }</div>
+                <small class="text-muted">Manages stations, feeds &amp; background polling.</small>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 shadow-sm @(Model.PlayerReachable ? "border-success" : "border-danger")">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="status-dot @(Model.PlayerReachable ? "bg-success" : "bg-danger")"></span>
+                    <i class="bi bi-broadcast fs-4 text-primary"></i>
+                    <strong>ohrbob.player</strong>
+                    <span class="badge @(Model.PlayerReachable ? "bg-success" : "bg-danger") ms-auto">@(Model.PlayerReachable ? "reachable" : "unreachable")</span>
+                </div>
+                <div><code>@(Model.PlayerReachable ? Model.PlayerVersion : "unknown")</code> @if (!string.IsNullOrEmpty(Model.PlayerTag)) { <span class="badge bg-light text-dark border">@Model.PlayerTag</span> }</div>
+                <small class="text-muted">Streams audio &amp; syncs playhead position.</small>
+            </div>
+        </div>
+    </div>
+</div>

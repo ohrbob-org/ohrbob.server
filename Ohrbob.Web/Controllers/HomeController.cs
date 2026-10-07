@@ -77,8 +77,19 @@ public class HomeController : Controller
     [AllowAnonymous]
     public IActionResult About()
     {
+        return View(BuildAboutViewModel());
+    }
+
+    [AllowAnonymous]
+    public IActionResult AboutStatus()
+    {
+        return PartialView("_AboutStatus", BuildAboutViewModel());
+    }
+
+    private AboutViewModel BuildAboutViewModel()
+    {
         var v = _appVersion;
-        return View(new AboutViewModel
+        return new AboutViewModel
         {
             WebVersion = v.Version,
             WebTag = v.Tag,
@@ -89,7 +100,7 @@ public class HomeController : Controller
             PlayerTag = _cache.PlayerTag,
             PlayerReachable = _cache.PlayerReachable,
             LastCheckedUtc = _cache.LastCheckedUtc
-        });
+        };
     }
 
     [AllowAnonymous]
