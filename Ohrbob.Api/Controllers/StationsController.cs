@@ -351,11 +351,37 @@ public class StationsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
+        var station = await _stationsService.GetAsync(id);
+        if (station == null) return NotFound();
+
         var result = await _stationsService.DeleteAsync(id);
         if (!result)
         {
             return NotFound();
         }
+
+        // Clean up references in profiles
+        var profiles = await _profilesService.GetByAccountIdAsync(station.AccountId);
+        foreach (var profile in profiles)
+        {
+            bool modified = false;
+            if (profile.AllowedStationIds != null && profile.AllowedStationIds.Contains(id))
+            {
+                profile.AllowedStationIds = profile.AllowedStationIds.Where(s => s != id).ToArray();
+                modified = true;
+            }
+            if (profile.LastActiveStationId == id)
+            {
+                profile.LastActiveStationId = null;
+                modified = true;
+            }
+            
+            if (modified)
+            {
+                await _profilesService.UpdateAsync(profile);
+            }
+        }
+
         return Ok();
     }
 }

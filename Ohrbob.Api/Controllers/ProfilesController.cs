@@ -37,6 +37,7 @@ public class ProfilesController : ControllerBase
     public async Task<ActionResult<Profile>> GetById(string id)
     {
         var profile = await _profilesService.GetAsync(id);
+
         if (profile == null) return NotFound();
         return Ok(profile);
     }
@@ -86,8 +87,22 @@ public class ProfilesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
+        var profile = await _profilesService.GetAsync(id);
+        if (profile == null) return NotFound();
+
         var result = await _profilesService.DeleteAsync(id);
         if (!result) return NotFound();
+
+        if (_accountService != null)
+        {
+            var account = await _accountService.GetAsync(profile.AccountId);
+            if (account != null && account.LastUsedProfileId == id)
+            {
+                account.LastUsedProfileId = string.Empty;
+                await _accountService.UpdateAsync(account);
+            }
+        }
+
         return Ok();
     }
 
