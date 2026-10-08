@@ -43,7 +43,31 @@
 
 <div class="tab-content" id="stationTabsContent">
   <div class="tab-pane fade show active" id="feeds" role="tabpanel">
-    <!-- Feeds Content -->
+    <div id="feedsContainer">
+        @foreach (var feed in Model.Feeds)
+        {
+            var scheduleFeed = Model.Station.Schedule.Feeds.FirstOrDefault(f => f.Url == feed.Url) ?? new Ohrbob.Server.Shared.Data.StationFeedSchedule { Url = feed.Url };
+            
+            <div class="card mb-3 feed-card" data-url="@feed.Url">
+                <div class="card-body d-flex align-items-center">
+                    <img src="@feed.ImageUrl" width="64" height="64" class="me-3 rounded" />
+                    <div class="flex-grow-1">
+                        <h5 class="card-title">@feed.Title</h5>
+                        <p class="card-text text-muted mb-1">Episodes: @feed.EpisodeCount | Last Updated: @feed.LastUpdated</p>
+                        <select class="form-select form-select-sm sort-order-select" style="width: auto;">
+                            <option value="0" selected="@(scheduleFeed.SortOrder == Ohrbob.Server.Shared.Data.FeedSortOrder.OldestToNewest)">Oldest to Newest</option>
+                            <option value="1" selected="@(scheduleFeed.SortOrder == Ohrbob.Server.Shared.Data.FeedSortOrder.NewestToOldest)">Newest to Oldest</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-outline-danger remove-feed">Remove</button>
+                </div>
+            </div>
+        }
+    </div>
+    <div class="input-group mt-3">
+        <input type="url" id="newFeedUrl" class="form-control" placeholder="https://..." />
+        <button type="button" id="addFeedBtn" class="btn btn-primary">Add Feed</button>
+    </div>
   </div>
   <div class="tab-pane fade" id="blueprint" role="tabpanel">
     <!-- Blueprint Content -->
@@ -53,6 +77,92 @@
   </div>
 </div>
 
+@Html.AntiForgeryToken()
+
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const getVerificationToken = () => document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            function updateSchedule() {
+                const feedCards = document.querySelectorAll('.feed-card');
+                const feeds = Array.from(feedCards).map(card => {
+                    const url = card.getAttribute('data-url');
+                    const sortOrderStr = card.querySelector('.sort-order-select').value;
+                    return {
+                        Url: url,
+                        SortOrder: parseInt(sortOrderStr, 10)
+                    };
+                });
+
+                const schedule = {
+                    Feeds: feeds
+                };
+
+                fetch(`/Stations/UpdateSchedule/${"@Model.Station.Id"}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getVerificationToken()
+                    },
+                    body: JSON.stringify(schedule)
+                })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        alert('Error updating schedule');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert('Error updating schedule');
+                });
+            }
+
+            document.getElementById('feedsContainer').addEventListener('change', function (e) {
+                if (e.target.classList.contains('sort-order-select')) {
+                    updateSchedule();
+                }
+            });
+
+            document.getElementById('feedsContainer').addEventListener('click', function (e) {
+                if (e.target.classList.contains('remove-feed')) {
+                    const card = e.target.closest('.feed-card');
+                    if (confirm('Are you sure you want to remove this feed?')) {
+                        card.remove();
+                        updateSchedule();
+                    }
+                }
+            });
+
+            document.getElementById('addFeedBtn').addEventListener('click', function () {
+                const input = document.getElementById('newFeedUrl');
+                const url = input.value.trim();
+                if (!url) return;
+
+                // For a new feed, we simply append it to our in-memory list (via the DOM) and call updateSchedule.
+                // The server will handle fetching its details and the reload will show the rich card.
+                
+                // create a temporary card or just simulate it and submit
+                const container = document.getElementById('feedsContainer');
+                const newCard = document.createElement('div');
+                newCard.className = 'card mb-3 feed-card';
+                newCard.setAttribute('data-url', url);
+                newCard.innerHTML = `
+                    <div class="card-body d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <select class="form-select form-select-sm sort-order-select d-none" style="width: auto;">
+                                <option value="0" selected>Oldest to Newest</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(newCard);
+                input.value = '';
+                updateSchedule();
+            });
+        });
+    </script>
 }
