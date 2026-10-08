@@ -125,7 +125,7 @@ public class StationsController : ControllerBase
         var listenedIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
         
         var orderedEpisodes = Ohrbob.Server.Shared.Helpers.PlaybackStrategyHelper.GetOrderedPlaylist(
-            episodes, station.Strategy, listenedIds, profile.LastActiveEpisodeId);
+            episodes, station, listenedIds, profile.LastActiveEpisodeId);
 
         var result = new List<EpisodePlayStateDto>();
         foreach(var ep in orderedEpisodes)
@@ -239,7 +239,6 @@ public class StationsController : ControllerBase
         {
             AccountId = accountId,
             Name = request.Name,
-            Strategy = request.Strategy,
             IsPublic = request.IsPublic,
             Feeds = request.Feeds,
             Schedule = request.Schedule
@@ -282,7 +281,7 @@ public class StationsController : ControllerBase
         var listenedIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
         
         var orderedEpisodes = Ohrbob.Server.Shared.Helpers.PlaybackStrategyHelper.GetOrderedPlaylist(
-            episodes, station.Strategy, listenedIds, profile.LastActiveEpisodeId);
+            episodes, station, listenedIds, profile.LastActiveEpisodeId);
 
         foreach (var ep in orderedEpisodes)
         {

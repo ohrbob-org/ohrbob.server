@@ -16,12 +16,6 @@
                 <input asp-for="Name" class="form-control" />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
-            
-            <div class="form-group mb-3">
-                <label asp-for="Strategy" class="control-label">Playback Strategy</label>
-                <select asp-for="Strategy" class="form-select" asp-items="Html.GetEnumSelectList<Ohrbob.Server.Shared.Data.PlaybackStrategy>()"></select>
-                <span asp-validation-for="Strategy" class="text-danger"></span>
-            </div>
 
             <div class="form-group mb-3">
                 <div class="form-check">

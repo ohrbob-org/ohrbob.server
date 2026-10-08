@@ -28,7 +28,7 @@ public class PlaybackStrategyService
         var listenedEpisodeIds = await _listenStateService.GetListenedEpisodeIdsAsync(profileId);
         var listenedSet = listenedEpisodeIds.ToHashSet();
 
-        var ordered = PlaybackStrategyHelper.GetOrderedPlaylist(episodes, station.Strategy, listenedSet, currentEpisodeId);
+        var ordered = PlaybackStrategyHelper.GetOrderedPlaylist(episodes, station, listenedSet, currentEpisodeId);
         
         // We want the next episode after currentEpisodeId, or the first one if no current
         var unplayedOrdered = ordered.Where(e => !listenedSet.Contains(e.Id) && e.Id != currentEpisodeId).ToList();

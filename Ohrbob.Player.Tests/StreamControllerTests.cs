@@ -65,7 +65,7 @@ public class StreamControllerTests
     {
         var stationId = ObjectId.GenerateNewId().ToString();
         var profile = new Profile { AccountId = "test-account", StreamToken = "token-123", AllowedStationIds = new[] { stationId } };
-        var station = new Station { Id = stationId, Name = "Test Station", Feeds = new[] { "https://feed.url" } };
+        var station = new Station { Id = stationId, Name = "Test Station", Feeds = new[] { "https://feed.url" }, Schedule = new StationSchedule { Feeds = new List<StationFeedSchedule> { new StationFeedSchedule { Url = "https://feed.url", SortOrder = FeedSortOrder.OldestToNewest } } } };
         var episode = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 1", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-1), AudioUrl = "https://audio/1" };
         var nextEpisode = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 2", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow, AudioUrl = "https://audio/2" };
 
@@ -120,7 +120,7 @@ public class StreamControllerTests
         var ep2Id = ObjectId.GenerateNewId().ToString();
 
         var profile = new Profile { AccountId = "test-account", StreamToken = "token-123", LastActiveStationId = stationId, LastActiveEpisodeId = ep1Id };
-        var station = new Station { Id = stationId, Name = "Test Station", Feeds = new[] { "https://feed.url" } };
+        var station = new Station { Id = stationId, Name = "Test Station", Feeds = new[] { "https://feed.url" }, Schedule = new StationSchedule { Feeds = new List<StationFeedSchedule> { new StationFeedSchedule { Url = "https://feed.url", SortOrder = FeedSortOrder.OldestToNewest } } } };
         var ep1 = new Episode { Id = ep1Id, Title = "Ep 1", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-2) };
         var ep2 = new Episode { Id = ep2Id, Title = "Ep 2", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-1) };
 

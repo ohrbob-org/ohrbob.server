@@ -9,7 +9,7 @@ public static class PlaybackStrategyHelper
 {
     public static List<Episode> GetOrderedPlaylist(
         IEnumerable<Episode> episodes, 
-        PlaybackStrategy strategy, 
+        Station station, 
         HashSet<string> listenedEpisodeIds, 
         string? activeEpisodeId)
     {
@@ -25,14 +25,44 @@ public static class PlaybackStrategyHelper
             }
         }
 
-        switch (strategy)
+        var feedUrls = station.Schedule?.Feeds?.Select(f => f.Url).ToList() ?? station.Feeds?.ToList() ?? new List<string>();
+
+        var result = new List<Episode>();
+        var feedQueues = new List<Queue<Episode>>();
+
+        foreach (var feedUrl in feedUrls)
         {
-            case PlaybackStrategy.Random:
-                return unplayed.OrderBy(e => Guid.NewGuid()).ToList();
-            case PlaybackStrategy.ChronologicalRoundRobin:
-            case PlaybackStrategy.Chronological:
-            default:
-                return unplayed.OrderBy(e => e.PublishedAt).ToList();
+            var feedSchedule = station.Schedule?.Feeds?.FirstOrDefault(f => f.Url == feedUrl);
+            var sortOrder = feedSchedule?.SortOrder ?? FeedSortOrder.OldestToNewest;
+
+            var feedEpisodes = unplayed.Where(e => e.FeedUrl == feedUrl);
+            
+            if (sortOrder == FeedSortOrder.NewestToOldest)
+            {
+                feedEpisodes = feedEpisodes.OrderByDescending(e => e.PublishedAt);
+            }
+            else
+            {
+                feedEpisodes = feedEpisodes.OrderBy(e => e.PublishedAt);
+            }
+            
+            feedQueues.Add(new Queue<Episode>(feedEpisodes));
         }
+
+        bool added;
+        do
+        {
+            added = false;
+            foreach (var q in feedQueues)
+            {
+                if (q.Count > 0)
+                {
+                    result.Add(q.Dequeue());
+                    added = true;
+                }
+            }
+        } while (added);
+
+        return result;
     }
 }
