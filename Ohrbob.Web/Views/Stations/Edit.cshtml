@@ -157,12 +157,24 @@
                 })
                 .then(response => {
                     if (response.ok) {
-                        if (shouldReload) {
-                            window.location.reload();
-                        }
+                        return fetch(window.location.href, { cache: 'no-store', headers: { 'Pragma': 'no-cache' } });
                     } else {
-                        alert('Error updating schedule');
+                        throw new Error('Server returned ' + response.status);
                     }
+                })
+                .then(res => res.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    const newFeeds = doc.getElementById('feedsContainer');
+                    if (newFeeds) document.getElementById('feedsContainer').innerHTML = newFeeds.innerHTML;
+
+                    const newBlueprint = doc.getElementById('blueprintContainer');
+                    if (newBlueprint) document.getElementById('blueprintContainer').innerHTML = newBlueprint.innerHTML;
+
+                    const newResolved = doc.getElementById('resolved');
+                    if (newResolved) document.getElementById('resolved').innerHTML = newResolved.innerHTML;
                 })
                 .catch(err => {
                     console.error('Error:', err);
@@ -210,7 +222,7 @@
                 `;
                 container.appendChild(newCard);
                 input.value = '';
-                updateSchedule(true);
+                updateSchedule();
             });
 
             // Blueprint Drag & Drop Logic
@@ -273,9 +285,9 @@
             }
             
             // Resolved List Buttons
-            const resolvedList = document.getElementById('resolvedList');
-            if (resolvedList) {
-                resolvedList.addEventListener('click', function(e) {
+            const resolvedTabPane = document.getElementById('resolved');
+            if (resolvedTabPane) {
+                resolvedTabPane.addEventListener('click', function(e) {
                     const btnCompleted = e.target.closest('.mark-completed-btn');
                     const btnUntil = e.target.closest('.mark-completed-until-btn');
                     
