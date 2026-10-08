@@ -154,11 +154,12 @@ public class StationsController : Controller
 
         await _stationsService.MarkEpisodeCompletedAsync(id, episodeId, activeId);
         
-        return RedirectToAction(nameof(Edit), new { id });
+        return Ok();
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [HttpPost]
     public async Task<IActionResult> UpdateSchedule(string id, [FromBody] StationSchedule schedule)
     {
         var accountId = GetAccountId();

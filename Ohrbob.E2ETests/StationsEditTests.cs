@@ -10,6 +10,7 @@ using System.IO;
 
 namespace Ohrbob.E2ETests;
 
+[NonParallelizable]
 public class StationsEditTests : PageTest
 {
     private PlaywrightWebApplicationFactory _factory = null!;
@@ -60,8 +61,9 @@ public class StationsEditTests : PageTest
             await profileService.CreateProfileAsync(_testAccountId, new Profile { Name = "Main Profile" });
         }
         
+        Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
+        Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
         await Page.GotoAsync(url);
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         
         var feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../example_feeds.txt");
         if (!File.Exists(feedPath))
@@ -78,14 +80,14 @@ public class StationsEditTests : PageTest
         await Page.FillAsync("input[name='Feeds']", firstFeed);
         await Page.ClickAsync("input[type='submit']");
         
-        // Wait for page to finish loading before clicking Listen
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        // Wait for redirect to Stations list
+        await Page.WaitForURLAsync("**/Stations", new() { Timeout = 10000 });
         
         // Go to Home (Dashboard)
-        await Page.ClickAsync(".floating-nav-pill a:has-text('Listen')");
+        await Page.GotoAsync(_factory.ServerAddress);
 
         // Wait for station to appear on dashboard
-        var stationCard = Page.Locator(".card:has-text('Test Edit Station')");
+        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Test Edit Station" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
         
         // Wait for feeds to sync (not showing "0 podcasts")
@@ -104,22 +106,18 @@ public class StationsEditTests : PageTest
         await Expect(Page.Locator("h4:has-text('Upcoming Playlist (Active Profile)')")).ToBeVisibleAsync();
         
         // Find the first episode in the list and click "Mark Completed"
-        var firstEpisode = Page.Locator("ul.list-group li.list-group-item").First;
+        var initialCount = await Page.Locator(".resolved-item").CountAsync();
+        var firstEpisode = Page.Locator(".resolved-item").First;
         var episodeTitle = await firstEpisode.Locator("strong").InnerTextAsync();
         
         Assert.That(episodeTitle, Is.Not.Empty);
         
         // Click Mark Completed
+        Page.Dialog += (_, dialog) => dialog.AcceptAsync();
         await firstEpisode.Locator("button:has-text('Mark Completed')").ClickAsync();
         
-        // Verify it redirects back to the Edit page
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
-        
-        // Verify the episode is no longer the first one in the list (or the title has changed)
-        var newFirstEpisode = Page.Locator("ul.list-group li.list-group-item").First;
-        var newEpisodeTitle = await newFirstEpisode.Locator("strong").InnerTextAsync();
-        
-        Assert.That(episodeTitle, Is.Not.EqualTo(newEpisodeTitle));
+        // Wait for count to decrease
+        await Expect(Page.Locator(".resolved-item")).ToHaveCountAsync(initialCount - 1, new() { Timeout = 10000 });
     }
 
     [Test]
@@ -135,8 +133,9 @@ public class StationsEditTests : PageTest
             await profileService.CreateProfileAsync(_testAccountId, new Profile { Name = "Main Profile" });
         }
         
+        Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
+        Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
         await Page.GotoAsync(url);
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         
         var feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../example_feeds.txt");
         if (!File.Exists(feedPath))
@@ -154,15 +153,23 @@ public class StationsEditTests : PageTest
         await Page.FillAsync("input[name='Feeds']", firstFeed);
         await Page.ClickAsync("input[type='submit']");
         
-        // Wait for page to finish loading
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        // Wait for redirect to Stations list
+        await Page.WaitForURLAsync("**/Stations", new() { Timeout = 10000 });
         
         // Go to Home (Dashboard)
-        await Page.ClickAsync(".floating-nav-pill a:has-text('Listen')");
+        await Page.GotoAsync(_factory.ServerAddress);
 
         // Wait for station to appear on dashboard
-        var stationCard = Page.Locator(".card:has-text('Test Feed Station')");
-        await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
+        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Test Feed Station" }).First;
+        try 
+        {
+            await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
+        }
+        catch
+        {
+            Console.WriteLine("DASHBOARD HTML: " + await Page.ContentAsync());
+            throw;
+        }
         
         // Wait for feeds to sync (not showing "0 podcasts")
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
@@ -184,13 +191,6 @@ public class StationsEditTests : PageTest
         await Page.FillAsync("#newFeedUrl", secondFeed);
         await Page.ClickAsync("#addFeedBtn");
         
-        // Wait for reload (since it reloads on success)
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
-        
-        // Click Feeds tab again
-        await Page.ClickAsync("#feeds-tab");
-        
         // Check if there are 2 feed cards now
         await Expect(feedCards).ToHaveCountAsync(2, new() { Timeout = 15000 });
         
@@ -199,13 +199,6 @@ public class StationsEditTests : PageTest
         
         var removeBtn = feedCards.Last.Locator(".remove-feed");
         await removeBtn.ClickAsync();
-        
-        // Wait for reload
-        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
-        
-        // Click Feeds tab again
-        await Page.ClickAsync("#feeds-tab");
         
         // Check if there is 1 feed card
         await Expect(feedCards).ToHaveCountAsync(1, new() { Timeout = 10000 });

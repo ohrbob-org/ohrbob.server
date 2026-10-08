@@ -4,7 +4,7 @@ using Ohrbob.E2ETests.Infrastructure;
 
 namespace Ohrbob.E2ETests;
 
-[Parallelizable(ParallelScope.Self)]
+[NonParallelizable]
 public class LandingPageTests : PageTest
 {
     private PlaywrightWebApplicationFactory _factory = null!;
@@ -34,7 +34,7 @@ public class LandingPageTests : PageTest
         await Expect(Page.Locator(".floating-nav-pill")).ToBeVisibleAsync();
         
         // Check for landing layout
-        await Expect(Page.Locator(".landing-wrapper")).ToBeVisibleAsync();
-        await Expect(Page.Locator(".step-text").First).ToBeVisibleAsync();
+        await Expect(Page.Locator(".radio-landing-container")).ToBeVisibleAsync();
+        await Expect(Page.Locator(".step-text-box").First).ToBeVisibleAsync();
     }
 }

@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Ohrbob.E2ETests;
 
+[NonParallelizable]
 public class AudioPlaybackTests : PageTest
 {
     private PlaywrightWebApplicationFactory _factory = null!;
@@ -36,6 +37,13 @@ public class AudioPlaybackTests : PageTest
         // Since we introduced onboarding, we need to mark it as complete so the test can navigate to the normal dashboard
         if (account != null) {
             await accountService.CompleteOnboardingAsync(account.Id);
+            
+            var profileService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.ProfilesApiService>();
+            var profiles = await profileService.GetProfilesByAccountIdAsync(account.Id);
+            if (profiles == null || !profiles.Any())
+            {
+                await profileService.CreateProfileAsync(account.Id, new Ohrbob.Server.Shared.Data.Profile { Name = "Main Profile" });
+            }
         }
         
         _testAccountId = account!.Id;
@@ -72,18 +80,21 @@ public class AudioPlaybackTests : PageTest
         await Page.FillAsync("input[name='Feeds']", firstFeed);
         await Page.ClickAsync("input[type='submit']");
         
+        // Wait for redirect to Stations list
+        await Page.WaitForURLAsync("**/Stations", new() { Timeout = 10000 });
+        
         // Now we are redirected to Stations index. Go to Home (Dashboard)
-        await Page.ClickAsync(".floating-nav-pill a");
+        await Page.GotoAsync(_factory.ServerAddress);
 
         // Wait for the station to appear and process
-        var stationCard = Page.Locator(".card-body:has-text('Test E2E Station')");
+        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Test E2E Station" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
 
         // Poll until feed is parsed (worker finishes). Check if "feeds" count updates (or podcasts)
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
         // Click the station card to switch to it
-        await Page.Locator(".card:has-text('Test E2E Station')").ClickAsync();
+        await stationCard.ClickAsync();
 
         // Wait a moment for the sync to happen and the player to be ready
         await Task.Delay(2000);
@@ -124,14 +135,18 @@ public class AudioPlaybackTests : PageTest
         await Page.FillAsync("input[name='Feeds']", firstFeed);
         await Page.ClickAsync("input[type='submit']");
         
-        await Page.ClickAsync(".floating-nav-pill a:has-text('Listen')");
+        // Wait for redirect to Stations list
+        await Page.WaitForURLAsync("**/Stations", new() { Timeout = 10000 });
+        
+        // Go to Home (Dashboard)
+        await Page.GotoAsync(_factory.ServerAddress);
 
-        var stationCard = Page.Locator(".card-body:has-text('Test E2E Station')");
+        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Test E2E Station" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
         // Play the station first
-        await Page.Locator(".card:has-text('Test E2E Station')").ClickAsync();
+        await stationCard.ClickAsync();
         await Task.Delay(2000); // wait for sync
         var playBtn = Page.Locator("#ohrbob-player .js-play");
         await playBtn.ClickAsync();
@@ -139,7 +154,7 @@ public class AudioPlaybackTests : PageTest
         await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 15000 });
 
         // Click the gear icon by explicitly targeting the `a[href]` inside the card
-        await Page.ClickAsync(".card:has-text('Test E2E Station') a[href^='/Stations/Edit/']");
+        await stationCard.Locator("a[href^='/Stations/Edit/']").ClickAsync();
 
         // Wait for edit page
         await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
@@ -148,6 +163,6 @@ public class AudioPlaybackTests : PageTest
         await Page.GoBackAsync();
 
         // Wait for card on home page
-        await Page.Locator(".card-body:has-text('Test E2E Station')").WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
+        await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
     }
 }

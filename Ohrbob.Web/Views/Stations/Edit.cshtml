@@ -126,13 +126,13 @@
 
 @Html.AntiForgeryToken()
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
+<script>
+        (function () {
+            console.log("IIFE EXECUTED");
             const getVerificationToken = () => document.querySelector('input[name="__RequestVerificationToken"]').value;
 
             function updateSchedule(shouldReload = false) {
+                console.log("UPDATE SCHEDULE CALLED");
                 const feedCards = document.querySelectorAll('.feed-card');
                 const feeds = Array.from(feedCards).map(card => {
                     const url = card.getAttribute('data-url');
@@ -199,6 +199,7 @@
             });
 
             document.getElementById('addFeedBtn').addEventListener('click', function () {
+                console.log("ADD FEED CLICKED");
                 const input = document.getElementById('newFeedUrl');
                 const url = input.value.trim();
                 if (!url) return;
@@ -293,6 +294,7 @@
                     
                     if (btnCompleted || btnUntil) {
                         const li = e.target.closest('.resolved-item');
+                        console.log("MARK COMPLETED CLICKED", li);
                         if (!li) return;
                         const episodeId = li.getAttribute('data-episode-id');
                         
@@ -306,6 +308,7 @@
                                 })
                                 .then(res => {
                                     if (res.ok || res.redirected) {
+                                        console.log("MARK COMPLETED SUCCESS", li);
                                         li.remove();
                                     } else {
                                         alert('Error marking completed');
@@ -340,6 +343,9 @@
                     }
                 });
             }
-        });
-    </script>
+        })();
+</script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

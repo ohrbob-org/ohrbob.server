@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Ohrbob.E2ETests;
 
+[NonParallelizable]
 public class OnboardingTests : PageTest
 {
     private PlaywrightWebApplicationFactory _factory = null!;
@@ -53,6 +54,7 @@ public class OnboardingTests : PageTest
 
         // Step 1: Create Profile
         await Page.FillAsync("input[name='profileName']", "My E2E Profile");
+        await Page.CheckAsync("input[name='acceptTerms']");
         await Page.ClickAsync("button[type='submit']");
 
         // Step 2: Create Station
@@ -81,7 +83,7 @@ public class OnboardingTests : PageTest
 
         // Assert Profile is selected
         var profileDropdown = Page.Locator("#profileDropdown");
-        await Expect(profileDropdown).ToContainTextAsync("My E2E Profile");
+        await Expect(profileDropdown).ToHaveAttributeAsync("title", "My E2E Profile");
 
         // Assert Station is displayed
         var stationCard = Page.Locator(".card-title");
