@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Driver;
 using Ohrbob.Api.Configuration;
 using Ohrbob.Server.Shared.Data;
 
@@ -184,5 +185,33 @@ public class StationsControllerTests
         var getRes = await _client.SendAsync(getRequest);
         var stations = await getRes.Content.ReadFromJsonAsync<List<StationWithFeedsDto>>();
         Assert.That(stations.Any(s => s.Station.Id == createdStation.Id), Is.False);
+    }
+
+    [Test]
+    public async Task UpdateSchedule_UpdatesScheduleSuccessfully()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var station = new Station { Name = "To Schedule" };
+        var createRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/stations/{accountId}")
+        {
+            Content = JsonContent.Create(station)
+        };
+        createRequest.Headers.Add("X-API-KEY", _testApiKey);
+        var createRes = await _client.SendAsync(createRequest);
+        var createdStation = await createRes.Content.ReadFromJsonAsync<Station>();
+        
+        var newSchedule = new StationSchedule();
+        newSchedule.Feeds.Add(new StationFeedSchedule { Url = "https://www.spreaker.com/show/7042610/episodes/feed", SortOrder = FeedSortOrder.NewestToOldest });
+        
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/stations/{createdStation.Id}/schedule");
+        request.Headers.Add("X-API-KEY", _testApiKey);
+        request.Content = JsonContent.Create(newSchedule);
+        
+        var result = await _client.SendAsync(request);
+        result.EnsureSuccessStatusCode();
+        
+        var updated = await _app.MongoDbContext.GetCollection<Station>("StationCollection").Find(s => s.Id == createdStation.Id).FirstOrDefaultAsync();
+        Assert.That(updated.Schedule.Feeds.Count, Is.EqualTo(1));
+        Assert.That(updated.Schedule.Feeds[0].SortOrder, Is.EqualTo(FeedSortOrder.NewestToOldest));
     }
 }

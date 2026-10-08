@@ -163,6 +163,7 @@ public class StationsController : Controller
     {
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();
+        Console.WriteLine($"DEBUG Web UpdateSchedule: Feeds.Count = {schedule?.Feeds?.Count}");
         await _stationsService.UpdateScheduleAsync(id, schedule);
         return Ok();
     }

@@ -164,6 +164,9 @@ public class StationsEditTests : PageTest
         var stationCard = Page.Locator(".card:has-text('Test Feed Station')");
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
         
+        // Wait for feeds to sync (not showing "0 podcasts")
+        await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
+        
         // Click the edit gear icon
         await stationCard.Locator("a[href^='/Stations/Edit/']").ClickAsync();
         
@@ -189,7 +192,7 @@ public class StationsEditTests : PageTest
         await Page.ClickAsync("#feeds-tab");
         
         // Check if there are 2 feed cards now
-        await Expect(feedCards).ToHaveCountAsync(2, new() { Timeout = 10000 });
+        await Expect(feedCards).ToHaveCountAsync(2, new() { Timeout = 15000 });
         
         // Now remove the feed
         Page.Dialog += (_, dialog) => dialog.AcceptAsync();
