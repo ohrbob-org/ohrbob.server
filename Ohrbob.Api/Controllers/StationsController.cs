@@ -177,6 +177,9 @@ public class StationsController : ControllerBase
 
     private async Task<bool> ValidateAndEnsureFeedsExistAsync(Station station)
     {
+        if (station.Schedule == null) station.Schedule = new StationSchedule();
+        if (station.Schedule.Feeds == null) station.Schedule.Feeds = new List<StationFeedSchedule>();
+
         // Keep backward compatibility: if Feeds is populated but Schedule is empty, migrate to schedule
         if (station.Feeds != null && station.Feeds.Any() && !station.Schedule.Feeds.Any())
         {
@@ -213,6 +216,9 @@ public class StationsController : ControllerBase
     [HttpPost("{accountId}")]
     public async Task<IActionResult> Create(string accountId, [FromBody] Station request)
     {
+        if (request.Schedule == null) request.Schedule = new StationSchedule();
+        if (request.Schedule.Feeds == null) request.Schedule.Feeds = new List<StationFeedSchedule>();
+
         if (_accountService != null && _policy != null)
         {
             var account = await _accountService.GetAsync(accountId);
@@ -247,6 +253,9 @@ public class StationsController : ControllerBase
     [HttpPut()]
     public async Task<IActionResult> Update([FromBody] Station station)
     {
+        if (station.Schedule == null) station.Schedule = new StationSchedule();
+        if (station.Schedule.Feeds == null) station.Schedule.Feeds = new List<StationFeedSchedule>();
+
         if (_accountService != null && _policy != null)
         {
             var existingStation = await _stationsService.GetAsync(station.Id);
