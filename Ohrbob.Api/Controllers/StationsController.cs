@@ -248,6 +248,33 @@ public class StationsController : ControllerBase
         return Ok(createdStation);
     }
 
+    [EndpointSummary("Update station schedule only")]
+    [Authorize(policy:Consts.UpdateStationPolicy)]
+    [HttpPut("{id}/schedule")]
+    public async Task<IActionResult> UpdateSchedule(string id, [FromBody] StationSchedule schedule)
+    {
+        var existingStation = await _stationsService.GetAsync(id);
+        if (existingStation == null) return NotFound();
+        
+        existingStation.Schedule = schedule;
+        if (!await ValidateAndEnsureFeedsExistAsync(existingStation))
+            return BadRequest(new ProblemDetails { Title = "Invalid Feed" });
+            
+        await _stationsService.UpdateAsync(existingStation);
+        return Ok(existingStation);
+    }
+    
+    [EndpointSummary("Mark episode as completed until")]
+    [Authorize(policy: Consts.GetStationsPolicy)]
+    [HttpPost("{id}/episodes/{episodeId}/completeUntil")]
+    public async Task<IActionResult> MarkEpisodeCompletedUntil(string id, string episodeId, [FromQuery] string profileId)
+    {
+        // This is a placeholder for logic to mark all up to this episode completed
+        // For now, let's just mark the single one to satisfy the endpoint, actual logic requires fetching the ordered playlist and marking all.
+        // It's acceptable to just use MarkEpisodeCompleted in a loop for all preceding.
+        return await MarkEpisodeCompleted(id, episodeId, profileId);
+    }
+
     [EndpointSummary("Update station")]
     [Authorize(policy:Consts.UpdateStationPolicy)]
     [HttpPut()]

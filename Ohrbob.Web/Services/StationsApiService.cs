@@ -71,6 +71,15 @@ public class StationsApiService : OhrbobApiService
         response.EnsureSuccessStatusCode();
     }
 
+    public virtual async Task UpdateScheduleAsync(string stationId, StationSchedule schedule)
+    {
+        using var request = BuildRequest(HttpMethod.Put, $"/stations/{stationId}/schedule");
+        request.Content = new StringContent(JsonSerializer.Serialize(schedule), Encoding.UTF8, "application/json");
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+    }
+
     public virtual async Task<List<Ohrbob.Server.Shared.Requests.EpisodePlayStateDto>?> GetStationPlaylistAsync(string id, string profileId)
     {
         using var request = BuildRequest(HttpMethod.Get, $"/stations/{id}/playlist?profileId={profileId}");
@@ -84,6 +93,14 @@ public class StationsApiService : OhrbobApiService
     public virtual async Task MarkEpisodeCompletedAsync(string stationId, string episodeId, string profileId)
     {
         using var request = BuildRequest(HttpMethod.Post, $"/stations/{stationId}/episodes/{episodeId}/complete?profileId={profileId}");
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public virtual async Task MarkEpisodeCompletedUntilAsync(string stationId, string episodeId, string profileId)
+    {
+        using var request = BuildRequest(HttpMethod.Post, $"/stations/{stationId}/episodes/{episodeId}/completeUntil?profileId={profileId}");
         using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
         var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();
