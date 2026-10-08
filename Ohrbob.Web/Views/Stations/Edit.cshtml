@@ -132,7 +132,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             const getVerificationToken = () => document.querySelector('input[name="__RequestVerificationToken"]').value;
 
-            function updateSchedule() {
+            function updateSchedule(shouldReload = false) {
                 const feedCards = document.querySelectorAll('.feed-card');
                 const feeds = Array.from(feedCards).map(card => {
                     const url = card.getAttribute('data-url');
@@ -157,7 +157,9 @@
                 })
                 .then(response => {
                     if (response.ok) {
-                        window.location.reload();
+                        if (shouldReload) {
+                            window.location.reload();
+                        }
                     } else {
                         alert('Error updating schedule');
                     }
@@ -208,7 +210,7 @@
                 `;
                 container.appendChild(newCard);
                 input.value = '';
-                updateSchedule();
+                updateSchedule(true);
             });
 
             // Blueprint Drag & Drop Logic

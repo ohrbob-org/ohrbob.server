@@ -269,10 +269,48 @@ public class StationsController : ControllerBase
     [HttpPost("{id}/episodes/{episodeId}/completeUntil")]
     public async Task<IActionResult> MarkEpisodeCompletedUntil(string id, string episodeId, [FromQuery] string profileId)
     {
-        // This is a placeholder for logic to mark all up to this episode completed
-        // For now, let's just mark the single one to satisfy the endpoint, actual logic requires fetching the ordered playlist and marking all.
-        // It's acceptable to just use MarkEpisodeCompleted in a loop for all preceding.
-        return await MarkEpisodeCompleted(id, episodeId, profileId);
+        var station = await _stationsService.GetAsync(id);
+        if (station == null || station.Feeds == null || !station.Feeds.Any()) 
+            return NotFound();
+
+        var profile = await _profilesService.GetAsync(profileId);
+        if (profile == null) return NotFound();
+
+        var episodes = await _episodesService.FindByFeedUrlsAsync(station.Feeds);
+        var listenStates = await _listenStateService.GetStatesByUserIdAsync(profileId);
+        
+        var listenedIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
+        
+        var orderedEpisodes = Ohrbob.Server.Shared.Helpers.PlaybackStrategyHelper.GetOrderedPlaylist(
+            episodes, station.Strategy, listenedIds, profile.LastActiveEpisodeId);
+
+        foreach (var ep in orderedEpisodes)
+        {
+            var state = listenStates.FirstOrDefault(s => s.EpisodeId == ep.Id);
+            if (state == null)
+            {
+                state = new ListenState
+                {
+                    UserId = profileId,
+                    EpisodeId = ep.Id,
+                    StationId = id,
+                    IsListened = true
+                };
+                await _listenStateService.CreateAsync(state);
+            }
+            else
+            {
+                state.IsListened = true;
+                await _listenStateService.UpdateAsync(state);
+            }
+
+            if (ep.Id == episodeId)
+            {
+                break;
+            }
+        }
+
+        return Ok();
     }
 
     [EndpointSummary("Update station")]
