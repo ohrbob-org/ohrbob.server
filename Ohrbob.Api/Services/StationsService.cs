@@ -16,7 +16,8 @@ public class StationsService : MongoDbService<Station>
         return Builders<Station>.Update
             .Set(s => s.Name, entryIn.Name)
             .Set(s => s.IsPublic, entryIn.IsPublic)
-            .Set(s => s.Feeds, entryIn.Feeds);
+            .Set(s => s.Feeds, entryIn.Feeds)
+            .Set(s => s.Schedule, entryIn.Schedule);
     }
 
     public async Task<List<Station>> GetByAccountIdAsync(string accountId)
