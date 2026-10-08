@@ -70,7 +70,19 @@
     </div>
   </div>
   <div class="tab-pane fade" id="blueprint" role="tabpanel">
-    <!-- Blueprint Content -->
+    <div class="d-flex flex-row overflow-auto py-3" id="blueprintContainer" style="gap: 10px;">
+        @foreach(var feedSchedule in Model.Station.Schedule.Feeds)
+        {
+            var feedData = Model.Feeds.FirstOrDefault(f => f.Url == feedSchedule.Url);
+            if (feedData != null)
+            {
+                <div class="blueprint-item border rounded p-2" draggable="true" data-url="@feedSchedule.Url" style="cursor: grab; min-width: 120px; text-align: center; background: #fff;">
+                    <img src="@feedData.ImageUrl" width="64" height="64" class="mb-2" />
+                    <div class="small text-truncate" style="max-width: 100px;" title="@feedData.Title">@feedData.Title</div>
+                </div>
+            }
+        }
+    </div>
   </div>
   <div class="tab-pane fade" id="resolved" role="tabpanel">
     <!-- Resolved Content -->
@@ -163,6 +175,65 @@
                 input.value = '';
                 updateSchedule();
             });
+
+            // Blueprint Drag & Drop Logic
+            const blueprintContainer = document.getElementById('blueprintContainer');
+            if (blueprintContainer) {
+                let draggedItem = null;
+
+                blueprintContainer.addEventListener('dragstart', function (e) {
+                    const item = e.target.closest('.blueprint-item');
+                    if (item) {
+                        draggedItem = item;
+                        e.dataTransfer.effectAllowed = 'move';
+                        setTimeout(() => item.style.opacity = '0.5', 0);
+                    }
+                });
+
+                blueprintContainer.addEventListener('dragend', function (e) {
+                    const item = e.target.closest('.blueprint-item');
+                    if (item) {
+                        item.style.opacity = '1';
+                        draggedItem = null;
+                        
+                        // Sync feedsContainer order and update
+                        syncFeedsOrderAndUpdate();
+                    }
+                });
+
+                blueprintContainer.addEventListener('dragover', function (e) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    const targetItem = e.target.closest('.blueprint-item');
+                    
+                    if (targetItem && targetItem !== draggedItem && draggedItem) {
+                        const bounding = targetItem.getBoundingClientRect();
+                        const offset = bounding.x + (bounding.width / 2);
+                        
+                        if (e.clientX - offset > 0) {
+                            targetItem.after(draggedItem);
+                        } else {
+                            targetItem.before(draggedItem);
+                        }
+                    }
+                });
+
+                function syncFeedsOrderAndUpdate() {
+                    const feedsContainer = document.getElementById('feedsContainer');
+                    const blueprintItems = blueprintContainer.querySelectorAll('.blueprint-item');
+                    
+                    blueprintItems.forEach(bpItem => {
+                        const url = bpItem.getAttribute('data-url');
+                        const cards = Array.from(feedsContainer.querySelectorAll('.feed-card'));
+                        const correspondingFeedCard = cards.find(card => card.getAttribute('data-url') === url);
+                        if (correspondingFeedCard) {
+                            feedsContainer.appendChild(correspondingFeedCard);
+                        }
+                    });
+                    
+                    updateSchedule();
+                }
+            }
         });
     </script>
 }
