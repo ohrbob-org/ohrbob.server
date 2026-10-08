@@ -15,7 +15,10 @@ public class ProfilesService : MongoDbService<Profile>
     {
         return Builders<Profile>.Update
             .Set(p => p.Name, entryIn.Name)
-            .Set(p => p.AllowedStationIds, entryIn.AllowedStationIds);
+            .Set(p => p.StreamToken, entryIn.StreamToken)
+            .Set(p => p.AllowedStationIds, entryIn.AllowedStationIds)
+            .Set(p => p.LastActiveStationId, entryIn.LastActiveStationId)
+            .Set(p => p.LastActiveEpisodeId, entryIn.LastActiveEpisodeId);
     }
 
     public async Task<List<Profile>> GetByAccountIdAsync(string accountId)

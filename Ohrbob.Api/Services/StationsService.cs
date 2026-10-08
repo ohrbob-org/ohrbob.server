@@ -15,6 +15,7 @@ public class StationsService : MongoDbService<Station>
     {
         return Builders<Station>.Update
             .Set(s => s.Name, entryIn.Name)
+            .Set(s => s.Strategy, entryIn.Strategy)
             .Set(s => s.IsPublic, entryIn.IsPublic)
             .Set(s => s.Feeds, entryIn.Feeds)
             .Set(s => s.Schedule, entryIn.Schedule);

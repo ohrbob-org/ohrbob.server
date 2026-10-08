@@ -19,6 +19,7 @@ public class FeedsService : MongoDbService<Feed>
             .Set(f => f.Title, entryIn.Title)
             .Set(f => f.Description, entryIn.Description)
             .Set(f => f.ImageUrl, entryIn.ImageUrl)
+            .Set(f => f.Keywords, entryIn.Keywords)
             .Set(f => f.LastUpdated, entryIn.LastUpdated);
     }
 
