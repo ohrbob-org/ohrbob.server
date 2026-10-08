@@ -4,6 +4,11 @@
 - **Update Definitions:** When updating a MongoDB data model (like `DbEntry` subclasses), always remember to update the corresponding `GetUpdateDefinition` method in the respective Service (e.g., `StationsService.cs`) to include the new fields via `.Set()`. If this is not done, the new fields will not be saved to the database during updates.
 - **Deletions and References:** When an entry in the database (model) is deleted, it is generally marked as deleted by setting `DeletedAt` (since they all derive from `DbEntry`). When an object in the database references another object and it gets deleted, the references need to be updated. For example: if a `Station` is deleted, then `Profile`s referencing that station need to remove the station reference.
 
+## UI and Frontend
+
+- **Immediate Persistence:** When a user interacts with a UI button (like delete, edit, or add), the change should be immediately sent to the API and persisted. If the request succeeds, the UI must be updated accordingly to reflect the change.
+- **Uninterrupted Playback:** During any activity or navigation in the UI, the playback in the `audio-widget` should never be interrupted. (e.g., use HTMX or AJAX to prevent full page reloads).
+
 ## Testing
 
 - **API Routes:** When implementing a new API route, always write unit tests for coverage.
