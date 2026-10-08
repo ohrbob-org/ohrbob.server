@@ -33,6 +33,11 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 
 
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "RequestVerificationToken";
+});
+
 // Add services to the container.
 builder.Services.AddControllersWithViews(options =>
 {

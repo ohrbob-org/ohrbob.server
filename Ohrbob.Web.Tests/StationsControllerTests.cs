@@ -159,6 +159,20 @@ public class StationsControllerTests
         _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.Is<Station>(st => st.IsPublic == true)), Times.Once);
     }
 
+    [Test]
+    public async Task UpdateSchedule_ValidSchedule_UpdatesAndReturnsOk()
+    {
+        var stationId = "st-123";
+        var schedule = new StationSchedule();
+
+        var result = await _controller.UpdateSchedule(stationId, schedule);
+
+        var okResult = result as OkResult;
+        Assert.That(okResult, Is.Not.Null);
+        
+        _stationsServiceMock.Verify(s => s.UpdateScheduleAsync(stationId, schedule), Times.Once);
+    }
+
     [TearDown]
     public void TearDown()
     {
