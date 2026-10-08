@@ -69,38 +69,6 @@
                 <button type="button" id="addFeedBtn" class="btn btn-sm btn-outline-secondary mt-1">Add Feed</button>
             </div>
             
-            @if (ViewBag.Playlist != null)
-            {
-                var playlist = (List<Ohrbob.Server.Shared.Requests.EpisodePlayStateDto>)ViewBag.Playlist;
-                <div class="form-group mb-3">
-                    <label class="control-label">Upcoming Playlist (Active Profile)</label>
-                    <ul class="list-group">
-                        @foreach (var item in playlist)
-                        {
-                            var activeClass = item.IsActive ? "list-group-item-primary" : "";
-                            <li class="list-group-item @activeClass d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>@item.Episode.Title</strong><br/>
-                                    <small>
-                                        @if(item.IsActive) {
-                                            <span class="badge bg-primary">Playing</span>
-                                        }
-                                        Position: @(item.PositionSeconds)s / Published: @(item.Episode.PublishedAt?.ToString("g"))
-                                    </small>
-                                </div>
-                                <form asp-action="MarkCompleted" asp-route-id="@Model.Station.Id" asp-route-episodeId="@item.Episode.Id" method="post" style="display:inline;">
-                                    <button type="submit" class="btn btn-sm btn-outline-success">Mark Completed</button>
-                                </form>
-                            </li>
-                        }
-                        @if (!playlist.Any())
-                        {
-                            <li class="list-group-item text-muted">No unplayed episodes found.</li>
-                        }
-                    </ul>
-                </div>
-            }
-
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
                 <a asp-action="Index" class="btn btn-secondary">Back to List</a>
@@ -108,6 +76,40 @@
         </form>
     </div>
 </div>
+
+@if (ViewBag.Playlist != null)
+{
+    var playlist = (List<Ohrbob.Server.Shared.Requests.EpisodePlayStateDto>)ViewBag.Playlist;
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <h4>Upcoming Playlist (Active Profile)</h4>
+            <ul class="list-group">
+                @foreach (var item in playlist)
+                {
+                    var activeClass = item.IsActive ? "list-group-item-primary" : "";
+                    <li class="list-group-item @activeClass d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>@item.Episode.Title</strong><br/>
+                            <small>
+                                @if(item.IsActive) {
+                                    <span class="badge bg-primary">Playing</span>
+                                }
+                                Position: @(item.PositionSeconds)s / Published: @(item.Episode.PublishedAt?.ToString("g"))
+                            </small>
+                        </div>
+                        <form asp-controller="Stations" asp-action="MarkCompleted" asp-route-id="@Model.Station.Id" asp-route-episodeId="@item.Episode.Id" method="post" style="display:inline;" hx-boost="false">
+                            <button type="submit" class="btn btn-sm btn-outline-success">Mark Completed</button>
+                        </form>
+                    </li>
+                }
+                @if (!playlist.Any())
+                {
+                    <li class="list-group-item text-muted">No unplayed episodes found.</li>
+                }
+            </ul>
+        </div>
+    </div>
+}
 
 <script>
     (function() {
