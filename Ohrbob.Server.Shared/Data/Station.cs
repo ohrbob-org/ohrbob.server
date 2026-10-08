@@ -17,5 +17,7 @@ public class Station : DbEntry
     
     public PlaybackStrategy Strategy { get; set; } = PlaybackStrategy.Chronological;
 
+    public StationSchedule Schedule { get; set; } = new StationSchedule();
+
     public bool IsPublic { get; set; }
 }
