@@ -4,144 +4,54 @@
     ViewData["Title"] = "Edit Station";
 }
 
-<h1>Edit Station</h1>
+<h1>Edit Station - @Model.Station.Name</h1>
 
-<h4>Station</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Station.Id" />
-            <input type="hidden" asp-for="Station.AccountId" />
-
-            <div class="form-group mb-3">
-                <label asp-for="Station.Name" class="control-label"></label>
-                <input asp-for="Station.Name" class="form-control" />
-                <span asp-validation-for="Station.Name" class="text-danger"></span>
-            </div>
-            
-            <div class="form-group mb-3">
-                <label asp-for="Station.Strategy" class="control-label">Playback Strategy</label>
-                <select asp-for="Station.Strategy" class="form-select" asp-items="Html.GetEnumSelectList<Ohrbob.Server.Shared.Data.PlaybackStrategy>()"></select>
-                <span asp-validation-for="Station.Strategy" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" asp-for="Station.IsPublic">
-                    <label class="form-check-label" asp-for="Station.IsPublic">
-                        Public Station
-                    </label>
-                </div>
-            </div>
-
-            <div class="form-group mb-3">
-                <label class="control-label">Feeds</label>
-                <div id="feedsContainer">
-                @if (Model.Feeds != null && Model.Feeds.Any())
-                {
-                    foreach (var feed in Model.Feeds)
-                    {
-                        <div class="mb-3 p-2 border rounded">
-                            <div class="input-group mb-1 feed-item">
-                                <input type="url" name="Station.Feeds" class="form-control" value="@feed.Url" required />
-                                <button type="button" class="btn btn-outline-danger remove-feed">Remove</button>
-                            </div>
-                            <small class="text-muted">
-                                Title: @(string.IsNullOrEmpty(feed.Title) ? "Unknown" : feed.Title) | 
-                                Episodes: @feed.EpisodeCount | 
-                                Last Updated: @(feed.LastUpdated?.ToString("g") ?? "Never")
-                            </small>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="mb-3 p-2 border rounded">
-                        <div class="input-group mb-1 feed-item">
-                            <input type="url" name="Station.Feeds" class="form-control" placeholder="https://..." required />
-                            <button type="button" class="btn btn-outline-danger remove-feed">Remove</button>
-                        </div>
-                    </div>
-                }
-                </div>
-                <button type="button" id="addFeedBtn" class="btn btn-sm btn-outline-secondary mt-1">Add Feed</button>
-            </div>
-            
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-            </div>
-        </form>
-    </div>
-</div>
-
-@if (ViewBag.Playlist != null)
-{
-    var playlist = (List<Ohrbob.Server.Shared.Requests.EpisodePlayStateDto>)ViewBag.Playlist;
-    <div class="row mt-4">
-        <div class="col-md-8">
-            <h4>Upcoming Playlist (Active Profile)</h4>
-            <ul class="list-group">
-                @foreach (var item in playlist)
-                {
-                    var activeClass = item.IsActive ? "list-group-item-primary" : "";
-                    <li class="list-group-item @activeClass d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>@item.Episode.Title</strong><br/>
-                            <small>
-                                @if(item.IsActive) {
-                                    <span class="badge bg-primary">Playing</span>
-                                }
-                                Position: @(item.PositionSeconds)s / Published: @(item.Episode.PublishedAt?.ToString("g"))
-                            </small>
-                        </div>
-                        <form asp-controller="Stations" asp-action="MarkCompleted" asp-route-id="@Model.Station.Id" asp-route-episodeId="@item.Episode.Id" method="post" style="display:inline;" hx-boost="false">
-                            <button type="submit" class="btn btn-sm btn-outline-success">Mark Completed</button>
-                        </form>
-                    </li>
-                }
-                @if (!playlist.Any())
-                {
-                    <li class="list-group-item text-muted">No unplayed episodes found.</li>
-                }
-            </ul>
-        </div>
-    </div>
+<style>
+.pill-nav {
+    display: flex;
+    background: #e9ecef;
+    border-radius: 50px;
+    padding: 5px;
+    margin-bottom: 20px;
 }
+.pill-nav .nav-item {
+    flex: 1;
+    text-align: center;
+}
+.pill-nav .nav-link {
+    border-radius: 50px;
+    color: #495057;
+    font-weight: 500;
+}
+.pill-nav .nav-link.active {
+    background: #cce5ff;
+    color: #004085;
+}
+</style>
 
-<script>
-    (function() {
-        const container = document.getElementById('feedsContainer');
-        const addBtn = document.getElementById('addFeedBtn');
+<ul class="nav pill-nav" id="stationTabs" role="tablist">
+  <li class="nav-item">
+    <a class="nav-link active" id="feeds-tab" data-bs-toggle="tab" href="#feeds" role="tab">Feeds</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" id="blueprint-tab" data-bs-toggle="tab" href="#blueprint" role="tab">Blueprint Rules</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" id="resolved-tab" data-bs-toggle="tab" href="#resolved" role="tab">Resolved Episodes</a>
+  </li>
+</ul>
 
-        if (addBtn && container) {
-            addBtn.addEventListener('click', function () {
-                const div = document.createElement('div');
-                div.className = 'input-group mb-2 feed-item';
-                div.innerHTML = `
-                    <input type="url" name="Station.Feeds" class="form-control" placeholder="https://..." required />
-                    <button type="button" class="btn btn-outline-danger remove-feed">Remove</button>
-                `;
-                container.appendChild(div);
-            });
-
-            container.addEventListener('click', function (e) {
-                if (e.target && e.target.classList.contains('remove-feed')) {
-                    const items = container.querySelectorAll('.feed-item');
-                    if (items.length > 1) {
-                        const wrapper = e.target.closest('.mb-3.p-2.border') || e.target.closest('.feed-item');
-                        if (wrapper) wrapper.remove();
-                    } else {
-                        // Just clear it if it's the last one
-                        e.target.previousElementSibling.value = '';
-                    }
-                }
-            });
-        }
-    })();
-</script>
+<div class="tab-content" id="stationTabsContent">
+  <div class="tab-pane fade show active" id="feeds" role="tabpanel">
+    <!-- Feeds Content -->
+  </div>
+  <div class="tab-pane fade" id="blueprint" role="tabpanel">
+    <!-- Blueprint Content -->
+  </div>
+  <div class="tab-pane fade" id="resolved" role="tabpanel">
+    <!-- Resolved Content -->
+  </div>
+</div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
