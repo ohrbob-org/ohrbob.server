@@ -85,6 +85,7 @@
         };
 
         audio.addEventListener('error', (e) => {
+            console.error("AUDIO ERROR: ", audio.error ? audio.error.message : "unknown", audio.error ? audio.error.code : 0);
             widget.isPlaying = false;
             updatePlayButton();
         });

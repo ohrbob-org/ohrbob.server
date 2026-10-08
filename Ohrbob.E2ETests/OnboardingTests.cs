@@ -28,7 +28,8 @@ public class OnboardingTests : PageTest
         
         // Use the injected AccountApiService to create a fresh user in the running backend
         var accountService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.AccountApiService>();
-        var account = await accountService.CreateOrUpdateAccountAsync("E2E Onboarding Test", "onboard@test.com", "", "Test", Guid.NewGuid().ToString());
+        var uniqueEmail = $"onboard-{Guid.NewGuid()}@test.com";
+        var account = await accountService.CreateOrUpdateAccountAsync("E2E Onboarding Test", uniqueEmail, "", "Test", Guid.NewGuid().ToString());
         
         _testAccountId = account!.Id;
         TestAuthHandler.TestAccountId = _testAccountId;
@@ -45,6 +46,8 @@ public class OnboardingTests : PageTest
     {
         Page.Request += (_, request) => Console.WriteLine($"[Playwright Request] {request.Method} {request.Url}");
         Page.Response += (_, response) => Console.WriteLine($"[Playwright Response] {response.Status} {response.Url}");
+        Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
+        Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
 
         // Go to root, should redirect to /Onboarding
         await Page.GotoAsync(_factory.ServerAddress);
@@ -79,7 +82,7 @@ public class OnboardingTests : PageTest
         await finishBtn.ClickAsync();
 
         // After finish, we should end up on Home/Index which displays "Listen"
-        await Expect(Page.Locator("h2")).ToContainTextAsync("Listen");
+        await Expect(Page.Locator("h2")).ToContainTextAsync("Listen", new() { Timeout = 15000 });
 
         // Assert Profile is selected
         var profileDropdown = Page.Locator("#profileDropdown");

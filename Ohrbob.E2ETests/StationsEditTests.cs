@@ -30,7 +30,8 @@ public class StationsEditTests : PageTest
         _factory = new PlaywrightWebApplicationFactory();
         
         var accountService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.AccountApiService>();
-        var account = await accountService.CreateOrUpdateAccountAsync("Stations Test", "stations@test.com", "", "Test", Guid.NewGuid().ToString());
+        var uniqueEmail = $"stations-{Guid.NewGuid()}@test.com";
+        var account = await accountService.CreateOrUpdateAccountAsync("Stations Test", uniqueEmail, "", "Test", Guid.NewGuid().ToString());
         
         if (account != null) {
             await accountService.CompleteOnboardingAsync(account.Id);

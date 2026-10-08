@@ -5,8 +5,8 @@
     var activeGradient = hasActive ? Math.Abs(Model.ActiveProfile.Id.GetHashCode()) % 16 : 0;
 }
 
-<li class="nav-item dropdown">
-    <a class="nav-link d-flex align-items-center gap-2" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="@(hasActive ? Model.ActiveProfile.Name : "No Profile")">
+<div class="nav-item dropdown">
+    <button class="nav-link d-flex align-items-center gap-2 btn btn-link border-0 text-decoration-none" id="profileDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="@(hasActive ? Model.ActiveProfile.Name : "No Profile")">
         <span class="badge rounded-pill @(Model.Tier == Ohrbob.Server.Shared.Data.SubscriptionTier.Premium ? "bg-success" : "bg-secondary")" title="Subscription tier">@Model.Tier</span>
         @if (hasActive)
         {
@@ -19,7 +19,7 @@
             <i class="bi bi-person-circle fs-4"></i>
             <span class="d-none d-sm-inline">No Profile</span>
         }
-    </a>
+    </button>
     <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="profileDropdown">
         @if (Model.AllProfiles.Any())
         {
@@ -51,4 +51,4 @@
         <li><hr class="dropdown-divider"></li>
         <li hx-boost="false"><a class="dropdown-item py-2 text-danger" asp-controller="Home" asp-action="Logout"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
     </ul>
-</li>
+</div>

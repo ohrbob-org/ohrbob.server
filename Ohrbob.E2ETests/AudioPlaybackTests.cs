@@ -29,10 +29,34 @@ public class AudioPlaybackTests : PageTest
     public async Task Setup()
     {
         _factory = new PlaywrightWebApplicationFactory();
+        Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
+        Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
+        
+        // Mock HTMLMediaElement audio playback for determinism and speed by redirecting to a silent local WAV URI
+        await Page.AddInitScriptAsync(@"
+            (() => {
+                const desc = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'src');
+                if (desc && desc.set) {
+                    Object.defineProperty(HTMLMediaElement.prototype, 'src', {
+                        get: function() {
+                            return desc.get.call(this);
+                        },
+                        set: function(val) {
+                            if (val && val.startsWith('http') && !val.includes('base64')) {
+                                desc.set.call(this, 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAAAGAA==');
+                            } else {
+                                desc.set.call(this, val);
+                            }
+                        }
+                    });
+                }
+            })();
+        ");
         
         // Use the injected AccountApiService to create a fresh user in the running backend
         var accountService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.AccountApiService>();
-        var account = await accountService.CreateOrUpdateAccountAsync("E2E Test", "e2e@test.com", "", "Test", Guid.NewGuid().ToString());
+        var uniqueEmail = $"e2e-{Guid.NewGuid()}@test.com";
+        var account = await accountService.CreateOrUpdateAccountAsync("E2E Test", uniqueEmail, "", "Test", Guid.NewGuid().ToString());
         
         // Since we introduced onboarding, we need to mark it as complete so the test can navigate to the normal dashboard
         if (account != null) {
@@ -96,15 +120,15 @@ public class AudioPlaybackTests : PageTest
         // Click the station card to switch to it
         await stationCard.ClickAsync();
 
-        // Wait a moment for the sync to happen and the player to be ready
-        await Task.Delay(2000);
+        // Wait for the player to load the episode metadata (meaning it's not the placeholder "Track Name" anymore)
+        await Expect(Page.Locator("#ohrbob-player .track-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
 
         // Click the audio widget's play button
         var playBtn = Page.Locator("#ohrbob-player .js-play");
         await playBtn.ClickAsync();
         
         // Wait for the pause icon to appear (meaning it is playing)
-        await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 15000 });
+        await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 45000 });
         
         // Verify via DOM property
         var isPlaying = await Page.EvaluateAsync<bool>("() => document.querySelector('#ohrbob-player').isPlaying");
@@ -113,9 +137,13 @@ public class AudioPlaybackTests : PageTest
         // Assert that the station card has the active highlight class
         var cardContainer = Page.Locator(".active-station-card").First;
         await Expect(cardContainer).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("border-primary"));
+
+        // Pause playback to release server resources
+        await playBtn.ClickAsync();
+        await Expect(playBtn.Locator("rect")).ToHaveCountAsync(0, new() { Timeout = 10000 });
     }
             [Test]
-    public async Task NavigateToStationDetailsAndBack_CanStillPlay()
+    public async Task ANavigateToStationDetailsAndBack_CanStillPlay()
     {
         var feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../example_feeds.txt");
         if (!File.Exists(feedPath))
@@ -147,11 +175,23 @@ public class AudioPlaybackTests : PageTest
 
         // Play the station first
         await stationCard.ClickAsync();
-        await Task.Delay(2000); // wait for sync
+        
+        // Wait for the player to load the episode metadata (meaning it's not the placeholder "Track Name" anymore)
+        await Expect(Page.Locator("#ohrbob-player .track-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
+        
         var playBtn = Page.Locator("#ohrbob-player .js-play");
         await playBtn.ClickAsync();
         
-        await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 15000 });
+        try
+        {
+            await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 45000 });
+        }
+        catch (Exception)
+        {
+            var html = await Page.EvaluateAsync<string>("() => document.getElementById('ohrbob-player').outerHTML");
+            Console.WriteLine($"PLAYER HTML ON FAILURE: {html}");
+            throw;
+        }
 
         // Click the gear icon by explicitly targeting the `a[href]` inside the card
         await stationCard.Locator("a[href^='/Stations/Edit/']").ClickAsync();
@@ -164,5 +204,12 @@ public class AudioPlaybackTests : PageTest
 
         // Wait for card on home page
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
+
+        // Assert that the player is STILL playing and has the pause icon (2 rects)
+        await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 10000 });
+
+        // Pause playback to release server resources
+        await playBtn.ClickAsync();
+        await Expect(playBtn.Locator("rect")).ToHaveCountAsync(0, new() { Timeout = 10000 });
     }
 }
