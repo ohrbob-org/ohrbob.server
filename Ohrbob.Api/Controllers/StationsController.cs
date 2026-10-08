@@ -175,11 +175,23 @@ public class StationsController : ControllerBase
         return Ok();
     }
 
-    private async Task<bool> ValidateAndEnsureFeedsExistAsync(string[]? feedUrls)
+    private async Task<bool> ValidateAndEnsureFeedsExistAsync(Station station)
     {
-        if (feedUrls == null || feedUrls.Length == 0) return true;
+        // Keep backward compatibility: if Feeds is populated but Schedule is empty, migrate to schedule
+        if (station.Feeds != null && station.Feeds.Any() && !station.Schedule.Feeds.Any())
+        {
+            foreach(var feedUrl in station.Feeds)
+            {
+                station.Schedule.Feeds.Add(new StationFeedSchedule { Url = feedUrl });
+            }
+        }
+        
+        // Sync Schedule back to Feeds array for backward compatibility with PlaybackStrategyHelper
+        station.Feeds = station.Schedule.Feeds.Select(f => f.Url).ToArray();
 
-        foreach (var url in feedUrls)
+        if (station.Feeds.Length == 0) return true;
+
+        foreach (var url in station.Feeds)
         {
             var existingFeed = await _feedsService.FindByUrlAsync(url);
             if (existingFeed == null)
@@ -208,11 +220,11 @@ public class StationsController : ControllerBase
             var existing = await _stationsService.GetByAccountIdAsync(accountId);
             if (!_policy.CanCreateStation(existing.Count, limits))
                 return StatusCode(403, new ProblemDetails { Status = 403, Title = "Limit exceeded", Detail = $"Station limit reached for {(account?.Tier ?? SubscriptionTier.Free)} tier." });
-            if (!_policy.CanSetFeedCount(request.Feeds?.Length ?? 0, limits))
+            if (!_policy.CanSetFeedCount(request.Schedule.Feeds.Count, limits))
                 return StatusCode(403, new ProblemDetails { Status = 403, Title = "Limit exceeded", Detail = "Feed limit per station exceeded." });
         }
 
-        if (!await ValidateAndEnsureFeedsExistAsync(request.Feeds))
+        if (!await ValidateAndEnsureFeedsExistAsync(request))
         {
             return BadRequest(new ProblemDetails { Title = "Invalid Feed", Detail = "One or more feeds could not be validated as RSS/Atom." });
         }
@@ -223,7 +235,8 @@ public class StationsController : ControllerBase
             Name = request.Name,
             Strategy = request.Strategy,
             IsPublic = request.IsPublic,
-            Feeds = request.Feeds
+            Feeds = request.Feeds,
+            Schedule = request.Schedule
         };
         var createdStation = await _stationsService.CreateAsync(station);
         return Ok(createdStation);
@@ -241,11 +254,11 @@ public class StationsController : ControllerBase
                 return NotFound();
             var updateAccount = await _accountService.GetAsync(existingStation.AccountId);
             var updateLimits = _policy.For(updateAccount);
-            if (!_policy.CanSetFeedCount(station.Feeds?.Length ?? 0, updateLimits))
+            if (!_policy.CanSetFeedCount(station.Schedule.Feeds.Count, updateLimits))
                 return StatusCode(403, new ProblemDetails { Status = 403, Title = "Limit exceeded", Detail = "Feed limit per station exceeded." });
         }
 
-        if (!await ValidateAndEnsureFeedsExistAsync(station.Feeds))
+        if (!await ValidateAndEnsureFeedsExistAsync(station))
         {
             return BadRequest(new ProblemDetails { Title = "Invalid Feed", Detail = "One or more feeds could not be validated as RSS/Atom." });
         }
