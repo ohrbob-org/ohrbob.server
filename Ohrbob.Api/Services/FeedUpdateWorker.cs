@@ -64,7 +64,17 @@ public class FeedUpdateWorker : BackgroundService
 
         foreach (var feed in feeds)
         {
-            if (feed.LastUpdated.HasValue && feed.LastUpdated.Value >= DateTime.UtcNow.AddHours(-1))
+            // if a feed has 0 episodes, we try to query it again to see if it has been updated.
+            
+            var anyEpisodes = await episodesService.CountByFeedIdAsync(feed.Id);
+            var lastUpdateIfAny = feed.LastUpdated;
+            if (anyEpisodes == 0 && lastUpdateIfAny > DateTime.UtcNow.AddMinutes(-1))
+            {
+                _logger.LogInformation("Skipping feed update as it was updated recently (within the last minute) and resulted in 0 episodes: {Url}", feed.Url);
+                continue;
+            }
+            
+            if (anyEpisodes > 0 && lastUpdateIfAny > DateTime.UtcNow.AddHours(-1))
             {
                 _logger.LogInformation("Skipping feed update as it was updated recently (within the last hour): {Url}", feed.Url);
                 continue;
