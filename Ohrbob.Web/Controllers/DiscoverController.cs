@@ -5,6 +5,15 @@ using Ohrbob.Server.Shared.Data;
 
 namespace Ohrbob.Web.Controllers;
 
+public class AddFeedRequest
+{
+    public string FeedUrl { get; set; } = string.Empty;
+    public string FeedTitle { get; set; } = string.Empty;
+    public List<string> StationIds { get; set; } = new();
+    public bool CreateNewStation { get; set; }
+    public string? NewStationName { get; set; }
+}
+
 [Authorize]
 public class DiscoverController : Controller
 {
@@ -46,28 +55,42 @@ public class DiscoverController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddFeed(string feedUrl, string feedTitle, string? stationId)
+    public async Task<IActionResult> AddFeed([FromBody] AddFeedRequest request)
     {
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Unauthorized();
 
-        if (string.IsNullOrEmpty(feedUrl) || string.IsNullOrEmpty(feedTitle))
+        if (string.IsNullOrEmpty(request.FeedUrl) || string.IsNullOrEmpty(request.FeedTitle))
         {
-            return Content("<div class='alert alert-danger p-2 mb-0'>Invalid feed data.</div>");
+            return StatusCode(422, "Invalid feed data.");
+        }
+
+        if (!request.CreateNewStation && (request.StationIds == null || request.StationIds.Count == 0))
+        {
+            return StatusCode(422, "No stations selected.");
         }
 
         try
         {
-            if (string.IsNullOrEmpty(stationId) || stationId == "new")
+            var createdStationNames = new List<string>();
+            var updatedStationNames = new List<string>();
+
+            // 1. Create New Station if checked
+            if (request.CreateNewStation)
             {
+                var targetName = !string.IsNullOrWhiteSpace(request.NewStationName) 
+                    ? request.NewStationName.Trim() 
+                    : request.FeedTitle;
+
                 var newStation = new Station
                 {
                     AccountId = accountId,
-                    Name = feedTitle,
-                    Feeds = new[] { feedUrl }
+                    Name = targetName,
+                    Feeds = new[] { request.FeedUrl }
                 };
                 var created = await _stationsService.CreateStationAsync(accountId, newStation);
-                
+                createdStationNames.Add(targetName);
+
                 // Add to active profile
                 var activeId = HttpContext.Request.Cookies["Ohrbob_ActiveProfileId"];
                 if (string.IsNullOrEmpty(activeId))
@@ -79,30 +102,68 @@ public class DiscoverController : Controller
                 {
                     await _profilesService.AddStationToProfileAsync(activeId, created.Id);
                 }
+            }
 
-                Response.Headers["HX-Trigger"] = "stationAdded";
-                return Content($"<div class='alert alert-success p-2 mb-0'>Created new station: {feedTitle}</div>");
+            // 2. Add to existing stations
+            if (request.StationIds != null && request.StationIds.Count > 0)
+            {
+                foreach (var stationId in request.StationIds)
+                {
+                    var station = await _stationsService.GetStationByIdAsync(stationId);
+                    if (station == null || station.AccountId != accountId) continue;
+
+                    var feeds = station.Feeds?.ToList() ?? new List<string>();
+                    if (!feeds.Contains(request.FeedUrl))
+                    {
+                        feeds.Add(request.FeedUrl);
+                        station.Feeds = feeds.ToArray();
+                    }
+
+                    if (station.Schedule == null) station.Schedule = new StationSchedule();
+                    if (station.Schedule.Feeds == null) station.Schedule.Feeds = new List<StationFeedSchedule>();
+                    if (!station.Schedule.Feeds.Any(f => f.Url == request.FeedUrl))
+                    {
+                        station.Schedule.Feeds.Add(new StationFeedSchedule { Url = request.FeedUrl });
+                    }
+
+                    await _stationsService.UpdateStationAsync(station);
+                    updatedStationNames.Add(station.Name);
+                }
+            }
+
+            // 3. Formulate success toast response
+            string msg;
+            if (createdStationNames.Count > 0 && updatedStationNames.Count > 0)
+            {
+                msg = $"Created station '{createdStationNames[0]}' and added to: {string.Join(", ", updatedStationNames)}";
+            }
+            else if (createdStationNames.Count > 0)
+            {
+                msg = $"Created new station: {createdStationNames[0]}";
             }
             else
             {
-                var station = await _stationsService.GetStationByIdAsync(stationId);
-                if (station == null || station.AccountId != accountId) return Unauthorized();
-
-                var feeds = station.Feeds?.ToList() ?? new List<string>();
-                if (!feeds.Contains(feedUrl))
-                {
-                    feeds.Add(feedUrl);
-                    station.Feeds = feeds.ToArray();
-                    await _stationsService.UpdateStationAsync(station);
-                }
-                
-                Response.Headers["HX-Trigger"] = "stationAdded";
-                return Content($"<div class='alert alert-success p-2 mb-0'>Added to station: {station.Name}</div>");
+                msg = $"Added podcast to: {string.Join(", ", updatedStationNames)}";
             }
+
+            var payload = new { 
+                stationAdded = "", 
+                showToast = new { message = msg, type = "success" } 
+            };
+            Response.Headers["HX-Trigger"] = System.Text.Json.JsonSerializer.Serialize(payload);
+            return StatusCode(204);
         }
-        catch (Exception ex)
+        catch (LimitExceededException ex)
         {
-            return Content($"<div class='alert alert-danger p-2 mb-0'>Error adding feed.</div>");
+            var payload = new { showToast = new { message = ex.Message, type = "danger" } };
+            Response.Headers["HX-Trigger"] = System.Text.Json.JsonSerializer.Serialize(payload);
+            return StatusCode(422, ex.Message);
+        }
+        catch (Exception)
+        {
+            var payload = new { showToast = new { message = "Error adding feed.", type = "danger" } };
+            Response.Headers["HX-Trigger"] = System.Text.Json.JsonSerializer.Serialize(payload);
+            return StatusCode(422, "Error adding feed.");
         }
     }
 }
