@@ -113,18 +113,12 @@ public class DiscoverController : Controller
                     if (station == null || station.AccountId != accountId) continue;
 
                     var feeds = station.Feeds?.ToList() ?? new List<string>();
-                    if (!feeds.Contains(request.FeedUrl))
-                    {
-                        feeds.Add(request.FeedUrl);
-                        station.Feeds = feeds.ToArray();
-                    }
+                    feeds.Add(request.FeedUrl);
+                    station.Feeds = feeds.ToArray();
 
                     if (station.Schedule == null) station.Schedule = new StationSchedule();
                     if (station.Schedule.Feeds == null) station.Schedule.Feeds = new List<StationFeedSchedule>();
-                    if (!station.Schedule.Feeds.Any(f => f.Url == request.FeedUrl))
-                    {
-                        station.Schedule.Feeds.Add(new StationFeedSchedule { Url = request.FeedUrl });
-                    }
+                    station.Schedule.Feeds.Add(new StationFeedSchedule { Url = request.FeedUrl });
 
                     await _stationsService.UpdateStationAsync(station);
                     updatedStationNames.Add(station.Name);
