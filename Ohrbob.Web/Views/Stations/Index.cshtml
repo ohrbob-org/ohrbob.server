@@ -46,11 +46,18 @@
                 <div class="card-body">
                     <h5 class="card-title d-flex align-items-center">
                         @dto.Station.Name
+                        @{
+                            var totalEpisodes = dto.Feeds?.Sum(f => f.EpisodeCount) ?? 0;
+                        }
                         @if (dto.IsUpdating)
                         {
                             <div class="spinner-border spinner-border-sm text-primary ms-2" role="status" title="Updating feeds...">
                                 <span class="visually-hidden">Updating...</span>
                             </div>
+                        }
+                        else if (totalEpisodes == 0)
+                        {
+                            <span class="badge bg-danger ms-2" title="No episodes found">Empty</span>
                         }
                     </h5>
                     <p class="card-text">
