@@ -4,7 +4,13 @@
     ViewData["Title"] = "Edit Station";
 }
 
-<h1>Edit Station - @Model.Station.Name</h1>
+<h1 class="d-flex align-items-center">
+    <span>Edit Station - </span>
+    <span id="stationNameDisplay" class="ms-1">@Model.Station.Name</span>
+    <button type="button" class="btn btn-link text-decoration-none p-0 ms-2 lh-1" id="renameStationBtn" title="Rename Station" style="font-size: 1.5rem; color: #6c757d;">
+        <i class="bi bi-pencil-square"></i>
+    </button>
+</h1>
 
 <style>
 .pill-nav {
@@ -169,6 +175,31 @@
         </div>
     }
   </div>
+</div>
+
+<!-- Rename Station Modal -->
+<div class="modal fade" id="renameStationModal" tabindex="-1" aria-labelledby="renameStationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="renameStationModalLabel">Rename Station</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-dark">
+                <div class="mb-3">
+                    <label for="newStationNameInput" class="form-label">New Station Name</label>
+                    <input type="text" class="form-control" id="newStationNameInput" placeholder="Enter station name" required />
+                    <div class="invalid-feedback d-none" id="renameErrorMsg">
+                        Station name cannot be empty.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveStationNameBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @Html.AntiForgeryToken()
@@ -423,6 +454,9 @@
                 // Trigger saving the schedule change asynchronously
                 updateSchedule();
             };
+
+            // Initialize rename station functionality
+            window.initRenameStation("@Model.Station.Id");
         })();
 </script>
 
