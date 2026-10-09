@@ -5,7 +5,8 @@ namespace Ohrbob.Server.Shared.Data;
 public enum FeedSortOrder
 {
     OldestToNewest,
-    NewestToOldest
+    NewestToOldest,
+    Randomized
 }
 
 public class StationFeedSchedule

@@ -41,6 +41,12 @@ public static class PlaybackStrategyHelper
             {
                 feedEpisodes = feedEpisodes.OrderByDescending(e => e.PublishedAt);
             }
+            else if (sortOrder == FeedSortOrder.Randomized)
+            {
+                var seed = station.Id?.GetHashCode() ?? 0;
+                var random = new Random(seed);
+                feedEpisodes = feedEpisodes.OrderBy(e => random.Next());
+            }
             else
             {
                 feedEpisodes = feedEpisodes.OrderBy(e => e.PublishedAt);
