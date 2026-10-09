@@ -47,8 +47,7 @@ public class FeedsService : MongoDbService<Feed>
                 Url = url,
                 Title = parsedFeed.Title ?? string.Empty,
                 Description = parsedFeed.Description ?? string.Empty,
-                ImageUrl = parsedFeed.ImageUrl ?? string.Empty,
-                LastUpdated = DateTime.UtcNow
+                ImageUrl = parsedFeed.ImageUrl ?? string.Empty
             };
         }
         catch
