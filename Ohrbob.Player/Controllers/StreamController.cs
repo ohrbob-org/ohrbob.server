@@ -17,6 +17,7 @@ public class StreamController : ControllerBase
     private readonly IMongoCollection<Station> _stations;
     private readonly IMongoCollection<Episode> _episodes;
     private readonly IMongoCollection<Profile> _profiles;
+    private readonly IMongoCollection<Feed> _feeds;
 
     public StreamController(
         PlayerContextService contextService, 
@@ -30,6 +31,7 @@ public class StreamController : ControllerBase
         _stations = dbContext.GetCollection<Station>("StationCollection");
         _episodes = dbContext.GetCollection<Episode>("EpisodeCollection");
         _profiles = dbContext.GetCollection<Profile>("ProfileCollection");
+        _feeds = dbContext.GetCollection<Feed>("FeedCollection");
     }
 
     private async Task<Profile?> GetProfile()
@@ -69,7 +71,19 @@ public class StreamController : ControllerBase
              if (currentEpisode != null) activeEpisodeId = currentEpisode.Id;
         }
 
-        if (currentEpisode == null) return Ok(new { });
+        if (currentEpisode == null)
+        {
+            var feeds = await _feeds.Find(f => station.Feeds.Contains(f.Url)).ToListAsync();
+            bool isCompiling = station.Feeds.Length > 0 && (!feeds.Any() || feeds.Any(f => !f.LastUpdated.HasValue));
+
+            return Ok(new 
+            {
+                stationId = station.Id,
+                stationName = station.Name,
+                isCompiling = isCompiling,
+                isEmpty = !isCompiling
+            });
+        }
 
         var listenState = await _listenStateService.GetStateAsync(profile.Id, currentEpisode.Id);
         int position = listenState?.PositionSeconds ?? 0;
