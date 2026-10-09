@@ -202,4 +202,24 @@ public class StationsController : Controller
         
         return Ok();
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Rename(string id, string name)
+    {
+        var accountId = GetAccountId();
+        if (string.IsNullOrEmpty(accountId)) return Forbid();
+
+        if (string.IsNullOrWhiteSpace(name))
+            return BadRequest("Station name cannot be empty.");
+
+        var existingStation = await _stationsService.GetStationByIdAsync(id);
+        if (existingStation == null || existingStation.AccountId != accountId)
+            return NotFound();
+
+        existingStation.Name = name;
+        await _stationsService.UpdateStationAsync(existingStation);
+
+        return Ok(new { name = existingStation.Name });
+    }
 }
