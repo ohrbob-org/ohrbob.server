@@ -28,28 +28,70 @@ public class AudioPlaybackTests : PageTest
     [SetUp]
     public async Task Setup()
     {
+        await Context.ClearCookiesAsync();
         _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
         
-        // Mock HTMLMediaElement audio playback for determinism and speed by redirecting to a silent local WAV URI
+        // Mock HTMLMediaElement audio playback for complete determinism and speed
         await Page.AddInitScriptAsync(@"
             (() => {
-                const desc = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'src');
-                if (desc && desc.set) {
-                    Object.defineProperty(HTMLMediaElement.prototype, 'src', {
-                        get: function() {
-                            return desc.get.call(this);
-                        },
-                        set: function(val) {
-                            if (val && val.startsWith('http') && !val.includes('base64')) {
-                                desc.set.call(this, 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAAAGAA==');
-                            } else {
-                                desc.set.call(this, val);
-                            }
+                class MockAudio {
+                    constructor() {
+                        this._listeners = {};
+                        this._src = '';
+                        this._currentTime = 0;
+                        this._duration = 300;
+                        this._volume = 1;
+                        this._muted = false;
+                        this._paused = true;
+                        this.readyState = 4;
+                    }
+                    addEventListener(event, callback) {
+                        if (!this._listeners[event]) this._listeners[event] = [];
+                        this._listeners[event].push(callback);
+                    }
+                    removeEventListener(event, callback) {
+                        if (!this._listeners[event]) return;
+                        this._listeners[event] = this._listeners[event].filter(cb => cb !== callback);
+                    }
+                    dispatchEvent(event) {
+                        const eventType = event.type;
+                        if (this._listeners[eventType]) {
+                            this._listeners[eventType].forEach(cb => cb(event));
                         }
-                    });
+                    }
+                    get src() { return this._src; }
+                    set src(val) { this._src = val; }
+                    get currentTime() { return this._currentTime; }
+                    set currentTime(val) { this._currentTime = val; }
+                    get duration() { return this._duration; }
+                    set duration(val) { this._duration = val; }
+                    get volume() { return this._volume; }
+                    set volume(val) { this._volume = val; }
+                    get muted() { return this._muted; }
+                    set muted(val) { this._muted = val; }
+                    get paused() { return this._paused; }
+                    
+                    play() {
+                        console.log('MOCK AUDIO play() called! Stacktrace:', new Error().stack);
+                        this._paused = false;
+                        setTimeout(() => {
+                            this.dispatchEvent(new Event('play'));
+                            this.dispatchEvent(new Event('playing'));
+                        }, 10);
+                        return Promise.resolve();
+                    }
+                    pause() {
+                        console.log('MOCK AUDIO pause() called! Stacktrace:', new Error().stack);
+                        this._paused = true;
+                        setTimeout(() => {
+                            this.dispatchEvent(new Event('pause'));
+                        }, 10);
+                    }
+                    load() {}
                 }
+                window.Audio = MockAudio;
             })();
         ");
         
@@ -75,9 +117,11 @@ public class AudioPlaybackTests : PageTest
     }
 
     [TearDown]
-    public void TearDown()
+    public async Task TearDown()
     {
+        await Context.CloseAsync();
         _factory.Dispose();
+        TestAuthHandler.TestAccountId = string.Empty;
     }
 
     [Test]
@@ -123,9 +167,13 @@ public class AudioPlaybackTests : PageTest
         // Wait for the player to load the episode metadata (meaning it's not the placeholder "Track Name" anymore)
         await Expect(Page.Locator("#ohrbob-player .track-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
 
-        // Click the audio widget's play button
+        // If the player is not already playing (which it should be after clicking the card, but let's be safe), click play
         var playBtn = Page.Locator("#ohrbob-player .js-play");
-        await playBtn.ClickAsync();
+        var rectCount = await playBtn.Locator("rect").CountAsync();
+        if (rectCount == 0)
+        {
+            await playBtn.ClickAsync();
+        }
         
         // Wait for the pause icon to appear (meaning it is playing)
         await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 45000 });
@@ -180,7 +228,11 @@ public class AudioPlaybackTests : PageTest
         await Expect(Page.Locator("#ohrbob-player .track-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
         
         var playBtn = Page.Locator("#ohrbob-player .js-play");
-        await playBtn.ClickAsync();
+        var rectCount = await playBtn.Locator("rect").CountAsync();
+        if (rectCount == 0)
+        {
+            await playBtn.ClickAsync();
+        }
         
         try
         {

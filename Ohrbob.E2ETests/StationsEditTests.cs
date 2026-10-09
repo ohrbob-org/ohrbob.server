@@ -27,6 +27,7 @@ public class StationsEditTests : PageTest
     [SetUp]
     public async Task Setup()
     {
+        await Context.ClearCookiesAsync();
         _factory = new PlaywrightWebApplicationFactory();
         
         var accountService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.AccountApiService>();
@@ -44,9 +45,11 @@ public class StationsEditTests : PageTest
     }
 
     [TearDown]
-    public void TearDown()
+    public async Task TearDown()
     {
+        await Context.CloseAsync();
         _factory.Dispose();
+        TestAuthHandler.TestAccountId = string.Empty;
     }
 
     [Test]

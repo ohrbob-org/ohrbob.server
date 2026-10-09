@@ -7,7 +7,7 @@ public class FeedUpdateWorker : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<FeedUpdateWorker> _logger;
-    private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1);
+    private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(5);
 
     public FeedUpdateWorker(IServiceProvider serviceProvider, ILogger<FeedUpdateWorker> logger)
     {
@@ -64,6 +64,12 @@ public class FeedUpdateWorker : BackgroundService
 
         foreach (var feed in feeds)
         {
+            if (feed.LastUpdated.HasValue && feed.LastUpdated.Value >= DateTime.UtcNow.AddHours(-1))
+            {
+                _logger.LogInformation("Skipping feed update as it was updated recently (within the last hour): {Url}", feed.Url);
+                continue;
+            }
+
             _logger.LogInformation("Updating feed: {Url}", feed.Url);
             try
             {

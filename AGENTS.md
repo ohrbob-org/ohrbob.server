@@ -4,7 +4,7 @@
 - **Update Definitions:** When updating a MongoDB data model (like `DbEntry` subclasses), always remember to update the corresponding `GetUpdateDefinition` method in the respective Service (e.g., `StationsService.cs`) to include the new fields via `.Set()`. If this is not done, the new fields will not be saved to the database during updates.
 - **Deletions and References:** When an entry in the database (model) is deleted, it is generally marked as deleted by setting `DeletedAt` (since they all derive from `DbEntry`). When an object in the database references another object and it gets deleted, the references need to be updated. For example: if a `Station` is deleted, then `Profile`s referencing that station need to remove the station reference.
 - **Profiles Minimum Requirement:** Every account must always have at least one profile. Deletion of the last remaining profile of an account is strictly forbidden both on the API and the Web UI. This is why onboarding exists (to guarantee the initial profile creation).
-
+- **REST-Api:** Ohrbob.Web communicates via Rest with Ohrbob.Api - authenticated via api key. 
 ## UI and Frontend (Ohrbob.Web)
 
 - **Immediate Persistence:** When a user interacts with a UI button (like delete, edit, or add), the change should be immediately sent to the API and persisted. If the request succeeds, the UI must be updated accordingly to reflect the change.
@@ -13,6 +13,9 @@
 - **HTMX History & Layout Isolation:** Always place the `hx-history-elt` attribute directly on the targeted container (`<div id="main-content" hx-history-elt>`) instead of the `<body>` tag. This isolates history snapshots to the main view, ensuring outside layout elements (like `<header>` navigation and `<audio-widget>` playback) remain fully untouched and uninterrupted on browser back/forward navigation.
 - **Interactive Controls vs. HTMX Boost:** For components that use JavaScript (like Bootstrap dropdown menus, modals, or play toggles) that do not perform real navigation, always use `<button type="button">` rather than `<a href="#">`. Boosted `<body>` elements will intercept anchor link clicks as AJAX navigation requests, blocking Bootstrap/plugin event listeners.
 - **Background Media Session API:** For any audio playback functionality, ensure integration with the browser's Media Session API (`navigator.mediaSession`). This allows users to control playback (play, pause, seek, skip) and view track metadata (title, artist, artwork) through system-level background media controls, lock screens, and hardware media keys.
+- **JavaScript Location:** If we write JavaScript code for the Ohrbob.Web frontend, in general, it should never reside in views (CSHTML files) but rather in the dedicated scripts folder inside `wwwroot` (e.g., `wwwroot/js`).
+- **Confirmation Modals:** For any user confirmation (such as "Ok", "Cancel" actions), we use Bootstrap modals inside `Ohrbob.Web` rather than standard browser native dialogs (`confirm()`). This ensures a unified, beautiful, and non-blocking visual experience.
+- **Notifications and Feedback:** Any warnings, info, and errors that happen when a user interacts with Ohrbob.Web should be displayed as transient toast messages (e.g., via the `showToast` HTMX custom event and the Bootstrap toast container), rather than permanently replacing or destroying interactive UI forms or layout elements.
 
 ## Testing
 

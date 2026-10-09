@@ -21,6 +21,8 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
             return Task.FromResult(AuthenticateResult.NoResult());
         }
 
+        Console.WriteLine($"[TestAuthHandler] Authenticating request with TestAccountId: {TestAccountId}");
+
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, "test-user-id"),

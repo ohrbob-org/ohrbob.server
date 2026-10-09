@@ -99,6 +99,27 @@ public class StationsControllerTests
     }
     
     [Test]
+    public async Task Create_Post_LimitExceeded_AddsModelErrorAndReturnsView()
+    {
+        var newStation = new Station { Name = "Limit Station" };
+        var exceptionMessage = "Station limit reached for Free tier.";
+        _stationsServiceMock
+            .Setup(s => s.CreateStationAsync(TestAccountId, newStation))
+            .ThrowsAsync(new LimitExceededException(exceptionMessage));
+
+        var result = await _controller.Create(newStation);
+
+        var viewResult = result as ViewResult;
+        Assert.That(viewResult, Is.Not.Null);
+        Assert.That(viewResult.Model, Is.EqualTo(newStation));
+        Assert.That(_controller.ModelState.IsValid, Is.False);
+        
+        var error = _controller.ModelState[string.Empty]?.Errors.FirstOrDefault();
+        Assert.That(error, Is.Not.Null);
+        Assert.That(error!.ErrorMessage, Is.EqualTo(exceptionMessage));
+    }
+    
+    [Test]
     public async Task Delete_Post_ValidId_DeletesAndRedirects()
     {
         var stationId = "station-123";

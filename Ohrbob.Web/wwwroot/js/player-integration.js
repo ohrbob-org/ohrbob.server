@@ -47,7 +47,27 @@
         };
 
         const applyStateToWidget = (state) => {
-            if (!state) return;
+            if (!state || !state.stationId) {
+                // No active station/profile, reset to default empty state
+                currentEpisodeData = null;
+                nextEpisodeData = null;
+                widget.setAttribute('station', 'My Station');
+                widget.setAttribute('track', 'Track Name');
+                widget.setAttribute('artist', 'Artist');
+                widget.removeAttribute('cover');
+                widget.duration = 0;
+                widget.currentTime = 0;
+                
+                const btnPlay = widget.querySelector('.js-play');
+                if (btnPlay) btnPlay.setAttribute('disabled', 'true');
+                const progress = widget.querySelector('.audio-progress');
+                if (progress) progress.setAttribute('disabled', 'true');
+                
+                widget.querySelectorAll('.js-back, .js-forward, .js-skipback, .js-skipforward').forEach(btn => {
+                    btn.setAttribute('disabled', 'true');
+                });
+                return;
+            }
             
             activeStationId = state.stationId;
 
@@ -76,7 +96,7 @@
                 });
             } else {
                 // Normal state
-                currentEpisodeData = state.current;
+                currentEpisodeData = state.current || {};
                 nextEpisodeData = state.next;
 
                 widget.setAttribute('station', state.stationName || 'Unknown Station');
@@ -160,9 +180,11 @@
 
         const syncState = async () => {
             const state = await apiCall('/stream/status');
-            if (state && state.current) {
+            if (state) {
                 applyStateToWidget(state);
-                setupAudio();
+                if (state.current) {
+                    setupAudio();
+                }
             }
         };
 
