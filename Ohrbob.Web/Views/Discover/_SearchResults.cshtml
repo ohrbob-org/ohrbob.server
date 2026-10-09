@@ -50,18 +50,6 @@ else
                                 <input type="hidden" name="feedUrl" value="@podcast.Url" />
                                 <input type="hidden" name="feedTitle" value="@podcast.Title" />
                                 
-                                <!-- Create New Section -->
-                                <div class="form-check mb-3 @(hasStations ? "border-bottom pb-2" : "")">
-                                    <input class="form-check-input" type="checkbox" name="createNewStation" value="true" id="create-new-@safeId" @(!hasStations ? "checked" : "") onchange="window.toggleNewStationInput('@safeId')">
-                                    <label class="form-check-label fw-bold" for="create-new-@safeId">
-                                        Create a new station from this feed
-                                    </label>
-                                </div>
-                                <div class="mb-3" id="new-station-name-container-@safeId" style="display: @(hasStations ? "none" : "block");">
-                                    <label class="form-label small text-muted">New Station Name</label>
-                                    <input type="text" class="form-control form-control-sm" name="newStationName" value="@podcast.Title" placeholder="Station Name" />
-                                </div>
-
                                 <!-- Existing Stations Section -->
                                 @if (hasStations)
                                 {
@@ -78,6 +66,19 @@ else
                                         }
                                     </div>
                                 }
+                                
+                                <!-- Create New Section -->
+                                <div class="form-check mb-3 @(hasStations ? "border-bottom pb-2" : "")">
+                                    <input class="form-check-input" type="checkbox" name="createNewStation" value="true" id="create-new-@safeId" @(!hasStations ? "checked" : "") onchange="window.toggleNewStationInput('@safeId')">
+                                    <label class="form-check-label fw-bold" for="create-new-@safeId">
+                                        Create a new station from this feed
+                                    </label>
+                                </div>
+                                <div class="mb-3" id="new-station-name-container-@safeId" style="display: @(hasStations ? "none" : "block");">
+                                    <label class="form-label small text-muted">New Station Name</label>
+                                    <input type="text" class="form-control form-control-sm" name="newStationName" value="@podcast.Title" placeholder="Station Name" />
+                                </div>
+
                                 
                                 <div class="modal-footer px-0 pb-0">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

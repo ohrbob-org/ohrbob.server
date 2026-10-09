@@ -73,6 +73,9 @@ header {
 .nav-logo-img {
     height: 32px;
 }
+.station-list-container {
+    margin-left:1rem;
+}
 
 .floating-nav-pill {
     /* position: sticky handled by header */

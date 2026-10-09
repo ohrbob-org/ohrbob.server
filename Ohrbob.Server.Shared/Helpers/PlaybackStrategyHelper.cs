@@ -43,9 +43,7 @@ public static class PlaybackStrategyHelper
             }
             else if (sortOrder == FeedSortOrder.Randomized)
             {
-                var seed = station.Id?.GetHashCode() ?? 0;
-                var random = new Random(seed);
-                feedEpisodes = feedEpisodes.OrderBy(e => random.Next());
+                feedEpisodes = feedEpisodes.OrderBy(e => GetDeterministicHashCode(station.Id + e.Id));
             }
             else
             {
@@ -70,5 +68,26 @@ public static class PlaybackStrategyHelper
         } while (added);
 
         return result;
+    }
+
+    private static int GetDeterministicHashCode(string str)
+    {
+        if (str == null) return 0;
+        unchecked
+        {
+            int hash = 5381;
+            foreach (char c in str)
+            {
+                hash = ((hash << 5) + hash) ^ c;
+            }
+            // Non-linear integer mixing (Murmur3 fmix32 equivalent) to scatter sequential suffixes
+            uint h = (uint)hash;
+            h ^= h >> 16;
+            h *= 0x85ebca6b;
+            h ^= h >> 13;
+            h *= 0xc2b2ae35;
+            h ^= h >> 16;
+            return (int)h;
+        }
     }
 }

@@ -40,9 +40,11 @@ public class PlaybackStrategyTests
         var playlist1 = PlaybackStrategyHelper.GetOrderedPlaylist(episodes, station, listened, null);
         var playlist2 = PlaybackStrategyHelper.GetOrderedPlaylist(episodes, station, listened, null);
 
+        Console.WriteLine($"playlist1: {string.Join(", ", playlist1.Select(e => e.Id))}");
+
         Assert.That(playlist1.Count, Is.EqualTo(10));
         // Verify results are identical across calls (stability)
-        Assert.That(playlist1.Select(e => e.Id), Is.EquivalentTo(playlist2.Select(e => e.Id)));
+        Assert.That(playlist1.Select(e => e.Id), Is.EqualTo(playlist2.Select(e => e.Id)));
         
         // Run with a different station ID seed and assert different shuffle
         var otherStation = new Station
@@ -58,6 +60,7 @@ public class PlaybackStrategyTests
             }
         };
         var playlistOther = PlaybackStrategyHelper.GetOrderedPlaylist(episodes, otherStation, listened, null);
+        Console.WriteLine($"playlistOther: {string.Join(", ", playlistOther.Select(e => e.Id))}");
         Assert.That(playlist1.Select(e => e.Id), Is.Not.EqualTo(playlistOther.Select(e => e.Id)));
     }
 }
