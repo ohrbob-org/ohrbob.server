@@ -47,19 +47,57 @@
         };
 
         const applyStateToWidget = (state) => {
-            if (!state || !state.current) return;
+            if (!state) return;
             
-            currentEpisodeData = state.current;
-            nextEpisodeData = state.next;
             activeStationId = state.stationId;
 
-            widget.setAttribute('station', state.stationName || 'Unknown Station');
-            widget.setAttribute('track', currentEpisodeData.title || '');
-            widget.setAttribute('artist', state.stationName || ''); 
-            if (currentEpisodeData.coverUrl) {
-                 widget.setAttribute('cover', currentEpisodeData.coverUrl);
+            // Handle compile/empty state
+            if (state.isCompiling || state.isEmpty) {
+                currentEpisodeData = null;
+                nextEpisodeData = null;
+
+                widget.setAttribute('station', state.stationName || 'Unknown Station');
+                widget.setAttribute('track', state.isCompiling ? 'Compiling Station...' : 'No Episodes Available');
+                widget.setAttribute('artist', state.isCompiling ? 'We are fetching the latest episodes.' : 'Please add some active feeds.');
+                widget.removeAttribute('cover');
+                widget.duration = 0;
+                widget.currentTime = 0;
+
+                // Disable play button and progress bar
+                const btnPlay = widget.querySelector('.js-play');
+                if (btnPlay) btnPlay.setAttribute('disabled', 'true');
+                
+                const progress = widget.querySelector('.audio-progress');
+                if (progress) progress.setAttribute('disabled', 'true');
+
+                // Disable skips and forwards
+                widget.querySelectorAll('.js-back, .js-forward, .js-skipback, .js-skipforward').forEach(btn => {
+                    btn.setAttribute('disabled', 'true');
+                });
             } else {
-                 widget.removeAttribute('cover');
+                // Normal state
+                currentEpisodeData = state.current;
+                nextEpisodeData = state.next;
+
+                widget.setAttribute('station', state.stationName || 'Unknown Station');
+                widget.setAttribute('track', currentEpisodeData.title || '');
+                widget.setAttribute('artist', state.stationName || ''); 
+                if (currentEpisodeData.coverUrl) {
+                     widget.setAttribute('cover', currentEpisodeData.coverUrl);
+                } else {
+                     widget.removeAttribute('cover');
+                }
+
+                // Enable buttons
+                const btnPlay = widget.querySelector('.js-play');
+                if (btnPlay) btnPlay.removeAttribute('disabled');
+                
+                const progress = widget.querySelector('.audio-progress');
+                if (progress) progress.removeAttribute('disabled');
+
+                widget.querySelectorAll('.js-back, .js-forward, .js-skipback, .js-skipforward').forEach(btn => {
+                    btn.removeAttribute('disabled');
+                });
             }
 
             document.querySelectorAll(".active-station-card").forEach(c => {
