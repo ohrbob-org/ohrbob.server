@@ -160,3 +160,85 @@ window.submitAddFeedJson = function (event, safeId) {
         if (confirmBtn) confirmBtn.disabled = false;
     });
 };
+
+window.initRenameStation = function (stationId) {
+    const renameBtn = document.getElementById('renameStationBtn');
+    const modalEl = document.getElementById('renameStationModal');
+    const saveBtn = document.getElementById('saveStationNameBtn');
+    const nameInput = document.getElementById('newStationNameInput');
+    const errorMsg = document.getElementById('renameErrorMsg');
+    const nameDisplay = document.getElementById('stationNameDisplay');
+
+    if (!renameBtn || !modalEl || !saveBtn || !nameInput || !errorMsg || !nameDisplay) return;
+
+    let modal = null;
+
+    renameBtn.addEventListener('click', function () {
+        nameInput.value = nameDisplay.textContent.trim();
+        nameInput.classList.remove('is-invalid');
+        errorMsg.classList.add('d-none');
+        if (!modal) {
+            modal = new bootstrap.Modal(modalEl);
+        }
+        modal.show();
+    });
+
+    nameInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            saveBtn.click();
+        }
+    });
+
+    saveBtn.addEventListener('click', function () {
+        const newName = nameInput.value.trim();
+        if (!newName) {
+            nameInput.classList.add('is-invalid');
+            errorMsg.classList.remove('d-none');
+            return;
+        }
+
+        nameInput.classList.remove('is-invalid');
+        errorMsg.classList.add('d-none');
+        saveBtn.disabled = true;
+
+        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        const token = tokenInput ? tokenInput.value : '';
+
+        const formData = new FormData();
+        formData.append('name', newName);
+
+        fetch(`/Stations/Rename/${stationId}`, {
+            method: 'POST',
+            headers: {
+                'RequestVerificationToken': token
+            },
+            body: formData
+        })
+        .then(async response => {
+            saveBtn.disabled = false;
+            if (response.ok) {
+                const data = await response.json();
+                nameDisplay.textContent = data.name;
+                document.title = `Edit Station - ${data.name} | ohrbob`;
+                if (modal) modal.hide();
+
+                document.body.dispatchEvent(new CustomEvent('showToast', {
+                    detail: { message: 'Station renamed successfully.', type: 'success' }
+                }));
+            } else {
+                const text = await response.text();
+                document.body.dispatchEvent(new CustomEvent('showToast', {
+                    detail: { message: text || 'Failed to rename station.', type: 'danger' }
+                }));
+            }
+        })
+        .catch(err => {
+            saveBtn.disabled = false;
+            console.error('Error renaming station:', err);
+            document.body.dispatchEvent(new CustomEvent('showToast', {
+                detail: { message: 'Network error renaming station.', type: 'danger' }
+            }));
+        });
+    });
+};
