@@ -207,4 +207,80 @@ public class StationsEditTests : PageTest
         // Check if there is 1 feed card
         await Expect(feedCards).ToHaveCountAsync(1, new() { Timeout = 10000 });
     }
+
+    [Test]
+    public async Task Can_Rename_Station_From_Edit_Page()
+    {
+        var url = _factory.ServerAddress;
+        
+        // Ensure profile exists
+        var profileService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.ProfilesApiService>();
+        var profiles = await profileService.GetProfilesByAccountIdAsync(_testAccountId);
+        if (profiles == null || !profiles.Any())
+        {
+            await profileService.CreateProfileAsync(_testAccountId, new Profile { Name = "Main Profile" });
+        }
+        
+        Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
+        Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
+        await Page.GotoAsync(url);
+        
+        var feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../example_feeds.txt");
+        if (!File.Exists(feedPath))
+            feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../../example_feeds.txt");
+        var feeds = await File.ReadAllLinesAsync(feedPath);
+        var firstFeed = feeds.First(l => !string.IsNullOrWhiteSpace(l));
+
+        // Go to Stations and Create
+        await Page.ClickAsync("#profileDropdown");
+        await Page.ClickAsync("text=\"Stations\"");
+        await Page.ClickAsync("text=Create New Station");
+        
+        await Page.FillAsync("input[name='Name']", "Original Station Name");
+        await Page.FillAsync("input[name='Feeds']", firstFeed);
+        await Page.ClickAsync("input[type='submit']");
+        
+        // Wait for redirect to Stations list
+        await Page.WaitForURLAsync("**/Stations", new() { Timeout = 10000 });
+        
+        // Go to Home (Dashboard)
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        // Wait for station to appear on dashboard
+        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Original Station Name" }).First;
+        await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
+        
+        // Click the edit gear icon
+        await stationCard.Locator("a[href^='/Stations/Edit/']").ClickAsync();
+        
+        // Wait for Edit Station page
+        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+        
+        // Click the rename (pen) button
+        await Page.ClickAsync("#renameStationBtn");
+        
+        // Modal should be visible
+        await Expect(Page.Locator("#renameStationModal")).ToBeVisibleAsync();
+        
+        // Try filling empty name and click Save
+        await Page.FillAsync("#newStationNameInput", "");
+        await Page.ClickAsync("#saveStationNameBtn");
+        
+        // Error message should be shown (element lacks d-none class)
+        await Expect(Page.Locator("#renameErrorMsg")).Not.ToHaveClassAsync(new System.Text.RegularExpressions.Regex("d-none"));
+        
+        // Fill valid new name and save
+        await Page.FillAsync("#newStationNameInput", "Completely New Station Name");
+        await Page.ClickAsync("#saveStationNameBtn");
+        
+        // Modal should close
+        await Expect(Page.Locator("#renameStationModal")).Not.ToBeVisibleAsync();
+        
+        // Heading should be updated
+        await Expect(Page.Locator("#stationNameDisplay")).ToHaveTextAsync("Completely New Station Name");
+        
+        // Document title should be updated
+        var title = await Page.TitleAsync();
+        Assert.That(title, Does.Contain("Completely New Station Name"));
+    }
 }
