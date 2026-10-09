@@ -65,24 +65,24 @@
                         <div class="playback-order-toggle-container d-inline-flex flex-column align-items-center mt-2" style="width: 240px;">
                             <!-- Capsule Slider Track -->
                             <div class="position-relative bg-light border rounded-pill d-flex align-items-center justify-content-between user-select-none"
-                                 style="width: 100%; height: 36px; padding: 4px; background-color: #f1f3f5; border: 1px solid #ced4da; cursor: pointer;"
+                                 style="width: 100%; height: 36px; padding: 4px; background-color: #e9ecef; border: 1px solid #ced4da; cursor: pointer;"
                                  id="sliderTrack-@currentFeedIndex" role="slider" aria-valuemin="0" aria-valuemax="2" aria-valuenow="@activeValue">
                                  
                                  <!-- Sliding circular thumb -->
                                  <div class="slider-thumb-container bg-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm"
                                       style="position: absolute; top: 4px; left: @thumbLeft; width: 28px; height: 28px; border: 1px solid rgba(255, 255, 255, 0.3); pointer-events: none; z-index: 20; transform: @thumbTransform; transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
-                                     <i class="bi @(activeValue == 1 ? "bi-sort-down" : (activeValue == 2 ? "bi-shuffle" : "bi-sort-up")) text-white" style="font-size: 0.9rem;"></i>
+                                      <i class="bi @(activeValue == 1 ? "bi-sort-down" : (activeValue == 2 ? "bi-shuffle" : "bi-sort-up")) text-white" style="font-size: 0.9rem;"></i>
                                  </div>
 
                                  <!-- Nodes -->
-                                 <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 1)" class="playback-node-btn" style="position: relative; z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d; font-size: 0.8rem;" title="Backwards">
-                                     <i class="bi bi-sort-down"></i>
+                                 <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 1)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d;" title="Backwards">
+                                     <i class="bi bi-sort-down" style="position: absolute; left: 4px; top: 0; width: 28px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;"></i>
                                  </button>
-                                 <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 2)" class="playback-node-btn" style="position: relative; z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d; font-size: 0.8rem;" title="Random">
-                                     <i class="bi bi-shuffle"></i>
+                                 <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 2)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d; display: flex; align-items: center; justify-content: center;" title="Random">
+                                     <i class="bi bi-shuffle" style="font-size: 0.8rem;"></i>
                                  </button>
-                                 <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 0)" class="playback-node-btn" style="position: relative; z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d; font-size: 0.8rem;" title="Forwards">
-                                     <i class="bi bi-sort-up"></i>
+                                 <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 0)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d;" title="Forwards">
+                                     <i class="bi bi-sort-up" style="position: absolute; right: 4px; top: 0; width: 28px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;"></i>
                                  </button>
                             </div>
 
