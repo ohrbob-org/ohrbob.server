@@ -9,10 +9,15 @@
 - **Immediate Persistence:** When a user interacts with a UI button (like delete, edit, or add), the change should be immediately sent to the API and persisted. If the request succeeds, the UI must be updated accordingly to reflect the change.
 - **Uninterrupted Playback:** During any activity or navigation in the UI, the playback in the `audio-widget` should never be interrupted. (e.g., use HTMX or AJAX to prevent full page reloads).
 - **Navigating Back:** Users use the navigate back function in browsers frequently. when we enter a view we should be able to navigate back via the browser and the ui should not break. 
+- **HTMX History & Layout Isolation:** Always place the `hx-history-elt` attribute directly on the targeted container (`<div id="main-content" hx-history-elt>`) instead of the `<body>` tag. This isolates history snapshots to the main view, ensuring outside layout elements (like `<header>` navigation and `<audio-widget>` playback) remain fully untouched and uninterrupted on browser back/forward navigation.
+- **Interactive Controls vs. HTMX Boost:** For components that use JavaScript (like Bootstrap dropdown menus, modals, or play toggles) that do not perform real navigation, always use `<button type="button">` rather than `<a href="#">`. Boosted `<body>` elements will intercept anchor link clicks as AJAX navigation requests, blocking Bootstrap/plugin event listeners.
 - **Background Media Session API:** For any audio playback functionality, ensure integration with the browser's Media Session API (`navigator.mediaSession`). This allows users to control playback (play, pause, seek, skip) and view track metadata (title, artist, artwork) through system-level background media controls, lock screens, and hardware media keys.
 
 ## Testing
 
 - **API Routes:** When implementing a new API route, always write unit tests for coverage.
 - **UI Functionality:** When implementing UI functionality, write an E2E test. For E2E tests, you can use `docker-compose up -d --build` to build and spin up the full environment to test against.
+- **E2E Isolation & Unique Fixtures:** Always use unique, random identifiers (like Guid string suffixes) for test emails or usernames (e.g., `$"user-{Guid.NewGuid()}@test.com"`) to guarantee complete account and database isolation across sequential tests.
+- **Non-Parallel E2E Classes:** Mark E2E test classes with `[NonParallelizable]` if they rely on a shared static testing handler/state (like a mock `TestAuthHandler` setting an active user ID globally).
+- **Mocking Media in Tests:** To make audio playback tests fast and immune to rate-limiting or network latency, inject a browser script that intercepts the `src` setter on `HTMLMediaElement.prototype` and redirects external media URLs to a local, silent, instant-buffering base64 WAV data URI.
 - **Docker:** Use Docker and `docker compose` in general to build and test the projects. The environment variables required are already present in the top-level `.env` file. When debugging E2E tests, it's highly recommended to run `docker compose up -d --build` and test against those containers, as it closely matches the production deployment.
