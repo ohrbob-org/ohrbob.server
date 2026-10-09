@@ -11,7 +11,7 @@
 <body>
     <div class="container mt-5">
         <div class="d-flex align-items-center mb-4 gap-4">
-            <img src="ohrbob-logo.svg" alt="Ohrbob Logo" width="120" height="120" class="logo">
+            <img src="images/ohrbob-logo.svg" alt="Ohrbob Logo" width="120" height="120" class="logo">
             <h1 class="mb-0">Ohrbob UI Kit</h1>
         </div>
         
@@ -114,7 +114,7 @@
                                 <div style="font-size: 3rem;">
                                     <div class="ohrbob-logo ohrbob-logo-left">
                                         <span class="ohrbob-logo-icon">
-                                            <img src="ohrbob-logo.svg" alt="Icon">
+                                            <img src="images/ohrbob-logo.svg" alt="Icon">
                                         </span>
                                         <span class="ohrbob-logo-text">
                                             <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
@@ -127,7 +127,7 @@
 <pre class="mb-0"><code class="language-html">&lt;div style="font-size: 3rem;"&gt;
   &lt;div class="ohrbob-logo ohrbob-logo-left"&gt;
     &lt;span class="ohrbob-logo-icon"&gt;
-      &lt;img src="ohrbob-logo.svg" alt="Icon"&gt;
+      &lt;img src="images/ohrbob-logo.svg" alt="Icon"&gt;
     &lt;/span&gt;
     &lt;span class="ohrbob-logo-text"&gt;
       &lt;span class="char-1"&gt;o&lt;/span&gt;&lt;span class="char-2"&gt;h&lt;/span&gt;&lt;span class="char-3"&gt;r&lt;/span&gt;&lt;span class="char-4"&gt;b&lt;/span&gt;&lt;span class="char-5"&gt;o&lt;/span&gt;&lt;span class="char-6"&gt;b&lt;/span&gt;
@@ -151,7 +151,7 @@
                                 <div style="font-size: 4rem;">
                                     <div class="ohrbob-logo ohrbob-logo-above">
                                         <span class="ohrbob-logo-icon">
-                                            <img src="ohrbob-logo.svg" alt="Icon">
+                                            <img src="images/ohrbob-logo.svg" alt="Icon">
                                         </span>
                                         <span class="ohrbob-logo-text">
                                             <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
@@ -164,7 +164,7 @@
 <pre class="mb-0"><code class="language-html">&lt;div style="font-size: 4rem;"&gt;
   &lt;div class="ohrbob-logo ohrbob-logo-above"&gt;
     &lt;span class="ohrbob-logo-icon"&gt;
-      &lt;img src="ohrbob-logo.svg" alt="Icon"&gt;
+      &lt;img src="images/ohrbob-logo.svg" alt="Icon"&gt;
     &lt;/span&gt;
     &lt;span class="ohrbob-logo-text"&gt;
       &lt;span class="char-1"&gt;o&lt;/span&gt;&lt;span class="char-2"&gt;h&lt;/span&gt;&lt;span class="char-3"&gt;r&lt;/span&gt;&lt;span class="char-4"&gt;b&lt;/span&gt;&lt;span class="char-5"&gt;o&lt;/span&gt;&lt;span class="char-6"&gt;b&lt;/span&gt;
@@ -187,7 +187,7 @@
                                     <div style="font-size: 15cqi;">
                                         <div class="ohrbob-logo ohrbob-logo-above">
                                             <span class="ohrbob-logo-icon">
-                                                <img src="ohrbob-logo.svg" alt="Icon">
+                                                <img src="images/ohrbob-logo.svg" alt="Icon">
                                             </span>
                                             <span class="ohrbob-logo-text">
                                                 <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
@@ -202,7 +202,7 @@
   &lt;div style="font-size: 15cqi;"&gt;
     &lt;div class="ohrbob-logo ohrbob-logo-above"&gt;
       &lt;span class="ohrbob-logo-icon"&gt;
-        &lt;img src="ohrbob-logo.svg" alt="Icon"&gt;
+        &lt;img src="images/ohrbob-logo.svg" alt="Icon"&gt;
       &lt;/span&gt;
       &lt;span class="ohrbob-logo-text"&gt;
         &lt;span class="char-1"&gt;o&lt;/span&gt;&lt;span class="char-2"&gt;h&lt;/span&gt;&lt;span class="char-3"&gt;r&lt;/span&gt;&lt;span class="char-4"&gt;b&lt;/span&gt;&lt;span class="char-5"&gt;o&lt;/span&gt;&lt;span class="char-6"&gt;b&lt;/span&gt;
@@ -255,6 +255,71 @@
             </div>
         </section>
 
+        <section class="mb-5">
+            <h2 class="mb-4">Audio Widget Component</h2>
+            <p>The <code>&lt;audio-widget&gt;</code> is a custom web component that docks to the bottom of the screen (<code>position: fixed</code>). In this showcase, we use the <code>.audio-widget-inline</code> utility class to embed it statically within the documentation flow.</p>
+            
+            <div class="row g-4 mb-4">
+                <div class="col-12">
+                    <div class="card glass-panel">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">Desktop View (Default)</h5>
+                            
+                            <!-- Inline wrapper to enforce the inline showcase style -->
+                            <div class="position-relative w-100 pb-3">
+                                <audio-widget class="audio-widget-inline audio-widget-desktop"
+                                    station="Radio 1"
+                                    track="Cosmic Journey"
+                                    artist="Space Explorer"
+                                    cover="https://images.unsplash.com/photo-1619983081563-430f63602796?auto=format&fit=crop&q=80&w=150&h=150">
+                                </audio-widget>
+                            </div>
+                            
+                            <div class="mt-3 text-start" style="font-size: 0.85rem;">
+<pre class="mb-0"><code class="language-html">&lt;audio-widget 
+    station="Radio 1"
+    track="Cosmic Journey"
+    artist="Space Explorer"
+    cover="images/cover.png"&gt;
+&lt;/audio-widget&gt;</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-6">
+                    <div class="card glass-panel">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">Mobile View</h5>
+                            <p class="text-muted small">We apply <code>.audio-widget-mobile</code> here to force the mobile breakpoint styles for the showcase.</p>
+                            
+                            <!-- Inline wrapper to enforce the inline showcase style -->
+                            <div class="position-relative w-100 mx-auto pb-3" style="max-width: 400px;">
+                                <audio-widget class="audio-widget-inline audio-widget-mobile"
+                                    station="Radio 1"
+                                    track="Cosmic Journey"
+                                    artist="Space Explorer"
+                                    cover="https://images.unsplash.com/photo-1619983081563-430f63602796?auto=format&fit=crop&q=80&w=150&h=150"
+                                    next-episode='{"track":"Secrets of the Deep","artist":"Oceanographer","cover":"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=150&h=150","duration":3600}'
+                                    prev-episode='{"track":"First Steps","artist":"Neil Armstrong","cover":"https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=150&h=150","duration":1800}'>
+                                </audio-widget>
+                            </div>
+                            
+                            <div class="mt-3 text-start" style="font-size: 0.85rem;">
+<pre class="mb-0"><code class="language-html">&lt;!-- On screens < 768px, this layout is automatically applied. --&gt;
+&lt;audio-widget 
+    station="Radio 1"
+    track="Cosmic Journey"
+    artist="Space Explorer"
+    cover="images/cover.png"&gt;
+&lt;/audio-widget&gt;</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <h2 class="mb-4">Components</h2>
         <div class="card glass-panel mb-4">
             <div class="card-body">
@@ -289,56 +354,106 @@
         </div>
     </div>
 
-    <!-- Audio Widget Component -->
-    <audio-widget 
-        station="My Station" 
-        track="Track Name" 
-        artist="Artist"
-        cover="https://images.unsplash.com/photo-1619983081563-430f63602796?auto=format&fit=crop&q=80&w=150&h=150">
-    </audio-widget>
-
     <script src="js/audio-widget.js"></script>
     <script>
-        const widget = document.querySelector('audio-widget');
-        widget.duration = 2532; // 42:12
-        let interval = null;
+        const widgets = document.querySelectorAll('audio-widget');
         
-        widget.addEventListener('play', () => {
-            console.log('Playing...');
-            interval = setInterval(() => {
-                if (widget.currentTime < widget.duration) {
-                    widget.currentTime += 1;
-                } else {
-                    widget.isPlaying = false;
-                    clearInterval(interval);
-                }
-            }, 1000);
-        });
-        
-        widget.addEventListener('pause', () => {
-            console.log('Paused.');
-            clearInterval(interval);
-        });
-        
-        widget.addEventListener('seek', (e) => {
-            console.log('Seeked to', e.detail.time);
-            widget.currentTime = e.detail.time;
-        });
+        widgets.forEach(widget => {
+            widget.duration = 2532; // 42:12
+            let interval = null;
+            
+            widget.addEventListener('play', () => {
+                console.log('Playing...');
+                interval = setInterval(() => {
+                    if (widget.currentTime < widget.duration) {
+                        widget.currentTime += 1;
+                    } else {
+                        widget.isPlaying = false;
+                        clearInterval(interval);
+                    }
+                }, 1000);
+            });
+            
+            widget.addEventListener('pause', () => {
+                console.log('Paused.');
+                clearInterval(interval);
+            });
+            
+            widget.addEventListener('seek', (e) => {
+                console.log('Seeked to', e.detail.time);
+                widget.currentTime = e.detail.time;
+            });
 
-        widget.addEventListener('volumechange', (e) => console.log('Volume:', e.detail.volume));
-        widget.addEventListener('mutechange', (e) => console.log('Muted:', e.detail.muted));
-        widget.addEventListener('skipback', (e) => {
-            console.log('Skip back', e.detail.seconds);
-            widget.currentTime = Math.max(0, widget.currentTime - e.detail.seconds);
+            widget.addEventListener('volumechange', (e) => console.log('Volume:', e.detail.volume));
+            widget.addEventListener('mutechange', (e) => console.log('Muted:', e.detail.muted));
+            widget.addEventListener('skipback', (e) => {
+                console.log('Skip back', e.detail.seconds);
+                widget.currentTime = Math.max(0, widget.currentTime - e.detail.seconds);
+            });
+            widget.addEventListener('skipforward', (e) => {
+                console.log('Skip forward', e.detail.seconds);
+                widget.currentTime = Math.min(widget.duration, widget.currentTime + e.detail.seconds);
+            });
+            widget.addEventListener('forward', () => console.log('Next track requested.'));
+            widget.addEventListener('back', () => console.log('Previous track requested.'));
+            widget.addEventListener('settings', () => console.log('Settings opened.'));
+            widget.addEventListener('coverclick', () => console.log('Cover art tapped!'));
+
+            widget.addEventListener('jumpnext', (e) => {
+                console.log('Jump next triggered with', e.detail.episode);
+                const ep = e.detail.episode;
+                if (!ep) return;
+                
+                // Swap episodes: next becomes current, current becomes previous
+                const currentEp = {
+                    track: widget.getAttribute('track'),
+                    artist: widget.getAttribute('artist'),
+                    cover: widget.getAttribute('cover'),
+                    duration: widget.duration
+                };
+                
+                widget.setAttribute('track', ep.track);
+                widget.setAttribute('artist', ep.artist || '');
+                if (ep.cover) widget.setAttribute('cover', ep.cover);
+                widget.duration = ep.duration || 1800;
+                widget.currentTime = 0;
+                
+                widget.prevEpisode = currentEp;
+                widget.nextEpisode = {
+                    track: "The Future of AI",
+                    artist: "Computer Scientist",
+                    cover: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&q=80&w=150&h=150",
+                    duration: 2400
+                };
+            });
+
+            widget.addEventListener('jumpprev', (e) => {
+                console.log('Jump prev triggered with', e.detail.episode);
+                const ep = e.detail.episode;
+                if (!ep) return;
+                
+                const currentEp = {
+                    track: widget.getAttribute('track'),
+                    artist: widget.getAttribute('artist'),
+                    cover: widget.getAttribute('cover'),
+                    duration: widget.duration
+                };
+
+                widget.setAttribute('track', ep.track);
+                widget.setAttribute('artist', ep.artist || '');
+                if (ep.cover) widget.setAttribute('cover', ep.cover);
+                widget.duration = ep.duration || 1800;
+                widget.currentTime = 0;
+                
+                widget.nextEpisode = currentEp;
+                widget.prevEpisode = {
+                    track: "Big Bang Theories",
+                    artist: "Astrophysicist",
+                    cover: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&q=80&w=150&h=150",
+                    duration: 3200
+                };
+            });
         });
-        widget.addEventListener('skipforward', (e) => {
-            console.log('Skip forward', e.detail.seconds);
-            widget.currentTime = Math.min(widget.duration, widget.currentTime + e.detail.seconds);
-        });
-        widget.addEventListener('forward', () => console.log('Next track requested.'));
-        widget.addEventListener('back', () => console.log('Previous track requested.'));
-        widget.addEventListener('settings', () => console.log('Settings opened.'));
-        widget.addEventListener('coverclick', () => console.log('Cover art tapped!'));
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
 </body>
