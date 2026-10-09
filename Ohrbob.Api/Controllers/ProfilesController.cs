@@ -90,6 +90,18 @@ public class ProfilesController : ControllerBase
         var profile = await _profilesService.GetAsync(id);
         if (profile == null) return NotFound();
 
+        // Enforce Profiles Minimum Requirement: Every account must have at least one profile.
+        var profiles = await _profilesService.GetByAccountIdAsync(profile.AccountId);
+        if (profiles == null || profiles.Count <= 1)
+        {
+            return BadRequest(new ProblemDetails
+            {
+                Status = 400,
+                Title = "Profile Delete Error",
+                Detail = "Cannot delete the last remaining profile of an account."
+            });
+        }
+
         var result = await _profilesService.DeleteAsync(id);
         if (!result) return NotFound();
 
