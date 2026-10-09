@@ -54,10 +54,55 @@
                     <div class="flex-grow-1">
                         <h5 class="card-title">@feed.Title</h5>
                         <p class="card-text text-muted mb-1">Episodes: @feed.EpisodeCount | Last Updated: @feed.LastUpdated</p>
-                        <select class="form-select form-select-sm sort-order-select" style="width: auto;">
-                            <option value="0" selected="@(scheduleFeed.SortOrder == Ohrbob.Server.Shared.Data.FeedSortOrder.OldestToNewest)">Oldest to Newest</option>
-                            <option value="1" selected="@(scheduleFeed.SortOrder == Ohrbob.Server.Shared.Data.FeedSortOrder.NewestToOldest)">Newest to Oldest</option>
-                        </select>
+                        <!-- 3-State Sliding Playback Order Toggle Control -->
+                        @{
+                            var activeValue = (int)scheduleFeed.SortOrder;
+                            var translateX = activeValue == 1 ? "0%" : (activeValue == 2 ? "100%" : "200%");
+                        }
+                        <div class="playback-order-toggle-container d-inline-flex flex-column align-items-center mt-2" style="width: 240px;">
+                            <!-- Capsule Slider Track -->
+                            <div class="relative bg-light border rounded-pill flex items-center justify-between select-none cursor-pointer"
+                                 style="position: relative; width: 100%; height: 36px; padding: 4px; background-color: #f1f3f5; border: 1px solid #ced4da;"
+                                 id="sliderTrack-@feed.Url.GetHashCode()" role="slider" aria-valuemin="0" aria-valuemax="2" aria-valuenow="@activeValue">
+                                 
+                                 <!-- Sliding circular thumb -->
+                                 <div class="slider-thumb-container" style="position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(33.333% - 2px); display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 20; transform: translateX(@translateX); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                                     <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 28px; height: 28px; border: 1px solid rgba(255, 255, 255, 0.3);">
+                                         <i class="bi @(activeValue == 1 ? "bi-sort-down" : (activeValue == 2 ? "bi-shuffle" : "bi-sort-up")) text-white" style="font-size: 0.9rem;"></i>
+                                     </div>
+                                 </div>
+
+                                 <!-- Nodes -->
+                                 <button type="button" onclick="window.setPlaybackOrder('@feed.Url.GetHashCode()', 1)" class="playback-node-btn" style="position: relative; z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d; font-size: 0.8rem;" title="Backwards">
+                                     <i class="bi bi-sort-down"></i>
+                                 </button>
+                                 <button type="button" onclick="window.setPlaybackOrder('@feed.Url.GetHashCode()', 2)" class="playback-node-btn" style="position: relative; z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d; font-size: 0.8rem;" title="Random">
+                                     <i class="bi bi-shuffle"></i>
+                                 </button>
+                                 <button type="button" onclick="window.setPlaybackOrder('@feed.Url.GetHashCode()', 0)" class="playback-node-btn" style="position: relative; z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d; font-size: 0.8rem;" title="Forwards">
+                                     <i class="bi bi-sort-up"></i>
+                                 </button>
+                            </div>
+
+                            <!-- Labels below -->
+                            <div class="d-flex w-100 justify-content-between mt-1 text-center" style="font-size: 10px;">
+                                <button type="button" onclick="window.setPlaybackOrder('@feed.Url.GetHashCode()', 1)" id="label-1-@feed.Url.GetHashCode()" class="flex-fill d-flex flex-column align-items-center border-0 bg-transparent py-0" style="outline: none;">
+                                    <span class="fw-bold @(activeValue == 1 ? "text-primary" : "text-muted")">Backwards</span>
+                                    <span class="text-muted" style="font-size: 8px;">Newest &rarr; Oldest</span>
+                                </button>
+                                <button type="button" onclick="window.setPlaybackOrder('@feed.Url.GetHashCode()', 2)" id="label-2-@feed.Url.GetHashCode()" class="flex-fill d-flex flex-column align-items-center border-0 bg-transparent py-0" style="outline: none;">
+                                    <span class="fw-bold @(activeValue == 2 ? "text-primary" : "text-muted")">Random</span>
+                                    <span class="text-muted" style="font-size: 8px;">Achronological</span>
+                                </button>
+                                <button type="button" onclick="window.setPlaybackOrder('@feed.Url.GetHashCode()', 0)" id="label-0-@feed.Url.GetHashCode()" class="flex-fill d-flex flex-column align-items-center border-0 bg-transparent py-0" style="outline: none;">
+                                    <span class="fw-bold @(activeValue == 0 ? "text-primary" : "text-muted")">Forwards</span>
+                                    <span class="text-muted" style="font-size: 8px;">Oldest &rarr; Newest</span>
+                                </button>
+                            </div>
+
+                            <!-- Hidden value input -->
+                            <input type="hidden" class="playback-order-value" value="@activeValue" />
+                        </div>
                     </div>
                     <button type="button" class="btn btn-outline-danger remove-feed">Remove</button>
                 </div>
@@ -136,7 +181,7 @@
                 const feedCards = document.querySelectorAll('.feed-card');
                 const feeds = Array.from(feedCards).map(card => {
                     const url = card.getAttribute('data-url');
-                    const sortOrderStr = card.querySelector('.sort-order-select').value;
+                    const sortOrderStr = card.querySelector('.playback-order-value').value;
                     return {
                         Url: url,
                         SortOrder: parseInt(sortOrderStr, 10)
@@ -182,12 +227,6 @@
                 });
             }
 
-            document.getElementById('feedsContainer').addEventListener('change', function (e) {
-                if (e.target.classList.contains('sort-order-select')) {
-                    updateSchedule();
-                }
-            });
-
             document.getElementById('feedsContainer').addEventListener('click', function (e) {
                 if (e.target.classList.contains('remove-feed')) {
                     const card = e.target.closest('.feed-card');
@@ -215,9 +254,7 @@
                 newCard.innerHTML = `
                     <div class="card-body d-flex align-items-center">
                         <div class="flex-grow-1">
-                            <select class="form-select form-select-sm sort-order-select d-none" style="width: auto;">
-                                <option value="0" selected>Oldest to Newest</option>
-                            </select>
+                            <input type="hidden" class="playback-order-value" value="0" />
                         </div>
                     </div>
                 `;
@@ -343,6 +380,43 @@
                     }
                 });
             }
+            window.setPlaybackOrder = function (hashId, value) {
+                const track = document.getElementById(`sliderTrack-${hashId}`);
+                if (!track) return;
+
+                const container = track.closest('.playback-order-toggle-container');
+                const thumb = container.querySelector('.slider-thumb-container');
+                const input = container.querySelector('.playback-order-value');
+                const icon = thumb.querySelector('i');
+
+                // Update value
+                input.value = value;
+                track.setAttribute('aria-valuenow', value);
+
+                // Update thumb translation
+                const translateX = value === 1 ? '0%' : (value === 2 ? '100%' : '200%');
+                thumb.style.transform = `translateX(${translateX})`;
+
+                // Update icon
+                icon.className = `bi ${value === 1 ? 'bi-sort-down' : (value === 2 ? 'bi-shuffle' : 'bi-sort-up')} text-white`;
+
+                // Highlight text labels
+                const values = [1, 2, 0];
+                values.forEach(v => {
+                    const label = document.getElementById(`label-${v}-${hashId}`);
+                    if (label) {
+                        const span = label.querySelector('span:first-child');
+                        if (v === value) {
+                            span.className = 'fw-bold text-primary';
+                        } else {
+                            span.className = 'fw-bold text-muted';
+                        }
+                    }
+                });
+
+                // Trigger saving the schedule change asynchronously
+                updateSchedule();
+            };
         })();
 </script>
 
