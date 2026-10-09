@@ -25,7 +25,9 @@ public static class PlaybackStrategyHelper
             }
         }
 
-        var feedUrls = station.Schedule?.Feeds?.Select(f => f.Url).ToList() ?? station.Feeds?.ToList() ?? new List<string>();
+        var feedUrls = station.Schedule?.Feeds?.Any() == true 
+            ? station.Schedule.Feeds.Select(f => f.Url).ToList() 
+            : station.Feeds?.ToList() ?? new List<string>();
 
         var result = new List<Episode>();
         var feedQueues = new List<Queue<Episode>>();

@@ -36,7 +36,7 @@ public class StationsControllerTests
             var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(configContainer);
             configuration.AddJsonStream(new MemoryStream(jsonBytes));
             
-        }, setupMongoDbContext: true);
+        }, setupMongoDbContext: true, databaseName: "TestsOhrbobData");
         _client = _app.CreateDefaultClient();
     }
 
@@ -213,5 +213,60 @@ public class StationsControllerTests
         var updated = await _app.MongoDbContext.GetCollection<Station>("StationCollection").Find(s => s.Id == createdStation.Id).FirstOrDefaultAsync();
         Assert.That(updated.Schedule.Feeds.Count, Is.EqualTo(1));
         Assert.That(updated.Schedule.Feeds[0].SortOrder, Is.EqualTo(FeedSortOrder.NewestToOldest));
+    }
+
+    [Test]
+    public async Task GetPlaylist_WithNullLastActiveEpisodeId_FallsBackToFirstEpisode()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var stationId = Guid.NewGuid().ToString();
+        var profileId = Guid.NewGuid().ToString();
+
+        var stationsService = _app.Services.GetRequiredService<Ohrbob.Api.Services.StationsService>();
+        var profilesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ProfilesService>();
+        var episodesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.EpisodesService>();
+
+        var station = new Station 
+        { 
+            Id = stationId,
+            Name = "Fallback Test Station", 
+            AccountId = accountId, 
+            Feeds = new[] { "https://test.feed/url" } 
+        };
+        var createdStation = await stationsService.CreateAsync(station);
+
+        var profile = new Profile
+        {
+            Id = profileId,
+            AccountId = accountId,
+            LastActiveStationId = createdStation.Id,
+            LastActiveEpisodeId = null
+        };
+        var createdProfile = await profilesService.CreateAsync(profile);
+
+        var episode = new Episode
+        {
+            Guid = "guid-123",
+            FeedId = "feed-123",
+            FeedUrl = "https://test.feed/url",
+            Title = "Test Episode",
+            PublishedAt = DateTime.UtcNow
+        };
+        await episodesService.CreateAsync(episode);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/stations/{createdStation.Id}/playlist?profileId={createdProfile.Id}");
+        request.Headers.Add("X-API-KEY", _testApiKey);
+
+        var res = await _client.SendAsync(request);
+        var body = await res.Content.ReadAsStringAsync();
+        Console.WriteLine($"Response Status: {res.StatusCode}");
+        Console.WriteLine($"Response Body: {body}");
+        Assert.That(res.IsSuccessStatusCode, Is.True);
+
+        var playlist = await res.Content.ReadFromJsonAsync<List<EpisodePlayStateDto>>();
+        Assert.That(playlist, Is.Not.Null);
+        Assert.That(playlist.Count, Is.EqualTo(1));
+        Assert.That(playlist[0].Episode.Title, Is.EqualTo("Test Episode"));
+        Assert.That(playlist[0].IsActive, Is.True);
     }
 }

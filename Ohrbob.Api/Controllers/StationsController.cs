@@ -127,6 +127,16 @@ public class StationsController : ControllerBase
         var orderedEpisodes = Ohrbob.Server.Shared.Helpers.PlaybackStrategyHelper.GetOrderedPlaylist(
             episodes, station, listenedIds, profile.LastActiveEpisodeId);
 
+        var activeEpisodeId = profile.LastActiveEpisodeId;
+        if (string.IsNullOrEmpty(activeEpisodeId) && profile.LastActiveStationId == id)
+        {
+            var firstUnplayed = orderedEpisodes.FirstOrDefault();
+            if (firstUnplayed != null)
+            {
+                activeEpisodeId = firstUnplayed.Id;
+            }
+        }
+
         var result = new List<EpisodePlayStateDto>();
         foreach(var ep in orderedEpisodes)
         {
@@ -135,7 +145,7 @@ public class StationsController : ControllerBase
             {
                 Episode = ep,
                 PositionSeconds = state?.PositionSeconds ?? 0,
-                IsActive = profile.LastActiveEpisodeId == ep.Id
+                IsActive = activeEpisodeId == ep.Id
             });
         }
         
