@@ -16,7 +16,7 @@
 - **JavaScript Location:** If we write JavaScript code for the Ohrbob.Web frontend, in general, it should never reside in views (CSHTML files) but rather in the dedicated scripts folder inside `wwwroot` (e.g., `wwwroot/js`).
 - **Confirmation Modals:** For any user confirmation (such as "Ok", "Cancel" actions), we use Bootstrap modals inside `Ohrbob.Web` rather than standard browser native dialogs (`confirm()`). This ensures a unified, beautiful, and non-blocking visual experience.
 - **Notifications and Feedback:** Any warnings, info, and errors that happen when a user interacts with Ohrbob.Web should be displayed as transient toast messages (e.g., via the `showToast` HTMX custom event and the Bootstrap toast container), rather than permanently replacing or destroying interactive UI forms or layout elements.
-
+- **Feeds are colorful:** Each feed in a station has a distinct color, that should be displayed as a 4px border-left everywhere we are showing a feed or episode from that feed. 
 ## Testing
 
 - **API Routes:** When implementing a new API route, always write unit tests for coverage.

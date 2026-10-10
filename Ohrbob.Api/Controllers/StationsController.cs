@@ -10,6 +10,22 @@ namespace Ohrbob.Api.Controllers;
 [Route("api/[controller]")]
 public class StationsController : ControllerBase
 {
+    private static readonly string[] StationFeedColors = new[]
+    {
+        "#E63946", // Imperial Red
+        "#1D3557", // Prussian Blue
+        "#457B9D", // Celadon Blue
+        "#2A9D8F", // Persian Green
+        "#E9C46A", // Sandy Brown
+        "#F4A261", // Sandy Orange
+        "#E76F51", // Burnt Sienna
+        "#6A057F", // Grape Purple
+        "#264653", // Charcoal Dark
+        "#8AB17D", // Sage Green
+        "#D62828", // Vibrant Red
+        "#FF9F1C"  // Bright Orange
+    };
+
     private readonly StationsService _stationsService;
     private readonly FeedsService _feedsService;
     private readonly EpisodesService _episodesService;
@@ -196,6 +212,22 @@ public class StationsController : ControllerBase
             foreach(var feedUrl in station.Feeds)
             {
                 station.Schedule.Feeds.Add(new StationFeedSchedule { Url = feedUrl });
+            }
+        }
+
+        // Assign colors sequentially to feeds that do not have one
+        for (int i = 0; i < station.Schedule.Feeds.Count; i++)
+        {
+            var feed = station.Schedule.Feeds[i];
+            if (string.IsNullOrEmpty(feed.Color))
+            {
+                var assignedColors = station.Schedule.Feeds
+                    .Select(f => f.Color)
+                    .Where(c => !string.IsNullOrEmpty(c))
+                    .ToHashSet();
+
+                var availableColor = StationFeedColors.FirstOrDefault(c => !assignedColors.Contains(c));
+                feed.Color = availableColor ?? StationFeedColors[i % StationFeedColors.Length];
             }
         }
         
