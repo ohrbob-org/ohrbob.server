@@ -30,7 +30,7 @@ public static class PlaybackStrategyHelper
             : station.Feeds?.ToList() ?? new List<string>();
 
         var result = new List<Episode>();
-        var feedQueues = new List<Queue<Episode>>();
+        var feedQueues = new List<(Queue<Episode> Queue, int EpisodesToPlay)>();
 
         foreach (var feedUrl in feedUrls)
         {
@@ -52,19 +52,28 @@ public static class PlaybackStrategyHelper
                 feedEpisodes = feedEpisodes.OrderBy(e => e.PublishedAt);
             }
             
-            feedQueues.Add(new Queue<Episode>(feedEpisodes));
+            var rawEpisodesToPlay = feedSchedule?.EpisodesToPlay ?? 1;
+            var episodesToPlay = rawEpisodesToPlay < 1 ? 1 : (rawEpisodesToPlay > 99 ? 99 : rawEpisodesToPlay);
+            feedQueues.Add((new Queue<Episode>(feedEpisodes), episodesToPlay));
         }
 
         bool added;
         do
         {
             added = false;
-            foreach (var q in feedQueues)
+            foreach (var item in feedQueues)
             {
-                if (q.Count > 0)
+                for (int i = 0; i < item.EpisodesToPlay; i++)
                 {
-                    result.Add(q.Dequeue());
-                    added = true;
+                    if (item.Queue.Count > 0)
+                    {
+                        result.Add(item.Queue.Dequeue());
+                        added = true;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
         } while (added);

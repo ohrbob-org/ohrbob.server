@@ -40,7 +40,7 @@
     <a class="nav-link active" id="feeds-tab" data-bs-toggle="tab" href="#feeds" role="tab">Feeds</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" id="blueprint-tab" data-bs-toggle="tab" href="#blueprint" role="tab">Blueprint Rules</a>
+    <a class="nav-link" id="blueprint-tab" data-bs-toggle="tab" href="#rotation" role="tab">Rotation</a>
   </li>
   <li class="nav-item">
     <a class="nav-link" id="resolved-tab" data-bs-toggle="tab" href="#resolved" role="tab">Resolved Episodes</a>
@@ -122,16 +122,28 @@
         <button type="button" id="addFeedBtn" class="btn btn-primary">Add Feed</button>
     </div>
   </div>
-  <div class="tab-pane fade" id="blueprint" role="tabpanel">
-    <div class="d-flex flex-row overflow-auto py-3" id="blueprintContainer" style="gap: 10px;">
+  <div class="tab-pane fade" id="rotation" role="tabpanel">
+    <div class="list-group py-3" id="rotationContainer" style="max-width: 600px;">
         @foreach(var feedSchedule in Model.Station.Schedule.Feeds)
         {
             var feedData = Model.Feeds.FirstOrDefault(f => f.Url == feedSchedule.Url);
             if (feedData != null)
             {
-                <div class="blueprint-item border rounded p-2" draggable="true" data-url="@feedSchedule.Url" style="cursor: grab; min-width: 120px; text-align: center; background: #fff;">
-                    <img src="@feedData.ImageUrl" width="64" height="64" class="mb-2" />
-                    <div class="small text-truncate" style="max-width: 100px;" title="@feedData.Title">@feedData.Title</div>
+                <div class="list-group-item rotation-item d-flex align-items-center justify-content-between border rounded p-3 mb-2 bg-white" draggable="true" data-url="@feedSchedule.Url" style="cursor: grab;">
+                    <div class="d-flex align-items-center flex-grow-1">
+                        <!-- Drag Handle -->
+                        <div class="me-3 text-muted drag-handle" style="font-size: 1.5rem; cursor: grab;">
+                            <i class="bi bi-grip-vertical"></i>
+                        </div>
+                        <img src="@feedData.ImageUrl" class="me-3 rounded shadow-sm" style="object-fit: cover; width: 48px; height: 48px;" />
+                        <div class="text-truncate" style="max-width: 250px;">
+                            <strong class="text-dark">@feedData.Title</strong>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center" style="width: 160px;">
+                        <span class="small text-muted me-2" style="white-space: nowrap;">Episodes/turn:</span>
+                        <input type="number" class="form-control form-control-sm episodes-input" min="1" max="99" value="@(feedSchedule.EpisodesToPlay < 1 ? 1 : feedSchedule.EpisodesToPlay)" style="width: 70px;" />
+                    </div>
                 </div>
             }
         }
@@ -215,9 +227,23 @@
                 const feeds = Array.from(feedCards).map(card => {
                     const url = card.getAttribute('data-url');
                     const sortOrderStr = card.querySelector('.playback-order-value').value;
+                    
+                    const rotationItem = document.querySelector(`.rotation-item[data-url="${url}"]`);
+                    let epsToPlay = 1;
+                    if (rotationItem) {
+                        const epsInput = rotationItem.querySelector('.episodes-input');
+                        if (epsInput) {
+                            epsToPlay = parseInt(epsInput.value, 10);
+                            if (isNaN(epsToPlay)) epsToPlay = 1;
+                            if (epsToPlay < 1) epsToPlay = 1;
+                            if (epsToPlay > 99) epsToPlay = 99;
+                        }
+                    }
+
                     return {
                         Url: url,
-                        SortOrder: parseInt(sortOrderStr, 10)
+                        SortOrder: parseInt(sortOrderStr, 10),
+                        EpisodesToPlay: epsToPlay
                     };
                 });
 
@@ -248,8 +274,11 @@
                     const newFeeds = doc.getElementById('feedsContainer');
                     if (newFeeds) document.getElementById('feedsContainer').innerHTML = newFeeds.innerHTML;
 
-                    const newBlueprint = doc.getElementById('blueprintContainer');
-                    if (newBlueprint) document.getElementById('blueprintContainer').innerHTML = newBlueprint.innerHTML;
+                    const newRotation = doc.getElementById('rotationContainer');
+                    if (newRotation) {
+                        document.getElementById('rotationContainer').innerHTML = newRotation.innerHTML;
+                        bindRotationListeners();
+                    }
 
                     const newResolved = doc.getElementById('resolved');
                     if (newResolved) document.getElementById('resolved').innerHTML = newResolved.innerHTML;
@@ -298,13 +327,32 @@
                 updateSchedule();
             });
 
-            // Blueprint Drag & Drop Logic
-            const blueprintContainer = document.getElementById('blueprintContainer');
-            if (blueprintContainer) {
+            function handleEpisodesChange(e) {
+                if (e.target.classList.contains('episodes-input')) {
+                    let val = parseInt(e.target.value, 10);
+                    if (isNaN(val)) val = 1;
+                    if (val < 1) val = 1;
+                    if (val > 99) val = 99;
+                    e.target.value = val;
+                    updateSchedule();
+                }
+            }
+
+            function bindRotationListeners() {
+                const container = document.getElementById('rotationContainer');
+                if (container) {
+                    container.removeEventListener('change', handleEpisodesChange);
+                    container.addEventListener('change', handleEpisodesChange);
+                }
+            }
+
+            // Rotation Drag & Drop Logic
+            const rotationContainer = document.getElementById('rotationContainer');
+            if (rotationContainer) {
                 let draggedItem = null;
 
-                blueprintContainer.addEventListener('dragstart', function (e) {
-                    const item = e.target.closest('.blueprint-item');
+                rotationContainer.addEventListener('dragstart', function (e) {
+                    const item = e.target.closest('.rotation-item');
                     if (item) {
                         draggedItem = item;
                         e.dataTransfer.effectAllowed = 'move';
@@ -312,8 +360,8 @@
                     }
                 });
 
-                blueprintContainer.addEventListener('dragend', function (e) {
-                    const item = e.target.closest('.blueprint-item');
+                rotationContainer.addEventListener('dragend', function (e) {
+                    const item = e.target.closest('.rotation-item');
                     if (item) {
                         item.style.opacity = '1';
                         draggedItem = null;
@@ -323,16 +371,16 @@
                     }
                 });
 
-                blueprintContainer.addEventListener('dragover', function (e) {
+                rotationContainer.addEventListener('dragover', function (e) {
                     e.preventDefault();
                     e.dataTransfer.dropEffect = 'move';
-                    const targetItem = e.target.closest('.blueprint-item');
+                    const targetItem = e.target.closest('.rotation-item');
                     
                     if (targetItem && targetItem !== draggedItem && draggedItem) {
                         const bounding = targetItem.getBoundingClientRect();
-                        const offset = bounding.x + (bounding.width / 2);
+                        const offset = bounding.y + (bounding.height / 2);
                         
-                        if (e.clientX - offset > 0) {
+                        if (e.clientY - offset > 0) {
                             targetItem.after(draggedItem);
                         } else {
                             targetItem.before(draggedItem);
@@ -342,10 +390,10 @@
 
                 function syncFeedsOrderAndUpdate() {
                     const feedsContainer = document.getElementById('feedsContainer');
-                    const blueprintItems = blueprintContainer.querySelectorAll('.blueprint-item');
+                    const rotationItems = rotationContainer.querySelectorAll('.rotation-item');
                     
-                    blueprintItems.forEach(bpItem => {
-                        const url = bpItem.getAttribute('data-url');
+                    rotationItems.forEach(rotItem => {
+                        const url = rotItem.getAttribute('data-url');
                         const cards = Array.from(feedsContainer.querySelectorAll('.feed-card'));
                         const correspondingFeedCard = cards.find(card => card.getAttribute('data-url') === url);
                         if (correspondingFeedCard) {
@@ -454,6 +502,8 @@
                 // Trigger saving the schedule change asynchronously
                 updateSchedule();
             };
+
+            bindRotationListeners();
 
             // Initialize rename station functionality
             window.initRenameStation("@Model.Station.Id");

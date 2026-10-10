@@ -63,4 +63,40 @@ public class PlaybackStrategyTests
         Console.WriteLine($"playlistOther: {string.Join(", ", playlistOther.Select(e => e.Id))}");
         Assert.That(playlist1.Select(e => e.Id), Is.Not.EqualTo(playlistOther.Select(e => e.Id)));
     }
+
+    [Test]
+    public void GetOrderedPlaylist_WithEpisodesToPlay_RespectsTurnLimits()
+    {
+        var station = new Station
+        {
+            Id = "test-station",
+            Schedule = new StationSchedule
+            {
+                Feeds = new List<StationFeedSchedule>
+                {
+                    new StationFeedSchedule { Url = "https://feed1.url", EpisodesToPlay = 2 },
+                    new StationFeedSchedule { Url = "https://feed2.url", EpisodesToPlay = 1 }
+                }
+            }
+        };
+
+        var episodes = new List<Episode>
+        {
+            new Episode { Id = "ep1-1", FeedUrl = "https://feed1.url", PublishedAt = DateTime.UtcNow.AddMinutes(1) },
+            new Episode { Id = "ep1-2", FeedUrl = "https://feed1.url", PublishedAt = DateTime.UtcNow.AddMinutes(2) },
+            new Episode { Id = "ep1-3", FeedUrl = "https://feed1.url", PublishedAt = DateTime.UtcNow.AddMinutes(3) },
+            new Episode { Id = "ep2-1", FeedUrl = "https://feed2.url", PublishedAt = DateTime.UtcNow.AddMinutes(1) },
+            new Episode { Id = "ep2-2", FeedUrl = "https://feed2.url", PublishedAt = DateTime.UtcNow.AddMinutes(2) }
+        };
+
+        var result = PlaybackStrategyHelper.GetOrderedPlaylist(episodes, station, new HashSet<string>(), null);
+
+        // Expected order:
+        // Turn 1 (feed 1, up to 2 episodes): ep1-1, ep1-2
+        // Turn 1 (feed 2, up to 1 episode): ep2-1
+        // Turn 2 (feed 1, up to 2 episodes): ep1-3
+        // Turn 2 (feed 2, up to 1 episode): ep2-2
+        var orderedIds = result.Select(e => e.Id).ToList();
+        Assert.That(orderedIds, Is.EqualTo(new List<string> { "ep1-1", "ep1-2", "ep2-1", "ep1-3", "ep2-2" }));
+    }
 }
