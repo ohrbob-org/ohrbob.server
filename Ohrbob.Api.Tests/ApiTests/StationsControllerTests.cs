@@ -269,4 +269,77 @@ public class StationsControllerTests
         Assert.That(playlist[0].Episode.Title, Is.EqualTo("Test Episode"));
         Assert.That(playlist[0].IsActive, Is.True);
     }
+
+    [Test]
+    public async Task GetCompletedPlaylist_Works()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var stationId = Guid.NewGuid().ToString();
+        var profileId = Guid.NewGuid().ToString();
+
+        var stationsService = _app.Services.GetRequiredService<Ohrbob.Api.Services.StationsService>();
+        var profilesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ProfilesService>();
+        var episodesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.EpisodesService>();
+        var listenStateService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ListenStateService>();
+
+        var station = new Station 
+        { 
+            Id = stationId,
+            Name = "Completed Playlist Test Station", 
+            AccountId = accountId, 
+            Feeds = new[] { "https://test.completed.feed/url" } 
+        };
+        var createdStation = await stationsService.CreateAsync(station);
+
+        var profile = new Profile
+        {
+            Id = profileId,
+            AccountId = accountId,
+            LastActiveStationId = createdStation.Id,
+            LastActiveEpisodeId = null
+        };
+        var createdProfile = await profilesService.CreateAsync(profile);
+
+        var episode1 = new Episode
+        {
+            Id = Guid.NewGuid().ToString(),
+            Guid = "guid-c1",
+            FeedId = "feed-c1",
+            FeedUrl = "https://test.completed.feed/url",
+            Title = "Completed Episode",
+            PublishedAt = DateTime.UtcNow.AddMinutes(-5)
+        };
+        var episode2 = new Episode
+        {
+            Id = Guid.NewGuid().ToString(),
+            Guid = "guid-c2",
+            FeedId = "feed-c1",
+            FeedUrl = "https://test.completed.feed/url",
+            Title = "Uncompleted Episode",
+            PublishedAt = DateTime.UtcNow
+        };
+        await episodesService.CreateAsync(episode1);
+        await episodesService.CreateAsync(episode2);
+
+        var listenState = new ListenState
+        {
+            UserId = profileId,
+            EpisodeId = episode1.Id,
+            StationId = stationId,
+            IsListened = true
+        };
+        await listenStateService.CreateAsync(listenState);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/stations/{createdStation.Id}/completed?profileId={createdProfile.Id}");
+        request.Headers.Add("X-API-KEY", _testApiKey);
+
+        var res = await _client.SendAsync(request);
+        Assert.That(res.IsSuccessStatusCode, Is.True);
+
+        var completedList = await res.Content.ReadFromJsonAsync<List<EpisodePlayStateDto>>();
+        Assert.That(completedList, Is.Not.Null);
+        Assert.That(completedList.Count, Is.EqualTo(1));
+        Assert.That(completedList[0].Episode.Id, Is.EqualTo(episode1.Id));
+        Assert.That(completedList[0].Episode.Title, Is.EqualTo("Completed Episode"));
+    }
 }

@@ -189,4 +189,39 @@ public class StationsApiServiceTests
             ItExpr.IsAny<CancellationToken>()
         );
     }
+
+    [Test]
+    public async Task GetStationCompletedPlaylistAsync_SendsCorrectRequestAndReturnsCompletedPlaylist()
+    {
+        var stationId = "st-1";
+        var profileId = "prof-123";
+        var completedList = new List<EpisodePlayStateDto>
+        {
+            new EpisodePlayStateDto { Episode = new Episode { Id = "ep-1", Title = "Completed 1" }, PositionSeconds = 120, IsActive = false }
+        };
+
+        var response = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(JsonSerializer.Serialize(completedList))
+        };
+
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Get &&
+                    req.RequestUri.ToString() == $"https://test.api/stations/{stationId}/completed?profileId={profileId}"),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .ReturnsAsync(response);
+
+        var result = await _service.GetStationCompletedPlaylistAsync(stationId, profileId);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.Count, Is.EqualTo(1));
+        Assert.That(result[0].Episode.Title, Is.EqualTo("Completed 1"));
+        Assert.That(result[0].IsActive, Is.False);
+    }
 }
