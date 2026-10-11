@@ -262,6 +262,30 @@
     </div>
 </div>
 
+<!-- Confirm Mark All Until Here Completed Modal -->
+<div class="modal fade" id="confirmMarkCompletedUntilModal" tabindex="-1" aria-labelledby="confirmMarkCompletedUntilModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmMarkCompletedUntilModalLabel">Confirm Completing Episodes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-dark">
+                <p>Are you sure you want to mark the following episodes as completed?</p>
+                <div style="max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px;">
+                    <ul class="list-group list-group-flush" id="episodesToMarkList">
+                        <!-- Populated dynamically via JS -->
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="confirmMarkCompletedUntilBtn">Mark Completed</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @Html.AntiForgeryToken()
 
 <script>
@@ -504,7 +528,36 @@
                                 .catch(err => alert('Error marking completed'));
                             }
                         } else if (btnUntil) {
-                            if (confirm('Mark all episodes up to and including this one as completed?')) {
+                            // Find all preceding items and the clicked item
+                            const itemsToMark = [];
+                            let currentItem = li;
+                            while (currentItem) {
+                                itemsToMark.unshift(currentItem);
+                                currentItem = currentItem.previousElementSibling;
+                            }
+                            
+                            // Populate list inside modal
+                            const listContainer = document.getElementById('episodesToMarkList');
+                            listContainer.innerHTML = '';
+                            itemsToMark.forEach(item => {
+                                const titleEl = item.querySelector('strong');
+                                const title = titleEl ? titleEl.textContent : 'Episode';
+                                const liEl = document.createElement('li');
+                                liEl.className = 'list-group-item py-1 text-truncate';
+                                liEl.textContent = title;
+                                listContainer.appendChild(liEl);
+                            });
+                            
+                            // Save references on the modal confirm button
+                            const confirmBtn = document.getElementById('confirmMarkCompletedUntilBtn');
+                            confirmBtn.onclick = function() {
+                                // Hide the modal first
+                                const modalEl = document.getElementById('confirmMarkCompletedUntilModal');
+                                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                                if (modalInstance) {
+                                    modalInstance.hide();
+                                }
+                                
                                 fetch(`/Stations/MarkCompletedUntil?id=${"@Model.Station.Id"}&episodeId=${episodeId}`, {
                                     method: 'POST',
                                     headers: {
@@ -513,7 +566,6 @@
                                 })
                                 .then(res => {
                                     if (res.ok || res.redirected) {
-                                        // Remove this one and all preceding siblings
                                         let current = li;
                                         while(current) {
                                             const prev = current.previousElementSibling;
@@ -525,7 +577,11 @@
                                     }
                                 })
                                 .catch(err => alert('Error marking completed'));
-                            }
+                            };
+                            
+                            // Show the modal
+                            const confirmModal = new bootstrap.Modal(document.getElementById('confirmMarkCompletedUntilModal'));
+                            confirmModal.show();
                         }
                     }
                 });
