@@ -71,8 +71,8 @@
             if (feedData != null)
             {
                 var currentFeedIndex = feedScheduleIndex++;
-                <div class="list-group-item rotation-item border rounded mb-2 d-flex align-items-stretch" draggable="true" data-url="@feedSchedule.Url" style="cursor: grab; border-left: 4px solid @(string.IsNullOrEmpty(feedSchedule.Color) ? "#ccc" : feedSchedule.Color) !important; background-color: @(string.IsNullOrEmpty(feedSchedule.Color) ? "#fff" : feedSchedule.Color + "26") !important; padding: 0; overflow: hidden;">
-                    <img src="@feedData.ImageUrl" style="aspect-ratio: 1 / 1; height: auto; min-height: 100%; max-height: 100%; object-fit: cover; flex-shrink: 0;" />
+                <div class="list-group-item rotation-item border rounded mb-2 d-flex align-items-stretch" draggable="true" data-url="@feedSchedule.Url" style="cursor: grab; border-left: 4px solid @(string.IsNullOrEmpty(feedSchedule.Color) ? "#ccc" : feedSchedule.Color) !important; background-color: @(string.IsNullOrEmpty(feedSchedule.Color) ? "#fff" : feedSchedule.Color + "26") !important; padding: 0; overflow: hidden; height: 90px; max-height: 90px;">
+                    <img src="@feedData.ImageUrl" style="width: 90px; height: 90px; object-fit: cover; flex-shrink: 0;" />
                     <div class="p-3 d-flex flex-wrap align-items-center justify-content-between flex-grow-1" style="gap: 15px;">
                         <div class="text-truncate" style="max-width: 250px;">
                             <strong class="text-dark">@feedData.Title</strong>
