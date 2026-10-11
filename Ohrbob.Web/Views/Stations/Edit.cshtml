@@ -606,7 +606,9 @@
                             const itemsToMark = [];
                             let currentItem = li;
                             while (currentItem) {
-                                itemsToMark.unshift(currentItem);
+                                if (currentItem.classList.contains('resolved-item')) {
+                                    itemsToMark.unshift(currentItem);
+                                }
                                 currentItem = currentItem.previousElementSibling;
                             }
                             
@@ -643,7 +645,9 @@
                                         const elementsToMove = [];
                                         let current = li;
                                         while(current) {
-                                            elementsToMove.push(current);
+                                            if (current.classList.contains('resolved-item')) {
+                                                elementsToMove.push(current);
+                                            }
                                             current = current.previousElementSibling;
                                         }
                                         elementsToMove.reverse();
