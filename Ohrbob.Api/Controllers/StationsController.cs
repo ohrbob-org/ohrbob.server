@@ -206,7 +206,7 @@ public class StationsController : ControllerBase
             });
         }
         
-        return Ok(result);
+        return Ok(result.Take(50).ToList());
     }
 
     [EndpointSummary("Mark episode as completed for a profile")]
