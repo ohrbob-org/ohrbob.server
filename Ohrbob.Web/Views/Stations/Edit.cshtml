@@ -56,7 +56,7 @@
             var scheduleFeed = Model.Station.Schedule.Feeds.FirstOrDefault(f => f.Url == feed.Url) ?? new Ohrbob.Server.Shared.Data.StationFeedSchedule { Url = feed.Url };
             var currentFeedIndex = feedIndex++;
             
-            <div class="card mb-3 feed-card" data-url="@feed.Url" style="border-left: 4px solid @(string.IsNullOrEmpty(scheduleFeed.Color) ? "#ccc" : scheduleFeed.Color) !important;">
+            <div class="card mb-3 feed-card" data-url="@feed.Url" style="border-left: 4px solid @(string.IsNullOrEmpty(scheduleFeed.Color) ? "#ccc" : scheduleFeed.Color) !important; background-color: @(string.IsNullOrEmpty(scheduleFeed.Color) ? "transparent" : scheduleFeed.Color + "26") !important;">
                 <div class="card-body d-flex align-items-center">
                     <img src="@feed.ImageUrl" width="64" height="64" class="me-3 rounded" />
                     <div class="flex-grow-1">
@@ -129,7 +129,7 @@
             var feedData = Model.Feeds.FirstOrDefault(f => f.Url == feedSchedule.Url);
             if (feedData != null)
             {
-                <div class="list-group-item rotation-item d-flex align-items-center justify-content-between border rounded p-3 mb-2 bg-white" draggable="true" data-url="@feedSchedule.Url" style="cursor: grab; border-left: 4px solid @(string.IsNullOrEmpty(feedSchedule.Color) ? "#ccc" : feedSchedule.Color) !important;">
+                <div class="list-group-item rotation-item d-flex align-items-center justify-content-between border rounded p-3 mb-2" draggable="true" data-url="@feedSchedule.Url" style="cursor: grab; border-left: 4px solid @(string.IsNullOrEmpty(feedSchedule.Color) ? "#ccc" : feedSchedule.Color) !important; background-color: @(string.IsNullOrEmpty(feedSchedule.Color) ? "#fff" : feedSchedule.Color + "26") !important;">
                     <div class="d-flex align-items-center flex-grow-1">
                         <!-- Drag Handle -->
                         <div class="me-3 text-muted drag-handle" style="font-size: 1.5rem; cursor: grab;">
@@ -160,7 +160,7 @@
                 {
                     var activeClass = item.IsActive ? "list-group-item-primary" : "";
                     var feedColor = Model.Station.Schedule.Feeds.FirstOrDefault(f => f.Url == item.Episode.FeedUrl)?.Color ?? "#ccc";
-                    <li class="list-group-item @activeClass d-flex justify-content-between align-items-center resolved-item" data-episode-id="@item.Episode.Id" style="border-left: 4px solid @(feedColor) !important;">
+                    <li class="list-group-item @activeClass d-flex justify-content-between align-items-center resolved-item" data-episode-id="@item.Episode.Id" style="border-left: 4px solid @(feedColor) !important; background-color: @(feedColor + "26") !important;">
                         <div>
                             <strong>@item.Episode.Title</strong><br/>
                             <small>
