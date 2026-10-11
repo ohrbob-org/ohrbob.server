@@ -98,28 +98,15 @@
                                                <i class="bi @(activeValue == 1 ? "bi-sort-down" : (activeValue == 2 ? "bi-shuffle" : "bi-sort-up")) text-white" style="font-size: 0.75rem;"></i>
                                           </div>
 
-                                          <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 1)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d;" title="Backwards">
+                                          <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 1)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d;" title="Backwards: Newest to Oldest" data-bs-toggle="tooltip">
                                               <i class="bi bi-sort-down" style="position: absolute; left: 1px; top: 0; width: 20px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;"></i>
                                           </button>
-                                          <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 2)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d; display: flex; align-items: center; justify-content: center;" title="Random">
+                                          <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 2)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d; display: flex; align-items: center; justify-content: center;" title="Random" data-bs-toggle="tooltip">
                                               <i class="bi bi-shuffle" style="font-size: 0.75rem;"></i>
                                           </button>
-                                          <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 0)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d;" title="Forwards">
+                                          <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 0)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d;" title="Forwards: Oldest to Newest" data-bs-toggle="tooltip">
                                               <i class="bi bi-sort-up" style="position: absolute; right: 1px; top: 0; width: 20px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;"></i>
                                           </button>
-                                     </div>
-
-                                     <!-- Labels below -->
-                                     <div class="d-flex w-100 justify-content-between mt-1 text-center" style="font-size: 9px; line-height: 1;">
-                                         <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 1)" id="label-1-@currentFeedIndex" class="flex-fill d-flex flex-column align-items-center border-0 bg-transparent py-0 px-0" style="outline: none;">
-                                             <span class="fw-bold @(activeValue == 1 ? "text-primary" : "text-muted")">Backwards</span>
-                                         </button>
-                                         <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 2)" id="label-2-@currentFeedIndex" class="flex-fill d-flex flex-column align-items-center border-0 bg-transparent py-0 px-0" style="outline: none;">
-                                             <span class="fw-bold @(activeValue == 2 ? "text-primary" : "text-muted")">Random</span>
-                                         </button>
-                                         <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 0)" id="label-0-@currentFeedIndex" class="flex-fill d-flex flex-column align-items-center border-0 bg-transparent py-0 px-0" style="outline: none;">
-                                             <span class="fw-bold @(activeValue == 0 ? "text-primary" : "text-muted")">Forwards</span>
-                                         </button>
                                      </div>
 
                                      <!-- Hidden value input -->
@@ -474,20 +461,6 @@
 
                 // Update icon
                 icon.className = `bi ${value === 1 ? 'bi-sort-down' : (value === 2 ? 'bi-shuffle' : 'bi-sort-up')} text-white`;
-
-                // Highlight text labels
-                const values = [1, 2, 0];
-                values.forEach(v => {
-                    const label = document.getElementById(`label-${v}-${hashId}`);
-                    if (label) {
-                        const span = label.querySelector('span:first-child');
-                        if (v === value) {
-                            span.className = 'fw-bold text-primary';
-                        } else {
-                            span.className = 'fw-bold text-muted';
-                        }
-                    }
-                });
 
                 // Trigger saving the schedule change asynchronously
                 updateSchedule();
