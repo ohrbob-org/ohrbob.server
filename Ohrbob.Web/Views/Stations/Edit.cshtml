@@ -166,7 +166,7 @@
                                 @foreach (var item in completedPlaylist)
                                 {
                                     var feedColor = Model.Station.Schedule.Feeds.FirstOrDefault(f => f.Url == item.Episode.FeedUrl)?.Color ?? "#ccc";
-                                    <li class="list-group-item d-flex justify-content-between align-items-center completed-item" data-episode-id="@item.Episode.Id" style="border-left: 4px solid @(feedColor) !important; background-color: @(feedColor + "15") !important;">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center completed-item" data-episode-id="@item.Episode.Id" data-feed-color="@(feedColor)" style="border-left: 4px solid @(feedColor) !important; background-color: @(feedColor + "15") !important;">
                                         <div>
                                             <strong>@item.Episode.Title</strong><br/>
                                             <small>
@@ -190,7 +190,7 @@
                 {
                     var activeClass = item.IsActive ? "list-group-item-primary" : "";
                     var feedColor = Model.Station.Schedule.Feeds.FirstOrDefault(f => f.Url == item.Episode.FeedUrl)?.Color ?? "#ccc";
-                    <li class="list-group-item @activeClass d-flex justify-content-between align-items-center resolved-item" data-episode-id="@item.Episode.Id" style="border-left: 4px solid @(feedColor) !important; background-color: @(feedColor + "26") !important;">
+                    <li class="list-group-item @activeClass d-flex justify-content-between align-items-center resolved-item" data-episode-id="@item.Episode.Id" data-feed-color="@(feedColor)" style="border-left: 4px solid @(feedColor) !important; background-color: @(feedColor + "26") !important;">
                         <div>
                             <strong>@item.Episode.Title</strong><br/>
                             <small>
@@ -539,7 +539,7 @@
                     clone.className = "list-group-item d-flex justify-content-between align-items-center completed-item";
                     
                     // Set paler background (using opacity 15 instead of 26)
-                    const feedColor = li.style.borderLeftColor || "#ccc";
+                    const feedColor = li.getAttribute('data-feed-color') || "#ccc";
                     clone.style.backgroundColor = feedColor + "15";
                     
                     // Strip the actions div
