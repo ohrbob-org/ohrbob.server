@@ -1,3 +1,4 @@
+@using Ohrbob.Web.Extensions
 @model Ohrbob.Server.Shared.Requests.StationWithFeedsDto
 
 @{
@@ -163,7 +164,7 @@
                         data-feed-color="@(feedColor)"
                         style="border-left: 4px solid @(feedColor) !important; background-color: @(feedColor + "15") !important; padding: 12px 16px;">
                         
-                        <div class="d-flex align-items-center min-w-0" style="gap: 16px;">
+                        <div class="d-flex align-items-center min-w-0 justify-content-between" style="width:100%;gap: 16px;">
                             <!-- Cover Art (Left) -->
                             <div class="position-relative flex-shrink-0" style="width: 70px; height: 70px;">
                                 <img src="@(string.IsNullOrEmpty(item.Episode.ImageUrl) ? "/images/cover-placeholder.png" : item.Episode.ImageUrl)" 
@@ -177,51 +178,53 @@
                             </div>
                             
                             <!-- Metadata (Middle) -->
-                            <div class="flex-grow-1 min-w-0 text-dark" style="overflow: hidden; max-width: calc(100% - 165px);">
+                            <div class="flex-grow-1 min-w-0 text-dark" style="overflow: hidden;">
                                 <div class="d-flex align-items-center min-w-0 w-100" style="gap: 8px;">
-                                    <strong class="text-truncate" style="font-size: 1rem; line-height: 1.2; flex-grow: 1; min-w-0;">@item.Episode.Title</strong>
+                                    <strong class="text-truncate" style="font-size: 1rem; line-height: 1.2; flex-grow: 1;">@item.Episode.Title</strong>
                                     @if(item.IsActive) {
                                         <span class="badge bg-primary flex-shrink-0">Playing</span>
                                     }
                                 </div>
-                                <p class="text-muted mb-1 mt-1 w-100 d-block" style="font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">@item.Episode.Description</p>
+                                <p class="text-muted mb-1 mt-1 w-100 d-block" style="font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; height:1rem; max-width: 100%;">@item.Episode.Description.StripHtml()</p>
                                 <small class="text-secondary" style="font-size: 0.75rem;">
                                     Position: @(item.PositionSeconds)s / Published: @(item.Episode.PublishedAt?.ToString("g"))
                                 </small>
                             </div>
-                        </div>
-                        
-                        <!-- Action Controls (Right) -->
-                        <div class="d-flex flex-column align-items-end justify-content-center ms-3 flex-shrink-0" style="gap: 8px; width: 60px;">
-                            <div class="button-container d-flex flex-column gap-1 w-100">
-                                @if (item.IsCompleted)
-                                {
-                                    <button type="button" class="btn btn-sm btn-outline-danger w-100 py-1 clear-completed-btn" title="Clear completed state" style="font-size: 0.75rem; padding: 2px 4px;">
-                                        <i class="bi bi-arrow-counterclockwise"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary w-100 py-1 clear-completed-until-btn" title="Clear everything until here" style="font-size: 0.75rem; padding: 2px 4px;">
-                                        <span class="d-inline-flex position-relative align-items-center" style="width: 18px; height: 12px; vertical-align: middle;">
-                                            <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 0px; top: -2px; opacity: 0.6; font-size: 0.7rem;"></i>
-                                            <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 4px; top: 0px; opacity: 0.8; font-size: 0.7rem;"></i>
-                                            <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 8px; top: 2px; font-size: 0.7rem;"></i>
-                                        </span>
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button type="button" class="btn btn-sm btn-outline-success w-100 py-1 mark-completed-btn" title="Mark Completed" style="font-size: 0.75rem; padding: 2px 4px;">
-                                        <i class="bi bi-check-lg"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-warning w-100 py-1 mark-completed-until-btn" title="Mark All Until Here Completed" style="font-size: 0.75rem; padding: 2px 4px;">
-                                        <span class="d-inline-flex position-relative align-items-center" style="width: 18px; height: 12px; vertical-align: middle;">
-                                            <i class="bi bi-check" style="position: absolute; left: 0px; top: -3px; opacity: 0.6; font-size: 0.7rem;"></i>
-                                            <i class="bi bi-check" style="position: absolute; left: 4px; top: -1px; opacity: 0.8; font-size: 0.7rem;"></i>
-                                            <i class="bi bi-check-lg" style="position: absolute; left: 8px; top: 1px; font-size: 0.7rem;"></i>
-                                        </span>
-                                    </button>
-                                }
+                            
+                             <!-- Action Controls (Right) -->
+                            <div class="d-flex flex-column align-items-end justify-content-center ms-3 flex-shrink-0" style="gap: 8px; width: 60px;">
+                                <div class="button-container d-flex flex-column gap-1 w-100">
+                                    @if (item.IsCompleted)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-danger w-100 py-1 clear-completed-btn" title="Clear completed state" style="font-size: 0.75rem; padding: 2px 4px;">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary w-100 py-1 clear-completed-until-btn" title="Clear everything until here" style="font-size: 0.75rem; padding: 2px 4px;">
+                                            <span class="d-inline-flex position-relative align-items-center" style="width: 18px; height: 12px; vertical-align: middle;">
+                                                <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 0px; top: -2px; opacity: 0.6; font-size: 0.7rem;"></i>
+                                                <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 4px; top: 0px; opacity: 0.8; font-size: 0.7rem;"></i>
+                                                <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 8px; top: 2px; font-size: 0.7rem;"></i>
+                                            </span>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-sm btn-outline-success w-100 py-1 mark-completed-btn" title="Mark Completed" style="font-size: 0.75rem; padding: 2px 4px;">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-warning w-100 py-1 mark-completed-until-btn" title="Mark All Until Here Completed" style="font-size: 0.75rem; padding: 2px 4px;">
+                                            <span class="d-inline-flex position-relative align-items-center" style="width: 18px; height: 12px; vertical-align: middle;">
+                                                <i class="bi bi-check" style="position: absolute; left: 0px; top: -3px; opacity: 0.6; font-size: 0.7rem;"></i>
+                                                <i class="bi bi-check" style="position: absolute; left: 4px; top: -1px; opacity: 0.8; font-size: 0.7rem;"></i>
+                                                <i class="bi bi-check-lg" style="position: absolute; left: 8px; top: 1px; font-size: 0.7rem;"></i>
+                                            </span>
+                                        </button>
+                                    }
+                                </div>
                             </div>
                         </div>
+                        
+                       
                     </li>
                 }
                 @if (!playlist.Any())
