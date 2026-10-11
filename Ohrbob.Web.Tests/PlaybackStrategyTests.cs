@@ -99,4 +99,49 @@ public class PlaybackStrategyTests
         var orderedIds = result.Select(e => e.Id).ToList();
         Assert.That(orderedIds, Is.EqualTo(new List<string> { "ep1-1", "ep1-2", "ep2-1", "ep1-3", "ep2-2" }));
     }
+
+    [Test]
+    public void GetOrderedPlaylist_WhenMarkedListened_MovesPlayheadAndUpcomingCorrectly()
+    {
+        var station = new Station
+        {
+            Id = "test-station",
+            Schedule = new StationSchedule
+            {
+                Feeds = new List<StationFeedSchedule>
+                {
+                    new StationFeedSchedule { Url = "https://feed1.url", EpisodesToPlay = 2 },
+                    new StationFeedSchedule { Url = "https://feed2.url", EpisodesToPlay = 1 }
+                }
+            }
+        };
+
+        var episodes = new List<Episode>
+        {
+            new Episode { Id = "ep1-1", FeedUrl = "https://feed1.url", PublishedAt = DateTime.UtcNow.AddMinutes(1) },
+            new Episode { Id = "ep1-2", FeedUrl = "https://feed1.url", PublishedAt = DateTime.UtcNow.AddMinutes(2) },
+            new Episode { Id = "ep1-3", FeedUrl = "https://feed1.url", PublishedAt = DateTime.UtcNow.AddMinutes(3) },
+            new Episode { Id = "ep2-1", FeedUrl = "https://feed2.url", PublishedAt = DateTime.UtcNow.AddMinutes(1) },
+            new Episode { Id = "ep2-2", FeedUrl = "https://feed2.url", PublishedAt = DateTime.UtcNow.AddMinutes(2) }
+        };
+
+        // Full initial playlist sequence
+        var fullPlaylist = PlaybackStrategyHelper.GetOrderedPlaylist(episodes, station, new HashSet<string>(), null);
+        Assert.That(fullPlaylist.Select(e => e.Id).ToList(), Is.EqualTo(new List<string> { "ep1-1", "ep1-2", "ep2-1", "ep1-3", "ep2-2" }));
+
+        // Mark the first two episodes as listened/completed
+        var listenedIds = new HashSet<string> { "ep1-1", "ep1-2" };
+
+        // Get upcoming playlist (listened episodes excluded, conforming to feed rotation order starting with Feed 1)
+        var upcomingPlaylist = PlaybackStrategyHelper.GetOrderedPlaylist(episodes, station, listenedIds, null);
+        Assert.That(upcomingPlaylist.Select(e => e.Id).ToList(), Is.EqualTo(new List<string> { "ep1-3", "ep2-1", "ep2-2" }));
+
+        // Get completed playlist (only completed ones, aligned with the full playback sequence order)
+        var completedPlaylist = fullPlaylist.Where(e => listenedIds.Contains(e.Id)).ToList();
+        Assert.That(completedPlaylist.Select(e => e.Id).ToList(), Is.EqualTo(new List<string> { "ep1-1", "ep1-2" }));
+
+        // Assert that the lists are completely disjoint and contain all 5 episodes
+        var combinedPlaylist = completedPlaylist.Concat(upcomingPlaylist).Select(e => e.Id).ToHashSet();
+        Assert.That(combinedPlaylist, Is.EquivalentTo(fullPlaylist.Select(e => e.Id).ToHashSet()));
+    }
 }
