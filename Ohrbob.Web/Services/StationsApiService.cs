@@ -131,6 +131,22 @@ public class StationsApiService : OhrbobApiService
         var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();
     }
+
+    public virtual async Task ClearEpisodeCompletedAsync(string stationId, string episodeId, string profileId)
+    {
+        using var request = BuildRequest(HttpMethod.Post, $"/stations/{stationId}/episodes/{episodeId}/clear?profileId={profileId}");
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public virtual async Task ClearEpisodeCompletedUntilAsync(string stationId, string episodeId, string profileId)
+    {
+        using var request = BuildRequest(HttpMethod.Post, $"/stations/{stationId}/episodes/{episodeId}/clearUntil?profileId={profileId}");
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+    }
 }
 
 public class LimitExceededException : System.Exception

@@ -92,7 +92,6 @@ public class StationsController : Controller
         if (!string.IsNullOrEmpty(activeId))
         {
             ViewBag.Playlist = await _stationsService.GetStationPlaylistAsync(id, activeId);
-            ViewBag.CompletedPlaylist = await _stationsService.GetStationCompletedPlaylistAsync(id, activeId);
         }
 
         return View(stationDto);
@@ -201,6 +200,56 @@ public class StationsController : Controller
 
         await _stationsService.MarkEpisodeCompletedUntilAsync(id, episodeId, activeId);
         
+        return Ok();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ClearCompleted(string id, string episodeId)
+    {
+        var accountId = GetAccountId();
+        if (string.IsNullOrEmpty(accountId)) return Forbid();
+
+        var station = await _stationsService.GetStationByIdAsync(id);
+        if (station == null || station.AccountId != accountId)
+            return NotFound();
+
+        var activeId = HttpContext.Request.Cookies["Ohrbob_ActiveProfileId"];
+        if (string.IsNullOrEmpty(activeId))
+        {
+            var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId);
+            activeId = profiles?.FirstOrDefault()?.Id;
+        }
+
+        if (string.IsNullOrEmpty(activeId))
+            return BadRequest("No active profile found.");
+
+        await _stationsService.ClearEpisodeCompletedAsync(id, episodeId, activeId);
+        return Ok();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ClearCompletedUntil(string id, string episodeId)
+    {
+        var accountId = GetAccountId();
+        if (string.IsNullOrEmpty(accountId)) return Forbid();
+
+        var station = await _stationsService.GetStationByIdAsync(id);
+        if (station == null || station.AccountId != accountId)
+            return NotFound();
+
+        var activeId = HttpContext.Request.Cookies["Ohrbob_ActiveProfileId"];
+        if (string.IsNullOrEmpty(activeId))
+        {
+            var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId);
+            activeId = profiles?.FirstOrDefault()?.Id;
+        }
+
+        if (string.IsNullOrEmpty(activeId))
+            return BadRequest("No active profile found.");
+
+        await _stationsService.ClearEpisodeCompletedUntilAsync(id, episodeId, activeId);
         return Ok();
     }
 
