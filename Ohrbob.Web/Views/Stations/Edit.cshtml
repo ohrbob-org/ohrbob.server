@@ -163,7 +163,7 @@
                         data-feed-color="@(feedColor)"
                         style="border-left: 4px solid @(feedColor) !important; background-color: @(feedColor + "15") !important; padding: 12px 16px;">
                         
-                        <div class="d-flex align-items-center flex-grow-1 min-w-0" style="gap: 16px;">
+                        <div class="d-flex align-items-center min-w-0" style="gap: 16px;">
                             <!-- Cover Art (Left) -->
                             <div class="position-relative flex-shrink-0" style="width: 70px; height: 70px;">
                                 <img src="@(string.IsNullOrEmpty(item.Episode.ImageUrl) ? "/images/cover-placeholder.png" : item.Episode.ImageUrl)" 
@@ -177,7 +177,7 @@
                             </div>
                             
                             <!-- Metadata (Middle) -->
-                            <div class="flex-grow-1 min-w-0 text-dark" style="overflow: hidden;">
+                            <div class="flex-grow-1 min-w-0 text-dark" style="overflow: hidden; max-width: calc(100% - 90px);">
                                 <div class="d-flex align-items-center min-w-0 w-100" style="gap: 8px;">
                                     <strong class="text-truncate" style="font-size: 1rem; line-height: 1.2; flex-grow: 1; min-w-0;">@item.Episode.Title</strong>
                                     @if(item.IsActive) {
