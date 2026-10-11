@@ -563,7 +563,7 @@
                         if (placeholder) {
                             placeholder.remove();
                         }
-                        completedList.insertBefore(clone, completedList.firstChild);
+                        completedList.appendChild(clone);
                         
                         // Increment count
                         const countEl = document.getElementById('completedCount');
