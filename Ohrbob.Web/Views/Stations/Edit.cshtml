@@ -152,72 +152,81 @@
     {
         var playlist = (List<Ohrbob.Server.Shared.Requests.EpisodePlayStateDto>)ViewBag.Playlist;
         <div class="mt-3">
-            @if (ViewBag.CompletedPlaylist != null)
-            {
-                var completedPlaylist = (List<Ohrbob.Server.Shared.Requests.EpisodePlayStateDto>)ViewBag.CompletedPlaylist;
-                <div class="mb-3">
-                    <button class="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#completedEpisodesCollapse" aria-expanded="false" aria-controls="completedEpisodesCollapse">
-                        <span>Completed (<span id="completedCount">@completedPlaylist.Count</span>)</span>
-                        <i class="bi bi-chevron-down"></i>
-                    </button>
-                    <div class="collapse mt-2" id="completedEpisodesCollapse">
-                        <div style="max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px;">
-                            <ul class="list-group list-group-flush" id="completedList">
-                                @foreach (var item in completedPlaylist)
-                                {
-                                    var feedColor = Model.Station.Schedule.Feeds.FirstOrDefault(f => f.Url == item.Episode.FeedUrl)?.Color ?? "#ccc";
-                                    <li class="list-group-item d-flex justify-content-between align-items-center completed-item" data-episode-id="@item.Episode.Id" data-feed-color="@(feedColor)" style="border-left: 4px solid @(feedColor) !important; background-color: @(feedColor + "15") !important;">
-                                        <div>
-                                            <strong>@item.Episode.Title</strong><br/>
-                                            <small>
-                                                Position: @(item.PositionSeconds)s / Published: @(item.Episode.PublishedAt?.ToString("g"))
-                                            </small>
-                                        </div>
-                                    </li>
-                                }
-                                @if (!completedPlaylist.Any())
-                                {
-                                    <li class="list-group-item text-muted text-center" id="completedEmptyPlaceholder">No completed episodes yet.</li>
-                                }
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            }
-            <h4>Upcoming Playlist (Active Profile)</h4>
+            <h4 class="mb-3">Upcoming Playlist & Playhead</h4>
             <ul class="list-group" id="resolvedList">
                 @foreach (var item in playlist)
                 {
-                    var activeClass = item.IsActive ? "list-group-item-primary" : "";
+                    var activeClass = item.IsActive ? "border-primary border-3" : "";
                     var feedColor = Model.Station.Schedule.Feeds.FirstOrDefault(f => f.Url == item.Episode.FeedUrl)?.Color ?? "#ccc";
-                    <li class="list-group-item @activeClass d-flex justify-content-between align-items-center resolved-item" data-episode-id="@item.Episode.Id" data-feed-color="@(feedColor)" style="border-left: 4px solid @(feedColor) !important; background-color: @(feedColor + "26") !important;">
-                        <div>
-                            <strong>@item.Episode.Title</strong><br/>
-                            <small>
-                                @if(item.IsActive) {
-                                    <span class="badge bg-primary">Playing</span>
-                                }
-                                Position: @(item.PositionSeconds)s / Published: @(item.Episode.PublishedAt?.ToString("g"))
-                            </small>
+                    <li class="list-group-item d-flex justify-content-between align-items-center resolved-item mb-2 rounded shadow-sm @activeClass" 
+                        data-episode-id="@item.Episode.Id" 
+                        data-feed-color="@(feedColor)"
+                        style="border-left: 5px solid @(feedColor) !important; background-color: @(feedColor + "15") !important; padding: 12px 16px;">
+                        
+                        <div class="d-flex align-items-center flex-grow-1 min-w-0" style="gap: 16px;">
+                            <!-- Cover Art (Left) -->
+                            <div class="position-relative flex-shrink-0" style="width: 70px; height: 70px;">
+                                <img src="@(string.IsNullOrEmpty(item.Episode.ImageUrl) ? "/images/cover-placeholder.png" : item.Episode.ImageUrl)" 
+                                     alt="Cover" 
+                                     class="w-100 h-100 rounded object-fit-cover shadow-sm" />
+                                     
+                                <!-- Big Checkmark Overlay (Displayed if IsCompleted) -->
+                                <div class="completed-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75 rounded @(item.IsCompleted ? "" : "d-none")" style="transition: opacity 0.2s;">
+                                    <i class="bi bi-check-lg text-primary" style="font-size: 2rem;"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- Metadata (Middle) -->
+                            <div class="flex-grow-1 min-w-0 text-dark">
+                                <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
+                                    <strong class="text-truncate" style="font-size: 1rem; line-height: 1.2;">@item.Episode.Title</strong>
+                                    @if(item.IsActive) {
+                                        <span class="badge bg-primary">Playing</span>
+                                    }
+                                </div>
+                                <p class="text-muted text-truncate mb-1 mt-1" style="font-size: 0.85rem; max-width: 95%;">@item.Episode.Description</p>
+                                <small class="text-secondary" style="font-size: 0.75rem;">
+                                    Position: @(item.PositionSeconds)s / Published: @(item.Episode.PublishedAt?.ToString("g"))
+                                </small>
+                            </div>
                         </div>
-                        <div>
-                            <button type="button" class="btn btn-sm btn-outline-success mark-completed-btn" title="Mark Completed">
-                                <i class="bi bi-check-lg"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-warning mark-completed-until-btn" title="Mark All Until Here Completed">
-                                <span class="d-inline-flex position-relative align-items-center" style="width: 28px; height: 18px; vertical-align: middle;">
-                                    <i class="bi bi-check" style="position: absolute; left: 0px; top: -4px; opacity: 0.6; font-size: 1.1rem;"></i>
-                                    <i class="bi bi-check" style="position: absolute; left: 5px; top: -1px; opacity: 0.8; font-size: 1.1rem;"></i>
-                                    <i class="bi bi-check-lg" style="position: absolute; left: 10px; top: 2px; font-size: 1.1rem;"></i>
-                                </span>
-                            </button>
+                        
+                        <!-- Action Controls (Right) -->
+                        <div class="d-flex flex-column align-items-end justify-content-center ms-3 flex-shrink-0" style="gap: 8px; width: 60px;">
+                            <div class="button-container d-flex flex-column gap-1 w-100">
+                                @if (item.IsCompleted)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger w-100 py-1 clear-completed-btn" title="Clear completed state" style="font-size: 0.75rem; padding: 2px 4px;">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary w-100 py-1 clear-completed-until-btn" title="Clear everything until here" style="font-size: 0.75rem; padding: 2px 4px;">
+                                        <span class="d-inline-flex position-relative align-items-center" style="width: 18px; height: 12px; vertical-align: middle;">
+                                            <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 0px; top: -2px; opacity: 0.6; font-size: 0.7rem;"></i>
+                                            <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 4px; top: 0px; opacity: 0.8; font-size: 0.7rem;"></i>
+                                            <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 8px; top: 2px; font-size: 0.7rem;"></i>
+                                        </span>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-success w-100 py-1 mark-completed-btn" title="Mark Completed" style="font-size: 0.75rem; padding: 2px 4px;">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-warning w-100 py-1 mark-completed-until-btn" title="Mark All Until Here Completed" style="font-size: 0.75rem; padding: 2px 4px;">
+                                        <span class="d-inline-flex position-relative align-items-center" style="width: 18px; height: 12px; vertical-align: middle;">
+                                            <i class="bi bi-check" style="position: absolute; left: 0px; top: -3px; opacity: 0.6; font-size: 0.7rem;"></i>
+                                            <i class="bi bi-check" style="position: absolute; left: 4px; top: -1px; opacity: 0.8; font-size: 0.7rem;"></i>
+                                            <i class="bi bi-check-lg" style="position: absolute; left: 8px; top: 1px; font-size: 0.7rem;"></i>
+                                        </span>
+                                    </button>
+                                }
+                            </div>
                         </div>
                     </li>
                 }
-
                 @if (!playlist.Any())
                 {
-                    <li class="list-group-item text-muted">No unplayed episodes found.</li>
+                    <li class="list-group-item text-muted text-center py-4">No episodes found.</li>
                 }
             </ul>
         </div>
@@ -313,6 +322,49 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-warning" id="confirmMarkCompletedUntilBtn">Mark Completed</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Clear Completed Modal -->
+<div class="modal fade" id="confirmClearCompletedModal" tabindex="-1" aria-labelledby="confirmClearCompletedModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmClearCompletedModalLabel">Confirm Reset</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-dark">
+                Are you sure you want to clear the completed state for this episode? It will return to the upcoming list.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmClearCompletedBtn">Clear Completed</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Clear Completed Until Modal -->
+<div class="modal fade" id="confirmClearCompletedUntilModal" tabindex="-1" aria-labelledby="confirmClearCompletedUntilUntilModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmClearCompletedUntilModalLabel">Confirm Bulk Reset</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to clear the completed state for all episodes up to and including this one?</p>
+                <div style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px;">
+                    <ul class="list-group list-group-flush" id="episodesToClearList">
+                        <!-- Populated dynamically via JS -->
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmClearCompletedUntilBtn">Clear All Until Here</button>
             </div>
         </div>
     </div>
@@ -528,143 +580,205 @@
                 });
             }
             
+            function setEpisodeCompletedState(li, isCompleted) {
+                if (!li) return;
+                
+                // Show/hide overlay
+                const overlay = li.querySelector('.completed-overlay');
+                if (overlay) {
+                    if (isCompleted) {
+                        overlay.classList.remove('d-none');
+                    } else {
+                        overlay.classList.add('d-none');
+                    }
+                }
+                
+                // Swap buttons
+                const btnContainer = li.querySelector('.button-container');
+                if (btnContainer) {
+                    if (isCompleted) {
+                        btnContainer.innerHTML = `
+                            <button type="button" class="btn btn-sm btn-outline-danger w-100 py-1 clear-completed-btn" title="Clear completed state" style="font-size: 0.75rem; padding: 2px 4px;">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary w-100 py-1 clear-completed-until-btn" title="Clear everything until here" style="font-size: 0.75rem; padding: 2px 4px;">
+                                <span class="d-inline-flex position-relative align-items-center" style="width: 18px; height: 12px; vertical-align: middle;">
+                                    <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 0px; top: -2px; opacity: 0.6; font-size: 0.7rem;"></i>
+                                    <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 4px; top: 0px; opacity: 0.8; font-size: 0.7rem;"></i>
+                                    <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 8px; top: 2px; font-size: 0.7rem;"></i>
+                                </span>
+                            </button>
+                        `;
+                    } else {
+                        btnContainer.innerHTML = `
+                            <button type="button" class="btn btn-sm btn-outline-success w-100 py-1 mark-completed-btn" title="Mark Completed" style="font-size: 0.75rem; padding: 2px 4px;">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-warning w-100 py-1 mark-completed-until-btn" title="Mark All Until Here Completed" style="font-size: 0.75rem; padding: 2px 4px;">
+                                <span class="d-inline-flex position-relative align-items-center" style="width: 18px; height: 12px; vertical-align: middle;">
+                                    <i class="bi bi-check" style="position: absolute; left: 0px; top: -3px; opacity: 0.6; font-size: 0.7rem;"></i>
+                                    <i class="bi bi-check" style="position: absolute; left: 4px; top: -1px; opacity: 0.8; font-size: 0.7rem;"></i>
+                                    <i class="bi bi-check-lg" style="position: absolute; left: 8px; top: 1px; font-size: 0.7rem;"></i>
+                                </span>
+                            </button>
+                        `;
+                    }
+                }
+            }
+
             // Resolved List Buttons
             const resolvedTabPane = document.getElementById('resolved');
             if (resolvedTabPane) {
-                function moveEpisodeToCompleted(li) {
-                    if (!li) return;
-                    
-                    // Clone the item
-                    const clone = li.cloneNode(true);
-                    clone.className = "list-group-item d-flex justify-content-between align-items-center completed-item";
-                    
-                    // Set paler background (using opacity 15 instead of 26)
-                    const feedColor = li.getAttribute('data-feed-color') || "#ccc";
-                    clone.style.backgroundColor = feedColor + "15";
-                    
-                    // Strip the actions div
-                    const actionDiv = clone.querySelector('div:last-child');
-                    if (actionDiv && actionDiv !== clone.querySelector('div:first-child')) {
-                        actionDiv.remove();
-                    }
-                    
-                    // Remove playing badge if any
-                    const badge = clone.querySelector('.badge');
-                    if (badge) {
-                        badge.remove();
-                    }
-                    
-                    // Remove from upcoming list and prepend to completed list
-                    li.remove();
-                    
-                    const completedList = document.getElementById('completedList');
-                    if (completedList) {
-                        const placeholder = document.getElementById('completedEmptyPlaceholder');
-                        if (placeholder) {
-                            placeholder.remove();
-                        }
-                        completedList.appendChild(clone);
-                        
-                        // Increment count
-                        const countEl = document.getElementById('completedCount');
-                        if (countEl) {
-                            countEl.textContent = parseInt(countEl.textContent || '0') + 1;
-                        }
-                    }
-                }
-
                 resolvedTabPane.addEventListener('click', function(e) {
                     const btnCompleted = e.target.closest('.mark-completed-btn');
                     const btnUntil = e.target.closest('.mark-completed-until-btn');
+                    const btnClear = e.target.closest('.clear-completed-btn');
+                    const btnClearUntil = e.target.closest('.clear-completed-until-btn');
                     
-                    if (btnCompleted || btnUntil) {
-                        const li = e.target.closest('.resolved-item');
-                        console.log("MARK COMPLETED CLICKED", li);
-                        if (!li) return;
-                        const episodeId = li.getAttribute('data-episode-id');
+                    if (!btnCompleted && !btnUntil && !btnClear && !btnClearUntil) return;
+                    
+                    const li = e.target.closest('.resolved-item');
+                    if (!li) return;
+                    const episodeId = li.getAttribute('data-episode-id');
+                    
+                    if (btnCompleted) {
+                        fetch(`/Stations/MarkCompleted?id=${"@Model.Station.Id"}&episodeId=${episodeId}`, {
+                            method: 'POST',
+                            headers: {
+                                'RequestVerificationToken': getVerificationToken()
+                            }
+                        })
+                        .then(res => {
+                            if (res.ok || res.redirected) {
+                                setEpisodeCompletedState(li, true);
+                            } else {
+                                alert('Error marking completed');
+                            }
+                        })
+                        .catch(err => alert('Error marking completed'));
                         
-                        if (btnCompleted) {
-                            if (confirm('Mark this episode as completed?')) {
-                                fetch(`/Stations/MarkCompleted?id=${"@Model.Station.Id"}&episodeId=${episodeId}`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'RequestVerificationToken': getVerificationToken()
-                                    }
-                                })
-                                .then(res => {
-                                    if (res.ok || res.redirected) {
-                                        console.log("MARK COMPLETED SUCCESS", li);
-                                        moveEpisodeToCompleted(li);
-                                    } else {
-                                        alert('Error marking completed');
-                                    }
-                                })
-                                .catch(err => alert('Error marking completed'));
+                    } else if (btnUntil) {
+                        // Find all preceding items and the clicked item
+                        const itemsToMark = [];
+                        let currentItem = li;
+                        while (currentItem) {
+                            if (currentItem.classList.contains('resolved-item')) {
+                                itemsToMark.unshift(currentItem);
                             }
-                        } else if (btnUntil) {
-                            // Find all preceding items and the clicked item
-                            const itemsToMark = [];
-                            let currentItem = li;
-                            while (currentItem) {
-                                if (currentItem.classList.contains('resolved-item')) {
-                                    itemsToMark.unshift(currentItem);
-                                }
-                                currentItem = currentItem.previousElementSibling;
-                            }
-                            
-                            // Populate list inside modal
-                            const listContainer = document.getElementById('episodesToMarkList');
-                            listContainer.innerHTML = '';
-                            itemsToMark.forEach(item => {
-                                const titleEl = item.querySelector('strong');
-                                const title = titleEl ? titleEl.textContent : 'Episode';
-                                const liEl = document.createElement('li');
-                                liEl.className = 'list-group-item py-1 text-truncate';
-                                liEl.textContent = title;
-                                listContainer.appendChild(liEl);
-                            });
-                            
-                            // Save references on the modal confirm button
-                            const confirmBtn = document.getElementById('confirmMarkCompletedUntilBtn');
-                            confirmBtn.onclick = function() {
-                                // Hide the modal first
-                                const modalEl = document.getElementById('confirmMarkCompletedUntilModal');
-                                const modalInstance = bootstrap.Modal.getInstance(modalEl);
-                                if (modalInstance) {
-                                    modalInstance.hide();
-                                }
-                                
-                                fetch(`/Stations/MarkCompletedUntil?id=${"@Model.Station.Id"}&episodeId=${episodeId}`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'RequestVerificationToken': getVerificationToken()
-                                    }
-                                })
-                                .then(res => {
-                                    if (res.ok || res.redirected) {
-                                        const elementsToMove = [];
-                                        let current = li;
-                                        while(current) {
-                                            if (current.classList.contains('resolved-item')) {
-                                                elementsToMove.push(current);
-                                            }
-                                            current = current.previousElementSibling;
-                                        }
-                                        elementsToMove.reverse();
-                                        elementsToMove.forEach(elem => {
-                                            moveEpisodeToCompleted(elem);
-                                        });
-                                    } else {
-                                        alert('Error marking completed');
-                                    }
-                                })
-                                .catch(err => alert('Error marking completed'));
-                            };
-                            
-                            // Show the modal
-                            const confirmModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmMarkCompletedUntilModal'));
-                            confirmModal.show();
+                            currentItem = currentItem.previousElementSibling;
                         }
+                        
+                        // Populate list inside modal
+                        const listContainer = document.getElementById('episodesToMarkList');
+                        listContainer.innerHTML = '';
+                        itemsToMark.forEach(item => {
+                            const titleEl = item.querySelector('strong');
+                            const title = titleEl ? titleEl.textContent : 'Episode';
+                            const liEl = document.createElement('li');
+                            liEl.className = 'list-group-item py-1 text-truncate';
+                            liEl.textContent = title;
+                            listContainer.appendChild(liEl);
+                        });
+                        
+                        const confirmBtn = document.getElementById('confirmMarkCompletedUntilBtn');
+                        confirmBtn.onclick = function() {
+                            const modalEl = document.getElementById('confirmMarkCompletedUntilModal');
+                            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                            if (modalInstance) modalInstance.hide();
+                            
+                            fetch(`/Stations/MarkCompletedUntil?id=${"@Model.Station.Id"}&episodeId=${episodeId}`, {
+                                method: 'POST',
+                                headers: {
+                                    'RequestVerificationToken': getVerificationToken()
+                                }
+                            })
+                            .then(res => {
+                                if (res.ok || res.redirected) {
+                                    itemsToMark.forEach(elem => setEpisodeCompletedState(elem, true));
+                                } else {
+                                    alert('Error marking completed until here');
+                                }
+                            })
+                            .catch(err => alert('Error marking completed until here'));
+                        };
+                        
+                        const confirmModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmMarkCompletedUntilModal'));
+                        confirmModal.show();
+                        
+                    } else if (btnClear) {
+                        // Single clear completed (with confirmation modal)
+                        const confirmBtn = document.getElementById('confirmClearCompletedBtn');
+                        confirmBtn.onclick = function() {
+                            const modalEl = document.getElementById('confirmClearCompletedModal');
+                            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                            if (modalInstance) modalInstance.hide();
+                            
+                            fetch(`/Stations/ClearCompleted?id=${"@Model.Station.Id"}&episodeId=${episodeId}`, {
+                                method: 'POST',
+                                headers: {
+                                    'RequestVerificationToken': getVerificationToken()
+                                }
+                            })
+                            .then(res => {
+                                if (res.ok || res.redirected) {
+                                    setEpisodeCompletedState(li, false);
+                                } else {
+                                    alert('Error clearing completed state');
+                                }
+                            })
+                            .catch(err => alert('Error clearing completed state'));
+                        };
+                        
+                        const confirmModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmClearCompletedModal'));
+                        confirmModal.show();
+                        
+                    } else if (btnClearUntil) {
+                        // Find all preceding items and the clicked item
+                        const itemsToClear = [];
+                        let currentItem = li;
+                        while (currentItem) {
+                            if (currentItem.classList.contains('resolved-item')) {
+                                itemsToClear.unshift(currentItem);
+                            }
+                            currentItem = currentItem.previousElementSibling;
+                        }
+                        
+                        // Populate list inside modal
+                        const listContainer = document.getElementById('episodesToClearList');
+                        listContainer.innerHTML = '';
+                        itemsToClear.forEach(item => {
+                            const titleEl = item.querySelector('strong');
+                            const title = titleEl ? titleEl.textContent : 'Episode';
+                            const liEl = document.createElement('li');
+                            liEl.className = 'list-group-item py-1 text-truncate';
+                            liEl.textContent = title;
+                            listContainer.appendChild(liEl);
+                        });
+                        
+                        const confirmBtn = document.getElementById('confirmClearCompletedUntilBtn');
+                        confirmBtn.onclick = function() {
+                            const modalEl = document.getElementById('confirmClearCompletedUntilModal');
+                            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                            if (modalInstance) modalInstance.hide();
+                            
+                            fetch(`/Stations/ClearCompletedUntil?id=${"@Model.Station.Id"}&episodeId=${episodeId}`, {
+                                method: 'POST',
+                                headers: {
+                                    'RequestVerificationToken': getVerificationToken()
+                                }
+                            })
+                            .then(res => {
+                                if (res.ok || res.redirected) {
+                                    itemsToClear.forEach(elem => setEpisodeCompletedState(elem, false));
+                                } else {
+                                    alert('Error clearing completed state until here');
+                                }
+                            })
+                            .catch(err => alert('Error clearing completed state until here'));
+                        };
+                        
+                        const confirmModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmClearCompletedUntilModal'));
+                        confirmModal.show();
                     }
                 });
             }
