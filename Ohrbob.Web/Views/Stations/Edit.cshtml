@@ -640,12 +640,16 @@
                                 })
                                 .then(res => {
                                     if (res.ok || res.redirected) {
+                                        const elementsToMove = [];
                                         let current = li;
                                         while(current) {
-                                            const prev = current.previousElementSibling;
-                                            moveEpisodeToCompleted(current);
-                                            current = prev;
+                                            elementsToMove.push(current);
+                                            current = current.previousElementSibling;
                                         }
+                                        elementsToMove.reverse();
+                                        elementsToMove.forEach(elem => {
+                                            moveEpisodeToCompleted(elem);
+                                        });
                                     } else {
                                         alert('Error marking completed');
                                     }
