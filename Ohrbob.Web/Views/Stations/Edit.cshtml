@@ -177,14 +177,14 @@
                             </div>
                             
                             <!-- Metadata (Middle) -->
-                            <div class="flex-grow-1 min-w-0 text-dark">
-                                <div class="d-flex align-items-center flex-wrap" style="gap: 8px;">
-                                    <strong class="text-truncate" style="font-size: 1rem; line-height: 1.2;">@item.Episode.Title</strong>
+                            <div class="flex-grow-1 min-w-0 text-dark" style="overflow: hidden;">
+                                <div class="d-flex align-items-center min-w-0 w-100" style="gap: 8px;">
+                                    <strong class="text-truncate" style="font-size: 1rem; line-height: 1.2; flex-grow: 1; min-w-0;">@item.Episode.Title</strong>
                                     @if(item.IsActive) {
-                                        <span class="badge bg-primary">Playing</span>
+                                        <span class="badge bg-primary flex-shrink-0">Playing</span>
                                     }
                                 </div>
-                                <p class="text-muted text-truncate mb-1 mt-1" style="font-size: 0.85rem; max-width: 95%;">@item.Episode.Description</p>
+                                <p class="text-muted text-truncate mb-1 mt-1 w-100 d-block" style="font-size: 0.85rem;">@item.Episode.Description</p>
                                 <small class="text-secondary" style="font-size: 0.75rem;">
                                     Position: @(item.PositionSeconds)s / Published: @(item.Episode.PublishedAt?.ToString("g"))
                                 </small>
