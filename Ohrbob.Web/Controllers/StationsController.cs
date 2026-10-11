@@ -92,6 +92,7 @@ public class StationsController : Controller
         if (!string.IsNullOrEmpty(activeId))
         {
             ViewBag.Playlist = await _stationsService.GetStationPlaylistAsync(id, activeId);
+            ViewBag.CompletedPlaylist = await _stationsService.GetStationCompletedPlaylistAsync(id, activeId);
         }
 
         return View(stationDto);

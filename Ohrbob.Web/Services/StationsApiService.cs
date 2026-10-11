@@ -106,6 +106,16 @@ public class StationsApiService : OhrbobApiService
         return await response.Content.ReadFromJsonAsync<List<Ohrbob.Server.Shared.Requests.EpisodePlayStateDto>>();
     }
 
+    public virtual async Task<List<Ohrbob.Server.Shared.Requests.EpisodePlayStateDto>?> GetStationCompletedPlaylistAsync(string id, string profileId)
+    {
+        using var request = BuildRequest(HttpMethod.Get, $"/stations/{id}/completed?profileId={profileId}");
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<List<Ohrbob.Server.Shared.Requests.EpisodePlayStateDto>>();
+    }
+
     public virtual async Task MarkEpisodeCompletedAsync(string stationId, string episodeId, string profileId)
     {
         using var request = BuildRequest(HttpMethod.Post, $"/stations/{stationId}/episodes/{episodeId}/complete?profileId={profileId}");

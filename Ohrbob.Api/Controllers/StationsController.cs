@@ -169,6 +169,43 @@ public class StationsController : ControllerBase
         return Ok(result.Take(50).ToList());
     }
 
+    [EndpointSummary("Get station completed playlist")]
+    [Authorize(policy: Consts.GetStationsPolicy)]
+    [HttpGet("{id}/completed")]
+    public async Task<ActionResult<List<EpisodePlayStateDto>>> GetCompletedPlaylist(string id, [FromQuery] string profileId)
+    {
+        var station = await _stationsService.GetAsync(id);
+        if (station == null || station.Feeds == null || !station.Feeds.Any()) 
+            return NotFound();
+
+        var profile = await _profilesService.GetAsync(profileId);
+        if (profile == null) return NotFound();
+
+        var episodes = await _episodesService.FindByFeedUrlsAsync(station.Feeds);
+        var listenStates = await _listenStateService.GetStatesByUserIdAsync(profileId);
+        
+        var listenedIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
+        
+        // Filter out only completed episodes
+        var completedEpisodes = episodes.Where(e => listenedIds.Contains(e.Id))
+            .OrderByDescending(e => e.PublishedAt)
+            .ToList();
+
+        var result = new List<EpisodePlayStateDto>();
+        foreach(var ep in completedEpisodes)
+        {
+            var state = listenStates.FirstOrDefault(s => s.EpisodeId == ep.Id);
+            result.Add(new EpisodePlayStateDto
+            {
+                Episode = ep,
+                PositionSeconds = state?.PositionSeconds ?? 0,
+                IsActive = false
+            });
+        }
+        
+        return Ok(result);
+    }
+
     [EndpointSummary("Mark episode as completed for a profile")]
     [Authorize(policy: Consts.GetStationsPolicy)]
     [HttpPost("{id}/episodes/{episodeId}/complete")]
