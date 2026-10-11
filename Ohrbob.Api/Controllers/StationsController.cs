@@ -186,10 +186,11 @@ public class StationsController : ControllerBase
         
         var listenedIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
         
-        // Filter out only completed episodes
-        var completedEpisodes = episodes.Where(e => listenedIds.Contains(e.Id))
-            .OrderByDescending(e => e.PublishedAt)
-            .ToList();
+        // Order all episodes via PlaybackStrategyHelper (treating all as unplayed), then filter for completed ones
+        var fullOrderedSequence = Ohrbob.Server.Shared.Helpers.PlaybackStrategyHelper.GetOrderedPlaylist(
+            episodes, station, new HashSet<string>(), null);
+        
+        var completedEpisodes = fullOrderedSequence.Where(e => listenedIds.Contains(e.Id)).ToList();
 
         var result = new List<EpisodePlayStateDto>();
         foreach(var ep in completedEpisodes)
