@@ -140,13 +140,14 @@ public class StationsController : ControllerBase
         
         var listenedIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
         
+        // Pass empty HashSet to GetOrderedPlaylist so we compute order of ALL episodes without filtering completed ones
         var orderedEpisodes = Ohrbob.Server.Shared.Helpers.PlaybackStrategyHelper.GetOrderedPlaylist(
-            episodes, station, listenedIds, profile.LastActiveEpisodeId);
+            episodes, station, new HashSet<string>(), profile.LastActiveEpisodeId);
 
         var activeEpisodeId = profile.LastActiveEpisodeId;
         if (string.IsNullOrEmpty(activeEpisodeId) && profile.LastActiveStationId == id)
         {
-            var firstUnplayed = orderedEpisodes.FirstOrDefault();
+            var firstUnplayed = orderedEpisodes.FirstOrDefault(e => !listenedIds.Contains(e.Id));
             if (firstUnplayed != null)
             {
                 activeEpisodeId = firstUnplayed.Id;
@@ -161,7 +162,8 @@ public class StationsController : ControllerBase
             {
                 Episode = ep,
                 PositionSeconds = state?.PositionSeconds ?? 0,
-                IsActive = activeEpisodeId == ep.Id
+                IsActive = activeEpisodeId == ep.Id,
+                IsCompleted = listenedIds.Contains(ep.Id)
             });
         }
         
@@ -234,6 +236,56 @@ public class StationsController : ControllerBase
         {
             state.IsListened = true;
             await _listenStateService.UpdateAsync(state);
+        }
+
+        return Ok();
+    }
+
+    [EndpointSummary("Clear episode completed state for a profile")]
+    [Authorize(policy: Consts.GetStationsPolicy)]
+    [HttpPost("{id}/episodes/{episodeId}/clear")]
+    public async Task<IActionResult> ClearEpisodeCompleted(string id, string episodeId, [FromQuery] string profileId)
+    {
+        var state = await _listenStateService.GetStateAsync(profileId, episodeId);
+        if (state != null)
+        {
+            state.IsListened = false;
+            await _listenStateService.UpdateAsync(state);
+        }
+        return Ok();
+    }
+
+    [EndpointSummary("Clear episode completed state until for a profile")]
+    [Authorize(policy: Consts.GetStationsPolicy)]
+    [HttpPost("{id}/episodes/{episodeId}/clearUntil")]
+    public async Task<IActionResult> ClearEpisodeCompletedUntil(string id, string episodeId, [FromQuery] string profileId)
+    {
+        var station = await _stationsService.GetAsync(id);
+        if (station == null || station.Feeds == null || !station.Feeds.Any()) 
+            return NotFound();
+
+        var profile = await _profilesService.GetAsync(profileId);
+        if (profile == null) return NotFound();
+
+        var episodes = await _episodesService.FindByFeedUrlsAsync(station.Feeds);
+        var listenStates = await _listenStateService.GetStatesByUserIdAsync(profileId);
+        
+        var fullOrderedSequence = Ohrbob.Server.Shared.Helpers.PlaybackStrategyHelper.GetOrderedPlaylist(
+            episodes, station, new HashSet<string>(), null);
+
+        foreach (var ep in fullOrderedSequence)
+        {
+            var state = listenStates.FirstOrDefault(s => s.EpisodeId == ep.Id);
+            if (state != null)
+            {
+                state.IsListened = false;
+                await _listenStateService.UpdateAsync(state);
+            }
+
+            if (ep.Id == episodeId)
+            {
+                break;
+            }
         }
 
         return Ok();
