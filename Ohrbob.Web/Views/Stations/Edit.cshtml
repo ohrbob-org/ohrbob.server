@@ -580,7 +580,7 @@
                             };
                             
                             // Show the modal
-                            const confirmModal = new bootstrap.Modal(document.getElementById('confirmMarkCompletedUntilModal'));
+                            const confirmModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmMarkCompletedUntilModal'));
                             confirmModal.show();
                         }
                     }
