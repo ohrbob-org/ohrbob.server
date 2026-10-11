@@ -116,9 +116,9 @@ public class StationsEditTests : PageTest
         
         Assert.That(episodeTitle, Is.Not.Empty);
         
-        // Click Mark Completed
+        // Click Mark Completed Icon Button
         Page.Dialog += (_, dialog) => dialog.AcceptAsync();
-        await firstEpisode.Locator("button:has-text('Mark Completed')").ClickAsync();
+        await firstEpisode.Locator("button.mark-completed-btn").ClickAsync();
         
         // Wait for count to decrease
         await Expect(Page.Locator(".resolved-item")).ToHaveCountAsync(initialCount - 1, new() { Timeout = 10000 });
