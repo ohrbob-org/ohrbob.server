@@ -33,88 +33,116 @@
     background: #cce5ff;
     color: #004085;
 }
+
+@@media (min-width: 992px) {
+    #stationTabs {
+        display: none !important;
+    }
+    #stationTabsContent {
+        display: flex !important;
+        flex-wrap: wrap !important;
+    }
+    #stationTabsContent .tab-pane {
+        display: block !important;
+        opacity: 1 !important;
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+    }
+}
 </style>
 
-<ul class="nav pill-nav" id="stationTabs" role="tablist">
+<ul class="nav pill-nav d-lg-none" id="stationTabs" role="tablist">
   <li class="nav-item">
-    <a class="nav-link active" id="feeds-tab" data-bs-toggle="tab" href="#feeds" role="tab">Feeds</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" id="blueprint-tab" data-bs-toggle="tab" href="#rotation" role="tab">Rotation</a>
+    <a class="nav-link active" id="rotation-tab" data-bs-toggle="tab" href="#rotation" role="tab">Rotation & Feeds</a>
   </li>
   <li class="nav-item">
     <a class="nav-link" id="resolved-tab" data-bs-toggle="tab" href="#resolved" role="tab">Resolved Episodes</a>
   </li>
 </ul>
 
-<div class="tab-content" id="stationTabsContent">
-  <div class="tab-pane fade show active" id="feeds" role="tabpanel">
-    <div id="feedsContainer">
-        @{ var feedIndex = 0; }
-        @foreach (var feed in Model.Feeds)
+<div class="tab-content row" id="stationTabsContent">
+  <div class="tab-pane fade show active col-12 col-lg-6" id="rotation" role="tabpanel">
+    <h3>Rotation & Feeds</h3>
+    <div class="list-group py-3" id="rotationContainer" style="max-width: 100%;">
+        @{ var feedScheduleIndex = 0; }
+        @foreach(var feedSchedule in Model.Station.Schedule.Feeds)
         {
-            var scheduleFeed = Model.Station.Schedule.Feeds.FirstOrDefault(f => f.Url == feed.Url) ?? new Ohrbob.Server.Shared.Data.StationFeedSchedule { Url = feed.Url };
-            var currentFeedIndex = feedIndex++;
-            
-            <div class="card mb-3 feed-card" data-url="@feed.Url" style="border-left: 4px solid @(string.IsNullOrEmpty(scheduleFeed.Color) ? "#ccc" : scheduleFeed.Color) !important; background-color: @(string.IsNullOrEmpty(scheduleFeed.Color) ? "transparent" : scheduleFeed.Color + "26") !important;">
-                <div class="card-body d-flex align-items-center">
-                    <img src="@feed.ImageUrl" width="64" height="64" class="me-3 rounded" />
-                    <div class="flex-grow-1">
-                        <h5 class="card-title">@feed.Title</h5>
-                        <p class="card-text text-muted mb-1">Episodes: @feed.EpisodeCount | Last Updated: @feed.LastUpdated</p>
-                        <!-- 3-State Sliding Playback Order Toggle Control -->
-                        @{
-                            var activeValue = (int)scheduleFeed.SortOrder;
-                            var thumbLeft = activeValue == 1 ? "3px" : (activeValue == 2 ? "50%" : "calc(100% - 3px)");
-                            var thumbTransform = activeValue == 1 ? "translateX(0)" : (activeValue == 2 ? "translateX(-50%)" : "translateX(-100%)");
-                        }
-                        <div class="playback-order-toggle-container d-inline-flex flex-column align-items-center mt-2" style="width: 240px;">
-                            <!-- Capsule Slider Track -->
-                            <div class="position-relative bg-light border rounded-pill d-flex align-items-center justify-content-between user-select-none"
-                                 style="width: 100%; height: 36px; padding: 4px; background-color:#e8ebee !important; border: 1px solid #ced4da; cursor: pointer;"
-                                 id="sliderTrack-@currentFeedIndex" role="slider" aria-valuemin="0" aria-valuemax="2" aria-valuenow="@activeValue">
-                                 
-                                 <!-- Sliding circular thumb -->
-                                 <div class="slider-thumb-container bg-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm"
-                                      style="position: absolute; top: 3px; left: @thumbLeft; width: 28px; height: 28px; border: 1px solid rgba(255, 255, 255, 0.3); pointer-events: none; z-index: 20; transform: @thumbTransform; transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
-                                      <i class="bi @(activeValue == 1 ? "bi-sort-down" : (activeValue == 2 ? "bi-shuffle" : "bi-sort-up")) text-white" style="font-size: 0.9rem;"></i>
-                                 </div>
+            var feedData = Model.Feeds.FirstOrDefault(f => f.Url == feedSchedule.Url);
+            if (feedData != null)
+            {
+                var currentFeedIndex = feedScheduleIndex++;
+                <div class="list-group-item rotation-item border rounded p-3 mb-2" draggable="true" data-url="@feedSchedule.Url" style="cursor: grab; border-left: 4px solid @(string.IsNullOrEmpty(feedSchedule.Color) ? "#ccc" : feedSchedule.Color) !important; background-color: @(string.IsNullOrEmpty(feedSchedule.Color) ? "#fff" : feedSchedule.Color + "26") !important;">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between">
+                        <div class="d-flex align-items-center flex-grow-1 min-w-0 mb-3 mb-md-0">
+                            <!-- Drag Handle -->
+                            <div class="me-3 text-muted drag-handle" style="font-size: 1.5rem; cursor: grab;">
+                                <i class="bi bi-grip-vertical"></i>
+                            </div>
+                            <img src="@feedData.ImageUrl" class="me-3 rounded shadow-sm" style="object-fit: cover; width: 48px; height: 48px;" />
+                            <div class="text-truncate" style="max-width: 250px;">
+                                <strong class="text-dark">@feedData.Title</strong>
+                                <div class="small text-muted">Episodes: @feedData.EpisodeCount | Last Updated: @feedData.LastUpdated</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex flex-wrap align-items-center gap-3">
+                            <!-- 3-State Sliding Playback Order Toggle Control -->
+                            @{
+                                var activeValue = (int)feedSchedule.SortOrder;
+                                var thumbLeft = activeValue == 1 ? "3px" : (activeValue == 2 ? "50%" : "calc(100% - 3px)");
+                                var thumbTransform = activeValue == 1 ? "translateX(0)" : (activeValue == 2 ? "translateX(-50%)" : "translateX(-100%)");
+                            }
+                            <div class="playback-order-toggle-container d-inline-flex flex-column align-items-center" style="width: 200px;">
+                                <!-- Capsule Slider Track -->
+                                <div class="position-relative bg-light border rounded-pill d-flex align-items-center justify-content-between user-select-none"
+                                     style="width: 100%; height: 32px; padding: 4px; background-color:#e8ebee !important; border: 1px solid #ced4da; cursor: pointer;"
+                                     id="sliderTrack-@currentFeedIndex" role="slider" aria-valuemin="0" aria-valuemax="2" aria-valuenow="@activeValue">
+                                     
+                                     <!-- Sliding circular thumb -->
+                                     <div class="slider-thumb-container bg-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                                          style="position: absolute; top: 3px; left: @thumbLeft; width: 24px; height: 24px; border: 1px solid rgba(255, 255, 255, 0.3); pointer-events: none; z-index: 20; transform: @thumbTransform; transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+                                          <i class="bi @(activeValue == 1 ? "bi-sort-down" : (activeValue == 2 ? "bi-shuffle" : "bi-sort-up")) text-white" style="font-size: 0.8rem;"></i>
+                                     </div>
 
-                                 <!-- Nodes -->
-                                 <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 1)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d;" title="Backwards">
-                                     <i class="bi bi-sort-down" style="position: absolute; left: 3px; top: 0; width: 28px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;"></i>
-                                 </button>
-                                 <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 2)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d; display: flex; align-items: center; justify-content: center;" title="Random">
-                                     <i class="bi bi-shuffle" style="font-size: 0.8rem;"></i>
-                                 </button>
-                                 <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 0)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d;" title="Forwards">
-                                     <i class="bi bi-sort-up" style="position: absolute; right: 3px; top: 0; width: 28px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;"></i>
-                                 </button>
+                                     <!-- Nodes -->
+                                     <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 1)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d;" title="Backwards">
+                                         <i class="bi bi-sort-down" style="position: absolute; left: 3px; top: 0; width: 24px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;"></i>
+                                     </button>
+                                     <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 2)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d; display: flex; align-items: center; justify-content: center;" title="Random">
+                                         <i class="bi bi-shuffle" style="font-size: 0.75rem;"></i>
+                                     </button>
+                                     <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 0)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d;" title="Forwards">
+                                         <i class="bi bi-sort-up" style="position: absolute; right: 3px; top: 0; width: 24px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;"></i>
+                                     </button>
+                                </div>
+
+                                <!-- Labels below -->
+                                <div class="d-flex w-100 justify-content-between mt-1 text-center" style="font-size: 9px; line-height: 1;">
+                                    <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 1)" id="label-1-@currentFeedIndex" class="flex-fill d-flex flex-column align-items-center border-0 bg-transparent py-0 px-0" style="outline: none;">
+                                        <span class="fw-bold @(activeValue == 1 ? "text-primary" : "text-muted")">Backwards</span>
+                                    </button>
+                                    <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 2)" id="label-2-@currentFeedIndex" class="flex-fill d-flex flex-column align-items-center border-0 bg-transparent py-0 px-0" style="outline: none;">
+                                        <span class="fw-bold @(activeValue == 2 ? "text-primary" : "text-muted")">Random</span>
+                                    </button>
+                                    <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 0)" id="label-0-@currentFeedIndex" class="flex-fill d-flex flex-column align-items-center border-0 bg-transparent py-0 px-0" style="outline: none;">
+                                        <span class="fw-bold @(activeValue == 0 ? "text-primary" : "text-muted")">Forwards</span>
+                                    </button>
+                                </div>
+
+                                <!-- Hidden value input -->
+                                <input type="hidden" class="playback-order-value" value="@activeValue" />
                             </div>
 
-                            <!-- Labels below -->
-                            <div class="d-flex w-100 justify-content-between mt-1 text-center" style="font-size: 10px;">
-                                <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 1)" id="label-1-@currentFeedIndex" class="flex-fill d-flex flex-column align-items-center border-0 bg-transparent py-0" style="outline: none;">
-                                    <span class="fw-bold @(activeValue == 1 ? "text-primary" : "text-muted")">Backwards</span>
-                                    <span class="text-muted" style="font-size: 8px;">Newest &rarr; Oldest</span>
-                                </button>
-                                <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 2)" id="label-2-@currentFeedIndex" class="flex-fill d-flex flex-column align-items-center border-0 bg-transparent py-0" style="outline: none;">
-                                    <span class="fw-bold @(activeValue == 2 ? "text-primary" : "text-muted")">Random</span>
-                                    <span class="text-muted" style="font-size: 8px;"></span>
-                                </button>
-                                <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 0)" id="label-0-@currentFeedIndex" class="flex-fill d-flex flex-column align-items-center border-0 bg-transparent py-0" style="outline: none;">
-                                    <span class="fw-bold @(activeValue == 0 ? "text-primary" : "text-muted")">Forwards</span>
-                                    <span class="text-muted" style="font-size: 8px;">Oldest &rarr; Newest</span>
-                                </button>
+                            <div class="d-flex align-items-center" style="width: 140px;">
+                                <span class="small text-muted me-2" style="white-space: nowrap;">Eps/turn:</span>
+                                <input type="number" class="form-control form-control-sm episodes-input" min="1" max="99" value="@(feedSchedule.EpisodesToPlay < 1 ? 1 : feedSchedule.EpisodesToPlay)" style="width: 60px;" />
                             </div>
 
-                            <!-- Hidden value input -->
-                            <input type="hidden" class="playback-order-value" value="@activeValue" />
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-feed">Remove</button>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-outline-danger remove-feed">Remove</button>
                 </div>
-            </div>
+            }
         }
     </div>
     <div class="input-group mt-3">
@@ -122,34 +150,7 @@
         <button type="button" id="addFeedBtn" class="btn btn-primary">Add Feed</button>
     </div>
   </div>
-  <div class="tab-pane fade" id="rotation" role="tabpanel">
-    <div class="list-group py-3" id="rotationContainer" style="max-width: 600px;">
-        @foreach(var feedSchedule in Model.Station.Schedule.Feeds)
-        {
-            var feedData = Model.Feeds.FirstOrDefault(f => f.Url == feedSchedule.Url);
-            if (feedData != null)
-            {
-                <div class="list-group-item rotation-item d-flex align-items-center justify-content-between border rounded p-3 mb-2" draggable="true" data-url="@feedSchedule.Url" style="cursor: grab; border-left: 4px solid @(string.IsNullOrEmpty(feedSchedule.Color) ? "#ccc" : feedSchedule.Color) !important; background-color: @(string.IsNullOrEmpty(feedSchedule.Color) ? "#fff" : feedSchedule.Color + "26") !important;">
-                    <div class="d-flex align-items-center flex-grow-1">
-                        <!-- Drag Handle -->
-                        <div class="me-3 text-muted drag-handle" style="font-size: 1.5rem; cursor: grab;">
-                            <i class="bi bi-grip-vertical"></i>
-                        </div>
-                        <img src="@feedData.ImageUrl" class="me-3 rounded shadow-sm" style="object-fit: cover; width: 48px; height: 48px;" />
-                        <div class="text-truncate" style="max-width: 250px;">
-                            <strong class="text-dark">@feedData.Title</strong>
-                        </div>
-                    </div>
-                    <div class="d-flex align-items-center" style="width: 160px;">
-                        <span class="small text-muted me-2" style="white-space: nowrap;">Episodes/turn:</span>
-                        <input type="number" class="form-control form-control-sm episodes-input" min="1" max="99" value="@(feedSchedule.EpisodesToPlay < 1 ? 1 : feedSchedule.EpisodesToPlay)" style="width: 70px;" />
-                    </div>
-                </div>
-            }
-        }
-    </div>
-  </div>
-  <div class="tab-pane fade" id="resolved" role="tabpanel">
+  <div class="tab-pane fade col-12 col-lg-6" id="resolved" role="tabpanel">
     @if (ViewBag.Playlist != null)
     {
         var playlist = (List<Ohrbob.Server.Shared.Requests.EpisodePlayStateDto>)ViewBag.Playlist;
@@ -180,6 +181,7 @@
                         </div>
                     </li>
                 }
+
                 @if (!playlist.Any())
                 {
                     <li class="list-group-item text-muted">No unplayed episodes found.</li>
@@ -224,21 +226,17 @@
 
             function updateSchedule(shouldReload = false) {
                 console.log("UPDATE SCHEDULE CALLED");
-                const feedCards = document.querySelectorAll('.feed-card');
-                const feeds = Array.from(feedCards).map(card => {
-                    const url = card.getAttribute('data-url');
-                    const sortOrderStr = card.querySelector('.playback-order-value').value;
-                    
-                    const rotationItem = document.querySelector(`.rotation-item[data-url="${url}"]`);
+                const rotationItems = document.querySelectorAll('#rotationContainer .rotation-item');
+                const feeds = Array.from(rotationItems).map(item => {
+                    const url = item.getAttribute('data-url');
+                    const sortOrderStr = item.querySelector('.playback-order-value').value;
+                    const epsInput = item.querySelector('.episodes-input');
                     let epsToPlay = 1;
-                    if (rotationItem) {
-                        const epsInput = rotationItem.querySelector('.episodes-input');
-                        if (epsInput) {
-                            epsToPlay = parseInt(epsInput.value, 10);
-                            if (isNaN(epsToPlay)) epsToPlay = 1;
-                            if (epsToPlay < 1) epsToPlay = 1;
-                            if (epsToPlay > 99) epsToPlay = 99;
-                        }
+                    if (epsInput) {
+                        epsToPlay = parseInt(epsInput.value, 10);
+                        if (isNaN(epsToPlay)) epsToPlay = 1;
+                        if (epsToPlay < 1) epsToPlay = 1;
+                        if (epsToPlay > 99) epsToPlay = 99;
                     }
 
                     return {
@@ -271,9 +269,6 @@
                 .then(html => {
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
-                    
-                    const newFeeds = doc.getElementById('feedsContainer');
-                    if (newFeeds) document.getElementById('feedsContainer').innerHTML = newFeeds.innerHTML;
 
                     const newRotation = doc.getElementById('rotationContainer');
                     if (newRotation) {
@@ -292,11 +287,11 @@
                 });
             }
 
-            document.getElementById('feedsContainer').addEventListener('click', function (e) {
+            document.getElementById('rotationContainer').addEventListener('click', function (e) {
                 if (e.target.classList.contains('remove-feed')) {
-                    const card = e.target.closest('.feed-card');
+                    const item = e.target.closest('.rotation-item');
                     if (confirm('Are you sure you want to remove this feed?')) {
-                        card.remove();
+                        item.remove();
                         updateSchedule();
                     }
                 }
@@ -308,22 +303,15 @@
                 const url = input.value.trim();
                 if (!url) return;
 
-                // For a new feed, we simply append it to our in-memory list (via the DOM) and call updateSchedule.
-                // The server will handle fetching its details and the reload will show the rich card.
-                
-                // create a temporary card or just simulate it and submit
-                const container = document.getElementById('feedsContainer');
-                const newCard = document.createElement('div');
-                newCard.className = 'card mb-3 feed-card';
-                newCard.setAttribute('data-url', url);
-                newCard.innerHTML = `
-                    <div class="card-body d-flex align-items-center">
-                        <div class="flex-grow-1">
-                            <input type="hidden" class="playback-order-value" value="0" />
-                        </div>
-                    </div>
+                const container = document.getElementById('rotationContainer');
+                const newItem = document.createElement('div');
+                newItem.className = 'list-group-item rotation-item border rounded p-3 mb-2';
+                newItem.setAttribute('data-url', url);
+                newItem.innerHTML = `
+                    <input type="hidden" class="playback-order-value" value="0" />
+                    <input type="number" class="episodes-input" value="1" style="display:none;" />
                 `;
-                container.appendChild(newCard);
+                container.appendChild(newItem);
                 input.value = '';
                 updateSchedule();
             });
@@ -367,8 +355,7 @@
                         item.style.opacity = '1';
                         draggedItem = null;
                         
-                        // Sync feedsContainer order and update
-                        syncFeedsOrderAndUpdate();
+                        updateSchedule();
                     }
                 });
 
@@ -388,22 +375,6 @@
                         }
                     }
                 });
-
-                function syncFeedsOrderAndUpdate() {
-                    const feedsContainer = document.getElementById('feedsContainer');
-                    const rotationItems = rotationContainer.querySelectorAll('.rotation-item');
-                    
-                    rotationItems.forEach(rotItem => {
-                        const url = rotItem.getAttribute('data-url');
-                        const cards = Array.from(feedsContainer.querySelectorAll('.feed-card'));
-                        const correspondingFeedCard = cards.find(card => card.getAttribute('data-url') === url);
-                        if (correspondingFeedCard) {
-                            feedsContainer.appendChild(correspondingFeedCard);
-                        }
-                    });
-                    
-                    updateSchedule();
-                }
             }
             
             // Resolved List Buttons
