@@ -63,7 +63,7 @@ And why not open that up to others.
 
 Ohrbob is built using a microservice architecture with ASP.NET Core (.NET 10) and MongoDB.
 
-*   **Ohrbob.Web:** The user-facing web portal. Built with ASP.NET Core MVC, Razor Pages, and Bootstrap 5. Users log in here via OIDC to manage their account, profiles, stations, and feeds. It also proxies PodcastIndex search and talks to `Ohrbob.Api` server-side.
+*   **Ohrbob.Web:** The user-facing web portal. Built with ASP.NET Core MVC, Razor Pages, Bootstrap 5, and HTMX (for seamless, single-page-like navigation and uninterrupted audio playback). Users log in here via OIDC to manage their account, profiles, stations, and feeds. It also proxies PodcastIndex search and talks to `Ohrbob.Api` server-side.
 *   **Ohrbob.Api (Admin API):** A REST API providing management endpoints for end-users and administrators. It handles CRUD operations for the core data models and executes background tasks (like polling feeds for new episodes).
 *   **Ohrbob.Player:** A highly scalable, headless REST API that acts as the control plane for audio playback. Client applications (like mobile apps) use this API to fetch episode audio URLs and sync their playhead position. The `/stream/*` endpoints authenticate via the profile `StreamToken` (as `Authorization: Bearer <token>` or `X-Stream-Token` header); the `/api/playback/*` endpoints authenticate via OIDC Bearer token plus the `X-Stream-Token` header to identify the active profile.
 *   **Ohrbob.Server.Shared:** A class library containing shared data models and DTOs used across the backend services.
