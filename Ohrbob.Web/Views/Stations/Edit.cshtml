@@ -40,7 +40,7 @@
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    padding: 12px 30px;
+    padding: 12px 12px;
     border-radius: 0 0 30px 30px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     border: 1px solid rgba(0, 0, 0, 0.04);
@@ -181,18 +181,22 @@
                 </div>
             }
         }
+        
+        
+        <div class="mt-4 d-flex align-items-center justify-content-center" style="gap: 12px;">
+            Add more to Station:
+        </div>
+        <div class="mt-1 mb-4 d-flex align-items-center justify-content-center" style="gap: 12px;">
+            <a href="/Discover" class="btn btn-primary d-inline-flex align-items-center">
+                <i class="bi bi-compass me-2"></i>Discover
+            </a>
+            <button type="button" class="btn btn-outline-secondary d-inline-flex align-items-center" id="manualAddBtn">
+                <i class="bi bi-plus-circle me-2"></i>Feed Url
+            </button>
+        </div>
+        
     </div>
-    <div class="mt-4 d-flex align-items-center justify-content-center" style="gap: 12px;">
-        Add more to Station:
-    </div>
-    <div class="mt-1 mb-4 d-flex align-items-center justify-content-center" style="gap: 12px;">
-        <a href="/Discover" class="btn btn-primary d-inline-flex align-items-center">
-            <i class="bi bi-compass me-2"></i>Discover
-        </a>
-        <button type="button" class="btn btn-outline-secondary d-inline-flex align-items-center" id="manualAddBtn">
-            <i class="bi bi-plus-circle me-2"></i>Feed Url
-        </button>
-    </div>
+    
   </div>
   <div class="tab-pane fade col-12 col-lg-6" id="resolved" role="tabpanel">
     @if (ViewBag.Playlist != null)
