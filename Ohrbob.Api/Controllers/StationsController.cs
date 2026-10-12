@@ -238,6 +238,7 @@ public class StationsController : ControllerBase
             await _listenStateService.UpdateAsync(state);
         }
 
+        await ReevaluatePlayheadAsync(id, profileId);
         return Ok();
     }
 
@@ -252,6 +253,7 @@ public class StationsController : ControllerBase
             state.IsListened = false;
             await _listenStateService.UpdateAsync(state);
         }
+        await ReevaluatePlayheadAsync(id, profileId);
         return Ok();
     }
 
@@ -288,7 +290,30 @@ public class StationsController : ControllerBase
             }
         }
 
+        await ReevaluatePlayheadAsync(id, profileId);
         return Ok();
+    }
+
+    private async Task ReevaluatePlayheadAsync(string stationId, string profileId)
+    {
+        var profile = await _profilesService.GetAsync(profileId);
+        if (profile == null || profile.LastActiveStationId != stationId) return;
+
+        var station = await _stationsService.GetAsync(stationId);
+        if (station == null || station.Feeds == null || !station.Feeds.Any()) return;
+
+        var episodes = await _episodesService.FindByFeedUrlsAsync(station.Feeds);
+        var listenStates = await _listenStateService.GetStatesByUserIdAsync(profileId);
+        var listenedIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
+
+        var orderedPlaylist = Ohrbob.Server.Shared.Helpers.PlaybackStrategyHelper.GetOrderedPlaylist(episodes, station, listenedIds, null);
+        var firstIncomplete = orderedPlaylist.FirstOrDefault(e => !listenedIds.Contains(e.Id));
+
+        if (profile.LastActiveEpisodeId != (firstIncomplete?.Id))
+        {
+            profile.LastActiveEpisodeId = firstIncomplete?.Id;
+            await _profilesService.UpdateAsync(profile);
+        }
     }
 
     private async Task<bool> ValidateAndEnsureFeedsExistAsync(Station station)
@@ -441,6 +466,7 @@ public class StationsController : ControllerBase
             }
         }
 
+        await ReevaluatePlayheadAsync(id, profileId);
         return Ok();
     }
 
