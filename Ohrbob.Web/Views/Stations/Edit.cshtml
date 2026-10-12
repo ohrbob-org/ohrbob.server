@@ -874,12 +874,20 @@
                 }
             });
 
-            bindRotationListeners();
-            initTooltips();
-            scrollToActiveEpisode();
+            function initPage() {
+                bindRotationListeners();
+                initTooltips();
+                scrollToActiveEpisode();
 
-            // Initialize rename station functionality
-            window.initRenameStation("@Model.Station.Id");
+                // Initialize rename station functionality
+                window.initRenameStation("@Model.Station.Id");
+            }
+
+            if (typeof bootstrap !== 'undefined') {
+                initPage();
+            } else {
+                document.addEventListener('DOMContentLoaded', initPage);
+            }
         })();
 </script>
 
