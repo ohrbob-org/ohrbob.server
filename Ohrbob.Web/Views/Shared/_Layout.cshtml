@@ -1,6 +1,17 @@
 ﻿@using Microsoft.Extensions.Options
 @using Ohrbob.Web.Configuration
 @inject IOptions<LegalOptions> LegalOptions
+@inject IOptions<HtmxNavigationOptions> HtmxNavOptions
+@{
+    bool IsHtmxEnabled(string controller, string action)
+    {
+        var path = $"/{controller}";
+        if (controller == "Home" && action == "Index") path = "/";
+        return HtmxNavOptions.Value.EnabledEndpoints.Any(e => 
+            e.Equals(path, StringComparison.OrdinalIgnoreCase) || 
+            (path.StartsWith(e, StringComparison.OrdinalIgnoreCase) && e != "/"));
+    }
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,10 +31,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 <body hx-boost="true" hx-target="#main-content" class="@(User.Identity?.IsAuthenticated == true ? "with-player" : "")">
-    <header hx-boost="false">
+    <header>
         <div class="floating-nav-pill">
             <!-- Left: Logo -->
-            <a asp-area="" asp-controller="Home" asp-action="Index" hx-boost="false" style="display: flex; align-items: center;">
+            <a asp-area="" asp-controller="Home" asp-action="Index" hx-boost="@(IsHtmxEnabled("Home", "Index") ? "true" : "false")" style="display: flex; align-items: center;">
                 <div style="font-size: 2rem;    height: 1rem;    position: relative;    top: -.7rem;    left: -0.2rem;">
                     <div class="ohrbob-logo ohrbob-logo-left">
                         <span class="ohrbob-logo-icon">
@@ -40,8 +51,8 @@
             <div class="floating-nav-pill-center">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <a asp-area="" asp-controller="Discover" asp-action="Index">Discover</a>
-                    <a asp-area="" asp-controller="Home" asp-action="Index">Listen</a>
+                    <a asp-area="" asp-controller="Discover" asp-action="Index" hx-boost="@(IsHtmxEnabled("Discover", "Index") ? "true" : "false")">Discover</a>
+                    <a asp-area="" asp-controller="Home" asp-action="Index" hx-boost="@(IsHtmxEnabled("Home", "Index") ? "true" : "false")">Listen</a>
                 }
             </div>
 

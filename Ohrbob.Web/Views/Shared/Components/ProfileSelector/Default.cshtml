@@ -1,5 +1,17 @@
 @model Ohrbob.Web.ViewComponents.ProfileSelectorViewModel
+@using Microsoft.Extensions.Options
+@using Ohrbob.Web.Configuration
+@inject IOptions<HtmxNavigationOptions> HtmxNavOptions
 @{
+    bool IsHtmxEnabled(string controller, string action)
+    {
+        var path = $"/{controller}";
+        if (controller == "Home" && action == "Index") path = "/";
+        return HtmxNavOptions.Value.EnabledEndpoints.Any(e => 
+            e.Equals(path, StringComparison.OrdinalIgnoreCase) || 
+            (path.StartsWith(e, StringComparison.OrdinalIgnoreCase) && e != "/"));
+    }
+
     var hasActive = Model.ActiveProfile != null && !string.IsNullOrEmpty(Model.ActiveProfile.Id);
     var activeInitial = hasActive && !string.IsNullOrEmpty(Model.ActiveProfile.Name) ? Model.ActiveProfile.Name[0].ToString().ToUpper() : "?";
     var activeGradient = hasActive ? Math.Abs(Model.ActiveProfile.Id.GetHashCode()) % 16 : 0;
@@ -45,9 +57,9 @@
                 <li><hr class="dropdown-divider"></li>
             }
         }
-        <li><a class="dropdown-item py-2" asp-controller="Stations" asp-action="Index"><i class="bi bi-broadcast me-2"></i> Stations</a></li>
-        <li><a class="dropdown-item py-2" asp-controller="Profiles" asp-action="Index"><i class="bi bi-people me-2"></i> Profiles</a></li>
-        <li><a class="dropdown-item py-2" asp-controller="Account" asp-action="Index"><i class="bi bi-person-gear me-2"></i> Account</a></li>
+        <li><a class="dropdown-item py-2" asp-controller="Stations" asp-action="Index" hx-boost="@(IsHtmxEnabled("Stations", "Index") ? "true" : "false")"><i class="bi bi-broadcast me-2"></i> Stations</a></li>
+        <li><a class="dropdown-item py-2" asp-controller="Profiles" asp-action="Index" hx-boost="@(IsHtmxEnabled("Profiles", "Index") ? "true" : "false")"><i class="bi bi-people me-2"></i> Profiles</a></li>
+        <li><a class="dropdown-item py-2" asp-controller="Account" asp-action="Index" hx-boost="@(IsHtmxEnabled("Account", "Index") ? "true" : "false")"><i class="bi bi-person-gear me-2"></i> Account</a></li>
         <li><hr class="dropdown-divider"></li>
         <li hx-boost="false"><a class="dropdown-item py-2 text-danger" asp-controller="Home" asp-action="Logout"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
     </ul>
