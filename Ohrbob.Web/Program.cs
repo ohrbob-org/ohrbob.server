@@ -79,6 +79,7 @@ builder.Services.AddHttpClient(VersionPollingService.PlayerClientName, (sp, c) =
 }).ConfigurePrimaryHttpMessageHandler(CreateHttpHandler);
 builder.Services.Configure<AppVersionOptions>(builder.Configuration.GetSection(AppVersionOptions.SectionName));
 builder.Services.Configure<LegalOptions>(builder.Configuration.GetSection(LegalOptions.SectionName));
+builder.Services.Configure<HtmxNavigationOptions>(builder.Configuration.GetSection(HtmxNavigationOptions.SectionName));
 
 
 builder.Services.AddAuthentication(options =>
