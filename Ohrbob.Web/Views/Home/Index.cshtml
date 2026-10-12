@@ -206,7 +206,7 @@ else
             <p class="lead text-muted mb-4">Start your journey.</p>
             
             <div class="d-flex justify-content-center gap-3 mt-4" hx-boost="false">
-                <a asp-controller="Home" asp-action="Login" class="btn btn-primary btn-lg px-4 rounded-pill" hx-boost="false">
+                <a asp-controller="Home" asp-action="Login" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-primary btn-lg px-4 rounded-pill" hx-boost="false">
                     Sign-Up for free!
                 </a>
                 <a href="https://github.com/ohrbob-org/" target="_blank" rel="noopener" class="btn btn-outline-dark btn-lg px-4 rounded-pill" title="ohrbob on GitHub">

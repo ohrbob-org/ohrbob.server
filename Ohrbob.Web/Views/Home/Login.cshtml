@@ -38,15 +38,15 @@
             </svg>
         </div>
         <div class="d-grid gap-3">
-            <a asp-controller="Home" asp-action="Login" asp-route-provider="Nextcloud" class="btn btn-outline-primary btn-lg rounded-pill login-btn" hx-boost="false">
+            <a asp-controller="Home" asp-action="Login" asp-route-provider="Nextcloud" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-outline-primary btn-lg rounded-pill login-btn" hx-boost="false">
                 <i class="bi bi-cloud-fill me-2"></i> Continue with Nextcloud
             </a>
-            <a asp-controller="Home" asp-action="Login" asp-route-provider="Google" class="btn btn-outline-danger btn-lg rounded-pill login-btn" hx-boost="false">
+            <a asp-controller="Home" asp-action="Login" asp-route-provider="Google" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-outline-danger btn-lg rounded-pill login-btn" hx-boost="false">
                 <i class="bi bi-google me-2"></i> Continue with Google
             </a>
             @if (ViewBag.GitHubEnabled == true)
             {
-                <a asp-controller="Home" asp-action="Login" asp-route-provider="GitHub" class="btn btn-outline-dark btn-lg rounded-pill login-btn" hx-boost="false">
+                <a asp-controller="Home" asp-action="Login" asp-route-provider="GitHub" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-outline-dark btn-lg rounded-pill login-btn" hx-boost="false">
                     <i class="bi bi-github me-2"></i> Continue with GitHub
                 </a>
             }

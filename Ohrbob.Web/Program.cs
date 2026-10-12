@@ -88,9 +88,12 @@ builder.Services.AddAuthentication(options =>
     })
     .AddCookie(options =>
     {
-        options.LoginPath = "/Home/Index";
+        options.LoginPath = "/Home/Login";
         options.Cookie.SameSite = SameSiteMode.Lax;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.Cookie.IsEssential = true;
+        options.ExpireTimeSpan = TimeSpan.FromDays(30);
+        options.SlidingExpiration = true;
     })
     .AddOpenIdConnect("Nextcloud", options =>
     {
@@ -113,7 +116,11 @@ builder.Services.AddAuthentication(options =>
         options.NonceCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.Events = new OpenIdConnectEvents
         {
-            OnTokenValidated = CreateOrGetAccountAsync,
+            OnTokenValidated = async context =>
+            {
+                context.Properties.IsPersistent = true;
+                await CreateOrGetAccountAsync(context);
+            },
             OnRedirectToIdentityProvider = context =>
             {
                 if (context.Request.Scheme == "https")
@@ -147,7 +154,11 @@ builder.Services.AddAuthentication(options =>
         options.NonceCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.Events = new OpenIdConnectEvents
         {
-            OnTokenValidated = CreateOrGetAccountAsync,
+            OnTokenValidated = async context =>
+            {
+                context.Properties.IsPersistent = true;
+                await CreateOrGetAccountAsync(context);
+            },
             OnRedirectToIdentityProvider = context =>
             {
                 if (context.Request.Scheme == "https")
@@ -187,9 +198,10 @@ if (!string.IsNullOrWhiteSpace(githubId) && !string.IsNullOrWhiteSpace(githubSec
                 }
                 return Task.CompletedTask;
             },
-            OnTicketReceived = context =>
+            OnTicketReceived = async context =>
             {
-                return CreateOrGetAccountCore(context.Principal, context.HttpContext, context.Scheme.Name);
+                context.Properties.IsPersistent = true;
+                await CreateOrGetAccountCore(context.Principal, context.HttpContext, context.Scheme.Name);
             },
             OnRemoteFailure = context =>
             {

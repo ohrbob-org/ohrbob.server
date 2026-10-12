@@ -33,10 +33,11 @@ public class HomeController : Controller
     private string? GetAccountId() => User.FindFirst(Consts.OhrbobAccountIdClaim)?.Value;
 
     [AllowAnonymous]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? returnUrl = null)
     {
         if (User.Identity?.IsAuthenticated != true)
         {
+            ViewBag.ReturnUrl = returnUrl;
             return View(new List<StationWithFeedsDto>());
         }
 
@@ -119,11 +120,18 @@ public class HomeController : Controller
     }
 
     [AllowAnonymous]
-    public IActionResult Login(string provider)
+    public IActionResult Login(string provider, string? returnUrl = null)
     {
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            var targetUrl = !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) ? returnUrl : "/";
+            return Redirect(targetUrl);
+        }
+
         var githubId = HttpContext.RequestServices.GetRequiredService<IConfiguration>()["Oidc:GitHub:ClientId"];
         var githubSecret = HttpContext.RequestServices.GetRequiredService<IConfiguration>()["Oidc:GitHub:ClientSecret"];
         ViewBag.GitHubEnabled = !string.IsNullOrWhiteSpace(githubId) && !string.IsNullOrWhiteSpace(githubSecret);
+        ViewBag.ReturnUrl = returnUrl;
         if (string.IsNullOrEmpty(provider))
         {
             return View();
@@ -132,7 +140,8 @@ public class HomeController : Controller
         {
             return View();
         }
-        return Challenge(new AuthenticationProperties { RedirectUri = "/" }, provider);
+        var redirectUri = !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) ? returnUrl : "/";
+        return Challenge(new AuthenticationProperties { RedirectUri = redirectUri, IsPersistent = true }, provider);
     }
 
     [AllowAnonymous]

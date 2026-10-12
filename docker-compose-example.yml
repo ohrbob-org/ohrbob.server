@@ -97,6 +97,8 @@ services:
       - PodcastIndex__ApiSecret=${PodcastIndex__ApiSecret:-}
     ports:
       - "${WEB_PORT:-5003}:8080"
+    volumes:
+      - ohrbob_web_keys:/app/DataProtection-Keys
     depends_on:
       - ohrbob.api
     networks:
@@ -104,3 +106,4 @@ services:
 
 volumes:
   mongodb_data:
+  ohrbob_web_keys:

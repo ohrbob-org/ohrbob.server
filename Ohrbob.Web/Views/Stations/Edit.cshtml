@@ -455,9 +455,9 @@
                 const activeItem = container.querySelector('.resolved-item.border-primary');
                 if (activeItem) {
                     if (window.innerWidth < 992) {
-                        // On mobile: scroll the whole window so activeItem is near top (below layout header)
+                        // On mobile: scroll the whole window so activeItem is near top (below layout header and sticky tabs card)
                         const itemRect = activeItem.getBoundingClientRect();
-                        const scrollTarget = window.scrollY + itemRect.top - 120;
+                        const scrollTarget = window.scrollY + itemRect.top - 220;
                         window.scrollTo({
                             top: scrollTarget,
                             behavior: 'smooth'
