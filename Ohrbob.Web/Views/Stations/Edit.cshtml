@@ -414,8 +414,9 @@
                 if (!container) return;
                 const activeItem = container.querySelector('.resolved-item.border-primary');
                 if (activeItem) {
+                    const relativeTop = activeItem.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop;
                     container.scrollTo({
-                        top: activeItem.offsetTop - container.offsetTop - 10,
+                        top: relativeTop - 10,
                         behavior: 'smooth'
                     });
                 }
