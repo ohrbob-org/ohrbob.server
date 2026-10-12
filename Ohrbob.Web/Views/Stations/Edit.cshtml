@@ -5,15 +5,54 @@
     ViewData["Title"] = "Edit Station";
 }
 
-<h1 class="d-flex align-items-center">
-    <span>Edit Station - </span>
-    <span id="stationNameDisplay" class="ms-1">@Model.Station.Name</span>
-    <button type="button" class="btn btn-link text-decoration-none p-0 ms-2 lh-1" id="renameStationBtn" title="Rename Station" style="font-size: 1.5rem; color: #6c757d;">
-        <i class="bi bi-pencil-square"></i>
-    </button>
-</h1>
+<div id="dock-sentinel" style="height: 1px; margin-top: -1px;"></div>
+<div id="dockable-header">
+    <h1 class="d-flex align-items-center mb-1">
+        <span>Edit Station - </span>
+        <span id="stationNameDisplay" class="ms-1">@Model.Station.Name</span>
+        <button type="button" class="btn btn-link text-decoration-none p-0 ms-2 lh-1" id="renameStationBtn" title="Rename Station" style="font-size: 1.5rem; color: #6c757d;">
+            <i class="bi bi-pencil-square"></i>
+        </button>
+    </h1>
+
+    <ul class="nav pill-nav d-lg-none" id="stationTabs" role="tablist" style="margin-bottom: 0;">
+      <li class="nav-item">
+        <a class="nav-link active" id="rotation-tab" data-bs-toggle="tab" href="#rotation" role="tab">Rotation & Feeds</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="resolved-tab" data-bs-toggle="tab" href="#resolved" role="tab">Resolved Episodes</a>
+      </li>
+    </ul>
+</div>
 
 <style>
+#dockable-header {
+    position: sticky;
+    top: 90px;
+    z-index: 1040;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    background: transparent;
+    padding: 10px 0;
+    margin-bottom: 20px;
+}
+#dockable-header.docked {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 8px 20px;
+    border-radius: 30px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    margin-top: -10px;
+}
+#dockable-header h1 {
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    margin: 0;
+}
+#dockable-header.docked h1 {
+    font-size: 1.5rem;
+    margin-bottom: 2px !important;
+}
 .pill-nav {
     display: flex;
     background: #e9ecef;
@@ -62,14 +101,6 @@
 }
 </style>
 
-<ul class="nav pill-nav d-lg-none" id="stationTabs" role="tablist">
-  <li class="nav-item">
-    <a class="nav-link active" id="rotation-tab" data-bs-toggle="tab" href="#rotation" role="tab">Rotation & Feeds</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" id="resolved-tab" data-bs-toggle="tab" href="#resolved" role="tab">Resolved Episodes</a>
-  </li>
-</ul>
 
 <div class="tab-content row" id="stationTabsContent">
   <div class="tab-pane fade show active col-12 col-lg-6" id="rotation" role="tabpanel">
@@ -152,7 +183,7 @@
     <div class="mt-4 d-flex align-items-center justify-content-center" style="gap: 12px;">
         Add more to Station:
     </div>
-    <div class="mt-1 d-flex align-items-center justify-content-center" style="gap: 12px;">
+    <div class="mt-1 mb-4 d-flex align-items-center justify-content-center" style="gap: 12px;">
         <a href="/Discover" class="btn btn-primary d-inline-flex align-items-center">
             <i class="bi bi-compass me-2"></i>Discover
         </a>
@@ -892,6 +923,20 @@
                 bindRotationListeners();
                 initTooltips();
                 scrollToActiveEpisode();
+
+                // Initialize dockable header IntersectionObserver for sticky docking
+                const sentinel = document.getElementById('dock-sentinel');
+                const dockable = document.getElementById('dockable-header');
+                if (sentinel && dockable) {
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            dockable.classList.toggle('docked', !entry.isIntersecting);
+                        });
+                    }, {
+                        rootMargin: '-91px 0px 0px 0px'
+                    });
+                    observer.observe(sentinel);
+                }
 
                 // Listen for mobile tab switches to auto-scroll when upcoming playlist becomes visible
                 document.querySelectorAll('#stationTabs a[data-bs-toggle="tab"]').forEach(tab => {
