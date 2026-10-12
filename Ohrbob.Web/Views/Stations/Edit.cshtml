@@ -417,11 +417,22 @@
                 if (!container) return;
                 const activeItem = container.querySelector('.resolved-item.border-primary');
                 if (activeItem) {
-                    const relativeTop = activeItem.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop;
-                    container.scrollTo({
-                        top: relativeTop - 10,
-                        behavior: 'smooth'
-                    });
+                    if (window.innerWidth < 992) {
+                        // On mobile: scroll the whole window so activeItem is near top (below layout header)
+                        const itemRect = activeItem.getBoundingClientRect();
+                        const scrollTarget = window.scrollY + itemRect.top - 120;
+                        window.scrollTo({
+                            top: scrollTarget,
+                            behavior: 'smooth'
+                        });
+                    } else {
+                        // On desktop: scroll the individually scrollable container
+                        const relativeTop = activeItem.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop;
+                        container.scrollTo({
+                            top: relativeTop - 10,
+                            behavior: 'smooth'
+                        });
+                    }
                 }
             }
 
@@ -881,6 +892,15 @@
                 bindRotationListeners();
                 initTooltips();
                 scrollToActiveEpisode();
+
+                // Listen for mobile tab switches to auto-scroll when upcoming playlist becomes visible
+                document.querySelectorAll('#stationTabs a[data-bs-toggle="tab"]').forEach(tab => {
+                    tab.addEventListener('shown.bs.tab', function (e) {
+                        if (e.target.id === 'resolved-tab') {
+                            setTimeout(scrollToActiveEpisode, 150);
+                        }
+                    });
+                });
 
                 // Initialize rename station functionality
                 window.initRenameStation("@Model.Station.Id");
