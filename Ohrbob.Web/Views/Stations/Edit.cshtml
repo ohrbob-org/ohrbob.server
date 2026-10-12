@@ -393,6 +393,7 @@
                     if (newResolved) {
                         document.getElementById('resolved').innerHTML = newResolved.innerHTML;
                     }
+                    initTooltips();
                     document.body.dispatchEvent(new CustomEvent('playerSync'));
                 })
                 .catch(err => {
