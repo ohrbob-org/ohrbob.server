@@ -36,14 +36,16 @@
     margin-bottom: 20px;
 }
 #dockable-header.docked {
-    background: rgba(255, 255, 255, 0.85);
+    top: 72px;
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    padding: 8px 20px;
-    border-radius: 30px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(0, 0, 0, 0.03);
-    margin-top: -10px;
+    padding: 12px 30px;
+    border-radius: 0 0 30px 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    border-top: none;
+    margin-top: -24px;
 }
 #dockable-header h1 {
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -933,7 +935,7 @@
                             dockable.classList.toggle('docked', !entry.isIntersecting);
                         });
                     }, {
-                        rootMargin: '-91px 0px 0px 0px'
+                        rootMargin: '-73px 0px 0px 0px'
                     });
                     observer.observe(sentinel);
                 }
