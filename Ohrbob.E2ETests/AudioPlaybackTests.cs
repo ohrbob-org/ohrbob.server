@@ -264,4 +264,83 @@ public class AudioPlaybackTests : PageTest
         await playBtn.ClickAsync();
         await Expect(playBtn.Locator("rect")).ToHaveCountAsync(0, new() { Timeout = 10000 });
     }
+
+    [Test]
+    public async Task NavigateThroughHtmxBoostedEndpoints_KeepAudioPlaying()
+    {
+        var feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../example_feeds.txt");
+        if (!File.Exists(feedPath))
+        {
+            feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../../example_feeds.txt");
+        }
+        var feeds = await File.ReadAllLinesAsync(feedPath);
+        var firstFeed = feeds.First(l => !string.IsNullOrWhiteSpace(l));
+
+        await Page.GotoAsync(_factory.ServerAddress);
+        
+        await Page.ClickAsync("#profileDropdown");
+        await Page.ClickAsync("text=\"Stations\"");
+        await Page.ClickAsync("text=Create New Station");
+
+        await Page.FillAsync("input[name='Name']", "Test E2E Station");
+        await Page.FillAsync("input[name='Feeds']", firstFeed);
+        await Page.ClickAsync("input[type='submit']");
+        
+        // Wait for redirect to Stations list
+        await Page.WaitForURLAsync("**/Stations", new() { Timeout = 10000 });
+        
+        // Go to Home (Dashboard)
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Test E2E Station" }).First;
+        await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
+        await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
+
+        // Play the station first
+        await stationCard.ClickAsync();
+        
+        // Wait for the player to load the episode metadata (meaning it's not the placeholder "Track Name" anymore)
+        await Expect(Page.Locator("#ohrbob-player .track-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
+        
+        var playBtn = Page.Locator("#ohrbob-player .js-play");
+        var rectCount = await playBtn.Locator("rect").CountAsync();
+        if (rectCount == 0)
+        {
+            await playBtn.ClickAsync();
+        }
+        
+        try
+        {
+            await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 45000 });
+        }
+        catch (Exception)
+        {
+            var html = await Page.EvaluateAsync<string>("() => document.getElementById('ohrbob-player').outerHTML");
+            Console.WriteLine($"PLAYER HTML ON FAILURE: {html}");
+            throw;
+        }
+
+        // Click the "Discover" link in the header
+        await Page.ClickAsync(".floating-nav-pill-center a:has-text(\"Discover\")");
+
+        // Wait for the URL to change to /Discover
+        await Page.WaitForURLAsync("**/Discover", new() { Timeout = 10000 });
+
+        // Verify that the player is still playing (assert the pause button has 2 rects, or check isPlaying is true via page evaluation)
+        await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 10000 });
+        var isPlaying = await Page.EvaluateAsync<bool>("() => document.querySelector('#ohrbob-player').isPlaying");
+        Assert.That(isPlaying, Is.True);
+
+        // Click the "Listen" link in the header
+        await Page.ClickAsync(".floating-nav-pill-center a:has-text(\"Listen\")");
+
+        // Verify that the player is still playing
+        await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 10000 });
+        isPlaying = await Page.EvaluateAsync<bool>("() => document.querySelector('#ohrbob-player').isPlaying");
+        Assert.That(isPlaying, Is.True);
+
+        // Pause playback to release server resources
+        await playBtn.ClickAsync();
+        await Expect(playBtn.Locator("rect")).ToHaveCountAsync(0, new() { Timeout = 10000 });
+    }
 }
