@@ -130,6 +130,7 @@
                 }
             });
 
+            document.body.dispatchEvent(new CustomEvent('ohrbob:statechange', { detail: { state } }));
         };
 
         const updatePlayButton = () => {
