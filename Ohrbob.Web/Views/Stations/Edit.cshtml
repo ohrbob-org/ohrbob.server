@@ -125,14 +125,14 @@
 
                         <!-- Row 2: Playback order, span input, trash icon (Middle) -->
                         <div class="d-flex align-items-center justify-content-between" style="line-height: 1;">
-                            <div class="d-flex align-items-center" style="gap: 15px;">
+                             <div class="d-flex align-items-center" style="gap: 5px;">
                                 <!-- 3-State Sliding Playback Order Toggle Control -->
                                 @{
                                     var activeValue = (int)feedSchedule.SortOrder;
                                     var thumbLeft = activeValue == 1 ? "3px" : (activeValue == 2 ? "50%" : "calc(100% - 3px)");
                                     var thumbTransform = activeValue == 1 ? "translateX(0)" : (activeValue == 2 ? "translateX(-50%)" : "translateX(-100%)");
                                 }
-                                <div class="playback-order-toggle-container d-inline-flex flex-column align-items-center" style="width: 140px;">
+                                <div class="playback-order-toggle-container d-inline-flex flex-column align-items-center" style="width: 100px;">
                                      <div class="position-relative bg-light border rounded-pill d-flex align-items-center justify-content-between user-select-none"
                                           style="width: 100%; height: 26px; padding: 2px; background-color:#e8ebee !important; border: 1px solid #ced4da; cursor: pointer;"
                                           id="sliderTrack-@currentFeedIndex" role="slider" aria-valuemin="0" aria-valuemax="2" aria-valuenow="@activeValue">
