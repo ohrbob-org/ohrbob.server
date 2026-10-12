@@ -187,6 +187,7 @@
                 }
             }
         };
+        window._ohrbobSyncState = syncState;
 
         const reportPlayhead = async () => {
             if (!widget.isPlaying || !currentEpisodeData || !activeStationId) return;
@@ -358,5 +359,12 @@
     
     // Support HTMX navigation
     document.body.addEventListener('htmx:afterSettle', initPlayer);
+    
+    // Support playhead re-evaluation sync
+    document.body.addEventListener('playerSync', () => {
+        if (typeof window._ohrbobSyncState === 'function') {
+            window._ohrbobSyncState();
+        }
+    });
 
 })();

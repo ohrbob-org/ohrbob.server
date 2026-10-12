@@ -383,6 +383,23 @@
             console.log("IIFE EXECUTED");
             const getVerificationToken = () => document.querySelector('input[name="__RequestVerificationToken"]').value;
 
+            function reloadPlaylist() {
+                return fetch(window.location.href, { cache: 'no-store', headers: { 'Pragma': 'no-cache' } })
+                .then(res => res.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newResolved = doc.getElementById('resolved');
+                    if (newResolved) {
+                        document.getElementById('resolved').innerHTML = newResolved.innerHTML;
+                    }
+                    document.body.dispatchEvent(new CustomEvent('playerSync'));
+                })
+                .catch(err => {
+                    console.error('Error reloading playlist:', err);
+                });
+            }
+
             let activeTooltips = [];
             function initTooltips() {
                 activeTooltips.forEach(t => { if (typeof t.dispose === 'function') t.dispose(); });
@@ -656,7 +673,7 @@
                         })
                         .then(res => {
                             if (res.ok || res.redirected) {
-                                setEpisodeCompletedState(li, true);
+                                reloadPlaylist();
                             } else {
                                 alert('Error marking completed');
                             }
@@ -700,7 +717,7 @@
                             })
                             .then(res => {
                                 if (res.ok || res.redirected) {
-                                    itemsToMark.forEach(elem => setEpisodeCompletedState(elem, true));
+                                    reloadPlaylist();
                                 } else {
                                     alert('Error marking completed until here');
                                 }
@@ -727,7 +744,7 @@
                             })
                             .then(res => {
                                 if (res.ok || res.redirected) {
-                                    setEpisodeCompletedState(li, false);
+                                    reloadPlaylist();
                                 } else {
                                     alert('Error clearing completed state');
                                 }
@@ -775,7 +792,7 @@
                             })
                             .then(res => {
                                 if (res.ok || res.redirected) {
-                                    itemsToClear.forEach(elem => setEpisodeCompletedState(elem, false));
+                                    reloadPlaylist();
                                 } else {
                                     alert('Error clearing completed state until here');
                                 }
