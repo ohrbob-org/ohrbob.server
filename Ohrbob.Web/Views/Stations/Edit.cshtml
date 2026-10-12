@@ -49,6 +49,13 @@
         flex: 0 0 50% !important;
         max-width: 50% !important;
     }
+    #rotationContainer, #resolvedList {
+        height: calc(100vh - 380px);
+        min-height: 300px;
+        overflow-y: auto;
+        padding-right: 5px;
+        position: relative;
+    }
 }
 </style>
 
@@ -395,10 +402,23 @@
                     }
                     initTooltips();
                     document.body.dispatchEvent(new CustomEvent('playerSync'));
+                    scrollToActiveEpisode();
                 })
                 .catch(err => {
                     console.error('Error reloading playlist:', err);
                 });
+            }
+
+            function scrollToActiveEpisode() {
+                const container = document.getElementById('resolvedList');
+                if (!container) return;
+                const activeItem = container.querySelector('.resolved-item.border-primary');
+                if (activeItem) {
+                    container.scrollTo({
+                        top: activeItem.offsetTop - container.offsetTop - 10,
+                        behavior: 'smooth'
+                    });
+                }
             }
 
             let activeTooltips = [];
@@ -465,7 +485,10 @@
                     }
 
                     const newResolved = doc.getElementById('resolved');
-                    if (newResolved) document.getElementById('resolved').innerHTML = newResolved.innerHTML;
+                    if (newResolved) {
+                        document.getElementById('resolved').innerHTML = newResolved.innerHTML;
+                        scrollToActiveEpisode();
+                    }
                 })
                 .catch(err => {
                     console.error('Error:', err);
@@ -832,8 +855,27 @@
                 updateSchedule();
             };
 
+            // Track the active episode ID to prevent redundant reloads
+            let currentActiveEpisodeId = null;
+
+            document.body.addEventListener('ohrbob:statechange', function(e) {
+                const state = e.detail && e.detail.state;
+                if (!state || state.isCompiling || state.isEmpty) return;
+                
+                const activeEpisode = state.current;
+                const newEpisodeId = activeEpisode ? activeEpisode.episodeId : null;
+                
+                if (newEpisodeId !== currentActiveEpisodeId) {
+                    currentActiveEpisodeId = newEpisodeId;
+                    reloadPlaylist().then(() => {
+                        scrollToActiveEpisode();
+                    });
+                }
+            });
+
             bindRotationListeners();
             initTooltips();
+            scrollToActiveEpisode();
 
             // Initialize rename station functionality
             window.initRenameStation("@Model.Station.Id");
