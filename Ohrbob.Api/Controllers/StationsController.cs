@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Ohrbob.Api.Services;
 using Ohrbob.Server.Shared.Data;
 using Ohrbob.Server.Shared.Requests;
+using Ohrbob.Server.Shared.Helpers;
 
 namespace Ohrbob.Api.Controllers;
 
@@ -139,6 +140,7 @@ public class StationsController : ControllerBase
         var listenStates = await _listenStateService.GetStatesByUserIdAsync(profileId);
         
         var listenedIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
+        listenedIds = PlaybackStrategyHelper.GetListenedAndAgedEpisodeIds(station, episodes, listenedIds);
         
         // Pass empty HashSet to GetOrderedPlaylist so we compute order of ALL episodes without filtering completed ones
         var orderedEpisodes = Ohrbob.Server.Shared.Helpers.PlaybackStrategyHelper.GetOrderedPlaylist(
@@ -187,6 +189,7 @@ public class StationsController : ControllerBase
         var listenStates = await _listenStateService.GetStatesByUserIdAsync(profileId);
         
         var listenedIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
+        listenedIds = PlaybackStrategyHelper.GetListenedAndAgedEpisodeIds(station, episodes, listenedIds);
         
         // Order all episodes via PlaybackStrategyHelper (treating all as unplayed), then filter for completed ones
         var fullOrderedSequence = Ohrbob.Server.Shared.Helpers.PlaybackStrategyHelper.GetOrderedPlaylist(
@@ -305,6 +308,7 @@ public class StationsController : ControllerBase
         var episodes = await _episodesService.FindByFeedUrlsAsync(station.Feeds);
         var listenStates = await _listenStateService.GetStatesByUserIdAsync(profileId);
         var listenedIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
+        listenedIds = PlaybackStrategyHelper.GetListenedAndAgedEpisodeIds(station, episodes, listenedIds);
 
         var orderedPlaylist = Ohrbob.Server.Shared.Helpers.PlaybackStrategyHelper.GetOrderedPlaylist(episodes, station, new HashSet<string>(), null);
         var firstIncomplete = orderedPlaylist.FirstOrDefault(e => !listenedIds.Contains(e.Id));
@@ -436,6 +440,7 @@ public class StationsController : ControllerBase
         var listenStates = await _listenStateService.GetStatesByUserIdAsync(profileId);
         
         var listenedIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
+        listenedIds = PlaybackStrategyHelper.GetListenedAndAgedEpisodeIds(station, episodes, listenedIds);
         
         var orderedEpisodes = Ohrbob.Server.Shared.Helpers.PlaybackStrategyHelper.GetOrderedPlaylist(
             episodes, station, listenedIds, profile.LastActiveEpisodeId);

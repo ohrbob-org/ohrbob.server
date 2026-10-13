@@ -27,6 +27,7 @@ public class PlaybackStrategyService
 
         var listenedEpisodeIds = await _listenStateService.GetListenedEpisodeIdsAsync(profileId);
         var listenedSet = listenedEpisodeIds.ToHashSet();
+        listenedSet = PlaybackStrategyHelper.GetListenedAndAgedEpisodeIds(station, episodes, listenedSet);
 
         var ordered = PlaybackStrategyHelper.GetOrderedPlaylist(episodes, station, new HashSet<string>(), currentEpisodeId);
         

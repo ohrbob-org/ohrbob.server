@@ -323,7 +323,7 @@ public class StationsControllerTests
 
         var listenState = new ListenState
         {
-            UserId = profileId,
+            UserId = createdProfile.Id,
             EpisodeId = episode1.Id,
             StationId = stationId,
             IsListened = true
