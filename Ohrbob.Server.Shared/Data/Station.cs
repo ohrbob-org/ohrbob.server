@@ -11,4 +11,5 @@ public class Station : DbEntry
     public StationSchedule Schedule { get; set; } = new StationSchedule();
 
     public bool IsPublic { get; set; }
+    public bool IsAging { get; set; }
 }
