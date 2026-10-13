@@ -101,4 +101,36 @@ public static class PlaybackStrategyHelper
             return (int)h;
         }
     }
+
+    public static HashSet<string> GetListenedAndAgedEpisodeIds(
+        Station station, 
+        IEnumerable<Episode> episodes, 
+        HashSet<string> listenedEpisodeIds)
+    {
+        var result = new HashSet<string>(listenedEpisodeIds);
+        if (station != null && station.IsAging && station.Feeds != null)
+        {
+            var episodesList = episodes.ToList();
+            foreach (var feedUrl in station.Feeds)
+            {
+                var feedEpisodes = episodesList.Where(e => e.FeedUrl == feedUrl).ToList();
+                if (feedEpisodes.Any())
+                {
+                    var newestEpisode = feedEpisodes
+                        .OrderByDescending(e => e.PublishedAt ?? DateTime.MinValue)
+                        .ThenByDescending(e => e.CreatedAt)
+                        .First();
+                    
+                    foreach (var ep in feedEpisodes)
+                    {
+                        if (ep.Id != newestEpisode.Id)
+                        {
+                            result.Add(ep.Id);
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
 }

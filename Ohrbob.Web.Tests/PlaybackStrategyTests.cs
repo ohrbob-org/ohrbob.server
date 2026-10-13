@@ -144,4 +144,30 @@ public class PlaybackStrategyTests
         var combinedPlaylist = completedPlaylist.Concat(upcomingPlaylist).Select(e => e.Id).ToHashSet();
         Assert.That(combinedPlaylist, Is.EquivalentTo(fullPlaylist.Select(e => e.Id).ToHashSet()));
     }
+
+    [Test]
+    public void GetListenedAndAgedEpisodeIds_WhenStationIsAging_MarksOlderEpisodesAsListened()
+    {
+        var station = new Station
+        {
+            Id = "aging-station",
+            IsAging = true,
+            Feeds = new[] { "https://feed.url" }
+        };
+
+        var episodes = new List<Episode>
+        {
+            new Episode { Id = "ep-oldest", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-2) },
+            new Episode { Id = "ep-middle", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-1) },
+            new Episode { Id = "ep-newest", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow }
+        };
+
+        var listened = new HashSet<string> { "ep-oldest" };
+
+        var result = PlaybackStrategyHelper.GetListenedAndAgedEpisodeIds(station, episodes, listened);
+
+        Assert.That(result.Contains("ep-oldest"), Is.True);
+        Assert.That(result.Contains("ep-middle"), Is.True, "Older episode should be treated as listened");
+        Assert.That(result.Contains("ep-newest"), Is.False, "Newest episode should NOT be treated as listened");
+    }
 }
