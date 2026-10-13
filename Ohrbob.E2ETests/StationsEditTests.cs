@@ -20,7 +20,8 @@ public class StationsEditTests : PageTest
     {
         return new BrowserNewContextOptions
         {
-            IgnoreHTTPSErrors = true
+            IgnoreHTTPSErrors = true,
+            ViewportSize = new ViewportSize { Width = 375, Height = 812 }
         };
     }
 
@@ -107,11 +108,11 @@ public class StationsEditTests : PageTest
         await Page.ClickAsync("#resolved-tab");
 
         // We should see the upcoming playlist section
-        await Expect(Page.Locator("h4:has-text('Upcoming Playlist (Active Profile)')")).ToBeVisibleAsync();
+        await Expect(Page.Locator("h4:has-text('Upcoming Playlist & Playhead')")).ToBeVisibleAsync();
         
         // Find the first episode in the list and click "Mark Completed"
-        var initialCount = await Page.Locator(".resolved-item").CountAsync();
         var firstEpisode = Page.Locator(".resolved-item").First;
+        var episodeId = await firstEpisode.GetAttributeAsync("data-episode-id");
         var episodeTitle = await firstEpisode.Locator("strong").InnerTextAsync();
         
         Assert.That(episodeTitle, Is.Not.Empty);
@@ -120,8 +121,9 @@ public class StationsEditTests : PageTest
         Page.Dialog += (_, dialog) => dialog.AcceptAsync();
         await firstEpisode.Locator("button.mark-completed-btn").ClickAsync();
         
-        // Wait for count to decrease
-        await Expect(Page.Locator(".resolved-item")).ToHaveCountAsync(initialCount - 1, new() { Timeout = 10000 });
+        // Wait for completed overlay to be visible/active on the marked episode (using its unique ID since playhead advances and shifts list)
+        var markedEpisode = Page.Locator($".resolved-item[data-episode-id='{episodeId}']");
+        await Expect(markedEpisode.Locator(".completed-overlay")).ToBeVisibleAsync(new() { Timeout = 10000 });
     }
 
     [Test]
@@ -185,24 +187,27 @@ public class StationsEditTests : PageTest
         await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
         
         // Click Feeds tab
-        await Page.ClickAsync("#feeds-tab");
+        await Page.ClickAsync("#rotation-tab");
         
         // Ensure there is 1 feed card initially
-        var feedCards = Page.Locator(".feed-card");
+        var feedCards = Page.Locator(".rotation-item");
         await Expect(feedCards).ToHaveCountAsync(1);
         
-        // Add a new feed
+        // Add a new feed (open modal first)
+        await Page.ClickAsync("#manualAddBtn");
         await Page.FillAsync("#newFeedUrl", secondFeed);
-        await Page.ClickAsync("#addFeedBtn");
+        await Page.ClickAsync("#submitManualAddBtn");
         
         // Check if there are 2 feed cards now
         await Expect(feedCards).ToHaveCountAsync(2, new() { Timeout = 15000 });
         
-        // Now remove the feed
-        Page.Dialog += (_, dialog) => dialog.AcceptAsync();
-        
+        // Now remove the feed (using the Bootstrap confirmation modal)
         var removeBtn = feedCards.Last.Locator(".remove-feed");
         await removeBtn.ClickAsync();
+        
+        // Wait for confirmation modal to show and click confirm
+        await Expect(Page.Locator("#confirmRemoveFeedModal")).ToBeVisibleAsync();
+        await Page.ClickAsync("#confirmRemoveFeedBtn");
         
         // Check if there is 1 feed card
         await Expect(feedCards).ToHaveCountAsync(1, new() { Timeout = 10000 });
