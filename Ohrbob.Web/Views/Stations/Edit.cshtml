@@ -7,10 +7,12 @@
 
 <div id="dock-sentinel" style="height: 1px; margin-top: -1px;"></div>
 <div id="dockable-header">
-    <h1 class="d-flex align-items-center mb-1">
-        <span>Edit Station - </span>
-        <span id="stationNameDisplay" class="ms-1">@Model.Station.Name</span>
-        <button type="button" class="btn btn-link text-decoration-none p-0 ms-2 lh-1" id="renameStationBtn" title="Station Settings" style="font-size: 1.5rem; color: #6c757d;">
+    <h1 class="d-flex align-items-center justify-content-between mb-1">
+        <span class="d-flex align-items-center">
+            <span>Edit Station - </span>
+            <span id="stationNameDisplay" class="ms-1">@Model.Station.Name</span>
+        </span>
+        <button type="button" class="btn btn-link text-decoration-none p-0 lh-1" id="renameStationBtn" title="Station Settings" style="font-size: 1.5rem; color: #6c757d;">
             <i class="bi bi-gear-fill"></i>
         </button>
     </h1>
