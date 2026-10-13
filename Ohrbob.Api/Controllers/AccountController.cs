@@ -191,9 +191,9 @@ public class AccountController : ControllerBase
         // for now we do not support tier upgrades as we do not have the whole infrastructure in place.
         if(Environment.GetEnvironmentVariable("TIER_UPGRADE_ENABLED") != "true")
             return BadRequest("Tier upgrade not supported yet.");
-        if (string.IsNullOrWhiteSpace(request?.Tier)) return BadRequest("Unknown tier. Use Free or Premium.");
+        if (string.IsNullOrWhiteSpace(request?.Tier)) return BadRequest("Unknown tier. Use Free or Morebob.");
         if (!Enum.TryParse<SubscriptionTier>(request.Tier, true, out var tier))
-            return BadRequest("Unknown tier. Use Free or Premium.");
+            return BadRequest("Unknown tier. Use Free or Morebob.");
         account.Tier = tier;
         var updated = await _accountService.UpdateAsync(account);
         return Ok(updated);

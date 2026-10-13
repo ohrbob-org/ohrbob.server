@@ -14,7 +14,7 @@ public class SubscriptionTiersOptions
         StreamEnabled = false
     };
 
-    public TierLimits Premium { get; set; } = new()
+    public TierLimits Morebob { get; set; } = new()
     {
         MaxStations = -1,
         MaxFeedsPerStation = -1,
@@ -22,5 +22,5 @@ public class SubscriptionTiersOptions
         StreamEnabled = true
     };
 
-    public TierLimits For(SubscriptionTier tier) => tier == SubscriptionTier.Premium ? Premium : Free;
+    public TierLimits For(SubscriptionTier tier) => tier == SubscriptionTier.Morebob ? Morebob : Free;
 }

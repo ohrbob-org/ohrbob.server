@@ -6,12 +6,12 @@ namespace Ohrbob.Api.Tests.ApiTests;
 public class AccountTierTests
 {
     [Test]
-    public void TierLimits_For_Premium_AllowsStream()
+    public void TierLimits_For_Morebob_AllowsStream()
     {
         var options = new Ohrbob.Api.Configuration.SubscriptionTiersOptions();
-        var premium = options.For(SubscriptionTier.Premium);
-        Assert.That(premium.StreamEnabled, Is.True);
-        Assert.That(TierLimits.IsUnlimited(premium.MaxStations), Is.True);
+        var morebob = options.For(SubscriptionTier.Morebob);
+        Assert.That(morebob.StreamEnabled, Is.True);
+        Assert.That(TierLimits.IsUnlimited(morebob.MaxStations), Is.True);
     }
 
     [Test]

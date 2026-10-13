@@ -64,7 +64,7 @@ public class ProfileSelectorTierTests
         _profilesMock.Setup(s => s.GetProfilesByAccountIdAsync(TestAccountId))
             .ReturnsAsync(new List<Profile> { profile });
         _accountMock.Setup(s => s.GetAccountAsync(TestAccountId))
-            .ReturnsAsync(new Account { Id = TestAccountId, Tier = SubscriptionTier.Premium });
+            .ReturnsAsync(new Account { Id = TestAccountId, Tier = SubscriptionTier.Morebob });
         SetupHttpContext("p1");
 
         var result = await _component.InvokeAsync() as ViewViewComponentResult;
@@ -72,7 +72,7 @@ public class ProfileSelectorTierTests
         Assert.That(result, Is.Not.Null);
         var model = result.ViewData?.Model as ProfileSelectorViewModel;
         Assert.That(model, Is.Not.Null);
-        Assert.That(model.Tier, Is.EqualTo(SubscriptionTier.Premium));
+        Assert.That(model.Tier, Is.EqualTo(SubscriptionTier.Morebob));
     }
 
     [Test]

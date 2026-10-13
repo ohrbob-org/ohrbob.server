@@ -51,8 +51,8 @@ public class AccountController : Controller
         if (string.IsNullOrEmpty(accountId)) return Forbid();
         try
         {
-            await _accounts.SetTierAsync(accountId, SubscriptionTier.Premium);
-            TempData["Notice"] = "Upgraded to Premium (beta — billing integration coming soon).";
+            await _accounts.SetTierAsync(accountId, SubscriptionTier.Morebob);
+            TempData["Notice"] = "Upgraded to Morebob (beta — billing integration coming soon).";
         }
         catch
         {

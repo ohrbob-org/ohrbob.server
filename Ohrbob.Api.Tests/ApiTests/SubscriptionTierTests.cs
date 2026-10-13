@@ -31,10 +31,10 @@ public class SubscriptionTierTests
         Assert.That(options.Free.MaxFeedsPerStation, Is.EqualTo(10));
         Assert.That(options.Free.MaxProfiles, Is.EqualTo(1));
         Assert.That(options.Free.StreamEnabled, Is.False);
-        Assert.That(options.Premium.MaxStations, Is.EqualTo(-1));
-        Assert.That(options.Premium.MaxFeedsPerStation, Is.EqualTo(-1));
-        Assert.That(options.Premium.MaxProfiles, Is.EqualTo(5));
-        Assert.That(options.Premium.StreamEnabled, Is.True);
+        Assert.That(options.Morebob.MaxStations, Is.EqualTo(-1));
+        Assert.That(options.Morebob.MaxFeedsPerStation, Is.EqualTo(-1));
+        Assert.That(options.Morebob.MaxProfiles, Is.EqualTo(5));
+        Assert.That(options.Morebob.StreamEnabled, Is.True);
     }
 
     [Test]

@@ -8,9 +8,9 @@ namespace Ohrbob.Api.Tests.ApiTests;
 
 public class SubscriptionPolicyTests
 {
-    private static SubscriptionPolicy Create(TierLimits free, TierLimits premium)
+    private static SubscriptionPolicy Create(TierLimits free, TierLimits morebob)
     {
-        var options = Options.Create(new SubscriptionTiersOptions { Free = free, Premium = premium });
+        var options = Options.Create(new SubscriptionTiersOptions { Free = free, Morebob = morebob });
         return new SubscriptionPolicy(options);
     }
 
@@ -26,12 +26,12 @@ public class SubscriptionPolicyTests
     }
 
     [Test]
-    public void Premium_UnlimitedStations()
+    public void Morebob_UnlimitedStations()
     {
         var policy = Create(
             new TierLimits { MaxStations = 2, MaxFeedsPerStation = 10, MaxProfiles = 1 },
             new TierLimits { MaxStations = -1, MaxFeedsPerStation = -1, MaxProfiles = 5, StreamEnabled = true });
-        var limits = policy.For(new Account { Tier = SubscriptionTier.Premium });
+        var limits = policy.For(new Account { Tier = SubscriptionTier.Morebob });
         Assert.That(policy.CanCreateStation(1000, limits), Is.True);
         Assert.That(policy.CanStream(limits), Is.True);
     }
