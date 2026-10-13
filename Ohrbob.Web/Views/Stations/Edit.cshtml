@@ -10,8 +10,8 @@
     <h1 class="d-flex align-items-center mb-1">
         <span>Edit Station - </span>
         <span id="stationNameDisplay" class="ms-1">@Model.Station.Name</span>
-        <button type="button" class="btn btn-link text-decoration-none p-0 ms-2 lh-1" id="renameStationBtn" title="Rename Station" style="font-size: 1.5rem; color: #6c757d;">
-            <i class="bi bi-pencil-square"></i>
+        <button type="button" class="btn btn-link text-decoration-none p-0 ms-2 lh-1" id="renameStationBtn" title="Station Settings" style="font-size: 1.5rem; color: #6c757d;">
+            <i class="bi bi-gear-fill"></i>
         </button>
     </h1>
 
@@ -287,21 +287,25 @@
   </div>
 </div>
 
-<!-- Rename Station Modal -->
+<!-- Rename Station Modal (now Settings Modal) -->
 <div class="modal fade" id="renameStationModal" tabindex="-1" aria-labelledby="renameStationModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="renameStationModalLabel">Rename Station</h5>
+                <h5 class="modal-title" id="renameStationModalLabel">Station Settings</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-dark">
                 <div class="mb-3">
-                    <label for="newStationNameInput" class="form-label">New Station Name</label>
+                    <label for="newStationNameInput" class="form-label">Station Name</label>
                     <input type="text" class="form-control" id="newStationNameInput" placeholder="Enter station name" required />
                     <div class="invalid-feedback d-none" id="renameErrorMsg">
                         Station name cannot be empty.
                     </div>
+                </div>
+                <div class="form-check form-switch mt-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="isAgingInput" @(Model.Station.IsAging ? "checked" : "")>
+                    <label class="form-check-label text-dark" for="isAgingInput">Enable Aging Content (Only keep the newest episode unplayed)</label>
                 </div>
             </div>
             <div class="modal-footer">
@@ -953,8 +957,8 @@
                     });
                 });
 
-                // Initialize rename station functionality
-                window.initRenameStation("@Model.Station.Id");
+                // Initialize rename station functionality (revamped as Station Settings)
+                window.initRenameStation("@Model.Station.Id", @(Model.Station.IsAging ? "true" : "false"));
             }
 
             if (typeof bootstrap !== 'undefined') {

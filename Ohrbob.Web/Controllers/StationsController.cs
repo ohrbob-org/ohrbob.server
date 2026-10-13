@@ -255,7 +255,7 @@ public class StationsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Rename(string id, string name)
+    public async Task<IActionResult> UpdateSettings(string id, string name, bool isAging)
     {
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();
@@ -268,8 +268,9 @@ public class StationsController : Controller
             return NotFound();
 
         existingStation.Name = name;
+        existingStation.IsAging = isAging;
         await _stationsService.UpdateStationAsync(existingStation);
 
-        return Ok(new { name = existingStation.Name });
+        return Ok(new { name = existingStation.Name, isAging = existingStation.IsAging });
     }
 }

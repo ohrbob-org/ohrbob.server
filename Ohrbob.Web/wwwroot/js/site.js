@@ -161,20 +161,23 @@ window.submitAddFeedJson = function (event, safeId) {
     });
 };
 
-window.initRenameStation = function (stationId) {
+window.initRenameStation = function (stationId, initialIsAging) {
     const renameBtn = document.getElementById('renameStationBtn');
     const modalEl = document.getElementById('renameStationModal');
     const saveBtn = document.getElementById('saveStationNameBtn');
     const nameInput = document.getElementById('newStationNameInput');
     const errorMsg = document.getElementById('renameErrorMsg');
     const nameDisplay = document.getElementById('stationNameDisplay');
+    const isAgingInput = document.getElementById('isAgingInput');
 
-    if (!renameBtn || !modalEl || !saveBtn || !nameInput || !errorMsg || !nameDisplay) return;
+    if (!renameBtn || !modalEl || !saveBtn || !nameInput || !errorMsg || !nameDisplay || !isAgingInput) return;
 
     let modal = null;
+    let currentIsAging = initialIsAging;
 
     renameBtn.addEventListener('click', function () {
         nameInput.value = nameDisplay.textContent.trim();
+        isAgingInput.checked = currentIsAging;
         nameInput.classList.remove('is-invalid');
         errorMsg.classList.add('d-none');
         if (!modal) {
@@ -207,8 +210,9 @@ window.initRenameStation = function (stationId) {
 
         const formData = new FormData();
         formData.append('name', newName);
+        formData.append('isAging', isAgingInput.checked);
 
-        fetch(`/Stations/Rename/${stationId}`, {
+        fetch(`/Stations/UpdateSettings/${stationId}`, {
             method: 'POST',
             headers: {
                 'RequestVerificationToken': token
@@ -220,24 +224,46 @@ window.initRenameStation = function (stationId) {
             if (response.ok) {
                 const data = await response.json();
                 nameDisplay.textContent = data.name;
+                currentIsAging = data.isAging;
                 document.title = `Edit Station - ${data.name} | ohrbob`;
                 if (modal) modal.hide();
 
                 document.body.dispatchEvent(new CustomEvent('showToast', {
-                    detail: { message: 'Station renamed successfully.', type: 'success' }
+                    detail: { message: 'Station settings updated successfully.', type: 'success' }
                 }));
+
+                // Auto-refresh the playlist view dynamically using reloadPlaylist defined in Edit.cshtml
+                if (typeof reloadPlaylist === 'function') {
+                    reloadPlaylist();
+                } else {
+                    // Try reload playlist from page contextual closures
+                    const container = document.getElementById('resolved');
+                    if (container) {
+                        // Find any defined function or simply fetch and update resolved container manually
+                        fetch(window.location.href, { cache: 'no-store' })
+                        .then(res => res.text())
+                        .then(html => {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            const newResolved = doc.getElementById('resolved');
+                            if (newResolved) {
+                                container.innerHTML = newResolved.innerHTML;
+                            }
+                        });
+                    }
+                }
             } else {
                 const text = await response.text();
                 document.body.dispatchEvent(new CustomEvent('showToast', {
-                    detail: { message: text || 'Failed to rename station.', type: 'danger' }
+                    detail: { message: text || 'Failed to update station settings.', type: 'danger' }
                 }));
             }
         })
         .catch(err => {
             saveBtn.disabled = false;
-            console.error('Error renaming station:', err);
+            console.error('Error updating station settings:', err);
             document.body.dispatchEvent(new CustomEvent('showToast', {
-                detail: { message: 'Network error renaming station.', type: 'danger' }
+                detail: { message: 'Network error updating station settings.', type: 'danger' }
             }));
         });
     });

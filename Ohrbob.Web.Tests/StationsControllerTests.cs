@@ -194,6 +194,31 @@ public class StationsControllerTests
         _stationsServiceMock.Verify(s => s.UpdateScheduleAsync(stationId, schedule), Times.Once);
     }
 
+    [Test]
+    public async Task UpdateSettings_ValidParameters_UpdatesAndReturnsOk()
+    {
+        var stationId = "st-123";
+        var existingStation = new Station { Id = stationId, AccountId = TestAccountId, Name = "Old Name", IsAging = false };
+        
+        _stationsServiceMock
+            .Setup(s => s.GetStationByIdAsync(stationId))
+            .ReturnsAsync(existingStation);
+
+        _stationsServiceMock
+            .Setup(s => s.UpdateStationAsync(existingStation))
+            .ReturnsAsync(existingStation);
+
+        var result = await _controller.UpdateSettings(stationId, "New Name", true);
+
+        var okResult = result as OkObjectResult;
+        Assert.That(okResult, Is.Not.Null);
+        
+        var jsonValue = okResult.Value;
+        Assert.That(jsonValue, Is.Not.Null);
+        
+        _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.Is<Station>(s => s.Name == "New Name" && s.IsAging == true)), Times.Once);
+    }
+
     [TearDown]
     public void TearDown()
     {
