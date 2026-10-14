@@ -114,51 +114,9 @@ public class FeedUpdateWorker : BackgroundService
 
                 await feedsService.UpdateAsync(feed);
 
-                // Update Episodes
-                foreach (var item in parsedFeed.Items)
-                {
-                    var guid = item.Id ?? item.Link ?? item.Title;
-                    if (string.IsNullOrEmpty(guid)) continue;
-
-                    var existingEpisode = await episodesService.FindByGuidAndFeedIdAsync(guid, feed.Id);
-                    if (existingEpisode == null)
-                    {
-                        string episodeImageUrl = feed.ImageUrl; // Fallback to feed image
-                        string audioUrl = item.Link ?? string.Empty;
-
-                        if (item.SpecificItem?.Element != null)
-                        {
-                            System.Xml.Linq.XNamespace itunes = "http://www.itunes.com/dtds/podcast-1.0.dtd";
-                            var image = item.SpecificItem.Element.Element(itunes + "image");
-                            var href = image?.Attribute("href")?.Value;
-                            if (!string.IsNullOrWhiteSpace(href))
-                            {
-                                episodeImageUrl = href;
-                            }
-
-                            // Extract audio enclosure URL
-                            var enclosure = item.SpecificItem.Element.Element("enclosure");
-                            var enclosureUrl = enclosure?.Attribute("url")?.Value;
-                            if (!string.IsNullOrWhiteSpace(enclosureUrl))
-                            {
-                                audioUrl = enclosureUrl;
-                            }
-                        }
-
-                        var newEpisode = new Episode
-                        {
-                            Guid = guid,
-                            FeedId = feed.Id,
-                            FeedUrl = feed.Url,
-                            Title = item.Title ?? string.Empty,
-                            Description = item.Description ?? string.Empty,
-                            ImageUrl = episodeImageUrl,
-                            PublishedAt = item.PublishingDate,
-                            AudioUrl = audioUrl
-                        };
-                        await episodesService.CreateAsync(newEpisode);
-                    }
-                }
+                // Update Episodes (append-only: historic episodes are retained,
+                // new items are added, re-seen items get refreshed metadata).
+                await FeedEpisodeSyncService.SyncAsync(episodesService, feed, parsedFeed.Items);
             }
             catch (Exception ex)
             {

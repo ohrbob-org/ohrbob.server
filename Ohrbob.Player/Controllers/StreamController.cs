@@ -89,6 +89,13 @@ public class StreamController : ControllerBase
         int position = listenState?.PositionSeconds ?? 0;
 
         var nextEpisode = await _playbackStrategy.GetNextEpisodeAsync(station, currentEpisode.Id, profile.Id);
+        var prevEpisode = await _playbackStrategy.GetPreviousEpisodeAsync(station, currentEpisode.Id, profile.Id);
+
+        // Resolve feed titles for artist display (feed title fallback to station name)
+        var stationFeeds = await _feeds.Find(f => station.Feeds.Contains(f.Url)).ToListAsync();
+        string ResolveArtist(Episode ep) =>
+            stationFeeds.FirstOrDefault(f => f.Url == ep.FeedUrl || f.Id == ep.FeedId)?.Title
+            ?? station.Name;
 
         return Ok(new 
         { 
@@ -98,16 +105,29 @@ public class StreamController : ControllerBase
                 episodeId = currentEpisode.Id,
                 title = currentEpisode.Title,
                 description = currentEpisode.Description,
+                artist = ResolveArtist(currentEpisode),
                 coverUrl = string.IsNullOrWhiteSpace(currentEpisode.ImageUrl) ? null : currentEpisode.ImageUrl,
                 streamUri = currentEpisode.AudioUrl, // Using AudioUrl from Episode
+                link = string.IsNullOrWhiteSpace(currentEpisode.AudioUrl) ? null : currentEpisode.AudioUrl,
                 playheadPositionSeconds = position
             },
             next = nextEpisode == null ? null : new {
                 episodeId = nextEpisode.Id,
                 title = nextEpisode.Title,
                 description = nextEpisode.Description,
+                artist = ResolveArtist(nextEpisode),
                 coverUrl = string.IsNullOrWhiteSpace(nextEpisode.ImageUrl) ? null : nextEpisode.ImageUrl,
-                streamUri = nextEpisode.AudioUrl
+                streamUri = nextEpisode.AudioUrl,
+                link = string.IsNullOrWhiteSpace(nextEpisode.AudioUrl) ? null : nextEpisode.AudioUrl
+            },
+            prev = prevEpisode == null ? null : new {
+                episodeId = prevEpisode.Id,
+                title = prevEpisode.Title,
+                description = prevEpisode.Description,
+                artist = ResolveArtist(prevEpisode),
+                coverUrl = string.IsNullOrWhiteSpace(prevEpisode.ImageUrl) ? null : prevEpisode.ImageUrl,
+                streamUri = prevEpisode.AudioUrl,
+                link = string.IsNullOrWhiteSpace(prevEpisode.AudioUrl) ? null : prevEpisode.AudioUrl
             }
         });
     }
@@ -174,6 +194,28 @@ public class StreamController : ControllerBase
         
         // Ensure state is 0 for next
         await _listenStateService.UpsertStateAsync(profile.Id, station.Id, nextEpisode.Id, 0, false);
+
+        return Ok();
+    }
+
+    [HttpPost("prev")]
+    public async Task<IActionResult> Prev()
+    {
+        var profile = await GetProfile();
+        if (profile == null) return Unauthorized();
+        
+        if (string.IsNullOrEmpty(profile.LastActiveStationId)) return BadRequest();
+        var station = await _stations.Find(s => s.Id == profile.LastActiveStationId).FirstOrDefaultAsync();
+        if (station == null) return BadRequest();
+
+        var prevEpisode = await _playbackStrategy.GetPreviousEpisodeAsync(station, profile.LastActiveEpisodeId, profile.Id);
+        if (prevEpisode == null) return Ok();
+
+        var update = Builders<Profile>.Update.Set(p => p.LastActiveEpisodeId, prevEpisode.Id);
+        await _profiles.UpdateOneAsync(p => p.Id == profile.Id, update);
+        
+        // Ensure state is 0 for prev so it plays from the start and isn't skipped as listened
+        await _listenStateService.UpsertStateAsync(profile.Id, station.Id, prevEpisode.Id, 0, false);
 
         return Ok();
     }

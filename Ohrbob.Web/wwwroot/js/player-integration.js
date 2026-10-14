@@ -27,8 +27,32 @@
 
         let currentEpisodeData = null;
         let nextEpisodeData = null;
+        let prevEpisodeData = null;
         let lastConnectionErrorTime = 0;
         let activeStationId = null;
+        const PREV_RESTART_THRESHOLD_SECONDS = 5;
+
+        const toCard = (ep) => {
+            if (!ep) return null;
+            return {
+                track: ep.title || 'Track',
+                artist: ep.artist || '',
+                cover: ep.coverUrl || null
+            };
+        };
+
+        const applyEpisodeCards = () => {
+            if (nextEpisodeData) {
+                widget.setAttribute('next-episode', JSON.stringify(toCard(nextEpisodeData)));
+            } else {
+                widget.removeAttribute('next-episode');
+            }
+            if (prevEpisodeData) {
+                widget.setAttribute('prev-episode', JSON.stringify(toCard(prevEpisodeData)));
+            } else {
+                widget.removeAttribute('prev-episode');
+            }
+        };
 
         const apiCall = async (endpoint, method = 'GET', body = null) => {
             try {
@@ -112,13 +136,21 @@
             });
 
             navigator.mediaSession.setActionHandler('previoustrack', () => {
-                audio.currentTime = 0;
-                updateMediaSessionPosition();
+                if (typeof window._ohrbobGoToPrev === 'function') {
+                    window._ohrbobGoToPrev();
+                } else {
+                    audio.currentTime = 0;
+                    updateMediaSessionPosition();
+                }
             });
 
             navigator.mediaSession.setActionHandler('nexttrack', async () => {
-                await apiCall('/stream/next', 'POST');
-                syncState();
+                if (typeof window._ohrbobGoToNext === 'function') {
+                    await window._ohrbobGoToNext();
+                } else {
+                    await apiCall('/stream/next', 'POST');
+                    syncState();
+                }
             });
 
             navigator.mediaSession.setActionHandler('seekbackward', (details) => {
@@ -155,10 +187,14 @@
                 // No active station/profile, reset to default empty state
                 currentEpisodeData = null;
                 nextEpisodeData = null;
+                prevEpisodeData = null;
                 widget.setAttribute('station', 'My Station');
                 widget.setAttribute('track', 'Track Name');
                 widget.setAttribute('artist', 'Artist');
                 widget.removeAttribute('cover');
+                widget.removeAttribute('station-link');
+                widget.removeAttribute('next-episode');
+                widget.removeAttribute('prev-episode');
                 widget.duration = 0;
                 widget.currentTime = 0;
                 
@@ -190,6 +226,9 @@
                 widget.setAttribute('track', state.isCompiling ? 'Compiling Station...' : 'No Episodes Available');
                 widget.setAttribute('artist', state.isCompiling ? 'We are fetching the latest episodes.' : 'Please add some active feeds.');
                 widget.removeAttribute('cover');
+                widget.removeAttribute('station-link');
+                widget.removeAttribute('next-episode');
+                widget.removeAttribute('prev-episode');
                 widget.duration = 0;
                 widget.currentTime = 0;
 
@@ -206,18 +245,27 @@
                 });
                 updateMediaSessionMetadata(state);
             } else {
-                // Normal state
+                // Normal state (prev/next come from the server)
                 currentEpisodeData = state.current || {};
                 nextEpisodeData = state.next;
+                prevEpisodeData = state.prev || null;
 
                 widget.setAttribute('station', state.stationName || 'Unknown Station');
                 widget.setAttribute('track', currentEpisodeData.title || '');
-                widget.setAttribute('artist', state.stationName || ''); 
+                widget.setAttribute('artist', currentEpisodeData.artist || state.stationName || '');
                 if (currentEpisodeData.coverUrl) {
                      widget.setAttribute('cover', currentEpisodeData.coverUrl);
                 } else {
                      widget.removeAttribute('cover');
                 }
+                // Link icon -> direct episode audio URL (absolute http URL as required by widget)
+                const episodeLink = currentEpisodeData.link || currentEpisodeData.streamUri;
+                if (episodeLink && /^(https?:)?\/\//i.test(episodeLink)) {
+                    widget.setAttribute('station-link', episodeLink);
+                } else {
+                    widget.removeAttribute('station-link');
+                }
+                applyEpisodeCards();
 
                 // Enable buttons
                 const btnPlay = widget.querySelector('.js-play');
@@ -339,7 +387,54 @@
             }
         };
 
-        // Clear existing listeners on the widget by cloning it? No, hx-preserve might need it.
+        // Direct playback of a known episode object (used for prev/jump navigation).
+        // Persists the selection server-side so /stream/next stays consistent.
+        const playEpisodeDirect = async (episode) => {
+            if (!episode || !episode.streamUri || !activeStationId) return;
+            currentEpisodeData = episode;
+            widget.setAttribute('track', episode.title || '');
+            widget.setAttribute('artist', episode.artist || '');
+            if (episode.coverUrl) widget.setAttribute('cover', episode.coverUrl);
+            else widget.removeAttribute('cover');
+            const episodeLink = episode.link || episode.streamUri;
+            if (episodeLink && /^(https?:)?\/\//i.test(episodeLink)) widget.setAttribute('station-link', episodeLink);
+            else widget.removeAttribute('station-link');
+            applyEpisodeCards();
+
+            const fullStreamUri = episode.streamUri;
+            window._ohrbobCurrentLoadedUri = fullStreamUri;
+            audio.src = fullStreamUri;
+            audio.currentTime = episode.playheadPositionSeconds || 0;
+            try { await audio.play(); widget.isPlaying = true; } catch (e) { widget.isPlaying = false; }
+            updatePlayButton();
+
+            await apiCall('/stream/status', 'POST', {
+                episodeId: episode.episodeId,
+                stationId: activeStationId,
+                positionSeconds: Math.floor(audio.currentTime)
+            });
+            // Refresh to get the new next episode for the cards
+            const state = await apiCall('/stream/status');
+            if (state) applyStateToWidget(state);
+        };
+
+        const goToNext = async () => {
+            await apiCall('/stream/next', 'POST');
+            await syncState();
+        };
+
+        const goToPrev = async () => {
+            // Typical player UX: restart first if playhead is beyond the threshold
+            if (Number.isFinite(audio.currentTime) && audio.currentTime > PREV_RESTART_THRESHOLD_SECONDS) {
+                audio.currentTime = 0;
+                updateMediaSessionPosition();
+                return;
+            }
+            await apiCall('/stream/prev', 'POST');
+            await syncState();
+        };
+        window._ohrbobGoToNext = goToNext;
+        window._ohrbobGoToPrev = goToPrev;
         // We can just use an abort controller or a flag on the widget.
         if (!widget._ohrbobListenersBound) {
             widget._ohrbobListenersBound = true;
@@ -372,8 +467,19 @@
             });
             
             widget.addEventListener('forward', async () => {
-                await apiCall('/stream/next', 'POST');
-                syncState();
+                await goToNext();
+            });
+
+            widget.addEventListener('back', async () => {
+                await goToPrev();
+            });
+
+            widget.addEventListener('jumpnext', async () => {
+                await goToNext();
+            });
+
+            widget.addEventListener('jumpprev', async () => {
+                await goToPrev();
             });
 
             widget.addEventListener('settings', () => {
@@ -495,6 +601,9 @@
             
             widget.isPlaying = false;
             widget.removeAttribute('cover');
+            widget.removeAttribute('station-link');
+            widget.removeAttribute('next-episode');
+            widget.removeAttribute('prev-episode');
             widget.setAttribute('track', 'Playback Stopped');
             widget.setAttribute('artist', 'Current station deleted');
             widget.duration = 0;

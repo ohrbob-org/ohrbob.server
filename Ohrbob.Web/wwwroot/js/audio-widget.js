@@ -7,7 +7,9 @@ const ICONS = {
     skipForward: `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path><text x="12" y="15" text-anchor="middle" font-size="7" font-weight="700" fill="currentColor" stroke="none">30</text></svg>`,
     volume: `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>`,
     muted: `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>`,
-    settings: `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`
+    settings: `<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`,
+    arrowLeft: `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>`,
+    arrowRight: `<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg>`
 };
 
 function clamp(value, min, max) {
@@ -47,7 +49,7 @@ class AudioWidget extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['station', 'track', 'artist', 'cover', 'next-episode', 'prev-episode'];
+        return ['station', 'track', 'artist', 'cover', 'next-episode', 'prev-episode', 'station-link'];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
@@ -146,11 +148,36 @@ class AudioWidget extends HTMLElement {
         }
     }
 
+    get stationLink() { return this.getAttribute('station-link'); }
+    set stationLink(value) {
+        if (value) {
+            this.setAttribute('station-link', value);
+        } else {
+            this.removeAttribute('station-link');
+        }
+    }
+
     render() {
         const station = this.getAttribute('station') || 'My Station';
         const track = this.getAttribute('track') || 'Track Name';
         const artist = this.getAttribute('artist') || 'Artist';
         const cover = this.getAttribute('cover');
+
+        let stationLink = this.getAttribute('station-link') || '';
+        if (stationLink && !/^(https?:)?\/\//i.test(stationLink)) {
+            stationLink = '';
+        }
+        const escapedStationLink = stationLink.replace(/"/g, '&quot;');
+
+        const stationLinkHtml = escapedStationLink
+            ? `<a href="${escapedStationLink}" target="_blank" rel="noopener noreferrer" class="station-link-icon" aria-label="Visit Station">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+               </a>`
+            : '';
 
         const coverHtml = cover 
             ? `<img src="${cover}" alt="" class="track-cover">` 
@@ -175,7 +202,7 @@ class AudioWidget extends HTMLElement {
                             <strong class="episode-nav-title">${this._prevEpisode.track || 'Track'}</strong>
                             <span class="episode-nav-artist">${this._prevEpisode.artist || 'Artist'}</span>
                         </div>
-                        <button type="button" class="btn btn-glass-primary btn-sm btn-jump js-jump-prev">Go Back</button>
+                        <button type="button" class="btn btn-glass-primary btn-sm btn-jump js-jump-prev">${ICONS.arrowLeft}Go Back</button>
                     </div>
                 </div>
             `;
@@ -196,8 +223,20 @@ class AudioWidget extends HTMLElement {
                             <strong class="episode-nav-title">${this._nextEpisode.track || 'Track'}</strong>
                             <span class="episode-nav-artist">${this._nextEpisode.artist || 'Artist'}</span>
                         </div>
-                        <button type="button" class="btn btn-glass-primary btn-sm btn-jump js-jump-next">Jump</button>
+                        <button type="button" class="btn btn-glass-primary btn-sm btn-jump js-jump-next">Jump${ICONS.arrowRight}</button>
                     </div>
+                </div>
+            `;
+        }
+
+        // Side-by-side episode navigation: previous card left, next card right.
+        // A lone card spans the full row width via CSS (:only-child).
+        let episodeNavHtml = '';
+        if (prevEpisodeHtml || nextEpisodeHtml) {
+            episodeNavHtml = `
+                <div class="episode-nav-row">
+                    ${prevEpisodeHtml}
+                    ${nextEpisodeHtml}
                 </div>
             `;
         }
@@ -207,7 +246,7 @@ class AudioWidget extends HTMLElement {
                 <div class="audio-meta">
                     ${coverHtml}
                     <div class="audio-info">
-                        <span class="station-name"><span class="station-dot"></span>${station}</span>
+                        <span class="station-name"><span class="station-dot"></span>${station}${stationLinkHtml}</span>
                         <strong class="track-title">${track}</strong>
                         <small class="track-description">${artist}</small>
                     </div>
@@ -250,7 +289,7 @@ class AudioWidget extends HTMLElement {
                         ${expandedCoverHtml}
                     </div>
                     <div class="expanded-info">
-                        <span class="expanded-station"><span class="station-dot"></span>${station}</span>
+                        <span class="expanded-station"><span class="station-dot"></span>${station}${stationLinkHtml}</span>
                         <strong class="expanded-title">${track}</strong>
                         <span class="expanded-artist">${artist}</span>
                     </div>
@@ -266,8 +305,7 @@ class AudioWidget extends HTMLElement {
                             <button type="button" class="btn btn-glass rounded-circle btn-skip js-expanded-skipforward" aria-label="Skip forward 30 seconds">${ICONS.skipForward}</button>
                         </div>
                     </div>
-                    ${prevEpisodeHtml}
-                    ${nextEpisodeHtml}
+                    ${episodeNavHtml}
                 </div>
             </div>
         `;
@@ -426,7 +464,7 @@ class AudioWidget extends HTMLElement {
         if (metaEl) {
             metaEl.addEventListener('click', (e) => {
                 // Prevent expanding if clicking some child anchor/button (none present currently, but safe)
-                if (e.target.closest('button')) return;
+                if (e.target.closest('button') || e.target.closest('a')) return;
                 this.isExpanded = true;
             });
         }

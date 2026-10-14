@@ -12362,25 +12362,24 @@ textarea.form-control-lg {
   justify-content: center;
   margin-bottom: 8px;
 }
-.audio-widget .audio-expanded-card .expanded-body .expanded-cover-container .expanded-cover {
-  width: 160px;
-  height: 160px;
+.audio-widget .audio-expanded-card .expanded-body .expanded-cover-container .expanded-cover, .audio-widget .audio-expanded-card .expanded-body .expanded-cover-container .expanded-cover-empty {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  max-height: min(500px, 40vh);
+  aspect-ratio: 1/1;
   border-radius: 16px;
   object-fit: cover;
   box-shadow: 0 8px 24px rgba(0, 25, 87, 0.15);
   background-color: rgba(0, 25, 87, 0.08);
+  transition: all 0.3s ease;
 }
 .audio-widget .audio-expanded-card .expanded-body .expanded-cover-container .expanded-cover-empty {
-  width: 160px;
-  height: 160px;
-  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 4rem;
   color: rgba(0, 25, 87, 0.4);
-  box-shadow: 0 8px 24px rgba(0, 25, 87, 0.15);
-  background-color: rgba(0, 25, 87, 0.08);
 }
 .audio-widget .audio-expanded-card .expanded-body .expanded-info {
   text-align: center;
@@ -12529,6 +12528,19 @@ textarea.form-control-lg {
 .audio-widget .audio-expanded-card .expanded-body .expanded-controls-group .expanded-controls .btn-skip svg {
   display: block;
 }
+.audio-widget .audio-expanded-card .expanded-body .episode-nav-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.audio-widget .audio-expanded-card .expanded-body .episode-nav-row .episode-nav-card:only-child {
+  grid-column: 1/-1;
+}
+@media (max-width: 576px) {
+  .audio-widget .audio-expanded-card .expanded-body .episode-nav-row {
+    grid-template-columns: 1fr;
+  }
+}
 .audio-widget .audio-expanded-card .expanded-body .episode-nav-card {
   background: rgba(255, 255, 255, 0.5);
   border: 1px solid rgba(0, 25, 87, 0.06);
@@ -12600,6 +12612,12 @@ textarea.form-control-lg {
   font-weight: 600;
   border-radius: 20px !important;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.audio-widget .audio-expanded-card .expanded-body .episode-nav-card .episode-nav-content .btn-jump svg {
+  flex-shrink: 0;
 }
 .audio-widget.is-expanded {
   background: transparent !important;
@@ -12634,6 +12652,20 @@ textarea.form-control-lg {
   max-height: none;
   bottom: 8px;
   z-index: 100;
+}
+.audio-widget .station-link-icon {
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  opacity: 0.65;
+  transition: opacity 0.2s, transform 0.2s;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.audio-widget .station-link-icon:hover {
+  opacity: 1;
+  color: #fc5d00;
+  transform: scale(1.1);
 }
 
 @media (max-width: 767.98px) {
