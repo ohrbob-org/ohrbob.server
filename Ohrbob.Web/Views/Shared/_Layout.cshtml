@@ -2,6 +2,7 @@
 @using Ohrbob.Web.Configuration
 @inject IOptions<LegalOptions> LegalOptions
 @inject IOptions<HtmxNavigationOptions> HtmxNavOptions
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
 @{
     bool IsHtmxEnabled(string controller, string action)
     {
@@ -16,7 +17,10 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    @if (!Env.IsDevelopment())
+    {
+        <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    }
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] | ohrbob</title>
     <link rel="icon" type="image/x-icon" href="~/favicon.ico" asp-append-version="true" />
