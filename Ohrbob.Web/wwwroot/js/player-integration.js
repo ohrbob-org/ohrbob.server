@@ -61,12 +61,12 @@
                 artist: state.stationName || 'Ohrbob',
                 album: state.stationName || 'Ohrbob',
                 artwork: current.coverUrl ? [
-                    { src: current.coverUrl, sizes: '96x96', type: 'image/png' },
-                    { src: current.coverUrl, sizes: '128x128', type: 'image/png' },
-                    { src: current.coverUrl, sizes: '192x192', type: 'image/png' },
-                    { src: current.coverUrl, sizes: '256x256', type: 'image/png' },
-                    { src: current.coverUrl, sizes: '384x384', type: 'image/png' },
-                    { src: current.coverUrl, sizes: '512x512', type: 'image/png' }
+                    { src: current.coverUrl, sizes: '96x96' },
+                    { src: current.coverUrl, sizes: '128x128' },
+                    { src: current.coverUrl, sizes: '192x192' },
+                    { src: current.coverUrl, sizes: '256x256' },
+                    { src: current.coverUrl, sizes: '384x384' },
+                    { src: current.coverUrl, sizes: '512x512' }
                 ] : []
             });
             updateMediaSessionPlaybackState();
@@ -74,7 +74,7 @@
 
         const updateMediaSessionPlaybackState = () => {
             if (!('mediaSession' in navigator)) return;
-            navigator.mediaSession.playbackState = widget.isPlaying ? 'playing' : 'paused';
+            navigator.mediaSession.playbackState = !audio.paused ? 'playing' : 'paused';
         };
 
         const updateMediaSessionPosition = () => {
@@ -143,6 +143,11 @@
             } catch (err) {
                 console.warn('Seekto action handler not supported:', err);
             }
+
+            // Register global audio listeners to sync Media Session playbackState event-driven
+            audio.onplay = updateMediaSessionPlaybackState;
+            audio.onplaying = updateMediaSessionPlaybackState;
+            audio.onpause = updateMediaSessionPlaybackState;
         };
 
         const applyStateToWidget = (state) => {
@@ -424,13 +429,11 @@
                     updatePlayButton();
                 }
                 
-                if (widget.isPlaying) {
-                    if (widget.duration !== audio.duration && Number.isFinite(audio.duration)) {
-                        widget.duration = audio.duration;
-                    }
-                    if (widget.currentTime !== audio.currentTime && Number.isFinite(audio.currentTime)) {
-                        widget.currentTime = audio.currentTime;
-                    }
+                if (widget.duration !== audio.duration && Number.isFinite(audio.duration)) {
+                    widget.duration = audio.duration;
+                }
+                if (widget.currentTime !== audio.currentTime && Number.isFinite(audio.currentTime)) {
+                    widget.currentTime = audio.currentTime;
                 }
             }
             updateMediaSessionPosition();

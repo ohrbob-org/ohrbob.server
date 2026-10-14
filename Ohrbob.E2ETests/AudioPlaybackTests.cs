@@ -369,13 +369,15 @@ public class AudioPlaybackTests : PageTest
         var feeds = await File.ReadAllLinesAsync(feedPath);
         var firstFeed = feeds.First(l => !string.IsNullOrWhiteSpace(l));
 
+        var stationName = $"Test E2E Station {Guid.NewGuid().ToString()[..8]}";
+
         await Page.GotoAsync(_factory.ServerAddress);
         
         await Page.ClickAsync("#profileDropdown");
         await Page.ClickAsync("text=\"Stations\"");
         await Page.ClickAsync("text=Create New Station");
 
-        await Page.FillAsync("input[name='Name']", "Test E2E Station");
+        await Page.FillAsync("input[name='Name']", stationName);
         await Page.FillAsync("input[name='Feeds']", firstFeed);
         await Page.ClickAsync("input[type='submit']");
         
@@ -383,7 +385,7 @@ public class AudioPlaybackTests : PageTest
         
         await Page.GotoAsync(_factory.ServerAddress);
 
-        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Test E2E Station" }).First;
+        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = stationName }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
@@ -413,7 +415,7 @@ public class AudioPlaybackTests : PageTest
         var title = metadata.GetProperty("title").GetString();
         var artist = metadata.GetProperty("artist").GetString();
         Assert.That(title, Is.Not.Null.And.Not.Empty);
-        Assert.That(artist, Is.EqualTo("Test E2E Station"));
+        Assert.That(artist, Is.EqualTo(stationName));
 
         await playBtn.ClickAsync();
     }
