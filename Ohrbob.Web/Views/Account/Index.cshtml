@@ -185,9 +185,21 @@ else
             <div class="modal-body text-center text-dark">
                 <p>Scan this QR code with your Ohrbob app/device to connect <strong class="text-dark"><span id="qrKeyName"></span></strong>.</p>
                 <div id="qrcode-container" class="d-flex justify-content-center my-3 p-3 bg-white rounded border" style="width: fit-content; margin: 0 auto;"></div>
-                <div class="mt-2 text-dark">
-                    <span class="small text-muted">Deep link:</span>
-                    <code class="d-block text-break small mt-1 p-2 bg-light border rounded text-dark" id="qrDeepLink"></code>
+                <div class="mt-2 text-dark text-start">
+                    <span class="small text-muted d-block mb-1">Deep link:</span>
+                    <code class="d-block text-break small p-2 bg-light border rounded text-dark mb-3" id="qrDeepLink"></code>
+
+                    <label class="form-label small text-muted mb-1 d-block">Server URL</label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control text-dark bg-light" id="qrServerUrl" readonly />
+                        <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('qrServerUrl').value); alert('Server URL copied to clipboard!');">Copy</button>
+                    </div>
+
+                    <label class="form-label small text-muted mb-1 d-block">API Token</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control text-dark bg-light" id="qrToken" readonly />
+                        <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('qrToken').value); alert('Token copied to clipboard!');">Copy</button>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -203,6 +215,26 @@ else
         function showConnectionQr(keyName, deepLink) {
             document.getElementById('qrKeyName').textContent = keyName;
             document.getElementById('qrDeepLink').textContent = deepLink;
+
+            let serverUrl = "";
+            let token = "";
+            try {
+                // custom schemes like ohrbob:// cause standard URL parses to treat parameters differently on some engines, split parsing is bulletproof
+                const queryStr = deepLink.split('?')[1];
+                if (queryStr) {
+                    const pairs = queryStr.split('&');
+                    for (const pair of pairs) {
+                        const parts = pair.split('=');
+                        if (parts[0] === 'server') serverUrl = decodeURIComponent(parts[1] || "");
+                        if (parts[0] === 'token') token = decodeURIComponent(parts[1] || "");
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to parse deep link parameters:", e);
+            }
+
+            document.getElementById('qrServerUrl').value = serverUrl;
+            document.getElementById('qrToken').value = token;
             
             const container = document.getElementById('qrcode-container');
             container.innerHTML = '';
