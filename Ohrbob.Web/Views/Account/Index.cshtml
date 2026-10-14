@@ -80,3 +80,144 @@ else
 {
     <p class="text-success">You are on Morebob. Manage billing via Stripe portal (coming soon).</p>
 }
+
+@inject Microsoft.Extensions.Options.IOptions<Ohrbob.Web.Configuration.OhrbobApiOptions> ApiOptions
+
+<div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
+        <h4 class="mb-0">Device Connectivity & API Keys</h4>
+    </div>
+    <div class="card-body text-dark">
+        <p class="text-muted">Generate API keys to connect external devices and players. Connect via the generated QR code.</p>
+
+        @if (Model.ApiKeys == null || !Model.ApiKeys.Any())
+        {
+            <div class="text-center py-4 text-muted border rounded mb-3 bg-light">
+                <i class="bi bi-key-fill" style="font-size: 2rem;"></i>
+                <p class="mt-2 mb-0">No active API keys found. Create one below to connect your devices.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle text-dark">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Profile</th>
+                            <th>Token</th>
+                            <th>Connection</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var key in Model.ApiKeys)
+                        {
+                            var profileName = Model.Profiles.FirstOrDefault(p => p.Id == key.ProfileId)?.Name ?? "All Profiles (Account level)";
+                            var abbrevToken = key.Token.Length > 9 
+                                ? key.Token.Substring(0, 5) + "..." + key.Token.Substring(key.Token.Length - 4) 
+                                : key.Token;
+                            var deepLink = $"ohrbob://connect?server={Uri.EscapeDataString(ApiOptions.Value.FrontendPlayerUrl)}&token={Uri.EscapeDataString(key.Token)}";
+
+                            <tr>
+                                <td><strong>@key.Name</strong></td>
+                                <td><span class="badge bg-light text-dark border">@profileName</span></td>
+                                <td><code>@abbrevToken</code></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" type="button" 
+                                            onclick="showConnectionQr('@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(key.Name))', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(deepLink))')">
+                                        <i class="bi bi-qr-code"></i> Show QR
+                                    </button>
+                                </td>
+                                <td class="text-end">
+                                    <form asp-action="RevokeApiKey" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to revoke this API key? This will instantly disconnect any connected devices.');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@key.Id" />
+                                        <button class="btn btn-sm btn-outline-danger" type="submit">
+                                            <i class="bi bi-trash"></i> Revoke
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <!-- Create New Key Form -->
+        <div class="border rounded p-3 mt-4 bg-light text-dark">
+            <h5>Generate New API Key</h5>
+            <form asp-action="AddApiKey" method="post" class="row g-3 align-items-end">
+                @Html.AntiForgeryToken()
+                <div class="col-md-5">
+                    <label for="keyName" class="form-label small text-muted">Device or Key Name</label>
+                    <input type="text" class="form-control form-control-sm text-dark bg-white" id="keyName" name="name" placeholder="e.g. My Smart Speaker, Living Room Tablet" required />
+                </div>
+                <div class="col-md-5">
+                    <label for="profileId" class="form-label small text-muted">Profile Scope</label>
+                    <select class="form-select form-select-sm text-dark bg-white" id="profileId" name="profileId">
+                        <option value="">All Profiles (Account level)</option>
+                        @foreach (var p in Model.Profiles)
+                        {
+                            <option value="@p.Id">@p.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 text-end">
+                    <button type="submit" class="btn btn-sm btn-primary w-100">
+                        <i class="bi bi-plus-circle"></i> Generate
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- QR Code Modal -->
+<div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrCodeModalLabel">Connect Device</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center text-dark">
+                <p>Scan this QR code with your Ohrbob app/device to connect <strong class="text-dark"><span id="qrKeyName"></span></strong>.</p>
+                <div id="qrcode-container" class="d-flex justify-content-center my-3 p-3 bg-white rounded border" style="width: fit-content; margin: 0 auto;"></div>
+                <div class="mt-2 text-dark">
+                    <span class="small text-muted">Deep link:</span>
+                    <code class="d-block text-break small mt-1 p-2 bg-light border rounded text-dark" id="qrDeepLink"></code>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nOMQVqgTCffAbVMS27ofWXnsz57GEzoFG5DGON18LtntVY4IPjMwLDMpkTx4VJ5gEMcHzjUJ3dxg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        function showConnectionQr(keyName, deepLink) {
+            document.getElementById('qrKeyName').textContent = keyName;
+            document.getElementById('qrDeepLink').textContent = deepLink;
+            
+            const container = document.getElementById('qrcode-container');
+            container.innerHTML = '';
+            
+            new QRCode(container, {
+                text: deepLink,
+                width: 200,
+                height: 200,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+
+            const modal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
+            modal.show();
+        }
+    </script>
+}

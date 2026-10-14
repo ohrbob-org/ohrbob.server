@@ -61,6 +61,7 @@ builder.Services.AddHttpClient(nameof(OhrbobApiService))
 builder.Services.AddSingleton<AccountApiService>();
 builder.Services.AddSingleton<StationsApiService>();
 builder.Services.AddSingleton<ProfilesApiService>();
+builder.Services.AddSingleton<ApiKeysApiService>();
 builder.Services.AddHttpClient<PodcastIndexApiService>();
 builder.Services.Configure<OhrbobApiOptions>(builder.Configuration.GetSection("OhrbobApi"));
 builder.Services.AddSingleton<BackendVersionCache>();
