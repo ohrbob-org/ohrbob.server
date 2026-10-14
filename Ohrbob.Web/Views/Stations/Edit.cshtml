@@ -940,9 +940,25 @@
                 const sentinel = document.getElementById('dock-sentinel');
                 const dockable = document.getElementById('dockable-header');
                 if (sentinel && dockable) {
+                    let dockTimeout = null;
                     const observer = new IntersectionObserver((entries) => {
                         entries.forEach(entry => {
-                            dockable.classList.toggle('docked', !entry.isIntersecting);
+                            const shouldDock = !entry.isIntersecting;
+                            
+                            if (dockTimeout) {
+                                clearTimeout(dockTimeout);
+                                dockTimeout = null;
+                            }
+                            
+                            if (shouldDock) {
+                                // Delay docking to ensure it's not a transient scroll/layout shift
+                                dockTimeout = setTimeout(() => {
+                                    dockable.classList.add('docked');
+                                }, 250); // 250ms delay
+                            } else {
+                                // Undocking can happen immediately for responsiveness
+                                dockable.classList.remove('docked');
+                            }
                         });
                     }, {
                         rootMargin: '-73px 0px 0px 0px'
