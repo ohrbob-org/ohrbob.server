@@ -15,8 +15,65 @@
 </table>
 @if (Model.Tier != Ohrbob.Server.Shared.Data.SubscriptionTier.Morebob)
 {
-    <form asp-action="Upgrade" method="post">@Html.AntiForgeryToken()<button class="btn btn-primary" type="submit">Upgrade to Morebob</button></form>
-    <p class="text-muted small mt-2">Beta: upgrade applies immediately. Card billing via Stripe is coming soon.</p>
+    <div class="upgrade-card shadow-sm mb-4">
+        <div class="card-content-wrapper">
+            <span class="card-badge">Premium</span>
+            <h3 class="card-title-premium">morebob</h3>
+            <p class="card-desc-premium">
+                Build your ultimate personalized audio space with zero limits.
+            </p>
+            
+            <!-- Feature Grid (The Claim) -->
+            <div class="feature-grid-premium">
+                <div class="feature-item-premium">
+                    <span class="feature-icon-premium">✓</span>
+                    <div>
+                        <div class="feature-title-premium">Unlimited Stations</div>
+                        <div class="feature-desc-premium">Create as many customized stations as you want (versus 1).</div>
+                    </div>
+                </div>
+                <div class="feature-item-premium">
+                    <span class="feature-icon-premium">✓</span>
+                    <div>
+                        <div class="feature-title-premium">Unlimited Feeds</div>
+                        <div class="feature-desc-premium">Add any number of RSS, podcast, and news sources per station.</div>
+                    </div>
+                </div>
+                <div class="feature-item-premium">
+                    <span class="feature-icon-premium">✓</span>
+                    <div>
+                        <div class="feature-title-premium">Up to 5 Profiles</div>
+                        <div class="feature-desc-premium">Separate by moods or easily share with your family.</div>
+                    </div>
+                </div>
+                <div class="feature-item-premium">
+                    <span class="feature-icon-premium">✓</span>
+                    <div>
+                        <div class="feature-title-premium">Full Audio Streaming</div>
+                        <div class="feature-desc-premium">Enjoy instant background audio streams without interruption.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upgrade Button Form -->
+            <form asp-action="Upgrade" method="post">
+                @Html.AntiForgeryToken()
+                <button class="btn-upgrade-morebob" type="submit">
+                    <span class="button-text">Upgrade to Morebob</span>
+                    <div class="watermark"></div>
+                </button>
+            </form>
+
+            <!-- Prominent Coming Soon Alert -->
+            <div class="coming-soon-banner">
+                <span class="banner-icon-premium">💳</span>
+                <div>
+                    <div class="banner-title-premium">Stripe Card Billing Integration Coming Soon!</div>
+                    <div class="banner-desc-premium">We are actively preparing standard Stripe subscription payments. Your upgrade applies instantly today.</div>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 else
 {
