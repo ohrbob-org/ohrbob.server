@@ -11,12 +11,14 @@ public class PlayerContextService
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMongoCollection<Profile> _profiles;
     private readonly IMongoCollection<ApiKey> _apiKeys;
+    private readonly IMongoCollection<Account> _accounts;
 
     public PlayerContextService(IHttpContextAccessor httpContextAccessor, MongoDbContext dbContext)
     {
         _httpContextAccessor = httpContextAccessor;
         _profiles = dbContext.GetCollection<Profile>("ProfileCollection");
         _apiKeys = dbContext.GetCollection<ApiKey>("ApiKeyCollection");
+        _accounts = dbContext.GetCollection<Account>("AccountCollection");
     }
 
     public async Task<Profile?> GetCurrentProfileAsync()
@@ -74,12 +76,36 @@ public class PlayerContextService
         var apiKey = await _apiKeys.Find(apiKeyFilter).FirstOrDefaultAsync();
         if (apiKey != null)
         {
-            var profileFilter = Builders<Profile>.Filter.And(
-                Builders<Profile>.Filter.Eq(p => p.Id, apiKey.ProfileId),
-                Builders<Profile>.Filter.Eq(p => p.DeletedAt, null)
-            );
-            var profile = await _profiles.Find(profileFilter).FirstOrDefaultAsync();
-            if (profile != null) return profile;
+            string? profileId = apiKey.ProfileId;
+            
+            // If the key is at the Account level, fallback to the account's active or first profile
+            if (string.IsNullOrEmpty(profileId) || profileId.Equals("account", StringComparison.OrdinalIgnoreCase))
+            {
+                var account = await _accounts.Find(a => a.Id == apiKey.AccountId && a.DeletedAt == null).FirstOrDefaultAsync();
+                if (account != null)
+                {
+                    profileId = account.LastUsedProfileId;
+                }
+                
+                if (string.IsNullOrEmpty(profileId))
+                {
+                    var firstProfile = await _profiles.Find(p => p.AccountId == apiKey.AccountId && p.DeletedAt == null).FirstOrDefaultAsync();
+                    if (firstProfile != null)
+                    {
+                        profileId = firstProfile.Id;
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(profileId))
+            {
+                var profileFilter = Builders<Profile>.Filter.And(
+                    Builders<Profile>.Filter.Eq(p => p.Id, profileId),
+                    Builders<Profile>.Filter.Eq(p => p.DeletedAt, null)
+                );
+                var profile = await _profiles.Find(profileFilter).FirstOrDefaultAsync();
+                if (profile != null) return profile;
+            }
         }
 
         // 2. Fallback to ProfileCollection StreamToken lookup (backward compatibility)
