@@ -69,7 +69,7 @@
                 </div>
                 <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between">
                     <a asp-action="Edit" asp-route-id="@dto.Station.Id" class="btn btn-outline-primary btn-sm">Edit</a>
-                    <form asp-action="Delete" asp-route-id="@dto.Station.Id" method="post">
+                    <form asp-action="Delete" asp-route-id="@dto.Station.Id" method="post" hx-boost="false">
                         <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Delete this station?');">Delete</button>
                     </form>
                 </div>
