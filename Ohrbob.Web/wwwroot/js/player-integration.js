@@ -70,6 +70,11 @@
             }
             
             activeStationId = state.stationId;
+            if (activeStationId) {
+                widget.setAttribute('data-active-station-id', activeStationId);
+            } else {
+                widget.removeAttribute('data-active-station-id');
+            }
 
             // Handle compile/empty state
             if (state.isCompiling || state.isEmpty) {
@@ -367,5 +372,26 @@
             window._ohrbobSyncState();
         }
     });
+
+    window.checkDeletePlayingStation = function(stationId) {
+        let widget = document.getElementById('ohrbob-player');
+        if (!widget) return;
+        
+        let activeStationId = widget.getAttribute('data-active-station-id');
+        if (activeStationId === stationId) {
+            // Stop playback
+            if (window._ohrbobAudio) {
+                window._ohrbobAudio.pause();
+                window._ohrbobAudio.src = ''; // Clear source to stop buffer/playback completely
+            }
+            
+            widget.isPlaying = false;
+            widget.removeAttribute('cover');
+            widget.setAttribute('track', 'Playback Stopped');
+            widget.setAttribute('artist', 'Current station deleted');
+            widget.duration = 0;
+            widget.currentTime = 0;
+        }
+    };
 
 })();

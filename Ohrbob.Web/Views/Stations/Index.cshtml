@@ -69,8 +69,8 @@
                 </div>
                 <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between">
                     <a asp-action="Edit" asp-route-id="@dto.Station.Id" class="btn btn-outline-primary btn-sm">Edit</a>
-                    <form asp-action="Delete" asp-route-id="@dto.Station.Id" method="post">
-                        <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Delete this station?');">Delete</button>
+                    <form asp-action="Delete" asp-route-id="@dto.Station.Id" method="post" hx-target="#main-content" hx-swap="innerHTML" id="delete-station-form-@dto.Station.Id">
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="window.showConfirmationModal('Delete this station?', () => { window.checkDeletePlayingStation('@dto.Station.Id'); document.getElementById('delete-station-form-@dto.Station.Id').requestSubmit(); });">Delete</button>
                     </form>
                 </div>
             </div>

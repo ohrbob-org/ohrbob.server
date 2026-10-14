@@ -54,9 +54,9 @@
                             </form>
                         }
                     </div>
-                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" hx-boost="false">
-                        <button type="submit" class="btn btn-outline-danger btn-sm" 
-                                onclick="return confirm('Are you sure you want to delete this profile?');"
+                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" hx-target="#main-content" hx-swap="innerHTML" id="delete-profile-form-@item.Id">
+                        <button type="button" class="btn btn-outline-danger btn-sm" 
+                                onclick="window.showConfirmationModal('Are you sure you want to delete this profile?', () => { document.getElementById('delete-profile-form-@item.Id').requestSubmit(); });"
                                 @(Model.Count() <= 1 ? "disabled" : "")>Delete</button>
                     </form>
                 </div>
