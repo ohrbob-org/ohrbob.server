@@ -92,6 +92,20 @@ public class AudioPlaybackTests : PageTest
                     load() {}
                 }
                 window.Audio = MockAudio;
+
+                if (!('mediaSession' in navigator)) {
+                    navigator.mediaSession = {
+                        metadata: null,
+                        playbackState: 'none',
+                        setActionHandler: function(action, callback) {
+                            if (!this._handlers) this._handlers = {};
+                            this._handlers[action] = callback;
+                        },
+                        setPositionState: function(state) {
+                            this._positionState = state;
+                        }
+                    };
+                }
             })();
         ");
         
@@ -342,5 +356,65 @@ public class AudioPlaybackTests : PageTest
         // Pause playback to release server resources
         await playBtn.ClickAsync();
         await Expect(playBtn.Locator("rect")).ToHaveCountAsync(0, new() { Timeout = 10000 });
+    }
+
+    [Test]
+    public async Task Playback_UpdatesMediaSessionMetadata()
+    {
+        var feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../example_feeds.txt");
+        if (!File.Exists(feedPath))
+        {
+            feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../../example_feeds.txt");
+        }
+        var feeds = await File.ReadAllLinesAsync(feedPath);
+        var firstFeed = feeds.First(l => !string.IsNullOrWhiteSpace(l));
+
+        await Page.GotoAsync(_factory.ServerAddress);
+        
+        await Page.ClickAsync("#profileDropdown");
+        await Page.ClickAsync("text=\"Stations\"");
+        await Page.ClickAsync("text=Create New Station");
+
+        await Page.FillAsync("input[name='Name']", "Test E2E Station");
+        await Page.FillAsync("input[name='Feeds']", firstFeed);
+        await Page.ClickAsync("input[type='submit']");
+        
+        await Page.WaitForURLAsync("**/Stations", new() { Timeout = 10000 });
+        
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Test E2E Station" }).First;
+        await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
+        await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
+
+        await stationCard.ClickAsync();
+        
+        await Expect(Page.Locator("#ohrbob-player .track-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
+        
+        var playBtn = Page.Locator("#ohrbob-player .js-play");
+        var rectCount = await playBtn.Locator("rect").CountAsync();
+        if (rectCount == 0)
+        {
+            await playBtn.ClickAsync();
+        }
+        
+        await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 45000 });
+
+        var metadata = await Page.EvaluateAsync<JsonElement>(@"() => {
+            if (!navigator.mediaSession || !navigator.mediaSession.metadata) return null;
+            return {
+                title: navigator.mediaSession.metadata.title,
+                artist: navigator.mediaSession.metadata.artist,
+                album: navigator.mediaSession.metadata.album
+            };
+        }");
+        
+        Assert.That(metadata.ValueKind, Is.Not.EqualTo(JsonValueKind.Null));
+        var title = metadata.GetProperty("title").GetString();
+        var artist = metadata.GetProperty("artist").GetString();
+        Assert.That(title, Is.Not.Null.And.Not.Empty);
+        Assert.That(artist, Is.EqualTo("Test E2E Station"));
+
+        await playBtn.ClickAsync();
     }
 }
