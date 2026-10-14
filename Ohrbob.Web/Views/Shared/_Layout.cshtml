@@ -79,28 +79,31 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container d-flex justify-content-between align-items-center">
-            
-            <div style="font-size: 1rem;">
-                <div class="ohrbob-logo">
-                    <span class="ohrbob-logo-text">
-                        <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
-                    </span>
+    @if (User.Identity?.IsAuthenticated != true)
+    {
+        <footer class="border-top footer text-muted">
+            <div class="container d-flex justify-content-between align-items-center">
+                
+                <div style="font-size: 1rem;">
+                    <div class="ohrbob-logo">
+                        <span class="ohrbob-logo-text">
+                            <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    @if (LegalOptions.Value.IsConfigured)
+                    {
+                        <a asp-area="" asp-controller="Home" asp-action="Legal" class="text-muted text-decoration-none small">Legal</a>
+                    }
+                    <a asp-area="" asp-controller="Home" asp-action="About" class="text-muted text-decoration-none small">About</a>
+                    <a href="https://github.com/ohrbob-org/" target="_blank" rel="noopener" class="text-muted text-decoration-none" title="ohrbob on GitHub">
+                        <i class="bi bi-github" style="font-size: 1.25rem;"></i>
+                    </a>
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-3">
-                @if (LegalOptions.Value.IsConfigured)
-                {
-                    <a asp-area="" asp-controller="Home" asp-action="Legal" class="text-muted text-decoration-none small">Legal</a>
-                }
-                <a asp-area="" asp-controller="Home" asp-action="About" class="text-muted text-decoration-none small">About</a>
-                <a href="https://github.com/ohrbob-org/" target="_blank" rel="noopener" class="text-muted text-decoration-none" title="ohrbob on GitHub">
-                    <i class="bi bi-github" style="font-size: 1.25rem;"></i>
-                </a>
-            </div>
-        </div>
-    </footer>
+        </footer>
+    }
     @if (User.Identity?.IsAuthenticated == true)
     {
         @await Component.InvokeAsync("PlayerWidget")
