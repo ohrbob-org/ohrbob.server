@@ -10,11 +10,13 @@ public class PlayerContextService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMongoCollection<Profile> _profiles;
+    private readonly IMongoCollection<ApiKey> _apiKeys;
 
     public PlayerContextService(IHttpContextAccessor httpContextAccessor, MongoDbContext dbContext)
     {
         _httpContextAccessor = httpContextAccessor;
         _profiles = dbContext.GetCollection<Profile>("ProfileCollection");
+        _apiKeys = dbContext.GetCollection<ApiKey>("ApiKeyCollection");
     }
 
     public async Task<Profile?> GetCurrentProfileAsync()
@@ -64,6 +66,23 @@ public class PlayerContextService
 
         if (string.IsNullOrEmpty(streamToken)) return null;
 
+        // 1. Try to find the token in the ApiKeyCollection
+        var apiKeyFilter = Builders<ApiKey>.Filter.And(
+            Builders<ApiKey>.Filter.Eq(a => a.Token, streamToken),
+            Builders<ApiKey>.Filter.Eq(a => a.DeletedAt, null)
+        );
+        var apiKey = await _apiKeys.Find(apiKeyFilter).FirstOrDefaultAsync();
+        if (apiKey != null)
+        {
+            var profileFilter = Builders<Profile>.Filter.And(
+                Builders<Profile>.Filter.Eq(p => p.Id, apiKey.ProfileId),
+                Builders<Profile>.Filter.Eq(p => p.DeletedAt, null)
+            );
+            var profile = await _profiles.Find(profileFilter).FirstOrDefaultAsync();
+            if (profile != null) return profile;
+        }
+
+        // 2. Fallback to ProfileCollection StreamToken lookup (backward compatibility)
         var filter = Builders<Profile>.Filter.And(
             Builders<Profile>.Filter.Eq(p => p.StreamToken, streamToken),
             Builders<Profile>.Filter.Eq(p => p.DeletedAt, null)
