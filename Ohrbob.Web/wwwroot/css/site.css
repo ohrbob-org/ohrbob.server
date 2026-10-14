@@ -368,7 +368,43 @@ header {
     }
 }
 
-/* --- Premium Morebob Redesign Styles --- */
+.btn-upgrade-morebob {
+    background-color: #fc5d00;
+    border: none;
+    color: #ffffff;
+    font-size: 1.45rem;
+    font-weight: 800;
+    padding: 1.65rem 2rem;
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 
+        0 8px 24px rgba(252, 93, 0, 0.35),
+        inset 0 1.5px 0 rgba(255, 255, 255, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    cursor: pointer;
+    text-align: center;
+}
+
+.btn-upgrade-morebob:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 12px 30px rgba(252, 93, 0, 0.48),
+        inset 0 1.5px 0 rgba(255, 255, 255, 0.55);
+    background-color: #e05300;
+}
+
+.btn-upgrade-morebob:focus-visible {
+    outline: 3px solid #544ff4;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(84, 79, 244, 0.2);
+}
 .upgrade-card {
     background: linear-gradient(135deg, #ffffff 0%, #fffdf8 50%, #fff5e6 100%);
     border: 2px solid #fc5d00;
@@ -438,7 +474,7 @@ header {
     margin-bottom: 2.75rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
     .feature-grid-premium {
         grid-template-columns: 1fr;
     }
@@ -468,61 +504,6 @@ header {
     font-size: 0.9rem;
     color: #6c757d;
     line-height: 1.4;
-}
-
-.btn-upgrade-morebob {
-    background-color: #fc5d00 !important;
-    border: none;
-    color: #ffffff !important;
-    font-size: 1.45rem;
-    font-weight: 800;
-    padding: 1.65rem 2rem;
-    border-radius: 16px;
-    position: relative;
-    overflow: hidden;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: 
-        0 8px 24px rgba(252, 93, 0, 0.35),
-        inset 0 1.5px 0 rgba(255, 255, 255, 0.4);
-    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    cursor: pointer;
-    text-align: center;
-}
-
-.btn-upgrade-morebob:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-        0 12px 30px rgba(252, 93, 0, 0.48),
-        inset 0 1.5px 0 rgba(255, 255, 255, 0.55);
-    background-color: #e05300 !important;
-}
-
-.btn-upgrade-morebob .watermark {
-    position: absolute;
-    bottom: -70px;
-    right: -50px;
-    width: 240px;
-    height: 240px;
-    opacity: 0.16;
-    transform: rotate(-22deg);
-    transform-origin: center center;
-    pointer-events: none;
-    display: block;
-    background-image: url('../images/ohrbob-logo-white.svg');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-.btn-upgrade-morebob span.button-text {
-    position: relative;
-    z-index: 2;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
 .coming-soon-banner {
