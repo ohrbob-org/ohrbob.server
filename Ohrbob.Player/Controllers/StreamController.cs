@@ -39,6 +39,18 @@ public class StreamController : ControllerBase
         return await _contextService.GetProfileByStreamTokenAsync();
     }
 
+    [HttpGet("stations")]
+    public async Task<IActionResult> GetStations()
+    {
+        var profile = await GetProfile();
+        if (profile == null) return Unauthorized();
+
+        var allowedStationIds = profile.AllowedStationIds ?? Array.Empty<string>();
+        var stations = await _stations.Find(s => allowedStationIds.Contains(s.Id)).ToListAsync();
+
+        return Ok(stations.Select(s => new { id = s.Id, name = s.Name }));
+    }
+
     [HttpGet("status")]
     public async Task<IActionResult> GetStatus()
     {
