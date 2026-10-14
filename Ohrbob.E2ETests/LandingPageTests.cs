@@ -36,5 +36,10 @@ public class LandingPageTests : PageTest
         // Check for landing layout
         await Expect(Page.Locator(".radio-landing-container")).ToBeVisibleAsync();
         await Expect(Page.Locator(".step-text-box").First).ToBeVisibleAsync();
+
+        // Check that unauthenticated user sees the footer and its links
+        await Expect(Page.Locator("footer")).ToBeVisibleAsync();
+        await Expect(Page.Locator("footer >> text=About")).ToBeVisibleAsync();
+        await Expect(Page.Locator("footer >> a[href*='github.com']")).ToBeVisibleAsync();
     }
 }

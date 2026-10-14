@@ -138,4 +138,23 @@ public class NavigationTests : PageTest
         // If the bug exists, this will fail because .show class won't be added
         await Expect(Page.Locator(".dropdown-menu.show")).ToBeVisibleAsync(new() { Timeout = 3000 });
     }
+
+    [Test]
+    public async Task AuthenticatedUser_HasNoFooter_AndHasLegalAboutGitHubInDropdown()
+    {
+        // Go to home page (authenticated by Setup)
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        // Footer should be hidden
+        await Expect(Page.Locator("footer")).ToHaveCountAsync(0);
+
+        // Click dropdown to open
+        var dropdown = Page.Locator("#profileDropdown");
+        await Expect(dropdown).ToBeVisibleAsync();
+        await dropdown.ClickAsync();
+
+        // Check for menu items
+        await Expect(Page.Locator("text=About")).ToBeVisibleAsync();
+        await Expect(Page.Locator("text=GitHub")).ToBeVisibleAsync();
+    }
 }
