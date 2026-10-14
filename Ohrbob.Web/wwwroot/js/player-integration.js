@@ -46,6 +46,105 @@
             }
         };
 
+        const updateMediaSessionMetadata = (state) => {
+            if (!('mediaSession' in navigator)) return;
+
+            if (!state || !state.stationId || state.isCompiling || state.isEmpty) {
+                navigator.mediaSession.metadata = null;
+                navigator.mediaSession.playbackState = 'none';
+                return;
+            }
+
+            const current = state.current || {};
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: current.title || 'Track Name',
+                artist: state.stationName || 'Ohrbob',
+                album: state.stationName || 'Ohrbob',
+                artwork: current.coverUrl ? [
+                    { src: current.coverUrl, sizes: '96x96', type: 'image/png' },
+                    { src: current.coverUrl, sizes: '128x128', type: 'image/png' },
+                    { src: current.coverUrl, sizes: '192x192', type: 'image/png' },
+                    { src: current.coverUrl, sizes: '256x256', type: 'image/png' },
+                    { src: current.coverUrl, sizes: '384x384', type: 'image/png' },
+                    { src: current.coverUrl, sizes: '512x512', type: 'image/png' }
+                ] : []
+            });
+            updateMediaSessionPlaybackState();
+        };
+
+        const updateMediaSessionPlaybackState = () => {
+            if (!('mediaSession' in navigator)) return;
+            navigator.mediaSession.playbackState = widget.isPlaying ? 'playing' : 'paused';
+        };
+
+        const updateMediaSessionPosition = () => {
+            if (!('mediaSession' in navigator) || !('setPositionState' in navigator.mediaSession)) return;
+            if (!audio.duration || !isFinite(audio.duration) || !isFinite(audio.currentTime)) return;
+
+            try {
+                navigator.mediaSession.setPositionState({
+                    duration: audio.duration,
+                    playbackRate: audio.playbackRate || 1,
+                    position: audio.currentTime
+                });
+            } catch (err) {
+                console.error('Error setting media session position state:', err);
+            }
+        };
+
+        const setupMediaSessionActionHandlers = () => {
+            if (!('mediaSession' in navigator)) return;
+
+            navigator.mediaSession.setActionHandler('play', () => {
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        widget.isPlaying = true;
+                        updatePlayButton();
+                    }).catch(e => console.error('Play blocked or failed:', e));
+                }
+            });
+
+            navigator.mediaSession.setActionHandler('pause', () => {
+                audio.pause();
+                widget.isPlaying = false;
+                updatePlayButton();
+            });
+
+            navigator.mediaSession.setActionHandler('previoustrack', () => {
+                audio.currentTime = 0;
+                updateMediaSessionPosition();
+            });
+
+            navigator.mediaSession.setActionHandler('nexttrack', async () => {
+                await apiCall('/stream/next', 'POST');
+                syncState();
+            });
+
+            navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+                const offset = details.seekOffset || 15;
+                audio.currentTime = Math.max(0, audio.currentTime - offset);
+                updateMediaSessionPosition();
+            });
+
+            navigator.mediaSession.setActionHandler('seekforward', (details) => {
+                const offset = details.seekOffset || 30;
+                audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + offset);
+                updateMediaSessionPosition();
+            });
+
+            try {
+                navigator.mediaSession.setActionHandler('seekto', (details) => {
+                    if (Number.isFinite(details.seekTime)) {
+                        audio.currentTime = details.seekTime;
+                        updateMediaSessionPosition();
+                    }
+                });
+            } catch (err) {
+                console.warn('Seekto action handler not supported:', err);
+            }
+        };
+
         const applyStateToWidget = (state) => {
             if (!state || !state.stationId) {
                 // No active station/profile, reset to default empty state
@@ -66,6 +165,7 @@
                 widget.querySelectorAll('.js-back, .js-forward, .js-skipback, .js-skipforward').forEach(btn => {
                     btn.setAttribute('disabled', 'true');
                 });
+                updateMediaSessionMetadata(null);
                 return;
             }
             
@@ -99,6 +199,7 @@
                 widget.querySelectorAll('.js-back, .js-forward, .js-skipback, .js-skipforward').forEach(btn => {
                     btn.setAttribute('disabled', 'true');
                 });
+                updateMediaSessionMetadata(state);
             } else {
                 // Normal state
                 currentEpisodeData = state.current || {};
@@ -123,6 +224,7 @@
                 widget.querySelectorAll('.js-back, .js-forward, .js-skipback, .js-skipforward').forEach(btn => {
                     btn.removeAttribute('disabled');
                 });
+                updateMediaSessionMetadata(state);
             }
 
             document.querySelectorAll(".active-station-card").forEach(c => {
@@ -146,6 +248,7 @@
                 btnPlay.innerHTML = widget.isPlaying ? pauseSvg : playSvg;
                 btnPlay.style.paddingLeft = widget.isPlaying ? '0' : '2px';
             }
+            updateMediaSessionPlaybackState();
         };
 
         audio.addEventListener('error', (e) => {
@@ -330,8 +433,10 @@
                     }
                 }
             }
+            updateMediaSessionPosition();
         }, 500);
 
+        setupMediaSessionActionHandlers();
         syncState();
         
         window._ohrbobSyncInterval = setInterval(() => {
