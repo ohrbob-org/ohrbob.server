@@ -26,8 +26,7 @@ body {
 }
 
 body.with-player {
-    /* 60px for footer + 100px for player area */
-    margin-bottom: 160px;
+    margin-bottom: 120px;
 }
 body.with-player .footer {
     /* Lift the footer above the player */
