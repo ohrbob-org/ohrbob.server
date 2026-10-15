@@ -12610,14 +12610,17 @@ textarea.form-control-lg {
   padding: 6px 14px;
   font-size: 0.8rem;
   font-weight: 600;
+  line-height: 1;
   border-radius: 20px !important;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
 }
 .audio-widget .audio-expanded-card .expanded-body .episode-nav-card .episode-nav-content .btn-jump svg {
   flex-shrink: 0;
+  display: block;
 }
 .audio-widget.is-expanded {
   background: transparent !important;

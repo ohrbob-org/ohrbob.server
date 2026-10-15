@@ -208,12 +208,12 @@ class AudioWidget extends HTMLElement {
                 <div class="episode-nav-card prev-episode-card">
                     <div class="episode-nav-label">Previous Episode</div>
                     <div class="episode-nav-content">
+                        <button type="button" class="btn btn-glass-primary btn-sm btn-jump js-jump-prev">${ICONS.arrowLeft}Go Back</button>
                         <div class="episode-nav-cover-container">${prevCover}</div>
                         <div class="episode-nav-info">
                             <strong class="episode-nav-title">${this._prevEpisode.track || 'Track'}</strong>
                             <span class="episode-nav-artist">${this._prevEpisode.artist || 'Artist'}</span>
                         </div>
-                        <button type="button" class="btn btn-glass-primary btn-sm btn-jump js-jump-prev">${ICONS.arrowLeft}Go Back</button>
                     </div>
                 </div>
             `;
