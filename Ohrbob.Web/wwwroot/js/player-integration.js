@@ -6,8 +6,20 @@
         
         const apiUrl = widget.getAttribute('data-player-api-url');
         const token = widget.getAttribute('data-stream-token');
+        const stationEditUrlTemplate = widget.getAttribute('data-station-edit-url');
 
         if (!apiUrl || !token) return;
+
+        // Absolute station edit URL built server-side via Razor; only the id placeholder is substituted here
+        const stationEditUrl = (stationId) => {
+            if (!stationEditUrlTemplate || !stationId) return null;
+            return stationEditUrlTemplate.replace('__STATIONID__', encodeURIComponent(stationId));
+        };
+        const applyStationLink = (stationId) => {
+            const url = stationEditUrl(stationId);
+            if (url) widget.setAttribute('station-link', url);
+            else widget.removeAttribute('station-link');
+        };
 
         const headers = {
             'Authorization': `Bearer ${token}`,
@@ -226,7 +238,7 @@
                 widget.setAttribute('track', state.isCompiling ? 'Compiling Station...' : 'No Episodes Available');
                 widget.setAttribute('artist', state.isCompiling ? 'We are fetching the latest episodes.' : 'Please add some active feeds.');
                 widget.removeAttribute('cover');
-                widget.removeAttribute('station-link');
+                applyStationLink(state.stationId);
                 widget.removeAttribute('next-episode');
                 widget.removeAttribute('prev-episode');
                 widget.duration = 0;
@@ -258,13 +270,8 @@
                 } else {
                      widget.removeAttribute('cover');
                 }
-                // Link icon -> direct episode audio URL (absolute http URL as required by widget)
-                const episodeLink = currentEpisodeData.link || currentEpisodeData.streamUri;
-                if (episodeLink && /^(https?:)?\/\//i.test(episodeLink)) {
-                    widget.setAttribute('station-link', episodeLink);
-                } else {
-                    widget.removeAttribute('station-link');
-                }
+                // Link icon -> station editing view
+                applyStationLink(state.stationId);
                 applyEpisodeCards();
 
                 // Enable buttons
@@ -396,9 +403,7 @@
             widget.setAttribute('artist', episode.artist || '');
             if (episode.coverUrl) widget.setAttribute('cover', episode.coverUrl);
             else widget.removeAttribute('cover');
-            const episodeLink = episode.link || episode.streamUri;
-            if (episodeLink && /^(https?:)?\/\//i.test(episodeLink)) widget.setAttribute('station-link', episodeLink);
-            else widget.removeAttribute('station-link');
+            applyStationLink(activeStationId);
             applyEpisodeCards();
 
             const fullStreamUri = episode.streamUri;

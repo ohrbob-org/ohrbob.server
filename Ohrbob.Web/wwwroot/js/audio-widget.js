@@ -164,13 +164,24 @@ class AudioWidget extends HTMLElement {
         const cover = this.getAttribute('cover');
 
         let stationLink = this.getAttribute('station-link') || '';
-        if (stationLink && !/^(https?:)?\/\//i.test(stationLink)) {
-            stationLink = '';
+        let isExternalLink = false;
+        if (stationLink) {
+            try {
+                const url = new URL(stationLink, window.location.href);
+                if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+                    stationLink = '';
+                } else {
+                    isExternalLink = url.origin !== window.location.origin;
+                }
+            } catch (e) {
+                stationLink = '';
+            }
         }
         const escapedStationLink = stationLink.replace(/"/g, '&quot;');
 
+        // Same-origin links stay in-tab so htmx boost can swap #main-content without interrupting playback
         const stationLinkHtml = escapedStationLink
-            ? `<a href="${escapedStationLink}" target="_blank" rel="noopener noreferrer" class="station-link-icon" aria-label="Visit Station">
+            ? `<a href="${escapedStationLink}" ${isExternalLink ? 'target="_blank" rel="noopener noreferrer"' : ''} class="station-link-icon" aria-label="${isExternalLink ? 'Visit Station' : 'Edit Station'}">
                 <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                     <polyline points="15 3 21 3 21 9"></polyline>

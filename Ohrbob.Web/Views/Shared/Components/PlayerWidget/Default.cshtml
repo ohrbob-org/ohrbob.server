@@ -4,7 +4,8 @@
     hx-preserve="true"
     id="ohrbob-player"
     data-player-api-url="@Model.PlayerApiUrl"
-    data-stream-token="@Model.StreamToken">
+    data-stream-token="@Model.StreamToken"
+    data-station-edit-url="@Url.Action("Edit", "Stations", new { id = "__STATIONID__" }, Context.Request.Scheme)">
 </audio-widget>
 <script src="~/js/audio-widget.js" asp-append-version="true"></script>
 <script src="~/js/player-integration.js" asp-append-version="true"></script>

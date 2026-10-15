@@ -139,6 +139,56 @@ public class AudioPlaybackTests : PageTest
     }
 
     [Test]
+    public async Task StationLink_PointsToStationEditView()
+    {
+        var feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../example_feeds.txt");
+        if (!File.Exists(feedPath))
+        {
+            feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../../example_feeds.txt");
+        }
+        var feeds = await File.ReadAllLinesAsync(feedPath);
+        var firstFeed = feeds.First(l => !string.IsNullOrWhiteSpace(l));
+
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        // Create a station
+        await Page.ClickAsync("#profileDropdown");
+        await Page.ClickAsync("text=\"Stations\"");
+        await Page.ClickAsync("text=Create New Station");
+        await Page.FillAsync("input[name='Name']", "Link Target Station");
+        await Page.FillAsync("input[name='Feeds']", firstFeed);
+        await Page.ClickAsync("input[type='submit']");
+        await Page.WaitForURLAsync("**/Stations", new() { Timeout = 10000 });
+
+        // Go to Home (Dashboard) and wait for the feed to be parsed
+        await Page.GotoAsync(_factory.ServerAddress);
+        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Link Target Station" }).First;
+        await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
+        await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
+
+        // The expected target: the station's edit view, as linked by the card's edit gear
+        var editHref = await stationCard.Locator("a[href^='/Stations/Edit/']").GetAttributeAsync("href");
+        Assert.That(editHref, Is.Not.Null.And.Not.Empty);
+
+        // Activate the station so the player shows its metadata
+        await stationCard.ClickAsync();
+        await Expect(Page.Locator("#ohrbob-player .track-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
+
+        // The widget's station link must point to the station edit view as a full absolute URL
+        // (built by Razor on the server, not concatenated in JavaScript)
+        var stationLink = Page.Locator("#ohrbob-player .audio-bar .station-link-icon");
+        await Expect(stationLink).ToBeVisibleAsync(new() { Timeout = 10000 });
+        var href = await stationLink.GetAttributeAsync("href");
+        Assert.That(href, Is.Not.Null.And.Not.Empty);
+        Assert.That(href!.StartsWith("http"), Is.True, $"Expected absolute URL but was '{href}'");
+        Assert.That(href.EndsWith(editHref!), Is.True, $"Expected '{href}' to end with '{editHref}'");
+
+        // It must stay in-tab so htmx boost swaps #main-content without interrupting playback
+        var target = await stationLink.GetAttributeAsync("target");
+        Assert.That(target, Is.Null.Or.Empty);
+    }
+
+    [Test]
     public async Task CreateStation_WaitParse_AndPlay()
     {
         // Get feed url
