@@ -8,16 +8,9 @@
 {
     <h2 class="mb-4">Listen</h2>
     
-    @if (Model == null || !Model.Any())
-    {
-        <div class="alert alert-info">
-            You don't have any stations assigned to this profile yet. 
-            Go to <a asp-controller="Stations" asp-action="Index">Stations</a> to create some, or use the Discover tab.
-        </div>
-    }
-    else
-    {
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+        @if (Model != null)
+        {
             @foreach (var dto in Model)
             {
                 var feedCount = dto.Feeds?.Count ?? 0;
@@ -84,8 +77,17 @@
                     </div>
                 </div>
             }
+        }
+
+        <!-- Big friendly plus symbol inside a grey circle -->
+        <div class="col d-flex align-items-center justify-content-center">
+            <a asp-controller="Discover" asp-action="Index" class="text-decoration-none d-flex align-items-center justify-content-center w-100 h-100" title="Discover Stations" style="min-height: 250px;">
+                <div class="discover-plus-circle d-flex align-items-center justify-content-center rounded-circle shadow-sm">
+                    <i class="bi bi-plus-lg"></i>
+                </div>
+            </a>
         </div>
-    }
+    </div>
 }
 else
 {

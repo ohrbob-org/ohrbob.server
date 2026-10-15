@@ -53,3 +53,28 @@
     border: 2px solid #0d6efd !important;
 }
 .cursor-pointer { cursor: pointer; }
+
+.discover-plus-circle {
+    width: 120px;
+    height: 120px;
+    background-color: #dee2e6; /* Soft grey circle */
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.discover-plus-circle i {
+    font-size: 3.5rem;
+    color: #6c757d; /* Medium grey icon color */
+    transition: all 0.2s ease-in-out;
+}
+
+/* Hover effects for a big friendly feel */
+.discover-plus-circle:hover {
+    background-color: #6c757d; /* Darker grey background on hover */
+    transform: scale(1.08); /* Gently pops out */
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.discover-plus-circle:hover i {
+    color: #ffffff; /* White plus symbol on hover */
+}
