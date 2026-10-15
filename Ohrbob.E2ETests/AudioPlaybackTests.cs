@@ -189,6 +189,71 @@ public class AudioPlaybackTests : PageTest
     }
 
     [Test]
+    public async Task Pause_DisablesAutoplay_UntilPlayPressedAgain()
+    {
+        var feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../example_feeds.txt");
+        if (!File.Exists(feedPath))
+        {
+            feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../../example_feeds.txt");
+        }
+        var feeds = await File.ReadAllLinesAsync(feedPath);
+        var firstFeed = feeds.First(l => !string.IsNullOrWhiteSpace(l));
+
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        // Create a station
+        await Page.ClickAsync("#profileDropdown");
+        await Page.ClickAsync("text=\"Stations\"");
+        await Page.ClickAsync("text=Create New Station");
+        await Page.FillAsync("input[name='Name']", "Pause State Station");
+        await Page.FillAsync("input[name='Feeds']", firstFeed);
+        await Page.ClickAsync("input[type='submit']");
+        await Page.WaitForURLAsync("**/Stations", new() { Timeout = 10000 });
+
+        // Go to Home (Dashboard) and wait for the feed to be parsed
+        await Page.GotoAsync(_factory.ServerAddress);
+        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Pause State Station" }).First;
+        await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
+        await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
+
+        // Start playback via the station card (explicit user action)
+        await stationCard.ClickAsync();
+        var playBtn = Page.Locator("#ohrbob-player .js-play");
+        await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 45000 }); // pause icon = playing
+
+        // Press pause -> the "user paused" state must be stored in a cookie
+        await playBtn.ClickAsync();
+        await Expect(playBtn.Locator("rect")).ToHaveCountAsync(0, new() { Timeout = 10000 }); // play icon = paused
+
+        var cookies = await Page.Context.CookiesAsync();
+        Assert.That(cookies.Any(c => c.Name == "ohrbob_user_paused" && c.Value == "1"), Is.True,
+            "Pausing must store the paused state in the ohrbob_user_paused cookie");
+
+        // Reload the page -> playback must NOT automatically continue
+        await Page.ReloadAsync();
+        await Expect(Page.Locator("#ohrbob-player .track-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
+        await Page.WaitForTimeoutAsync(1500); // give any (unwanted) autoplay a chance to happen
+        var isPlayingAfterReload = await Page.EvaluateAsync<bool>("() => document.querySelector('#ohrbob-player').isPlaying");
+        Assert.That(isPlayingAfterReload, Is.False, "Playback must not auto-continue after the user paused");
+        var playBtnAfterReload = Page.Locator("#ohrbob-player .js-play");
+        await Expect(playBtnAfterReload.Locator("rect")).ToHaveCountAsync(0);
+
+        // Press play again -> state resets to auto-play and playback starts
+        await playBtnAfterReload.ClickAsync();
+        await Expect(playBtnAfterReload.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 10000 });
+
+        cookies = await Page.Context.CookiesAsync();
+        Assert.That(cookies.Any(c => c.Name == "ohrbob_user_paused" && c.Value == "1"), Is.False,
+            "Pressing play must clear the paused state cookie");
+
+        // Reload once more -> auto-play is restored
+        await Page.ReloadAsync();
+        await Expect(Page.Locator("#ohrbob-player .track-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
+        var playBtnFinal = Page.Locator("#ohrbob-player .js-play");
+        await Expect(playBtnFinal.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 15000 });
+    }
+
+    [Test]
     public async Task CreateStation_WaitParse_AndPlay()
     {
         // Get feed url

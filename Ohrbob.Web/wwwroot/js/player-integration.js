@@ -21,6 +21,18 @@
             else widget.removeAttribute('station-link');
         };
 
+         // "User paused" state: once the user explicitly pauses, playback must never
+        // auto-continue (page loads, finished compiles, syncs) until they explicitly
+        // play again (play button, station card, episode click, next/prev).
+        const PAUSE_COOKIE = 'ohrbob_user_paused';
+        const setUserPaused = () => {
+            document.cookie = `${PAUSE_COOKIE}=1; path=/; max-age=31536000; samesite=lax`;
+        };
+        const clearUserPaused = () => {
+            document.cookie = `${PAUSE_COOKIE}=0; path=/; max-age=0; samesite=lax`;
+        };
+        const isUserPaused = () => document.cookie.split('; ').some(c => c === `${PAUSE_COOKIE}=1`);
+
         const headers = {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -132,6 +144,7 @@
             if (!('mediaSession' in navigator)) return;
 
             navigator.mediaSession.setActionHandler('play', () => {
+                clearUserPaused();
                 const playPromise = audio.play();
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
@@ -142,6 +155,7 @@
             });
 
             navigator.mediaSession.setActionHandler('pause', () => {
+                setUserPaused();
                 audio.pause();
                 widget.isPlaying = false;
                 updatePlayButton();
@@ -330,6 +344,13 @@
                 audio.load(); 
                 audio.currentTime = currentEpisodeData.playheadPositionSeconds || 0;
                 
+                if (isUserPaused()) {
+                    // User asked to pause: load metadata but never auto-continue playback
+                    widget.isPlaying = false;
+                    updatePlayButton();
+                    return;
+                }
+                
                 const playPromise = audio.play();
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
@@ -398,6 +419,7 @@
         // Persists the selection server-side so /stream/next stays consistent.
         const playEpisodeDirect = async (episode) => {
             if (!episode || !episode.streamUri || !activeStationId) return;
+            clearUserPaused(); // explicit user action: play this episode
             currentEpisodeData = episode;
             widget.setAttribute('track', episode.title || '');
             widget.setAttribute('artist', episode.artist || '');
@@ -424,6 +446,7 @@
         };
 
         const goToNext = async () => {
+            clearUserPaused(); // explicit user action
             await apiCall('/stream/next', 'POST');
             await syncState();
         };
@@ -435,6 +458,7 @@
                 updateMediaSessionPosition();
                 return;
             }
+            clearUserPaused(); // explicit user action
             await apiCall('/stream/prev', 'POST');
             await syncState();
         };
@@ -444,6 +468,7 @@
         if (!widget._ohrbobListenersBound) {
             widget._ohrbobListenersBound = true;
             widget.addEventListener('play', () => {
+                clearUserPaused(); // explicit user action: resets to auto-play
                 if (!currentEpisodeData || !currentEpisodeData.streamUri) {
                     widget.isPlaying = false;
                     updatePlayButton();
@@ -466,6 +491,7 @@
             });
             
             widget.addEventListener('pause', () => {
+                setUserPaused(); // user asked to pause: never auto-continue until they play again
                 audio.pause();
                 widget.isPlaying = false;
                 updatePlayButton();
@@ -520,6 +546,7 @@
             });
 
             widget.playStation = async (stationId) => {
+                clearUserPaused(); // explicit user action: play this station
                 await apiCall(`/stream/play-station/${stationId}`, 'POST');
                 await syncState();
             };
