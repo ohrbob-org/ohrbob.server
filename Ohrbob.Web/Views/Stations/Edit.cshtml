@@ -311,6 +311,11 @@
                 </div>
             </div>
             <div class="modal-footer">
+                <form asp-action="Delete" asp-route-id="@Model.Station.Id" method="post" hx-target="#main-content" hx-swap="innerHTML" hx-push-url="/Stations" id="delete-station-form-edit" class="me-auto">
+                    <button type="button" class="btn btn-outline-danger" id="deleteStationBtn">
+                        <i class="bi bi-trash3-fill me-1"></i>Delete
+                    </button>
+                </form>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="saveStationNameBtn">Save Changes</button>
             </div>

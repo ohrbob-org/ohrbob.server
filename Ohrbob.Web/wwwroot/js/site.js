@@ -267,4 +267,21 @@ window.initRenameStation = function (stationId, initialIsAging) {
             }));
         });
     });
+
+    const deleteBtn = document.getElementById('deleteStationBtn');
+    const deleteForm = document.getElementById('delete-station-form-edit');
+    if (deleteBtn && deleteForm) {
+        deleteBtn.addEventListener('click', function () {
+            if (modal) modal.hide();
+            // Wait until the settings modal is fully closed before showing the confirmation on top
+            modalEl.addEventListener('hidden.bs.modal', function () {
+                window.showConfirmationModal('Delete this station?', function () {
+                    if (typeof window.checkDeletePlayingStation === 'function') {
+                        window.checkDeletePlayingStation(stationId);
+                    }
+                    deleteForm.requestSubmit();
+                });
+            }, { once: true });
+        });
+    }
 };

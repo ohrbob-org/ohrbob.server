@@ -288,4 +288,75 @@ public class StationsEditTests : PageTest
         var title = await Page.TitleAsync();
         Assert.That(title, Does.Contain("Completely New Station Name"));
     }
+
+    [Test]
+    public async Task Can_Delete_Station_From_Settings_Modal()
+    {
+        var url = _factory.ServerAddress;
+        
+        // Ensure profile exists
+        var profileService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.ProfilesApiService>();
+        var profiles = await profileService.GetProfilesByAccountIdAsync(_testAccountId);
+        if (profiles == null || !profiles.Any())
+        {
+            await profileService.CreateProfileAsync(_testAccountId, new Profile { Name = "Main Profile" });
+        }
+        
+        Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
+        Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
+        await Page.GotoAsync(url);
+        
+        var feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../example_feeds.txt");
+        if (!File.Exists(feedPath))
+            feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../../example_feeds.txt");
+        var feeds = await File.ReadAllLinesAsync(feedPath);
+        var firstFeed = feeds.First(l => !string.IsNullOrWhiteSpace(l));
+
+        // Go to Stations and Create
+        await Page.ClickAsync("#profileDropdown");
+        await Page.ClickAsync("text=\"Stations\"");
+        await Page.ClickAsync("text=Create New Station");
+        
+        await Page.FillAsync("input[name='Name']", "Station To Delete");
+        await Page.FillAsync("input[name='Feeds']", firstFeed);
+        await Page.ClickAsync("input[type='submit']");
+        
+        // Wait for redirect to Stations list
+        await Page.WaitForURLAsync("**/Stations", new() { Timeout = 10000 });
+        
+        // Go to Home (Dashboard)
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        // Wait for station to appear on dashboard
+        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Station To Delete" }).First;
+        await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
+        
+        // Click the edit gear icon
+        await stationCard.Locator("a[href^='/Stations/Edit/']").ClickAsync();
+        
+        // Wait for Edit Station page
+        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+        
+        // Open the station settings modal
+        await Page.ClickAsync("#renameStationBtn");
+        await Expect(Page.Locator("#renameStationModal")).ToBeVisibleAsync();
+        
+        // Delete button should be visible on the left side of the modal footer
+        await Expect(Page.Locator("#deleteStationBtn")).ToBeVisibleAsync();
+        
+        // Click delete: settings modal closes, confirmation modal opens
+        await Page.ClickAsync("#deleteStationBtn");
+        await Expect(Page.Locator("#renameStationModal")).Not.ToBeVisibleAsync();
+        await Expect(Page.Locator("#confirmationModal")).ToBeVisibleAsync(new() { Timeout = 10000 });
+        
+        // Confirm deletion
+        await Page.ClickAsync("#confirmationModalConfirmBtn");
+        
+        // Should be taken back to the stations list
+        await Page.WaitForURLAsync("**/Stations", new() { Timeout = 15000 });
+        await Expect(Page.Locator("h1")).ToContainTextAsync("My Stations", new() { Timeout = 10000 });
+        
+        // The deleted station should no longer be listed
+        await Expect(Page.Locator(".card", new PageLocatorOptions { HasTextString = "Station To Delete" })).ToHaveCountAsync(0);
+    }
 }
