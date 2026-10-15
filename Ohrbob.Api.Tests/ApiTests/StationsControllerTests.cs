@@ -188,6 +188,46 @@ public class StationsControllerTests
     }
 
     [Test]
+    public async Task DeleteStation_ClearsLastActiveEpisode_WhenStationWasActive()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var station = new Station { Name = "To Delete", Feeds = Array.Empty<string>() };
+
+        // Create
+        var createRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/stations/{accountId}")
+        {
+            Content = JsonContent.Create(station)
+        };
+        createRequest.Headers.Add("X-API-KEY", _testApiKey);
+        var createRes = await _client.SendAsync(createRequest);
+        var createdStation = await createRes.Content.ReadFromJsonAsync<Station>();
+
+        // Seed a profile that was actively listening to the station
+        var profilesCol = _app.MongoDbContext.GetCollection<Profile>("ProfileCollection");
+        var profile = new Profile
+        {
+            AccountId = accountId,
+            AllowedStationIds = new[] { createdStation.Id },
+            LastActiveStationId = createdStation.Id,
+            LastActiveEpisodeId = Guid.NewGuid().ToString()
+        };
+        await profilesCol.InsertOneAsync(profile);
+
+        // Delete
+        var deleteRequest = new HttpRequestMessage(HttpMethod.Delete, $"/api/stations/{createdStation.Id}");
+        deleteRequest.Headers.Add("X-API-KEY", _testApiKey);
+        var deleteRes = await _client.SendAsync(deleteRequest);
+        Assert.That(deleteRes.IsSuccessStatusCode);
+
+        // All references to the deleted station (including the active episode) must be cleared
+        var updatedProfile = await profilesCol.Find(p => p.Id == profile.Id).FirstOrDefaultAsync();
+        Assert.That(updatedProfile, Is.Not.Null);
+        Assert.That(updatedProfile.AllowedStationIds, Does.Not.Contain(createdStation.Id));
+        Assert.That(updatedProfile.LastActiveStationId, Is.Null);
+        Assert.That(updatedProfile.LastActiveEpisodeId, Is.Null);
+    }
+
+    [Test]
     public async Task UpdateSchedule_UpdatesScheduleSuccessfully()
     {
         var accountId = Guid.NewGuid().ToString();

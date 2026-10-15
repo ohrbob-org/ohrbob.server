@@ -551,6 +551,7 @@ public class StationsController : ControllerBase
             if (profile.LastActiveStationId == id)
             {
                 profile.LastActiveStationId = null;
+                profile.LastActiveEpisodeId = null;
                 modified = true;
             }
             

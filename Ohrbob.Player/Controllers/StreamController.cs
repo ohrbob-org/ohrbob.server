@@ -68,13 +68,18 @@ public class StreamController : ControllerBase
         
         if (string.IsNullOrEmpty(activeStationId)) return Ok(new { });
 
-        var station = await _stations.Find(s => s.Id == activeStationId).FirstOrDefaultAsync();
+        var station = await _stations.Find(s => s.Id == activeStationId && s.DeletedAt == null).FirstOrDefaultAsync();
         if (station == null) return Ok(new { });
 
         Episode? currentEpisode = null;
         if (!string.IsNullOrEmpty(activeEpisodeId))
         {
              currentEpisode = await _episodes.Find(e => e.Id == activeEpisodeId).FirstOrDefaultAsync();
+             // Ignore stale episodes that do not belong to the active station (e.g. left over from a deleted station)
+             if (currentEpisode != null && !station.Feeds.Contains(currentEpisode.FeedUrl))
+             {
+                 currentEpisode = null;
+             }
         }
         
         if (currentEpisode == null)
@@ -169,7 +174,7 @@ public class StreamController : ControllerBase
         var profile = await GetProfile();
         if (profile == null) return Unauthorized();
 
-        var station = await _stations.Find(s => s.Id == stationId).FirstOrDefaultAsync();
+        var station = await _stations.Find(s => s.Id == stationId && s.DeletedAt == null).FirstOrDefaultAsync();
         if (station == null) return NotFound();
 
         // Clear active episode to let the strategy pick the next one based on the new station
@@ -189,7 +194,7 @@ public class StreamController : ControllerBase
         if (profile == null) return Unauthorized();
         
         if (string.IsNullOrEmpty(profile.LastActiveStationId)) return BadRequest();
-        var station = await _stations.Find(s => s.Id == profile.LastActiveStationId).FirstOrDefaultAsync();
+        var station = await _stations.Find(s => s.Id == profile.LastActiveStationId && s.DeletedAt == null).FirstOrDefaultAsync();
         if (station == null) return BadRequest();
 
         // Current episode has been fully listened
@@ -217,7 +222,7 @@ public class StreamController : ControllerBase
         if (profile == null) return Unauthorized();
         
         if (string.IsNullOrEmpty(profile.LastActiveStationId)) return BadRequest();
-        var station = await _stations.Find(s => s.Id == profile.LastActiveStationId).FirstOrDefaultAsync();
+        var station = await _stations.Find(s => s.Id == profile.LastActiveStationId && s.DeletedAt == null).FirstOrDefaultAsync();
         if (station == null) return BadRequest();
 
         var prevEpisode = await _playbackStrategy.GetPreviousEpisodeAsync(station, profile.LastActiveEpisodeId, profile.Id);

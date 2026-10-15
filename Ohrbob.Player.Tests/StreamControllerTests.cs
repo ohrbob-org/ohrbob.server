@@ -47,7 +47,10 @@ public class StreamControllerTests
 
     public class StatusResponse
     {
+        public string? stationId { get; set; }
         public string? stationName { get; set; }
+        public bool? isCompiling { get; set; }
+        public bool? isEmpty { get; set; }
         public TrackInfo? current { get; set; }
         public TrackInfo? next { get; set; }
         public TrackInfo? prev { get; set; }
@@ -119,6 +122,74 @@ public class StreamControllerTests
         var state = await listenStateCol.Find(s => s.UserId == profile.Id && s.EpisodeId == episodeId).FirstOrDefaultAsync();
         Assert.That(state, Is.Not.Null);
         Assert.That(state.PositionSeconds, Is.EqualTo(45));
+    }
+
+    [Test]
+    public async Task GetStatus_IgnoresStaleEpisodeFromDeletedStation_PicksEpisodeFromActiveStation()
+    {
+        // Reproduces: station deleted (LastActiveStationId cleared) but LastActiveEpisodeId
+        // still points at an episode of the old station. When a new station becomes active,
+        // the stale episode must not be served as "current".
+        var newStationId = ObjectId.GenerateNewId().ToString();
+        var staleEpId = ObjectId.GenerateNewId().ToString();
+        var newEpId = ObjectId.GenerateNewId().ToString();
+
+        var profile = new Profile
+        {
+            AccountId = "test-account",
+            StreamToken = "token-123",
+            AllowedStationIds = new[] { newStationId },
+            LastActiveStationId = null,
+            LastActiveEpisodeId = staleEpId
+        };
+        var station = CreateOldestFirstStation(newStationId);
+        var staleEpisode = new Episode { Id = staleEpId, Title = "Old Deleted Station Episode", FeedUrl = "https://old.feed/url", PublishedAt = DateTime.UtcNow.AddDays(-2), AudioUrl = "https://audio/old" };
+        var newEpisode = new Episode { Id = newEpId, Title = "New Station Episode", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-1), AudioUrl = "https://audio/new" };
+
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(station);
+        await SeedEpisodesAsync(staleEpisode, newEpisode);
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+        var response = await _client.GetAsync("/stream/status");
+        response.EnsureSuccessStatusCode();
+
+        var status = await response.Content.ReadFromJsonAsync<StatusResponse>();
+        Assert.That(status, Is.Not.Null);
+        Assert.That(status.stationId, Is.EqualTo(newStationId));
+        Assert.That(status.current, Is.Not.Null);
+        Assert.That(status.current.episodeId, Is.EqualTo(newEpId));
+    }
+
+    [Test]
+    public async Task GetStatus_WithDeletedActiveStation_ReturnsEmptyState()
+    {
+        var deletedStationId = ObjectId.GenerateNewId().ToString();
+        var epId = ObjectId.GenerateNewId().ToString();
+
+        var profile = new Profile
+        {
+            AccountId = "test-account",
+            StreamToken = "token-123",
+            LastActiveStationId = deletedStationId,
+            LastActiveEpisodeId = epId
+        };
+        var station = CreateOldestFirstStation(deletedStationId);
+        station.DeletedAt = DateTime.UtcNow;
+        var episode = new Episode { Id = epId, Title = "Old Episode", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-1), AudioUrl = "https://audio/old" };
+
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(station);
+        await SeedEpisodesAsync(episode);
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+        var response = await _client.GetAsync("/stream/status");
+        response.EnsureSuccessStatusCode();
+
+        var status = await response.Content.ReadFromJsonAsync<StatusResponse>();
+        Assert.That(status, Is.Not.Null);
+        Assert.That(status.stationId, Is.Null);
+        Assert.That(status.current, Is.Null);
     }
 
     [Test]
