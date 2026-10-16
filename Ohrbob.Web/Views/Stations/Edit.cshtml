@@ -117,8 +117,8 @@
             if (feedData != null)
             {
                 var currentFeedIndex = feedScheduleIndex++;
-                <div class="list-group-item rotation-item border rounded mb-2 d-flex align-items-stretch" draggable="true" data-url="@feedSchedule.Url" style="cursor: grab; border-left: 4px solid @(string.IsNullOrEmpty(feedSchedule.Color) ? "#ccc" : feedSchedule.Color) !important; background-color: @(string.IsNullOrEmpty(feedSchedule.Color) ? "#fff" : feedSchedule.Color + "26") !important; padding: 0; overflow: hidden; height: 90px; max-height: 90px;">
-                    <img src="@feedData.ImageUrl" style="width: 90px; height: 90px; object-fit: cover; flex-shrink: 0;" />
+                <div class="list-group-item rotation-item border rounded mb-2 d-flex align-items-stretch" draggable="true" data-url="@feedSchedule.Url" style="cursor: grab; border-left: 4px solid @(string.IsNullOrEmpty(feedSchedule.Color) ? "#ccc" : feedSchedule.Color) !important; background-color: @(string.IsNullOrEmpty(feedSchedule.Color) ? "#fff" : feedSchedule.Color + "26") !important; padding: 0; overflow: visible; height: 90px; max-height: 90px;">
+                    <img src="@feedData.ImageUrl" style="width: 90px; height: 90px; object-fit: cover; flex-shrink: 0; border-top-left-radius: .375rem; border-bottom-left-radius: .375rem;" />
                     <div class="d-flex flex-column justify-content-between flex-grow-1 py-2 px-3" style="min-height: 90px; max-height: 90px; overflow: hidden;">
                         <!-- Row 1: Feed Title (Top) -->
                         <div class="d-flex align-items-center">
@@ -169,10 +169,17 @@
                                  </div>
                              </div>
 
-                             <!-- Trash button (all the way to the right) -->
-                             <button type="button" class="btn btn-link text-danger remove-feed p-0" title="Remove Feed" style="font-size: 1.25rem; line-height: 1;">
-                                 <i class="bi bi-trash3-fill"></i>
-                             </button>
+                             <!-- Three-dot feed actions menu -->
+                             <div class="dropdown">
+                                 <button type="button" class="btn btn-link text-secondary p-0 feed-actions-menu" data-bs-toggle="dropdown" aria-expanded="false" title="Feed options" style="font-size: 1.25rem; line-height: 1;">
+                                     <i class="bi bi-three-dots-vertical"></i>
+                                 </button>
+                                 <ul class="dropdown-menu dropdown-menu-end">
+                                     <li><button type="button" class="dropdown-item move-feed"><i class="bi bi-arrow-left-right me-2"></i>Move to another station</button></li>
+                                     <li><hr class="dropdown-divider"></li>
+                                     <li><button type="button" class="dropdown-item text-danger remove-feed"><i class="bi bi-trash3-fill me-2"></i>Delete feed</button></li>
+                                 </ul>
+                             </div>
                          </div>
 
                          <!-- Row 3: Feed Details (Bottom) -->

@@ -201,9 +201,9 @@ public class StationsEditTests : PageTest
         // Check if there are 2 feed cards now
         await Expect(feedCards).ToHaveCountAsync(2, new() { Timeout = 15000 });
         
-        // Now remove the feed (using the Bootstrap confirmation modal)
-        var removeBtn = feedCards.Last.Locator(".remove-feed");
-        await removeBtn.ClickAsync();
+        // Now remove the feed via the three-dot menu (then the Bootstrap confirmation modal)
+        await feedCards.Last.Locator(".feed-actions-menu").ClickAsync();
+        await feedCards.Last.Locator(".remove-feed").ClickAsync();
         
         // Wait for confirmation modal to show and click confirm
         await Expect(Page.Locator("#confirmRemoveFeedModal")).ToBeVisibleAsync();
