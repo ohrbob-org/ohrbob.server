@@ -219,6 +219,175 @@ public class StationsControllerTests
         _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.Is<Station>(s => s.Name == "New Name" && s.IsAging == true)), Times.Once);
     }
 
+    private static Station MakeStation(string id, string accountId, string name, params (string url, FeedSortOrder order, int eps)[] feeds)
+    {
+        var station = new Station { Id = id, AccountId = accountId, Name = name };
+        foreach (var f in feeds)
+            station.Schedule.Feeds.Add(new StationFeedSchedule { Url = f.url, SortOrder = f.order, EpisodesToPlay = f.eps });
+        station.Feeds = station.Schedule.Feeds.Select(f => f.Url).ToArray();
+        return station;
+    }
+
+    [Test]
+    public async Task MoveFeed_ExistingStation_CarriesSettingsAndRemovesFromSource()
+    {
+        var url = "https://example.com/feed";
+        var source = MakeStation("src", TestAccountId, "Source", (url, FeedSortOrder.Randomized, 5));
+        var target = MakeStation("tgt", TestAccountId, "Target");
+
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync("src")).ReturnsAsync(source);
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync("tgt")).ReturnsAsync(target);
+        _stationsServiceMock.Setup(s => s.UpdateStationAsync(It.IsAny<Station>())).ReturnsAsync((Station st) => st);
+
+        var result = await _controller.MoveFeed(new MoveFeedRequest
+        {
+            SourceStationId = "src", FeedUrl = url, FeedTitle = "Feed", TargetStationId = "tgt"
+        });
+
+        Assert.That(result, Is.InstanceOf<StatusCodeResult>());
+        Assert.That(((StatusCodeResult)result).StatusCode, Is.EqualTo(204));
+        _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.Is<Station>(st =>
+            st.Id == "tgt" && st.Schedule.Feeds.Any(f => f.Url == url && f.SortOrder == FeedSortOrder.Randomized && f.EpisodesToPlay == 5))), Times.Once);
+        _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.Is<Station>(st =>
+            st.Id == "src" && !st.Schedule.Feeds.Any(f => f.Url == url) && !st.Feeds.Contains(url))), Times.Once);
+        Assert.That(_controller.Response.Headers["HX-Trigger"].ToString(), Does.Contain("showToast"));
+    }
+
+    [Test]
+    public async Task MoveFeed_CreateNewStation_NamesFromTitle_WhenNameBlank()
+    {
+        var url = "https://example.com/feed";
+        var source = MakeStation("src", TestAccountId, "Source", (url, FeedSortOrder.OldestToNewest, 3));
+
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync("src")).ReturnsAsync(source);
+        _stationsServiceMock.Setup(s => s.CreateStationAsync(TestAccountId, It.IsAny<Station>()))
+            .ReturnsAsync((string acct, Station st) => { st.Id = "new-station"; return st; });
+        _stationsServiceMock.Setup(s => s.UpdateStationAsync(It.IsAny<Station>())).ReturnsAsync((Station st) => st);
+        _controller.ControllerContext.HttpContext.Request.Headers["Cookie"] = "Ohrbob_ActiveProfileId=prof-1";
+
+        var result = await _controller.MoveFeed(new MoveFeedRequest
+        {
+            SourceStationId = "src", FeedUrl = url, FeedTitle = "My Feed", CreateNewStation = true
+        });
+
+        Assert.That(result, Is.InstanceOf<StatusCodeResult>());
+        Assert.That(((StatusCodeResult)result).StatusCode, Is.EqualTo(204));
+        _stationsServiceMock.Verify(s => s.CreateStationAsync(TestAccountId, It.Is<Station>(st =>
+            st.Name == "My Feed" && st.Schedule.Feeds.Any(f => f.Url == url && f.EpisodesToPlay == 3))), Times.Once);
+        _profilesServiceMock.Verify(p => p.AddStationToProfileAsync("prof-1", "new-station"), Times.Once);
+    }
+
+    [Test]
+    public async Task MoveFeed_NotOwner_ReturnsNotFound()
+    {
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync("src"))
+            .ReturnsAsync(MakeStation("src", "someone-else", "Foreign", ("https://e/f", FeedSortOrder.OldestToNewest, 1)));
+
+        var result = await _controller.MoveFeed(new MoveFeedRequest
+        { SourceStationId = "src", FeedUrl = "https://e/f", FeedTitle = "F", TargetStationId = "tgt" });
+
+        Assert.That(result, Is.InstanceOf<NotFoundResult>());
+    }
+
+    [Test]
+    public async Task MoveFeed_SourceEqualsTarget_Returns422()
+    {
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync("src"))
+            .ReturnsAsync(MakeStation("src", TestAccountId, "Source", ("https://e/f", FeedSortOrder.OldestToNewest, 1)));
+
+        var result = await _controller.MoveFeed(new MoveFeedRequest
+        { SourceStationId = "src", FeedUrl = "https://e/f", FeedTitle = "F", TargetStationId = "src" });
+
+        Assert.That(result, Is.InstanceOf<ObjectResult>());
+        Assert.That(((ObjectResult)result).StatusCode, Is.EqualTo(422));
+    }
+
+    [Test]
+    public async Task MoveFeed_FeedNotInSource_Returns422()
+    {
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync("src"))
+            .ReturnsAsync(MakeStation("src", TestAccountId, "Source"));
+
+        var result = await _controller.MoveFeed(new MoveFeedRequest
+        { SourceStationId = "src", FeedUrl = "https://e/f", FeedTitle = "F", TargetStationId = "tgt" });
+
+        Assert.That(result, Is.InstanceOf<ObjectResult>());
+        Assert.That(((ObjectResult)result).StatusCode, Is.EqualTo(422));
+    }
+
+    [Test]
+    public async Task MoveFeed_TargetAlreadyHasFeed_Returns422()
+    {
+        var url = "https://e/f";
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync("src"))
+            .ReturnsAsync(MakeStation("src", TestAccountId, "Source", (url, FeedSortOrder.OldestToNewest, 1)));
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync("tgt"))
+            .ReturnsAsync(MakeStation("tgt", TestAccountId, "Target", (url, FeedSortOrder.OldestToNewest, 1)));
+
+        var result = await _controller.MoveFeed(new MoveFeedRequest
+        { SourceStationId = "src", FeedUrl = url, FeedTitle = "F", TargetStationId = "tgt" });
+
+        Assert.That(((ObjectResult)result).StatusCode, Is.EqualTo(422));
+        _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.IsAny<Station>()), Times.Never);
+    }
+
+    [Test]
+    public async Task MoveFeed_DestinationLimitExceeded_LeavesSourceUnchanged()
+    {
+        var url = "https://e/f";
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync("src"))
+            .ReturnsAsync(MakeStation("src", TestAccountId, "Source", (url, FeedSortOrder.OldestToNewest, 1)));
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync("tgt"))
+            .ReturnsAsync(MakeStation("tgt", TestAccountId, "Target"));
+        _stationsServiceMock.Setup(s => s.UpdateStationAsync(It.Is<Station>(st => st.Id == "tgt")))
+            .ThrowsAsync(new LimitExceededException("Feed limit reached."));
+
+        var result = await _controller.MoveFeed(new MoveFeedRequest
+        { SourceStationId = "src", FeedUrl = url, FeedTitle = "F", TargetStationId = "tgt" });
+
+        Assert.That(((ObjectResult)result).StatusCode, Is.EqualTo(422));
+        _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.Is<Station>(st => st.Id == "src")), Times.Never);
+    }
+
+    [Test]
+    public async Task MoveFeed_SourceRemovalFails_LeavesFeedInBoth()
+    {
+        var url = "https://e/f";
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync("src"))
+            .ReturnsAsync(MakeStation("src", TestAccountId, "Source", (url, FeedSortOrder.OldestToNewest, 1)));
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync("tgt"))
+            .ReturnsAsync(MakeStation("tgt", TestAccountId, "Target"));
+        _stationsServiceMock.Setup(s => s.UpdateStationAsync(It.Is<Station>(st => st.Id == "tgt")))
+            .ReturnsAsync((Station st) => st);
+        _stationsServiceMock.Setup(s => s.UpdateStationAsync(It.Is<Station>(st => st.Id == "src")))
+            .ThrowsAsync(new System.Net.Http.HttpRequestException("boom"));
+
+        var result = await _controller.MoveFeed(new MoveFeedRequest
+        { SourceStationId = "src", FeedUrl = url, FeedTitle = "F", TargetStationId = "tgt" });
+
+        Assert.That(((ObjectResult)result).StatusCode, Is.EqualTo(422));
+        Assert.That(_controller.Response.Headers["HX-Trigger"].ToString(), Does.Contain("showToast"));
+        _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.Is<Station>(st => st.Id == "tgt")), Times.Once);
+    }
+
+    [Test]
+    public async Task MoveFeed_CarriesFeedUrlVerbatim()
+    {
+        var url = "https://example.com/feed?a=1&b=2";
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync("src"))
+            .ReturnsAsync(MakeStation("src", TestAccountId, "Source", (url, FeedSortOrder.OldestToNewest, 1)));
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync("tgt"))
+            .ReturnsAsync(MakeStation("tgt", TestAccountId, "Target"));
+        _stationsServiceMock.Setup(s => s.UpdateStationAsync(It.IsAny<Station>())).ReturnsAsync((Station st) => st);
+
+        var result = await _controller.MoveFeed(new MoveFeedRequest
+        { SourceStationId = "src", FeedUrl = url, FeedTitle = "F", TargetStationId = "tgt" });
+
+        Assert.That(((StatusCodeResult)result).StatusCode, Is.EqualTo(204));
+        _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.Is<Station>(st =>
+            st.Id == "tgt" && st.Schedule.Feeds.Any(f => f.Url == url))), Times.Once);
+    }
+
     [TearDown]
     public void TearDown()
     {

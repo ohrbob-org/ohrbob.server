@@ -5,6 +5,16 @@ using Ohrbob.Web.Services;
 
 namespace Ohrbob.Web.Controllers;
 
+public class MoveFeedRequest
+{
+    public string SourceStationId { get; set; } = string.Empty;
+    public string FeedUrl { get; set; } = string.Empty;
+    public string FeedTitle { get; set; } = string.Empty;
+    public string? TargetStationId { get; set; }
+    public bool CreateNewStation { get; set; }
+    public string? NewStationName { get; set; }
+}
+
 [Authorize]
 public class StationsController : Controller
 {
@@ -272,5 +282,123 @@ public class StationsController : Controller
         await _stationsService.UpdateStationAsync(existingStation);
 
         return Ok(new { name = existingStation.Name, isAging = existingStation.IsAging });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> MoveFeed([FromBody] MoveFeedRequest request)
+    {
+        var accountId = GetAccountId();
+        if (string.IsNullOrEmpty(accountId)) return Forbid();
+
+        if (string.IsNullOrWhiteSpace(request.FeedUrl) ||
+            (!request.CreateNewStation && string.IsNullOrWhiteSpace(request.TargetStationId)))
+        {
+            return ToastError("No destination selected.", 422);
+        }
+
+        var source = await _stationsService.GetStationByIdAsync(request.SourceStationId);
+        if (source == null || source.AccountId != accountId) return NotFound();
+
+        var sourceEntry = source.Schedule?.Feeds?.FirstOrDefault(f => f.Url == request.FeedUrl);
+        if (sourceEntry == null) return ToastError("Feed is not in this station.", 422);
+
+        string destName;
+        try
+        {
+            // Destination first — a failed move never loses the feed.
+            if (request.CreateNewStation)
+            {
+                destName = string.IsNullOrWhiteSpace(request.NewStationName)
+                    ? request.FeedTitle
+                    : request.NewStationName!.Trim();
+
+                var newStation = new Station
+                {
+                    AccountId = accountId,
+                    Name = destName,
+                    Feeds = new[] { request.FeedUrl },
+                    Schedule = new StationSchedule
+                    {
+                        Feeds = new List<StationFeedSchedule>
+                        {
+                            new StationFeedSchedule
+                            {
+                                Url = request.FeedUrl,
+                                SortOrder = sourceEntry.SortOrder,
+                                EpisodesToPlay = sourceEntry.EpisodesToPlay
+                            }
+                        }
+                    }
+                };
+
+                var created = await _stationsService.CreateStationAsync(accountId, newStation);
+
+                var activeId = HttpContext.Request.Cookies["Ohrbob_ActiveProfileId"];
+                if (string.IsNullOrEmpty(activeId))
+                {
+                    var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId);
+                    activeId = profiles?.FirstOrDefault()?.Id;
+                }
+                if (!string.IsNullOrEmpty(activeId) && created != null)
+                {
+                    await _profilesService.AddStationToProfileAsync(activeId, created.Id);
+                }
+            }
+            else
+            {
+                if (request.TargetStationId == request.SourceStationId)
+                    return ToastError("A feed cannot be moved to its own station.", 422);
+
+                var target = await _stationsService.GetStationByIdAsync(request.TargetStationId!);
+                if (target == null || target.AccountId != accountId) return NotFound();
+
+                if (target.Schedule == null) target.Schedule = new StationSchedule();
+                if (target.Schedule.Feeds == null) target.Schedule.Feeds = new List<StationFeedSchedule>();
+                if (target.Schedule.Feeds.Any(f => f.Url == request.FeedUrl))
+                    return ToastError("That station already has this podcast.", 422);
+
+                target.Schedule.Feeds.Add(new StationFeedSchedule
+                {
+                    Url = request.FeedUrl,
+                    SortOrder = sourceEntry.SortOrder,
+                    EpisodesToPlay = sourceEntry.EpisodesToPlay
+                });
+                target.Feeds = target.Schedule.Feeds.Select(f => f.Url).ToArray();
+                await _stationsService.UpdateStationAsync(target);
+                destName = target.Name;
+            }
+        }
+        catch (LimitExceededException ex)
+        {
+            return ToastError(ex.Message, 422);
+        }
+
+        try
+        {
+            source.Schedule!.Feeds.Remove(sourceEntry);
+            source.Feeds = source.Schedule.Feeds.Select(f => f.Url).ToArray();
+            await _stationsService.UpdateStationAsync(source);
+        }
+        catch (Exception)
+        {
+            return ToastError("Feed was added to the destination but could not be removed from the source.", 422);
+        }
+
+        return ToastSuccess($"Moved '{request.FeedTitle}' to '{destName}'");
+    }
+
+    private IActionResult ToastSuccess(string message)
+    {
+        Response.Headers["HX-Trigger"] = System.Text.Json.JsonSerializer.Serialize(
+            new { showToast = new { message, type = "success" } });
+        return StatusCode(204);
+    }
+
+    private IActionResult ToastError(string message, int status)
+    {
+        Response.Headers["HX-Trigger"] = System.Text.Json.JsonSerializer.Serialize(
+            new { showToast = new { message, type = "danger" } });
+        return StatusCode(status, message);
     }
 }
