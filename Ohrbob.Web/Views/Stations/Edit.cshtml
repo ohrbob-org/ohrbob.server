@@ -549,12 +549,22 @@
                         if (newRotation) {
                             document.getElementById('rotationContainer').innerHTML = newRotation.innerHTML;
                             bindRotationListeners();
+                            if (typeof window.initFeedMenus === 'function') {
+                                window.initFeedMenus();
+                            }
                         }
 
                         const newResolved = doc.getElementById('resolved');
                         if (newResolved) {
                             document.getElementById('resolved').innerHTML = newResolved.innerHTML;
                             scrollToActiveEpisode();
+                        }
+
+                        // Keep the move modal's destination list in sync (it is rendered
+                        // once from ViewBag.OtherStations and would otherwise go stale).
+                        const newMoveList = doc.getElementById('moveFeedStationList');
+                        if (newMoveList && document.getElementById('moveFeedStationList')) {
+                            document.getElementById('moveFeedStationList').innerHTML = newMoveList.innerHTML;
                         }
                     });
             };

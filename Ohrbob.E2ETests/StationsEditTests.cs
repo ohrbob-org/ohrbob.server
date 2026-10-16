@@ -408,6 +408,18 @@ public class StationsEditTests : PageTest
         await Expect(srcRow.Locator(".feed-actions-menu")).ToBeVisibleAsync();
         await srcRow.Locator(".feed-actions-menu").ClickAsync();
         await Expect(srcRow.Locator(".move-feed")).ToBeVisibleAsync();
+
+        // Regression (Review Focus #1): the menu must be painted where it is clicked,
+        // not clipped by an ancestor's overflow. Playwright's locator.click() ignores
+        // ancestor clipping, so hit-test the real point.
+        var deleteItem = srcRow.Locator(".remove-feed");
+        var deleteBox = await deleteItem.BoundingBoxAsync();
+        Assert.That(deleteBox, Is.Not.Null, "The 'Delete feed' item has no bounding box");
+        var deleteHit = await Page.EvaluateAsync<bool>(
+            "([x, y]) => { const el = document.elementFromPoint(x, y); return !!el && el.closest('.remove-feed') !== null; }",
+            new[] { deleteBox!.X + deleteBox.Width / 2.0, deleteBox.Y + deleteBox.Height / 2.0 });
+        Assert.That(deleteHit, Is.True, "The 'Delete feed' menu item is not hit-testable at its centre (clipped by the card)");
+
         await srcRow.Locator(".move-feed").ClickAsync();
 
         // Modal offers the other station (not the source) and create-new
@@ -426,6 +438,8 @@ public class StationsEditTests : PageTest
         // No navigation / no full page reload (playback must be untouched)
         Assert.That(Page.Url, Does.Contain("/Stations/Edit/"));
         Assert.That(await Page.EvaluateAsync<string>("() => window.__moveMarker || ''"), Is.EqualTo("kept"));
+        Assert.That(await Page.EvaluateAsync<bool>("() => !!document.querySelector('audio-widget')"), Is.True,
+            "The audio widget must survive the move (playback must not be interrupted)");
 
         // Destination now has the moved feed, with the carried Span
         await Page.GotoAsync($"{url}/Stations/Edit/{stationB.Id}");
@@ -465,5 +479,48 @@ public class StationsEditTests : PageTest
         await Expect(Page.Locator("#moveTargetNew")).ToBeVisibleAsync();
         // Only the "__new__" radio exists — no other station to pick
         await Expect(Page.Locator("#moveFeedStationList input[name='moveTarget']")).ToHaveCountAsync(1);
+    }
+
+    [Test]
+    public async Task Can_Move_Feed_To_A_New_Station_And_It_AppearsInTheDestinationList()
+    {
+        var url = _factory.ServerAddress;
+        var stationsService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.StationsApiService>();
+
+        var feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../example_feeds.txt");
+        if (!File.Exists(feedPath))
+            feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../../example_feeds.txt");
+        var feeds = await File.ReadAllLinesAsync(feedPath);
+        var feed1 = feeds.First(l => !string.IsNullOrWhiteSpace(l));
+        var feed2 = feeds.Skip(1).First(l => !string.IsNullOrWhiteSpace(l));
+
+        var station = await stationsService.CreateStationAsync(_testAccountId, new Station
+        {
+            AccountId = _testAccountId,
+            Name = "Origin Station",
+            Feeds = new[] { feed1, feed2 }
+        });
+
+        await Page.GotoAsync($"{url}/Stations/Edit/{station!.Id}");
+        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+
+        // Move feed1 into a brand-new station
+        var row1 = Page.Locator($"#rotationContainer .rotation-item[data-url=\"{feed1}\"]");
+        await Expect(row1).ToHaveCountAsync(1, new() { Timeout = 10000 });
+        await row1.Locator(".feed-actions-menu").ClickAsync();
+        await row1.Locator(".move-feed").ClickAsync();
+        await Expect(Page.Locator("#moveFeedModal")).ToBeVisibleAsync();
+        await Page.Locator("#moveTargetNew").CheckAsync();
+        await Page.FillAsync("#moveNewStationName", "Brand New Station");
+        await Page.ClickAsync("#confirmMoveFeedBtn");
+
+        await Expect(Page.Locator("#toast-body-text")).ToContainTextAsync("Brand New Station", new() { Timeout = 10000 });
+        await Expect(Page.Locator($"#rotationContainer .rotation-item[data-url=\"{feed1}\"]")).ToHaveCountAsync(0, new() { Timeout = 10000 });
+
+        // The modal's destination list must refresh to include the new station (no reload)
+        var row2 = Page.Locator($"#rotationContainer .rotation-item[data-url=\"{feed2}\"]");
+        await row2.Locator(".feed-actions-menu").ClickAsync();
+        await row2.Locator(".move-feed").ClickAsync();
+        await Expect(Page.Locator("#moveFeedStationList")).ToContainTextAsync("Brand New Station", new() { Timeout = 10000 });
     }
 }

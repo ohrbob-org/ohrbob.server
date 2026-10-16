@@ -286,7 +286,17 @@ window.initRenameStation = function (stationId, initialIsAging) {
     }
 };
 
+window.initFeedMenus = function () {
+    // Use Popper's fixed strategy so the menu escapes the card's / container's
+    // overflow clipping (the feed card and #rotationContainer both clip).
+    if (typeof bootstrap === 'undefined' || !bootstrap.Dropdown) return;
+    document.querySelectorAll('#rotationContainer .feed-actions-menu').forEach(function (el) {
+        bootstrap.Dropdown.getOrCreateInstance(el, { popperConfig: { strategy: 'fixed' } });
+    });
+};
+
 window.initMoveFeed = function (sourceStationId) {
+    window.initFeedMenus();
     const container = document.getElementById('rotationContainer');
     const modalEl = document.getElementById('moveFeedModal');
     const urlInput = document.getElementById('moveFeedUrl');
