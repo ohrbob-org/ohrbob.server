@@ -75,6 +75,22 @@ public class StationsApiService : OhrbobApiService
         request.Content = new StringContent(JsonSerializer.Serialize(station), Encoding.UTF8, "application/json");
         using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
         var response = await client.SendAsync(request);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        {
+            try
+            {
+                var problem = await response.Content.ReadFromJsonAsync<Microsoft.AspNetCore.Mvc.ProblemDetails>();
+                if (problem != null && problem.Title == "Limit exceeded")
+                {
+                    throw new LimitExceededException(problem.Detail ?? "Limit exceeded");
+                }
+            }
+            catch (Exception ex) when (ex is not LimitExceededException)
+            {
+            }
+        }
+
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<Station>();
     }

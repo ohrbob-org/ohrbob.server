@@ -224,4 +224,25 @@ public class StationsApiServiceTests
         Assert.That(result[0].Episode.Title, Is.EqualTo("Completed 1"));
         Assert.That(result[0].IsActive, Is.False);
     }
+
+    [Test]
+    public async Task UpdateStationAsync_LimitExceeded_ThrowsLimitExceededException()
+    {
+        var response = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.Forbidden,
+            Content = new StringContent(
+                "{\"title\":\"Limit exceeded\",\"detail\":\"Feed limit reached for this station.\"}",
+                System.Text.Encoding.UTF8, "application/json")
+        };
+        _httpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>("SendAsync",
+                ItExpr.Is<HttpRequestMessage>(r => r.Method == HttpMethod.Put),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(response);
+
+        var ex = Assert.ThrowsAsync<LimitExceededException>(
+            async () => await _service.UpdateStationAsync(new Station { Id = "st-1" }));
+        Assert.That(ex!.Message, Is.EqualTo("Feed limit reached for this station."));
+    }
 }
