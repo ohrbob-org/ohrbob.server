@@ -4,6 +4,7 @@ using Ohrbob.Player.Services;
 using Ohrbob.Player.Configuration;
 using Ohrbob.Server.Shared.Data;
 using MongoDB.Driver;
+using Ohrbob.Server.Shared.Requests;
 
 namespace Ohrbob.Player.Controllers;
 
@@ -48,7 +49,22 @@ public class StreamController : ControllerBase
         var allowedStationIds = profile.AllowedStationIds ?? Array.Empty<string>();
         var stations = await _stations.Find(s => allowedStationIds.Contains(s.Id)).ToListAsync();
 
-        return Ok(stations.Select(s => new { id = s.Id, name = s.Name }));
+        
+        var stationIds = stations.Select(s => s.Id).ToList();
+        var allFeedUrls = stations.SelectMany(s => s.Feeds ?? Array.Empty<string>()).Distinct().ToList();
+        var allFeeds = await _feeds.Find(f => allFeedUrls.Contains(f.Url)).ToListAsync();
+
+        var dtos = stations.Select(s => new StationWithFeedsDto
+        {
+            Station = s,
+            Feeds = s.Feeds?.Select(fUrl => 
+            {
+                var f = allFeeds.FirstOrDefault(x => x.Url == fUrl);
+                return new FeedStatsDto { Url = fUrl, ImageUrl = f?.ImageUrl };
+            }).ToList() ?? new System.Collections.Generic.List<FeedStatsDto>()
+        });
+
+        return Ok(dtos);
     }
 
     [HttpGet("status")]
