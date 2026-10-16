@@ -77,12 +77,13 @@ public class ProfilesTests : PageTest
         await Expect(deleteBtns.First).ToBeEnabledAsync();
         await Expect(deleteBtns.Last).ToBeEnabledAsync();
 
-        // Intercept native dialog confirmation and click Delete on the non-active profile
-        Page.Dialog += (_, dialog) => dialog.AcceptAsync();
+        // Delete the non-active profile through the Bootstrap confirmation modal
         await deleteBtns.Last.ClickAsync();
+        var confirmModal = Page.Locator("#confirmationModal");
+        await Expect(confirmModal).ToBeVisibleAsync();
+        await Page.ClickAsync("#confirmationModalConfirmBtn");
 
         // Verify we are back to 1 profile and Delete button is disabled again
-        await Page.WaitForURLAsync("**/Profiles");
         await Expect(profileCards).ToHaveCountAsync(1);
         await Expect(deleteBtn).ToBeDisabledAsync();
     }

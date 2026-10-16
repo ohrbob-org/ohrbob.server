@@ -62,14 +62,28 @@ public class OnboardingController : Controller
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId) || string.IsNullOrWhiteSpace(profileName)) return RedirectToAction(nameof(Index));
 
-        var profile = new Profile
-        {
-            AccountId = accountId,
-            Name = profileName,
-            StreamToken = Guid.NewGuid().ToString()
-        };
+        // A user may abort onboarding and retry it later. In that case the first profile
+        // already exists, so reuse it instead of creating a duplicate on every retry.
+        var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId);
+        var existing = profiles?.FirstOrDefault();
 
-        var created = await _profilesService.CreateProfileAsync(accountId, profile);
+        Profile? created;
+        if (existing != null)
+        {
+            created = existing;
+        }
+        else
+        {
+            var profile = new Profile
+            {
+                AccountId = accountId,
+                Name = profileName,
+                StreamToken = Guid.NewGuid().ToString()
+            };
+
+            created = await _profilesService.CreateProfileAsync(accountId, profile);
+        }
+
         if (string.IsNullOrEmpty(created?.Id)) {
             throw new Exception("CreateProfileAsync returned a null or empty Id! " + System.Text.Json.JsonSerializer.Serialize(created));
         }

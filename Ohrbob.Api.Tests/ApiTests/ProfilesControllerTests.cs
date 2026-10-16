@@ -88,6 +88,45 @@ public class ProfilesControllerTests
     }
 
     [Test]
+    public async Task CreateProfile_WhenAccountAlreadyHasProfile_ShouldCreateAdditionalProfileWithFreshStreamToken()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var accountService = scope.ServiceProvider.GetRequiredService<AccountService>();
+        var policy = scope.ServiceProvider.GetRequiredService<SubscriptionPolicy>();
+        var controller = new Controllers.ProfilesController(
+            profilesService,
+            scope.ServiceProvider.GetRequiredService<StationsService>(),
+            accountService,
+            policy);
+
+        var account = new Account { Email = $"dup-{Guid.NewGuid()}@test.com", Name = "Onboarding Retry" };
+        var storedAccount = await accountService.CreateAsync(account);
+        Assert.That(storedAccount, Is.Not.Null);
+
+        // First profile (e.g. created on the first onboarding attempt).
+        var firstResult = await controller.Create(storedAccount!.Id, new Profile { Name = "First" });
+        var first = (firstResult.Result as Microsoft.AspNetCore.Mvc.OkObjectResult)?.Value as Profile;
+        Assert.That(first, Is.Not.Null);
+        Assert.That(string.IsNullOrEmpty(first!.Id), Is.False);
+
+        // Retrying creates a second profile and must not blow up on the unique StreamToken index.
+        Microsoft.AspNetCore.Mvc.ActionResult<Profile>? secondResult = null;
+        Assert.DoesNotThrowAsync(async () =>
+        {
+            secondResult = await controller.Create(storedAccount.Id, new Profile { Name = "Second" });
+        });
+        var second = (secondResult!.Result as Microsoft.AspNetCore.Mvc.OkObjectResult)?.Value as Profile;
+        Assert.That(second, Is.Not.Null);
+        Assert.That(second!.Id, Is.Not.EqualTo(first.Id));
+        Assert.That(second.StreamToken, Is.Not.EqualTo(first.StreamToken));
+        Assert.That(second.Name, Is.EqualTo("Second"));
+
+        var profiles = await profilesService.GetByAccountIdAsync(storedAccount.Id);
+        Assert.That(profiles, Has.Count.EqualTo(2));
+    }
+
+    [Test]
     public async Task AddStation_ShouldAddStationId()
     {
         using var scope = _app.Services.CreateScope();

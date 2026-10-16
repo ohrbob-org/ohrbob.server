@@ -92,4 +92,32 @@ public class OnboardingTests : PageTest
         var stationCard = Page.Locator(".card-title");
         await Expect(stationCard).ToContainTextAsync("History");
     }
+
+    [Test]
+    public async Task AbortAndRetryOnboarding_DoesNotCreateDuplicateProfile()
+    {
+        // Fresh account -> root redirects to the onboarding welcome page.
+        await Page.GotoAsync(_factory.ServerAddress);
+        await Expect(Page.Locator("h1")).ToContainTextAsync("Welcome to Ohrbob!");
+
+        // Step 1, first attempt: create the profile, then abandon the flow.
+        await Page.FillAsync("input[name='profileName']", "Retry Profile");
+        await Page.CheckAsync("input[name='acceptTerms']");
+        await Page.ClickAsync("button[type='submit']");
+        await Expect(Page.Locator("h2")).ToContainTextAsync("Create Your First Station");
+
+        // Abort: go back to the onboarding start (account still needs onboarding).
+        await Page.GotoAsync($"{_factory.ServerAddress}/Onboarding");
+        await Expect(Page.Locator("h1")).ToContainTextAsync("Welcome to Ohrbob!");
+
+        // Retry step 1 with a different name; the existing profile must be reused.
+        await Page.FillAsync("input[name='profileName']", "Retry Profile Again");
+        await Page.CheckAsync("input[name='acceptTerms']");
+        await Page.ClickAsync("button[type='submit']");
+        await Expect(Page.Locator("h2")).ToContainTextAsync("Create Your First Station");
+
+        var profilesService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.ProfilesApiService>();
+        var profiles = await profilesService.GetProfilesByAccountIdAsync(_testAccountId);
+        Assert.That(profiles, Has.Count.EqualTo(1), "Retrying onboarding must not create duplicate profiles.");
+    }
 }
