@@ -8,6 +8,7 @@ using Serilog;
 using Serilog.Filters;
 using Microsoft.OpenApi;
 using Ohrbob.Api.Extensions.Logger;
+using Ohrbob.Api.Migrations;
 using Ohrbob.Api.Services;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -94,6 +95,8 @@ builder.Services.AddSingleton<EpisodesService>();
 builder.Services.AddSingleton<ListenStateService>();
 builder.Services.AddSingleton<FeedsService>();
 builder.Services.AddSingleton<SubscriptionPolicy>();
+builder.Services.AddSingleton<IMigration, Migration_0_0_8_AddIndexes>();
+builder.Services.AddSingleton<DatabaseMigrator>();
 builder.Services.AddHostedService<FeedUpdateWorker>();
 
 builder.Services.AddControllers();
@@ -151,6 +154,29 @@ if (!isOpenApiBuildGeneration && mongoSettings != null && !string.IsNullOrEmpty(
             }
             Thread.Sleep(TimeSpan.FromSeconds(retryDelaySeconds));
         }
+    }
+}
+
+// Apply any pending database migrations before the app starts serving requests.
+// The current schema version is stored in the database, so pending migrations can
+// be deduced purely from the data store.
+if (!isOpenApiBuildGeneration && mongoSettings != null && !string.IsNullOrEmpty(mongoSettings.ConnectionString))
+{
+    try
+    {
+        using var migrationScope = app.Services.CreateScope();
+        var migrator = migrationScope.ServiceProvider.GetRequiredService<DatabaseMigrator>();
+        var migrationResult = await migrator.MigrateAsync();
+        Log.Information("Database schema version {FromVersion} -> {ToVersion}. Applied migrations: [{AppliedMigrations}]",
+            migrationResult.FromVersion,
+            migrationResult.ToVersion,
+            string.Join(", ", migrationResult.AppliedVersions));
+    }
+    catch (Exception ex)
+    {
+        Log.Fatal(ex, "Database migration failed. Exiting application.");
+        Log.CloseAndFlush();
+        Environment.Exit(1);
     }
 }
 
