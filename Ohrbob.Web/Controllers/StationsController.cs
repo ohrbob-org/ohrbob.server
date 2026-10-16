@@ -92,6 +92,9 @@ public class StationsController : Controller
         if (stationDto == null || stationDto.Station.AccountId != accountId)
             return NotFound();
 
+        var allStations = await _stationsService.GetStationsByAccountIdAsync(accountId) ?? new();
+        ViewBag.OtherStations = allStations.Where(s => s.Station.Id != id).ToList();
+
         var activeId = HttpContext.Request.Cookies["Ohrbob_ActiveProfileId"];
         if (string.IsNullOrEmpty(activeId))
         {

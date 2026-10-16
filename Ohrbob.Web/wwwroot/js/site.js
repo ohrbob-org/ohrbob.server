@@ -285,3 +285,103 @@ window.initRenameStation = function (stationId, initialIsAging) {
         });
     }
 };
+
+window.initMoveFeed = function (sourceStationId) {
+    const container = document.getElementById('rotationContainer');
+    const modalEl = document.getElementById('moveFeedModal');
+    const urlInput = document.getElementById('moveFeedUrl');
+    const titleEl = document.getElementById('moveFeedTitle');
+    const newNameContainer = document.getElementById('moveNewStationNameContainer');
+    const newNameInput = document.getElementById('moveNewStationName');
+    const confirmBtn = document.getElementById('confirmMoveFeedBtn');
+    if (!container || !modalEl || !confirmBtn) return;
+
+    let itemToMove = null;
+
+    container.addEventListener('click', function (e) {
+        const moveBtn = e.target.closest('.move-feed');
+        if (!moveBtn) return;
+        itemToMove = moveBtn.closest('.rotation-item');
+        if (!itemToMove) return;
+
+        urlInput.value = itemToMove.getAttribute('data-url') || '';
+        const titleStrong = itemToMove.querySelector('strong');
+        titleEl.textContent = titleStrong ? titleStrong.textContent.trim() : '';
+
+        modalEl.querySelectorAll('input[name="moveTarget"]').forEach(r => { r.checked = false; });
+        if (newNameInput) newNameInput.value = '';
+        if (newNameContainer) newNameContainer.style.display = 'none';
+        confirmBtn.disabled = false;
+
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    });
+
+    confirmBtn.addEventListener('click', function () {
+        const selected = modalEl.querySelector('input[name="moveTarget"]:checked');
+        if (!selected) {
+            document.body.dispatchEvent(new CustomEvent('showToast', {
+                detail: { message: 'Please choose a destination station.', type: 'danger' }
+            }));
+            return;
+        }
+
+        const createNew = selected.value === '__new__';
+        const payload = {
+            sourceStationId: sourceStationId,
+            feedUrl: urlInput.value,
+            feedTitle: titleEl.textContent,
+            targetStationId: createNew ? null : selected.value,
+            createNewStation: createNew,
+            newStationName: createNew && newNameInput ? newNameInput.value : null
+        };
+
+        confirmBtn.disabled = true;
+
+        fetch('/Stations/MoveFeed', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(async response => {
+            if (response.ok) {
+                const hxTrigger = response.headers.get('HX-Trigger');
+                if (hxTrigger) {
+                    try {
+                        const events = JSON.parse(hxTrigger);
+                        for (const [evtName, detail] of Object.entries(events)) {
+                            document.body.dispatchEvent(new CustomEvent(evtName, { detail: detail }));
+                        }
+                    } catch (e) {
+                        console.error('Error parsing HX-Trigger header:', e);
+                    }
+                }
+
+                if (itemToMove) itemToMove.remove();
+                itemToMove = null;
+
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                if (typeof window.refreshStationEdit === 'function') {
+                    window.refreshStationEdit();
+                }
+            } else {
+                const text = await response.text();
+                confirmBtn.disabled = false;
+                document.body.dispatchEvent(new CustomEvent('showToast', {
+                    detail: { message: text || 'Failed to move feed.', type: 'danger' }
+                }));
+            }
+        })
+        .catch(err => {
+            console.error('Error moving feed:', err);
+            confirmBtn.disabled = false;
+            document.body.dispatchEvent(new CustomEvent('showToast', {
+                detail: { message: 'Network error moving feed.', type: 'danger' }
+            }));
+        });
+    });
+};

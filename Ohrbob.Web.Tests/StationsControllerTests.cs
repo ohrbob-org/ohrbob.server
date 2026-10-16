@@ -158,6 +158,27 @@ public class StationsControllerTests
     }
 
     [Test]
+    public async Task Edit_Get_PopulatesOtherStations_ExcludingCurrent()
+    {
+        var stationId = "st-123";
+        var dto = new Ohrbob.Server.Shared.Requests.StationWithFeedsDto { Station = new Station { Id = stationId, Name = "Current", AccountId = TestAccountId } };
+        _stationsServiceMock.Setup(s => s.GetStationDetailsByIdAsync(stationId)).ReturnsAsync(dto);
+        _stationsServiceMock.Setup(s => s.GetStationsByAccountIdAsync(TestAccountId)).ReturnsAsync(new List<Ohrbob.Server.Shared.Requests.StationWithFeedsDto>
+        {
+            new() { Station = new Station { Id = stationId, Name = "Current" } },
+            new() { Station = new Station { Id = "other", Name = "Other" } }
+        });
+
+        var result = await _controller.Edit(stationId);
+
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        var others = _controller.ViewData["OtherStations"] as List<Ohrbob.Server.Shared.Requests.StationWithFeedsDto>;
+        Assert.That(others, Is.Not.Null);
+        Assert.That(others!.Count, Is.EqualTo(1));
+        Assert.That(others[0].Station.Name, Is.EqualTo("Other"));
+    }
+
+    [Test]
     public async Task Edit_Post_ValidStation_UpdatesAndRedirects()
     {
         var stationId = "st-123";

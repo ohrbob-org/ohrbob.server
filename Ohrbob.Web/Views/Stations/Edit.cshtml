@@ -374,6 +374,42 @@
     </div>
 </div>
 
+<!-- Move Feed Modal -->
+<div class="modal fade" id="moveFeedModal" tabindex="-1" aria-labelledby="moveFeedModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="moveFeedModalLabel">Move feed to another station</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-dark">
+        <input type="hidden" id="moveFeedUrl" />
+        <p class="text-muted small mb-2">Where should <strong id="moveFeedTitle"></strong> live?</p>
+        <div id="moveFeedStationList">
+          @foreach (var s in (ViewBag.OtherStations as List<Ohrbob.Server.Shared.Requests.StationWithFeedsDto> ?? new()))
+          {
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="moveTarget" id="moveTarget-@s.Station.Id" value="@s.Station.Id">
+              <label class="form-check-label" for="moveTarget-@s.Station.Id">@s.Station.Name</label>
+            </div>
+          }
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="radio" name="moveTarget" id="moveTargetNew" value="__new__" onclick="document.getElementById('moveNewStationNameContainer').style.display='block'">
+            <label class="form-check-label" for="moveTargetNew">Create a new station for this feed</label>
+          </div>
+          <div id="moveNewStationNameContainer" style="display:none">
+            <input type="text" class="form-control mt-2" id="moveNewStationName" placeholder="New station name">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmMoveFeedBtn">Move feed</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Confirm Mark All Until Here Completed Modal -->
 <div class="modal fade" id="confirmMarkCompletedUntilModal" tabindex="-1" aria-labelledby="confirmMarkCompletedUntilModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -502,6 +538,27 @@
                 });
             }
 
+            window.refreshStationEdit = function () {
+                return fetch(window.location.href, { cache: 'no-store', headers: { 'Pragma': 'no-cache' } })
+                    .then(res => res.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+
+                        const newRotation = doc.getElementById('rotationContainer');
+                        if (newRotation) {
+                            document.getElementById('rotationContainer').innerHTML = newRotation.innerHTML;
+                            bindRotationListeners();
+                        }
+
+                        const newResolved = doc.getElementById('resolved');
+                        if (newResolved) {
+                            document.getElementById('resolved').innerHTML = newResolved.innerHTML;
+                            scrollToActiveEpisode();
+                        }
+                    });
+            };
+
             function updateSchedule(shouldReload = false) {
                 console.log("UPDATE SCHEDULE CALLED");
                 const rotationItems = document.querySelectorAll('#rotationContainer .rotation-item');
@@ -538,26 +595,9 @@
                 })
                 .then(response => {
                     if (response.ok) {
-                        return fetch(window.location.href, { cache: 'no-store', headers: { 'Pragma': 'no-cache' } });
+                        return window.refreshStationEdit();
                     } else {
                         throw new Error('Server returned ' + response.status);
-                    }
-                })
-                .then(res => res.text())
-                .then(html => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-
-                    const newRotation = doc.getElementById('rotationContainer');
-                    if (newRotation) {
-                        document.getElementById('rotationContainer').innerHTML = newRotation.innerHTML;
-                        bindRotationListeners();
-                    }
-
-                    const newResolved = doc.getElementById('resolved');
-                    if (newResolved) {
-                        document.getElementById('resolved').innerHTML = newResolved.innerHTML;
-                        scrollToActiveEpisode();
                     }
                 })
                 .catch(err => {
@@ -989,6 +1029,9 @@
 
                 // Initialize rename station functionality (revamped as Station Settings)
                 window.initRenameStation("@Model.Station.Id", @(Model.Station.IsAging ? "true" : "false"));
+
+                // Initialize move-feed functionality
+                window.initMoveFeed("@Model.Station.Id");
             }
 
             if (typeof bootstrap !== 'undefined') {
