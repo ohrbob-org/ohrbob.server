@@ -69,8 +69,13 @@ public class AccountController : Controller
                 Name = name,
                 ProfileId = profileId ?? string.Empty
             };
-            await _apiKeys.CreateApiKeyAsync(accountId, apiKey);
-            TempData["Notice"] = "API key created successfully.";
+            var createdKey = await _apiKeys.CreateApiKeyAsync(accountId, apiKey);
+            if (createdKey != null)
+            {
+                TempData["Notice"] = "API key created successfully.";
+                TempData["NewApiKeyName"] = createdKey.Name;
+                TempData["NewApiKeyToken"] = createdKey.Token;
+            }
         }
         catch
         {

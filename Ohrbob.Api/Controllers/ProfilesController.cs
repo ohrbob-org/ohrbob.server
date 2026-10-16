@@ -60,6 +60,10 @@ public class ProfilesController : ControllerBase
         {
             var account = await _accountService.GetAsync(accountId);
             if (account == null) return NotFound("Account not found");
+            var limits = _policy.For(account);
+            var existing = await _profilesService.GetByAccountIdAsync(accountId);
+            if(existing.Count >= limits.MaxProfiles)
+                return BadRequest("Profile limit reached");
         }
 
         var created = await _profilesService.CreateAsync(profile);

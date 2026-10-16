@@ -209,47 +209,57 @@ else
     </div>
 </div>
 
-@section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" referrerpolicy="no-referrer"></script>
-    <script>
-        function showConnectionQr(keyName, deepLink) {
-            document.getElementById('qrKeyName').textContent = keyName;
-            document.getElementById('qrDeepLink').textContent = deepLink;
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" referrerpolicy="no-referrer"></script>
+<script>
+    window.showConnectionQr = function(keyName, deepLink) {
+        document.getElementById('qrKeyName').textContent = keyName;
+        document.getElementById('qrDeepLink').textContent = deepLink;
 
-            let serverUrl = "";
-            let token = "";
-            try {
-                // custom schemes like ohrbob:// cause standard URL parses to treat parameters differently on some engines, split parsing is bulletproof
-                const queryStr = deepLink.split('?')[1];
-                if (queryStr) {
-                    const pairs = queryStr.split('&');
-                    for (const pair of pairs) {
-                        const parts = pair.split('=');
-                        if (parts[0] === 'server') serverUrl = decodeURIComponent(parts[1] || "");
-                        if (parts[0] === 'token') token = decodeURIComponent(parts[1] || "");
-                    }
+        let serverUrl = "";
+        let token = "";
+        try {
+            const queryStr = deepLink.split('?')[1];
+            if (queryStr) {
+                const pairs = queryStr.split('&');
+                for (const pair of pairs) {
+                    const parts = pair.split('=');
+                    if (parts[0] === 'server') serverUrl = decodeURIComponent(parts[1] || "");
+                    if (parts[0] === 'token') token = decodeURIComponent(parts[1] || "");
                 }
-            } catch (e) {
-                console.error("Failed to parse deep link parameters:", e);
             }
-
-            document.getElementById('qrServerUrl').value = serverUrl;
-            document.getElementById('qrToken').value = token;
-            
-            const container = document.getElementById('qrcode-container');
-            container.innerHTML = '';
-            
-            new QRCode(container, {
-                text: deepLink,
-                width: 200,
-                height: 200,
-                colorDark: "#000000",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.M
-            });
-
-            const modal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
-            modal.show();
+        } catch (e) {
+            console.error("Failed to parse deep link parameters:", e);
         }
-    </script>
-}
+
+        document.getElementById('qrServerUrl').value = serverUrl;
+        document.getElementById('qrToken').value = token;
+        
+        const container = document.getElementById('qrcode-container');
+        container.innerHTML = '';
+        
+        new QRCode(container, {
+            text: deepLink,
+            width: 200,
+            height: 200,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+        });
+
+        const modal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
+        modal.show();
+    };
+
+    @if (TempData["NewApiKeyName"] != null && TempData["NewApiKeyToken"] != null)
+    {
+        var newKeyName = TempData["NewApiKeyName"]?.ToString();
+        var newToken = TempData["NewApiKeyToken"]?.ToString();
+        var autoDeepLink = $"ohrbob://connect?server={Uri.EscapeDataString(ApiOptions.Value.FrontendPlayerUrl)}&token={Uri.EscapeDataString(newToken ?? "")}";
+        <text>
+        // Use timeout to ensure the DOM and bootstrap are fully ready
+        setTimeout(function() {
+            window.showConnectionQr('@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(newKeyName))', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(autoDeepLink))');
+        }, 100);
+        </text>
+    }
+</script>

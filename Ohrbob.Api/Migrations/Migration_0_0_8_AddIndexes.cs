@@ -14,6 +14,23 @@ public class Migration_0_0_8_AddIndexes : IMigration
 
     public async Task ApplyAsync(IMongoDatabase database, CancellationToken cancellationToken = default)
     {
+        // Fix duplicate StreamTokens before creating the unique index.
+        var profileCollection = database.GetCollection<Profile>("ProfileCollection");
+        var profiles = await profileCollection.Find(Builders<Profile>.Filter.Empty).ToListAsync(cancellationToken);
+        var seenTokens = new HashSet<string>();
+        foreach (var profile in profiles)
+        {
+            if (string.IsNullOrEmpty(profile.StreamToken) || !seenTokens.Add(profile.StreamToken))
+            {
+                profile.StreamToken = Guid.NewGuid().ToString();
+                await profileCollection.ReplaceOneAsync(
+                    Builders<Profile>.Filter.Eq(x => x.Id, profile.Id),
+                    profile,
+                    cancellationToken: cancellationToken);
+                seenTokens.Add(profile.StreamToken);
+            }
+        }
+
         // Player resolves an API key by token on every stream request.
         await CreateAsync<ApiKey>(database, cancellationToken,
             Index<ApiKey>("token_unique", Builders<ApiKey>.IndexKeys.Ascending(x => x.Token), unique: true),
