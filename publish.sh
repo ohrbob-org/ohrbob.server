@@ -8,10 +8,13 @@ set -euo pipefail
 # Usage:
 #   ./publish.sh [--skip-login] [--latest] [--tag <tag>] [--dry-run]
 #   DOCKER_REGISTRY=kaiwegner/ ./publish.sh --latest
+#   DOCKERHUB_USER=me DOCKERHUB_PAT=xxx ./publish.sh --latest
 #
 # Env overrides:
 #   DOCKER_REGISTRY  registry prefix with trailing slash (default: kaiwegner/)
 #   GIT_COMMIT       build arg (default: git rev-parse --short HEAD)
+#   DOCKERHUB_USER   Docker Hub username (prompted for if unset)
+#   DOCKERHUB_PAT    Docker Hub password or access token (prompted for if unset)
 # The image tag always comes from git (git describe --tags --always),
 # unless --tag <tag> is passed explicitly. An ambient RELEASE_TAG in the
 # environment is intentionally ignored so a stale `export RELEASE_TAG=beta`
@@ -46,7 +49,8 @@ while [ $# -gt 0 ]; do
       shift
       ;;
     -h|--help)
-      sed -n '2,18p' "$0"
+      # Print the header comment block (from line 2 to the first non-comment line).
+      awk 'NR==1{next} /^#/{started=1; print; next} started{exit}' "$0"
       exit 0
       ;;
     *)
@@ -82,7 +86,36 @@ if [ "$DRY_RUN" -eq 1 ]; then
 fi
 
 if [ "$SKIP_LOGIN" -eq 0 ]; then
-  docker login -u "${DOCKER_USER:-kaiwegner}"
+  DOCKERHUB_USER="${DOCKERHUB_USER:-${DOCKER_USER:-}}"
+  DOCKERHUB_PAT="${DOCKERHUB_PAT:-}"
+
+  if [ -z "$DOCKERHUB_USER" ]; then
+    if [ -t 0 ]; then
+      read -rp "Docker Hub username: " DOCKERHUB_USER
+    else
+      echo "Error: DOCKERHUB_USER is not set and stdin is not a TTY, cannot prompt." >&2
+      exit 1
+    fi
+  fi
+
+  if [ -z "$DOCKERHUB_PAT" ]; then
+    if [ -t 0 ]; then
+      read -rsp "Docker Hub password/token for '$DOCKERHUB_USER': " DOCKERHUB_PAT
+      echo
+    else
+      echo "Error: DOCKERHUB_PAT is not set and stdin is not a TTY, cannot prompt." >&2
+      exit 1
+    fi
+  fi
+
+  if [ -z "$DOCKERHUB_USER" ] || [ -z "$DOCKERHUB_PAT" ]; then
+    echo "Error: Docker Hub username and password/token must not be empty." >&2
+    exit 1
+  fi
+
+  echo "Logging in to Docker Hub as '$DOCKERHUB_USER'..."
+  printf '%s' "$DOCKERHUB_PAT" | docker login -u "$DOCKERHUB_USER" --password-stdin
+  unset DOCKERHUB_PAT
 fi
 
 docker compose build
