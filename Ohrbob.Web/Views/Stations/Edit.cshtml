@@ -199,12 +199,23 @@
             <a href="/Discover" class="btn btn-primary d-inline-flex align-items-center">
                 <i class="bi bi-compass me-2"></i>Discover
             </a>
-            <button type="button" class="btn btn-outline-secondary d-inline-flex align-items-center" id="manualAddBtn">
-                <i class="bi bi-plus-circle me-2"></i>Feed Url
-            </button>
-            <button type="button" class="btn btn-outline-secondary d-inline-flex align-items-center" id="importOpmlBtn">
-                <i class="bi bi-file-earmark-arrow-up me-2"></i>Import OPML
-            </button>
+            <div class="dropdown">
+                <button type="button" class="btn btn-outline-secondary d-inline-flex align-items-center" id="stationMoreMenuBtn" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
+                    <i class="bi bi-three-dots me-2"></i>More
+                </button>
+                <ul class="dropdown-menu" id="stationMoreMenu" aria-labelledby="stationMoreMenuBtn">
+                    <li>
+                        <button type="button" class="dropdown-item d-flex align-items-center" id="manualAddBtn">
+                            <i class="bi bi-plus-circle me-2"></i>Feed Url
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" class="dropdown-item d-flex align-items-center" id="importOpmlBtn">
+                            <i class="bi bi-file-earmark-arrow-up me-2"></i>Import OPML
+                        </button>
+                    </li>
+                </ul>
+            </div>
         </div>
         
     </div>

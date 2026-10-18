@@ -52,7 +52,11 @@ public class PlaywrightWebApplicationFactory : WebApplicationFactory<Program>
                 { "Oidc:Nextcloud:ClientSecret", "dummy-client-secret" },
                 { "Oidc:Google:Authority", "https://localhost" },
                 { "Oidc:Google:ClientId", "dummy-client-id" },
-                { "Oidc:Google:ClientSecret", "dummy-client-secret" }
+                { "Oidc:Google:ClientSecret", "dummy-client-secret" },
+                // The deployed app gets this from the top-level `.env` (env_file), but Program.cs
+                // only loads `{CWD}/.env` without traversing parent directories, so the test host
+                // would otherwise fall back to appsettings.json's `false` and render no terms checkbox.
+                { "Legal:Show", "true" }
             });
         });
 

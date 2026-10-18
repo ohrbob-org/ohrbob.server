@@ -193,8 +193,8 @@ public class StationsEditTests : PageTest
         var feedCards = Page.Locator(".rotation-item");
         await Expect(feedCards).ToHaveCountAsync(1);
         
-        // Add a new feed (open modal first)
-        await Page.ClickAsync("#manualAddBtn");
+        // Add a new feed (open the "More" menu, then the modal)
+        await ClickStationMoreMenuItemAsync("#manualAddBtn");
         await Page.FillAsync("#newFeedUrl", secondFeed);
         await Page.ClickAsync("#submitManualAddBtn");
         
@@ -561,7 +561,7 @@ public class StationsEditTests : PageTest
             await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
             await Expect(Page.Locator("#rotationContainer .rotation-item")).ToHaveCountAsync(1, new() { Timeout = 10000 });
 
-            await Page.ClickAsync("#importOpmlBtn");
+            await ClickStationMoreMenuItemAsync("#importOpmlBtn");
             await Expect(Page.Locator("#importOpmlModal")).ToBeVisibleAsync();
             await Page.SetInputFilesAsync("#opmlFileInput", opmlPath);
             await Page.ClickAsync("#submitOpmlBtn");
@@ -600,7 +600,7 @@ public class StationsEditTests : PageTest
             await Page.GotoAsync($"{url}/Stations/Edit/{station!.Id}");
             await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
 
-            await Page.ClickAsync("#importOpmlBtn");
+            await ClickStationMoreMenuItemAsync("#importOpmlBtn");
             await Expect(Page.Locator("#importOpmlModal")).ToBeVisibleAsync();
             await Page.SetInputFilesAsync("#opmlFileInput", badFile);
             await Page.ClickAsync("#submitOpmlBtn");
@@ -614,5 +614,58 @@ public class StationsEditTests : PageTest
         {
             File.Delete(badFile);
         }
+    }
+
+    [Test]
+    public async Task Feed_Url_And_Import_Opml_Live_In_The_More_Menu()
+    {
+        var url = _factory.ServerAddress;
+        var stationsService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.StationsApiService>();
+
+        var station = await stationsService.CreateStationAsync(_testAccountId, new Station
+        {
+            AccountId = _testAccountId,
+            Name = "More Menu Station",
+            Feeds = Array.Empty<string>()
+        });
+
+        await Page.GotoAsync($"{url}/Stations/Edit/{station!.Id}");
+        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+
+        // Discover stays a standalone primary action.
+        await Expect(Page.Locator("a.btn[href='/Discover']")).ToBeVisibleAsync();
+
+        // Feed Url and Import OPML are menu items now, not standalone buttons.
+        await Expect(Page.Locator("#stationMoreMenu #manualAddBtn.dropdown-item")).ToHaveCountAsync(1);
+        await Expect(Page.Locator("#stationMoreMenu #importOpmlBtn.dropdown-item")).ToHaveCountAsync(1);
+        await Expect(Page.Locator("button#manualAddBtn.btn")).ToHaveCountAsync(0);
+        await Expect(Page.Locator("button#importOpmlBtn.btn")).ToHaveCountAsync(0);
+
+        // The menu is collapsed until the "More" button is clicked.
+        await Expect(Page.Locator("#stationMoreMenuBtn")).ToContainTextAsync("More");
+        await Expect(Page.Locator("#manualAddBtn")).ToBeHiddenAsync();
+        await Expect(Page.Locator("#importOpmlBtn")).ToBeHiddenAsync();
+
+        await Page.ClickAsync("#stationMoreMenuBtn");
+        await Expect(Page.Locator("#manualAddBtn")).ToBeVisibleAsync();
+        await Expect(Page.Locator("#importOpmlBtn")).ToBeVisibleAsync();
+
+        // Feed Url opens the manual add modal.
+        await Page.ClickAsync("#manualAddBtn");
+        await Expect(Page.Locator("#manualAddFeedModal")).ToBeVisibleAsync();
+        await Page.ClickAsync("#manualAddFeedModal .btn-secondary");
+        await Expect(Page.Locator("#manualAddFeedModal")).Not.ToBeVisibleAsync();
+
+        // Import OPML opens the OPML modal.
+        await Page.ClickAsync("#stationMoreMenuBtn");
+        await Page.ClickAsync("#importOpmlBtn");
+        await Expect(Page.Locator("#importOpmlModal")).ToBeVisibleAsync();
+    }
+
+    private async Task ClickStationMoreMenuItemAsync(string itemSelector)
+    {
+        await Page.ClickAsync("#stationMoreMenuBtn");
+        await Expect(Page.Locator(itemSelector)).ToBeVisibleAsync();
+        await Page.ClickAsync(itemSelector);
     }
 }

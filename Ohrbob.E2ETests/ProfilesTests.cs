@@ -1,7 +1,9 @@
 using Microsoft.Playwright;
 using Microsoft.Playwright.NUnit;
+using MongoDB.Driver;
 using NUnit.Framework;
 using Ohrbob.E2ETests.Infrastructure;
+using Ohrbob.Server.Shared.Data;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using System;
@@ -27,6 +29,10 @@ public class ProfilesTests : PageTest
         var account = await accountService.CreateOrUpdateAccountAsync("E2E Profile Test", uniqueEmail, "", "Test", Guid.NewGuid().ToString());
         
         if (account != null) {
+            // A Free account is limited to a single profile, which makes the multi-profile delete
+            // flow unreachable. Grant Morebob so this test exercises the real delete path.
+            await SetAccountTierAsync(account.Id, SubscriptionTier.Morebob);
+
             await accountService.CompleteOnboardingAsync(account.Id);
             var profileService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.ProfilesApiService>();
             var profiles = await profileService.GetProfilesByAccountIdAsync(account.Id);
@@ -86,5 +92,15 @@ public class ProfilesTests : PageTest
         // Verify we are back to 1 profile and Delete button is disabled again
         await Expect(profileCards).ToHaveCountAsync(1);
         await Expect(deleteBtn).ToBeDisabledAsync();
+    }
+
+    private static async Task SetAccountTierAsync(string accountId, SubscriptionTier tier)
+    {
+        // Mirrors the direct-Mongo seeding used by CompilingStationTests: the Api is a separate
+        // process (Docker) whose tier config the in-process test host cannot influence, and the
+        // SetTier endpoint is gated behind TIER_UPGRADE_ENABLED, so seed the account document.
+        var client = new MongoClient("mongodb://localhost:27019");
+        var accounts = client.GetDatabase("OhrbobData").GetCollection<Account>("AccountCollection");
+        await accounts.UpdateOneAsync(a => a.Id == accountId, Builders<Account>.Update.Set(a => a.Tier, tier));
     }
 }
