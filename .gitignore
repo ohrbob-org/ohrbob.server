@@ -23,3 +23,7 @@ obj/
 
 # Local environment (copy from .env-example)
 .env
+.envrc
+
+# Local test data / scratch fixtures
+testdata/
