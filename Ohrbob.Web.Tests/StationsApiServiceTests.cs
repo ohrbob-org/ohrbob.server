@@ -245,4 +245,51 @@ public class StationsApiServiceTests
             async () => await _service.UpdateStationAsync(new Station { Id = "st-1" }));
         Assert.That(ex!.Message, Is.EqualTo("Feed limit reached for this station."));
     }
+
+    [Test]
+    public async Task AddFeedsAsync_PostsUrlsToTheStationFeedsEndpoint_AndReturnsResult()
+    {
+        var stationId = "st-1";
+        var urls = new List<string> { "https://a.example/feed", "https://b.example/feed" };
+        var importResult = new FeedImportResultDto
+        {
+            Added = { urls[0] },
+            NotAddedDueToLimit = { urls[1] }
+        };
+
+        var response = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(JsonSerializer.Serialize(importResult))
+        };
+
+        HttpRequestMessage? capturedRequest = null;
+        string? capturedBody = null;
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req =>
+                    req.Method == HttpMethod.Post &&
+                    req.RequestUri!.ToString() == $"https://test.api/stations/{stationId}/feeds"),
+                ItExpr.IsAny<CancellationToken>()
+            )
+            .Callback<HttpRequestMessage, CancellationToken>((req, _) =>
+            {
+                capturedRequest = req;
+                capturedBody = req.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+            })
+            .ReturnsAsync(response);
+
+        var result = await _service.AddFeedsAsync(stationId, urls);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.Added, Is.EqualTo(new[] { urls[0] }));
+        Assert.That(result.NotAddedDueToLimit, Is.EqualTo(new[] { urls[1] }));
+
+        Assert.That(capturedRequest, Is.Not.Null);
+        Assert.That(capturedRequest!.Headers.Contains("X-API-KEY"), Is.True);
+        var sent = JsonSerializer.Deserialize<FeedImportRequest>(capturedBody!);
+        Assert.That(sent!.Urls, Is.EqualTo(urls));
+    }
 }

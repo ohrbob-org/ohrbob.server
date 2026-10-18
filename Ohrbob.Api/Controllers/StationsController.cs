@@ -335,6 +335,24 @@ public class StationsController : ControllerBase
         }
     }
 
+    private static void AssignFeedColors(Station station)
+    {
+        for (int i = 0; i < station.Schedule.Feeds.Count; i++)
+        {
+            var feed = station.Schedule.Feeds[i];
+            if (string.IsNullOrEmpty(feed.Color))
+            {
+                var assignedColors = station.Schedule.Feeds
+                    .Select(f => f.Color)
+                    .Where(c => !string.IsNullOrEmpty(c))
+                    .ToHashSet();
+
+                var availableColor = StationFeedColors.FirstOrDefault(c => !assignedColors.Contains(c));
+                feed.Color = availableColor ?? StationFeedColors[i % StationFeedColors.Length];
+            }
+        }
+    }
+
     private async Task<bool> ValidateAndEnsureFeedsExistAsync(Station station)
     {
         if (station.Schedule == null) station.Schedule = new StationSchedule();
@@ -350,20 +368,7 @@ public class StationsController : ControllerBase
         }
 
         // Assign colors sequentially to feeds that do not have one
-        for (int i = 0; i < station.Schedule.Feeds.Count; i++)
-        {
-            var feed = station.Schedule.Feeds[i];
-            if (string.IsNullOrEmpty(feed.Color))
-            {
-                var assignedColors = station.Schedule.Feeds
-                    .Select(f => f.Color)
-                    .Where(c => !string.IsNullOrEmpty(c))
-                    .ToHashSet();
-
-                var availableColor = StationFeedColors.FirstOrDefault(c => !assignedColors.Contains(c));
-                feed.Color = availableColor ?? StationFeedColors[i % StationFeedColors.Length];
-            }
-        }
+        AssignFeedColors(station);
         
         // Sync Schedule back to Feeds array for backward compatibility with PlaybackStrategyHelper
         station.Feeds = station.Schedule.Feeds.Select(f => f.Url).ToArray();
@@ -421,6 +426,82 @@ public class StationsController : ControllerBase
         };
         var createdStation = await _stationsService.CreateAsync(station);
         return Ok(createdStation);
+    }
+
+    [EndpointSummary("Add feeds to an existing station")]
+    [EndpointDescription(@"Adds the given feed URLs to the station, skipping feeds that are already present or cannot be read and stopping at the station's feed limit. Returns what was added, skipped or invalid.")]
+    [Authorize(policy: Consts.UpdateStationPolicy)]
+    [HttpPost("{id}/feeds")]
+    public async Task<ActionResult<FeedImportResultDto>> AddFeeds(string id, [FromBody] FeedImportRequest request)
+    {
+        var station = await _stationsService.GetAsync(id);
+        if (station == null) return NotFound();
+
+        if (station.Schedule == null) station.Schedule = new StationSchedule();
+        if (station.Schedule.Feeds == null) station.Schedule.Feeds = new List<StationFeedSchedule>();
+
+        // Keep backward compatibility: migrate a legacy Feeds array into the schedule.
+        if (station.Feeds != null && station.Feeds.Any() && !station.Schedule.Feeds.Any())
+        {
+            foreach (var feedUrl in station.Feeds)
+                station.Schedule.Feeds.Add(new StationFeedSchedule { Url = feedUrl });
+        }
+
+        var result = new FeedImportResultDto();
+        var stationUrls = station.Schedule.Feeds.Select(f => f.Url).ToHashSet();
+        var requestedUrls = new HashSet<string>();
+
+        int? maxFeeds = null;
+        if (_accountService != null && _policy != null)
+        {
+            var account = await _accountService.GetAsync(station.AccountId);
+            var limits = _policy.For(account);
+            if (!TierLimits.IsUnlimited(limits.MaxFeedsPerStation))
+                maxFeeds = limits.MaxFeedsPerStation;
+        }
+
+        foreach (var rawUrl in request?.Urls ?? new List<string>())
+        {
+            var url = rawUrl?.Trim();
+            if (string.IsNullOrEmpty(url)) continue;
+
+            // Duplicates inside the request are ignored silently.
+            if (!requestedUrls.Add(url)) continue;
+
+            if (stationUrls.Contains(url))
+            {
+                result.AlreadyPresent.Add(url);
+                continue;
+            }
+
+            if (maxFeeds.HasValue && station.Schedule.Feeds.Count >= maxFeeds.Value)
+            {
+                result.NotAddedDueToLimit.Add(url);
+                continue;
+            }
+
+            var feed = await _feedsService.FindByUrlAsync(url);
+            if (feed == null)
+            {
+                feed = await _feedsService.ValidateAndParseFeedAsync(url);
+                if (feed == null)
+                {
+                    result.Invalid.Add(url);
+                    continue;
+                }
+                await _feedsService.CreateAsync(feed);
+            }
+
+            station.Schedule.Feeds.Add(new StationFeedSchedule { Url = url });
+            stationUrls.Add(url);
+            result.Added.Add(url);
+        }
+
+        station.Feeds = station.Schedule.Feeds.Select(f => f.Url).ToArray();
+        AssignFeedColors(station);
+        await _stationsService.UpdateAsync(station);
+
+        return Ok(result);
     }
 
     [EndpointSummary("Update station schedule only")]

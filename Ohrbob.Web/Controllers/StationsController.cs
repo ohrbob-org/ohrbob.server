@@ -391,6 +391,58 @@ public class StationsController : Controller
         return ToastSuccess($"Moved '{request.FeedTitle}' to '{destName}'");
     }
 
+    private const long MaxOpmlFileBytes = 2 * 1024 * 1024;
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ImportOpml(string id, IFormFile opml)
+    {
+        var accountId = GetAccountId();
+        if (string.IsNullOrEmpty(accountId)) return Forbid();
+
+        var station = await _stationsService.GetStationByIdAsync(id);
+        if (station == null || station.AccountId != accountId) return NotFound();
+
+        if (opml == null || opml.Length == 0)
+            return ToastError("Please choose an OPML file.", 422);
+
+        if (opml.Length > MaxOpmlFileBytes)
+            return ToastError("That OPML file is too large (max 2 MB).", 422);
+
+        List<string> urls;
+        try
+        {
+            await using var stream = opml.OpenReadStream();
+            urls = OpmlParser.ExtractFeedUrls(stream);
+        }
+        catch
+        {
+            return ToastError("That file is not a valid OPML document.", 422);
+        }
+
+        if (urls.Count == 0)
+            return ToastError("No feeds were found in that OPML file.", 422);
+
+        var result = await _stationsService.AddFeedsAsync(id, urls);
+        if (result == null)
+            return ToastError("The feeds could not be imported.", 422);
+
+        var message = BuildImportMessage(result);
+        return result.Added.Count > 0 ? ToastSuccess(message) : ToastError(message, 422);
+    }
+
+    private static string BuildImportMessage(Ohrbob.Server.Shared.Requests.FeedImportResultDto result)
+    {
+        var parts = new List<string>();
+        if (result.Added.Count > 0) parts.Add($"Imported {result.Added.Count}");
+        if (result.AlreadyPresent.Count > 0) parts.Add($"{result.AlreadyPresent.Count} already present");
+        if (result.Invalid.Count > 0) parts.Add($"{result.Invalid.Count} could not be read");
+        if (result.NotAddedDueToLimit.Count > 0) parts.Add($"{result.NotAddedDueToLimit.Count} skipped (feed limit reached)");
+
+        if (parts.Count == 0) return "No feeds were imported.";
+        return string.Join(", ", parts) + ".";
+    }
+
     private IActionResult ToastSuccess(string message)
     {
         Response.Headers["HX-Trigger"] = System.Text.Json.JsonSerializer.Serialize(

@@ -112,6 +112,18 @@ public class StationsApiService : OhrbobApiService
         response.EnsureSuccessStatusCode();
     }
 
+    public virtual async Task<Ohrbob.Server.Shared.Requests.FeedImportResultDto?> AddFeedsAsync(string stationId, IEnumerable<string> urls)
+    {
+        using var request = BuildRequest(HttpMethod.Post, $"/stations/{stationId}/feeds");
+        request.Content = new StringContent(
+            JsonSerializer.Serialize(new Ohrbob.Server.Shared.Requests.FeedImportRequest { Urls = urls.ToList() }),
+            Encoding.UTF8, "application/json");
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Ohrbob.Server.Shared.Requests.FeedImportResultDto>();
+    }
+
     public virtual async Task<List<Ohrbob.Server.Shared.Requests.EpisodePlayStateDto>?> GetStationPlaylistAsync(string id, string profileId)
     {
         using var request = BuildRequest(HttpMethod.Get, $"/stations/{id}/playlist?profileId={profileId}");

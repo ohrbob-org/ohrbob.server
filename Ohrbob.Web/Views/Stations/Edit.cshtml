@@ -195,12 +195,15 @@
         <div class="mt-4 d-flex align-items-center justify-content-center" style="gap: 12px;">
             Add more to Station:
         </div>
-        <div class="mt-1 mb-4 d-flex align-items-center justify-content-center" style="gap: 12px;">
+        <div class="mt-1 mb-4 d-flex align-items-center justify-content-center flex-wrap" style="gap: 12px;">
             <a href="/Discover" class="btn btn-primary d-inline-flex align-items-center">
                 <i class="bi bi-compass me-2"></i>Discover
             </a>
             <button type="button" class="btn btn-outline-secondary d-inline-flex align-items-center" id="manualAddBtn">
                 <i class="bi bi-plus-circle me-2"></i>Feed Url
+            </button>
+            <button type="button" class="btn btn-outline-secondary d-inline-flex align-items-center" id="importOpmlBtn">
+                <i class="bi bi-file-earmark-arrow-up me-2"></i>Import OPML
             </button>
         </div>
         
@@ -369,6 +372,32 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="submitManualAddBtn">Add Feed</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import OPML Modal -->
+<div class="modal fade" id="importOpmlModal" tabindex="-1" aria-labelledby="importOpmlModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importOpmlModalLabel">Import OPML</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-dark">
+                <div class="mb-3">
+                    <label for="opmlFileInput" class="form-label">OPML file</label>
+                    <input type="file" class="form-control" id="opmlFileInput" accept=".opml,.xml,text/xml,application/xml" />
+                    <div class="invalid-feedback" id="opmlErrorMsg">Please choose an OPML file.</div>
+                </div>
+                <p class="text-muted small mb-0">
+                    Every feed in the file is added to this station, up to your plan's feed limit.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submitOpmlBtn">Import</button>
             </div>
         </div>
     </div>
@@ -1042,6 +1071,9 @@
 
                 // Initialize move-feed functionality
                 window.initMoveFeed("@Model.Station.Id");
+
+                // Initialize OPML import
+                window.initOpmlImport("@Model.Station.Id");
             }
 
             if (typeof bootstrap !== 'undefined') {

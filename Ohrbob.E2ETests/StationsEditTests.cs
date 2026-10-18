@@ -523,4 +523,96 @@ public class StationsEditTests : PageTest
         await row2.Locator(".move-feed").ClickAsync();
         await Expect(Page.Locator("#moveFeedStationList")).ToContainTextAsync("Brand New Station", new() { Timeout = 10000 });
     }
+
+    [Test]
+    public async Task Can_Import_Feeds_From_An_Opml_File()
+    {
+        var url = _factory.ServerAddress;
+        var stationsService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.StationsApiService>();
+
+        var feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../example_feeds.txt");
+        if (!File.Exists(feedPath))
+            feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../../example_feeds.txt");
+        var feeds = await File.ReadAllLinesAsync(feedPath);
+        var existingFeed = feeds.First(l => !string.IsNullOrWhiteSpace(l));
+        var newFeed = feeds.Skip(1).First(l => !string.IsNullOrWhiteSpace(l));
+
+        var station = await stationsService.CreateStationAsync(_testAccountId, new Station
+        {
+            AccountId = _testAccountId,
+            Name = "OPML Import Station",
+            Feeds = new[] { existingFeed }
+        });
+
+        // The OPML contains one feed the station already has and one new feed.
+        var opmlPath = Path.Combine(Path.GetTempPath(), $"ohrbob-subs-{Guid.NewGuid():N}.opml");
+        await File.WriteAllTextAsync(opmlPath, $@"<?xml version=""1.0"" encoding=""UTF-8""?>
+<opml version=""2.0"">
+  <head><title>Test Subscriptions</title></head>
+  <body>
+    <outline text=""Existing"" type=""rss"" xmlUrl=""{existingFeed}"" />
+    <outline text=""New"" type=""rss"" xmlUrl=""{newFeed}"" />
+  </body>
+</opml>");
+
+        try
+        {
+            await Page.GotoAsync($"{url}/Stations/Edit/{station!.Id}");
+            await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+            await Expect(Page.Locator("#rotationContainer .rotation-item")).ToHaveCountAsync(1, new() { Timeout = 10000 });
+
+            await Page.ClickAsync("#importOpmlBtn");
+            await Expect(Page.Locator("#importOpmlModal")).ToBeVisibleAsync();
+            await Page.SetInputFilesAsync("#opmlFileInput", opmlPath);
+            await Page.ClickAsync("#submitOpmlBtn");
+
+            await Expect(Page.Locator("#toast-body-text")).ToContainTextAsync("Imported 1", new() { Timeout = 60000 });
+            await Expect(Page.Locator("#rotationContainer .rotation-item")).ToHaveCountAsync(2, new() { Timeout = 60000 });
+
+            // The modal closed and we stayed on the edit page (playback untouched).
+            await Expect(Page.Locator("#importOpmlModal")).Not.ToBeVisibleAsync();
+            Assert.That(Page.Url, Does.Contain("/Stations/Edit/"));
+        }
+        finally
+        {
+            File.Delete(opmlPath);
+        }
+    }
+
+    [Test]
+    public async Task ImportOpml_ShowsA_Toast_When_The_File_Is_Not_An_Opml()
+    {
+        var url = _factory.ServerAddress;
+        var stationsService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.StationsApiService>();
+
+        var station = await stationsService.CreateStationAsync(_testAccountId, new Station
+        {
+            AccountId = _testAccountId,
+            Name = "Invalid OPML Station",
+            Feeds = Array.Empty<string>()
+        });
+
+        var badFile = Path.Combine(Path.GetTempPath(), $"ohrbob-bad-{Guid.NewGuid():N}.opml");
+        await File.WriteAllTextAsync(badFile, "<html><body>this is not an opml file</body></html>");
+
+        try
+        {
+            await Page.GotoAsync($"{url}/Stations/Edit/{station!.Id}");
+            await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+
+            await Page.ClickAsync("#importOpmlBtn");
+            await Expect(Page.Locator("#importOpmlModal")).ToBeVisibleAsync();
+            await Page.SetInputFilesAsync("#opmlFileInput", badFile);
+            await Page.ClickAsync("#submitOpmlBtn");
+
+            await Expect(Page.Locator("#toast-body-text")).ToContainTextAsync("not a valid OPML", new() { Timeout = 15000 });
+            // The modal stays open so the user can pick another file.
+            await Expect(Page.Locator("#importOpmlModal")).ToBeVisibleAsync();
+            await Expect(Page.Locator("#rotationContainer .rotation-item")).ToHaveCountAsync(0);
+        }
+        finally
+        {
+            File.Delete(badFile);
+        }
+    }
 }
