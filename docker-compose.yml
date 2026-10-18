@@ -8,6 +8,23 @@ services:
     volumes:
       - mongodb_data:/data/db
 
+  # Throwaway fake podcast host used by the Ohrbob.E2ETests playback-order tests
+  # (see testdata/ohrbob-testcasts). It is not required for normal development.
+  # Pulled from Docker Hub (kaiwegner/ohrbob.testcasts). To use a local build
+  # instead, build it and override the image:
+  #   (cd ../ohrbob-testcasts && docker build -t podcast-testcasts .)
+  #   TESTCASTS_IMAGE=podcast-testcasts docker compose up -d testcasts
+  # Stop any standalone podcast-testcasts container first: it would clash on the
+  # host port below.
+  # The Api/Player reach it as http://testcasts:5004; the host reaches it at
+  # http://localhost:${TESTCASTS_PORT:-5004}. Run the E2E tests with
+  # OHRBOB_TESTCASTS_FEED_URL=http://testcasts:5004 so stored feed URLs point here.
+  testcasts:
+    image: ${TESTCASTS_IMAGE:-kaiwegner/ohrbob.testcasts:latest}
+    container_name: ohrbob-testcasts
+    ports:
+      - "${TESTCASTS_PORT:-5004}:5004"
+
   ohrbob.api:
     image: ${DOCKER_REGISTRY-}ohrbob.api:${RELEASE_TAG:-beta}
     build:

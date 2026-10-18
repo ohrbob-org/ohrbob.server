@@ -54,6 +54,7 @@
         let prevEpisodeData = null;
         let lastConnectionErrorTime = 0;
         let activeStationId = null;
+        let navigating = false;
         const PREV_RESTART_THRESHOLD_SECONDS = 5;
 
         const toCard = (ep) => {
@@ -390,28 +391,36 @@
         };
 
         audio.onended = async () => {
-            if (nextEpisodeData && nextEpisodeData.streamUri) {
-                currentEpisodeData = nextEpisodeData;
-                widget.setAttribute('track', currentEpisodeData.title);
-                if (currentEpisodeData.coverUrl) widget.setAttribute('cover', currentEpisodeData.coverUrl);
-                
-                const fullStreamUri = currentEpisodeData.streamUri;
-                window._ohrbobCurrentLoadedUri = fullStreamUri;
-                audio.src = fullStreamUri;
-                audio.currentTime = 0;
-                
-                const playPromise = audio.play();
-                if (playPromise !== undefined) {
-                    playPromise.catch(e => console.error('Play blocked or failed:', e));
+            navigating = true;
+            try
+            {
+                if (nextEpisodeData && nextEpisodeData.streamUri) {
+                    currentEpisodeData = nextEpisodeData;
+                    widget.setAttribute('track', currentEpisodeData.title);
+                    if (currentEpisodeData.coverUrl) widget.setAttribute('cover', currentEpisodeData.coverUrl);
+                    
+                    const fullStreamUri = currentEpisodeData.streamUri;
+                    window._ohrbobCurrentLoadedUri = fullStreamUri;
+                    audio.src = fullStreamUri;
+                    audio.currentTime = 0;
+                    
+                    const playPromise = audio.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(e => console.error('Play blocked or failed:', e));
+                    }
+                    
+                    await apiCall('/stream/next', 'POST');
+                    
+                    const state = await apiCall('/stream/status');
+                    if (state) applyStateToWidget(state);
+                } else {
+                    widget.isPlaying = false;
+                    updatePlayButton();
                 }
-                
-                await apiCall('/stream/next', 'POST');
-                
-                const state = await apiCall('/stream/status');
-                if (state) applyStateToWidget(state);
-            } else {
-                widget.isPlaying = false;
-                updatePlayButton();
+            }
+            finally
+            {
+                navigating = false;
             }
         };
 
@@ -419,36 +428,52 @@
         // Persists the selection server-side so /stream/next stays consistent.
         const playEpisodeDirect = async (episode) => {
             if (!episode || !episode.streamUri || !activeStationId) return;
-            clearUserPaused(); // explicit user action: play this episode
-            currentEpisodeData = episode;
-            widget.setAttribute('track', episode.title || '');
-            widget.setAttribute('artist', episode.artist || '');
-            if (episode.coverUrl) widget.setAttribute('cover', episode.coverUrl);
-            else widget.removeAttribute('cover');
-            applyStationLink(activeStationId);
-            applyEpisodeCards();
+            navigating = true;
+            try
+            {
+                clearUserPaused(); // explicit user action: play this episode
+                currentEpisodeData = episode;
+                widget.setAttribute('track', episode.title || '');
+                widget.setAttribute('artist', episode.artist || '');
+                if (episode.coverUrl) widget.setAttribute('cover', episode.coverUrl);
+                else widget.removeAttribute('cover');
+                applyStationLink(activeStationId);
+                applyEpisodeCards();
 
-            const fullStreamUri = episode.streamUri;
-            window._ohrbobCurrentLoadedUri = fullStreamUri;
-            audio.src = fullStreamUri;
-            audio.currentTime = episode.playheadPositionSeconds || 0;
-            try { await audio.play(); widget.isPlaying = true; } catch (e) { widget.isPlaying = false; }
-            updatePlayButton();
+                const fullStreamUri = episode.streamUri;
+                window._ohrbobCurrentLoadedUri = fullStreamUri;
+                audio.src = fullStreamUri;
+                audio.currentTime = episode.playheadPositionSeconds || 0;
+                try { await audio.play(); widget.isPlaying = true; } catch (e) { widget.isPlaying = false; }
+                updatePlayButton();
 
-            await apiCall('/stream/status', 'POST', {
-                episodeId: episode.episodeId,
-                stationId: activeStationId,
-                positionSeconds: Math.floor(audio.currentTime)
-            });
-            // Refresh to get the new next episode for the cards
-            const state = await apiCall('/stream/status');
-            if (state) applyStateToWidget(state);
+                await apiCall('/stream/status', 'POST', {
+                    episodeId: episode.episodeId,
+                    stationId: activeStationId,
+                    positionSeconds: Math.floor(audio.currentTime)
+                });
+                // Refresh to get the new next episode for the cards
+                const state = await apiCall('/stream/status');
+                if (state) applyStateToWidget(state);
+            }
+            finally
+            {
+                navigating = false;
+            }
         };
 
         const goToNext = async () => {
-            clearUserPaused(); // explicit user action
-            await apiCall('/stream/next', 'POST');
-            await syncState();
+            navigating = true;
+            try
+            {
+                clearUserPaused(); // explicit user action
+                await apiCall('/stream/next', 'POST');
+                await syncState();
+            }
+            finally
+            {
+                navigating = false;
+            }
         };
 
         const goToPrev = async () => {
@@ -458,9 +483,17 @@
                 updateMediaSessionPosition();
                 return;
             }
-            clearUserPaused(); // explicit user action
-            await apiCall('/stream/prev', 'POST');
-            await syncState();
+            navigating = true;
+            try
+            {
+                clearUserPaused(); // explicit user action
+                await apiCall('/stream/prev', 'POST');
+                await syncState();
+            }
+            finally
+            {
+                navigating = false;
+            }
         };
         window._ohrbobGoToNext = goToNext;
         window._ohrbobGoToPrev = goToPrev;
@@ -580,11 +613,18 @@
         setupMediaSessionActionHandlers();
         syncState();
         
-        window._ohrbobSyncInterval = setInterval(() => {
+        window._ohrbobSyncInterval = setInterval(async () => {
             if (widget.isPlaying && currentEpisodeData && activeStationId) {
-                reportPlayhead();
+                // Persist the playhead, then refresh the queue (next/prev). This keeps the
+                // upcoming episode in sync with the server even when the schedule changed or a
+                // feed finished compiling without any explicit page interaction. Skipped while a
+                // track transition (ended/next/prev/jump) is in flight to avoid a stale current.
+                await reportPlayhead();
+                if (!navigating) {
+                    await syncState();
+                }
             } else if (!currentEpisodeData) {
-                syncState();
+                await syncState();
             }
         }, 10000);
 

@@ -606,6 +606,11 @@
                         if (newMoveList && document.getElementById('moveFeedStationList')) {
                             document.getElementById('moveFeedStationList').innerHTML = newMoveList.innerHTML;
                         }
+
+                        // The schedule (feed set / per-feed playback order / spans) just changed
+                        // server-side. Tell the audio widget to re-read /stream/status so its
+                        // "up next"/"previous" reflect the new order without interrupting playback.
+                        document.body.dispatchEvent(new CustomEvent('playerSync'));
                     });
             };
 
