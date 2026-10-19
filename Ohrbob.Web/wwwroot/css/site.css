@@ -565,18 +565,6 @@ header {
 [data-bs-theme=dark] .text-warning { color: var(--bs-warning-text-emphasis) !important; }
 [data-bs-theme=dark] .text-danger { color: var(--bs-danger-text-emphasis) !important; }
 
-/* Outline buttons using the brand secondary (violet) need lighter ink. */
-[data-bs-theme=dark] .btn-outline-secondary {
-    --bs-btn-color: var(--bs-secondary-text-emphasis);
-    --bs-btn-border-color: var(--bs-secondary-text-emphasis);
-    --bs-btn-hover-color: #10131a;
-    --bs-btn-hover-bg: var(--bs-secondary-text-emphasis);
-    --bs-btn-hover-border-color: var(--bs-secondary-text-emphasis);
-    --bs-btn-active-color: #10131a;
-    --bs-btn-active-bg: var(--bs-secondary-text-emphasis);
-    --bs-btn-active-border-color: var(--bs-secondary-text-emphasis);
-}
-
 /* Floating glass navigation bar. */
 [data-bs-theme=dark] .floating-nav-pill {
     background: rgba(33, 37, 41, 0.85);
@@ -674,6 +662,7 @@ header {
     border-color: rgba(255, 255, 255, 0.08);
 }
 [data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .episode-nav-card .episode-nav-label,
+[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .episode-nav-card .episode-nav-title,
 [data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .episode-nav-card .episode-nav-artist { color: rgba(255, 255, 255, 0.6); }
 
 /* Collage gaps + the "add station" circle. */
@@ -694,4 +683,57 @@ header {
     --bs-btn-active-color: var(--bs-body-bg);
     --bs-btn-active-bg: var(--bs-body-color);
     --bs-btn-active-border-color: var(--bs-body-color);
+}
+
+/* Player: the mute + settings buttons and the expanded backdrop are not covered
+   by .btn-glass, so they kept their hard-coded navy ink on the dark widget. */
+[data-bs-theme=dark] .audio-widget .audio-volume-group .btn-mute,
+[data-bs-theme=dark] .audio-widget .btn-menu { color: rgba(255, 255, 255, 0.7); }
+[data-bs-theme=dark] .audio-widget .audio-volume-group .btn-mute:hover,
+[data-bs-theme=dark] .audio-widget .btn-menu:hover { background: rgba(255, 255, 255, 0.1); }
+[data-bs-theme=dark] .audio-widget .audio-expanded-backdrop { background: rgba(8, 10, 14, 0.6); }
+
+/* Previous/next episode card title (the label + artist were themed, the title was not). */
+[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .episode-nav-card .episode-nav-title { color: #f1f3f5; }
+
+/* Player: the primary (play) glass button's orange ink on its orange-tinted
+   dark surface was too low-contrast; brighten the ink and the tint. */
+[data-bs-theme=dark] .btn-glass-primary {
+    background: rgba(252, 93, 0, 0.25);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #ffb27a;
+}
+[data-bs-theme=dark] .btn-glass-primary:hover { background: rgba(252, 93, 0, 0.4); color: #ffd6b0; }
+
+/* Outline buttons: the brand colours are tuned for light surfaces, so on dark
+   their ink/border needs the (lighter) dark-mode emphasis colour. */
+[data-bs-theme=dark] .btn-outline-primary {
+    --bs-btn-color: var(--bs-primary-text-emphasis); --bs-btn-border-color: var(--bs-primary-text-emphasis);
+    --bs-btn-hover-color: #10131a; --bs-btn-hover-bg: var(--bs-primary-text-emphasis); --bs-btn-hover-border-color: var(--bs-primary-text-emphasis);
+    --bs-btn-active-color: #10131a; --bs-btn-active-bg: var(--bs-primary-text-emphasis); --bs-btn-active-border-color: var(--bs-primary-text-emphasis);
+}
+[data-bs-theme=dark] .btn-outline-secondary {
+    --bs-btn-color: var(--bs-secondary-text-emphasis); --bs-btn-border-color: var(--bs-secondary-text-emphasis);
+    --bs-btn-hover-color: #10131a; --bs-btn-hover-bg: var(--bs-secondary-text-emphasis); --bs-btn-hover-border-color: var(--bs-secondary-text-emphasis);
+    --bs-btn-active-color: #10131a; --bs-btn-active-bg: var(--bs-secondary-text-emphasis); --bs-btn-active-border-color: var(--bs-secondary-text-emphasis);
+}
+[data-bs-theme=dark] .btn-outline-success {
+    --bs-btn-color: var(--bs-success-text-emphasis); --bs-btn-border-color: var(--bs-success-text-emphasis);
+    --bs-btn-hover-color: #10131a; --bs-btn-hover-bg: var(--bs-success-text-emphasis); --bs-btn-hover-border-color: var(--bs-success-text-emphasis);
+    --bs-btn-active-color: #10131a; --bs-btn-active-bg: var(--bs-success-text-emphasis); --bs-btn-active-border-color: var(--bs-success-text-emphasis);
+}
+[data-bs-theme=dark] .btn-outline-info {
+    --bs-btn-color: var(--bs-info-text-emphasis); --bs-btn-border-color: var(--bs-info-text-emphasis);
+    --bs-btn-hover-color: #10131a; --bs-btn-hover-bg: var(--bs-info-text-emphasis); --bs-btn-hover-border-color: var(--bs-info-text-emphasis);
+    --bs-btn-active-color: #10131a; --bs-btn-active-bg: var(--bs-info-text-emphasis); --bs-btn-active-border-color: var(--bs-info-text-emphasis);
+}
+[data-bs-theme=dark] .btn-outline-warning {
+    --bs-btn-color: var(--bs-warning-text-emphasis); --bs-btn-border-color: var(--bs-warning-text-emphasis);
+    --bs-btn-hover-color: #10131a; --bs-btn-hover-bg: var(--bs-warning-text-emphasis); --bs-btn-hover-border-color: var(--bs-warning-text-emphasis);
+    --bs-btn-active-color: #10131a; --bs-btn-active-bg: var(--bs-warning-text-emphasis); --bs-btn-active-border-color: var(--bs-warning-text-emphasis);
+}
+[data-bs-theme=dark] .btn-outline-danger {
+    --bs-btn-color: var(--bs-danger-text-emphasis); --bs-btn-border-color: var(--bs-danger-text-emphasis);
+    --bs-btn-hover-color: #10131a; --bs-btn-hover-bg: var(--bs-danger-text-emphasis); --bs-btn-hover-border-color: var(--bs-danger-text-emphasis);
+    --bs-btn-active-color: #10131a; --bs-btn-active-bg: var(--bs-danger-text-emphasis); --bs-btn-active-border-color: var(--bs-danger-text-emphasis);
 }

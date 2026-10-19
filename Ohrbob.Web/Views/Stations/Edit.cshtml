@@ -58,7 +58,7 @@
 }
 .pill-nav {
     display: flex;
-    background: #e9ecef;
+    background: var(--bs-secondary-bg);
     border-radius: 50px;
     padding: 5px;
     margin-bottom: 20px;
@@ -116,7 +116,7 @@
             if (feedData != null)
             {
                 var currentFeedIndex = feedScheduleIndex++;
-                <div class="list-group-item rotation-item border rounded mb-2 d-flex align-items-stretch" draggable="true" data-url="@feedSchedule.Url" style="cursor: grab; border-left: 4px solid @(string.IsNullOrEmpty(feedSchedule.Color) ? "#ccc" : feedSchedule.Color) !important; background-color: @(string.IsNullOrEmpty(feedSchedule.Color) ? "#fff" : feedSchedule.Color + "26") !important; padding: 0; overflow: visible; height: 90px; max-height: 90px;">
+                <div class="list-group-item rotation-item border rounded mb-2 d-flex align-items-stretch" draggable="true" data-url="@feedSchedule.Url" style="cursor: grab; border-left: 4px solid @(string.IsNullOrEmpty(feedSchedule.Color) ? "#ccc" : feedSchedule.Color) !important; background-color: @(string.IsNullOrEmpty(feedSchedule.Color) ? "var(--bs-body-bg)" : feedSchedule.Color + "26") !important; padding: 0; overflow: visible; height: 90px; max-height: 90px;">
                     <img src="@feedData.ImageUrl" style="width: 90px; height: 90px; object-fit: cover; flex-shrink: 0; border-top-left-radius: .375rem; border-bottom-left-radius: .375rem;" />
                     <div class="d-flex flex-column justify-content-between flex-grow-1 py-2 px-3" style="min-height: 90px; max-height: 90px; overflow: hidden;">
                         <!-- Row 1: Feed Title (Top) -->
@@ -135,7 +135,7 @@
                                 }
                                 <div class="playback-order-toggle-container d-inline-flex flex-column align-items-center" style="width: 100px;">
                                      <div class="position-relative bg-body-secondary border rounded-pill d-flex align-items-center justify-content-between user-select-none"
-                                          style="width: 100%; height: 26px; padding: 2px; background-color:#e8ebee !important; border: 1px solid #ced4da; cursor: pointer;"
+                                          style="width: 100%; height: 26px; padding: 2px; cursor: pointer;"
                                           id="sliderTrack-@currentFeedIndex" role="slider" aria-valuemin="0" aria-valuemax="2" aria-valuenow="@activeValue">
                                           
                                           <div class="slider-thumb-container bg-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm"
@@ -459,7 +459,7 @@
             </div>
             <div class="modal-body text-body">
                 <p>Are you sure you want to mark the following episodes as completed?</p>
-                <div style="max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px;">
+                <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--bs-border-color); border-radius: 4px;">
                     <ul class="list-group list-group-flush" id="episodesToMarkList">
                         <!-- Populated dynamically via JS -->
                     </ul>
@@ -502,7 +502,7 @@
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to clear the completed state for all episodes up to and including this one?</p>
-                <div style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px;">
+                <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--bs-border-color); border-radius: 4px;">
                     <ul class="list-group list-group-flush" id="episodesToClearList">
                         <!-- Populated dynamically via JS -->
                     </ul>

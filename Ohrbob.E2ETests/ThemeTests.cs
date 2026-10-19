@@ -113,64 +113,167 @@ public class ThemeTests : PageTest
     private async Task<string?> CurrentThemeAsync() =>
         await Page.EvaluateAsync<string?>("() => document.documentElement.getAttribute('data-bs-theme')");
 
-    // Task 3: in dark mode no text may be dark-on-dark (unreadable).
+    // Task 3: in dark mode no visible text or icon control may be unreadable (either
+    // dark-on-dark or, on a stray light surface, light-on-light).
     [Test]
-    public async Task Theme_Dark_HasNoUnreadableDarkOnDarkText()
+    public async Task Theme_Dark_HasNoUnreadableTextOrControls()
     {
+        if (!await TestCasts.IsAvailableAsync())
+        {
+            Assert.Ignore($"podcast-testcasts is not reachable at {TestCasts.ConfigureBaseUrl}.");
+        }
+
+        var slug = $"{Guid.NewGuid():N}";
+        await TestCasts.ConfigureAsync(new TestCastPodcast(slug, "Theme Feed", new[]
+        {
+            new TestCastEpisode("Theme Episode", $"{slug}-1.mp3"),
+        }));
+
         var stations = _factory.Services.GetRequiredService<StationsApiService>();
         var station = await stations.CreateStationAsync(_accountId, new Station
         {
             AccountId = _accountId,
             Name = "Theme Station",
-            Feeds = Array.Empty<string>()
+            Feeds = new[] { TestCasts.FeedUrl(slug) }
         });
         var profiles = _factory.Services.GetRequiredService<ProfilesApiService>();
         await profiles.AddStationToProfileAsync(_profileId, station!.Id);
+        await WaitForEpisodesAsync(station.Id, 1);
 
-        await Page.EmulateMediaAsync(new() { ColorScheme = ColorScheme.Light }); // the saved cookie must win
+        // An explicit saved cookie must win over the OS preference.
+        await Page.EmulateMediaAsync(new() { ColorScheme = ColorScheme.Light });
         await Context.AddCookiesAsync(new[]
         {
             new Cookie { Name = "ohrbob_theme", Value = "dark", Url = _factory.ServerAddress }
         });
 
-        foreach (var path in new[] { "/Account", "/" })
+        await AssertNoContrastIssuesAsync("/");
+        await AssertNoContrastIssuesAsync("/Account");
+        await AssertNoContrastIssuesAsync($"/Stations/Edit/{station.Id}");
+
+        // The expanded player (bottom bar + slide-up card).
+        await Page.GotoAsync(_factory.ServerAddress);
+        await Page.EvaluateAsync("() => { document.getElementById('ohrbob-player').isExpanded = true; }");
+        await Page.WaitForTimeoutAsync(400);
+        AssertNoContrastIssues(await Page.EvaluateAsync<string[]>(ContrastScript), "expanded player");
+
+        // The anonymous landing page (which carries its own inline styles).
+        TestAuthHandler.IsAuthenticated = false;
+        try
         {
-            await Page.GotoAsync(_factory.ServerAddress + path);
-            Assert.That(await CurrentThemeAsync(), Is.EqualTo("dark"));
-            var offenders = await Page.EvaluateAsync<string[]>(DarkOnDarkScript);
-            Assert.That(offenders, Is.Empty,
-                $"Unreadable (dark-on-dark) text in dark mode on {path}:\n  {string.Join("\n  ", offenders)}");
+            await AssertNoContrastIssuesAsync("/");
+        }
+        finally
+        {
+            TestAuthHandler.IsAuthenticated = true;
         }
     }
 
-    private const string DarkOnDarkScript = @"() => {
-        const luma = (rgb) => {
+    [Test]
+    public async Task Theme_GarbageCookieFallsBackToSystem()
+    {
+        await Page.EmulateMediaAsync(new() { ColorScheme = ColorScheme.Dark });
+        await Context.AddCookiesAsync(new[]
+        {
+            new Cookie { Name = "ohrbob_theme", Value = "purple", Url = _factory.ServerAddress }
+        });
+
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        Assert.That(await CurrentThemeAsync(), Is.EqualTo("dark"),
+            "An unknown saved value must fall back to the system preference");
+    }
+
+    /// <summary>Locks in the no-flash-of-wrong-theme property: the script must be in
+    /// &lt;head&gt;, before the stylesheets, and run synchronously.</summary>
+    [Test]
+    public async Task Theme_ScriptRunsInHeadBeforeStylesheets()
+    {
+        await Page.GotoAsync(_factory.ServerAddress);
+        var html = await Page.ContentAsync();
+
+        var scriptIdx = html.IndexOf("/js/theme.js", StringComparison.Ordinal);
+        var cssIdx = html.IndexOf("/css/theme.css", StringComparison.Ordinal);
+        Assert.That(scriptIdx, Is.GreaterThan(-1), "theme.js must be referenced");
+        Assert.That(cssIdx, Is.GreaterThan(-1), "theme.css must be referenced");
+        Assert.That(scriptIdx, Is.LessThan(cssIdx),
+            "theme.js must load before the stylesheets so the theme is applied before paint");
+
+        var tagStart = html.LastIndexOf("<script", scriptIdx, StringComparison.Ordinal);
+        var tag = html.Substring(tagStart, scriptIdx - tagStart);
+        Assert.That(tag, Does.Not.Contain("defer").And.Not.Contain("async"),
+            "theme.js must run synchronously (not defer/async)");
+    }
+
+    private async Task AssertNoContrastIssuesAsync(string path)
+    {
+        await Page.GotoAsync(_factory.ServerAddress + path);
+        Assert.That(await CurrentThemeAsync(), Is.EqualTo("dark"), $"Expected the dark theme on {path}");
+        AssertNoContrastIssues(await Page.EvaluateAsync<string[]>(ContrastScript), path);
+    }
+
+    private static void AssertNoContrastIssues(string[] offenders, string label) =>
+        Assert.That(offenders, Is.Empty,
+            $"Unreadable text/controls in dark mode ({label}):\n  {string.Join("\n  ", offenders)}");
+
+    private async Task WaitForEpisodesAsync(string stationId, int minimum)
+    {
+        var stations = _factory.Services.GetRequiredService<StationsApiService>();
+        var deadline = DateTime.UtcNow.AddSeconds(60);
+        while (DateTime.UtcNow < deadline)
+        {
+            var details = await stations.GetStationDetailsByIdAsync(stationId);
+            var count = details?.Feeds?.Sum(f => f.EpisodeCount) ?? 0;
+            if (count >= minimum) return;
+            await Task.Delay(500);
+        }
+        Assert.Fail($"Feed episodes were not parsed within the timeout (station {stationId}).");
+    }
+
+    // Composites translucent backgrounds/text colours over their ancestors so a
+    // subtle white-on-dark surface is not mistaken for a light one.
+    private const string ContrastScript = @"() => {
+        const parse = (rgb) => {
             const m = rgb.match(/[\d.]+/g);
-            if (!m) return 1;
-            return (0.2126 * (+m[0]) + 0.7152 * (+m[1]) + 0.0722 * (+m[2])) / 255;
+            if (!m) return { r: 0, g: 0, b: 0, a: 0 };
+            return { r: +m[0], g: +m[1], b: +m[2], a: m.length > 3 ? +m[3] : 1 };
         };
+        const luma = (c) => (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b) / 255;
         const effectiveBg = (el) => {
+            const chain = [];
             let node = el;
-            while (node && node.nodeType === 1) {
-                const bg = getComputedStyle(node).backgroundColor;
-                const alpha = bg.startsWith('rgba') ? parseFloat(bg.split(',')[3]) : 1;
-                if (bg !== 'transparent' && alpha > 0.05) return bg;
-                node = node.parentElement;
+            while (node && node.nodeType === 1) { chain.push(node); node = node.parentElement; }
+            let acc = { r: 255, g: 255, b: 255 };
+            for (let i = chain.length - 1; i >= 0; i--) {
+                const c = parse(getComputedStyle(chain[i]).backgroundColor);
+                if (c.a <= 0) continue;
+                acc = { r: c.r * c.a + acc.r * (1 - c.a), g: c.g * c.a + acc.g * (1 - c.a), b: c.b * c.a + acc.b * (1 - c.a) };
             }
-            return 'rgb(255,255,255)';
+            return acc;
         };
         const offenders = [];
         document.querySelectorAll('body *').forEach((el) => {
             if (el instanceof SVGElement) return;
             const direct = Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent.trim().length > 0);
-            if (!direct) return;
+            const isControl = el.matches('button, a, .btn, [role=""button""], [role=""slider""]');
+            if (!direct && !isControl) return;
             const cs = getComputedStyle(el);
             if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) === 0) return;
-            const bg = luma(effectiveBg(el));
-            const fg = luma(cs.color);
-            if (bg < 0.4 && fg < 0.45) {
+            const rect = el.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+
+            const bg = effectiveBg(el);
+            const fgColor = parse(cs.color);
+            const fg = {
+                r: fgColor.r * fgColor.a + bg.r * (1 - fgColor.a),
+                g: fgColor.g * fgColor.a + bg.g * (1 - fgColor.a),
+                b: fgColor.b * fgColor.a + bg.b * (1 - fgColor.a)
+            };
+            const bl = luma(bg);
+            const fl = luma(fg);
+            if ((bl < 0.4 && fl < 0.45) || (bl > 0.6 && fl > 0.55)) {
                 const cls = typeof el.className === 'string' ? el.className : '';
-                offenders.push(el.tagName + '.' + cls + ' (fg=' + fg.toFixed(2) + ', bg=' + bg.toFixed(2) + ')');
+                offenders.push(el.tagName + '.' + cls + ' (fg=' + fl.toFixed(2) + ', bg=' + bl.toFixed(2) + ')');
             }
         });
         return offenders.slice(0, 25);

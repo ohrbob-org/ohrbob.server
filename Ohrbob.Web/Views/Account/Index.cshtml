@@ -84,6 +84,7 @@ else
 <!-- Appearance / theme settings -->
 @{
     var themeMode = Context.Request.Cookies["ohrbob_theme"];
+    if (!string.IsNullOrEmpty(themeMode)) { themeMode = Uri.UnescapeDataString(themeMode); }
     if (themeMode != "light" && themeMode != "dark") { themeMode = "system"; }
 }
 <div class="card mt-4" id="appearanceCard">
