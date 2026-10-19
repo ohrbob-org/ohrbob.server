@@ -682,3 +682,16 @@ header {
 [data-bs-theme=dark] .discover-plus-circle i { color: rgba(255, 255, 255, 0.75); }
 [data-bs-theme=dark] .discover-plus-circle:hover { background-color: var(--bs-primary); }
 [data-bs-theme=dark] .discover-plus-circle:hover i { color: #fff; }
+
+/* Landing page: the neutral outline button uses the navy "--bs-dark", which
+   disappears on dark surfaces. */
+[data-bs-theme=dark] .btn-outline-dark {
+    --bs-btn-color: var(--bs-body-color);
+    --bs-btn-border-color: var(--bs-body-color);
+    --bs-btn-hover-color: var(--bs-body-bg);
+    --bs-btn-hover-bg: var(--bs-body-color);
+    --bs-btn-hover-border-color: var(--bs-body-color);
+    --bs-btn-active-color: var(--bs-body-bg);
+    --bs-btn-active-bg: var(--bs-body-color);
+    --bs-btn-active-border-color: var(--bs-body-color);
+}
