@@ -311,6 +311,67 @@ public class StationsControllerTests
     }
 
     [Test]
+    public async Task GetPlaylist_ReturnsAllEpisodes_WithoutTruncation()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var stationId = Guid.NewGuid().ToString();
+        var profileId = Guid.NewGuid().ToString();
+
+        var stationsService = _app.Services.GetRequiredService<Ohrbob.Api.Services.StationsService>();
+        var profilesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ProfilesService>();
+        var episodesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.EpisodesService>();
+
+        var feedUrl = "https://test.feed/large";
+        var station = new Station
+        {
+            Id = stationId,
+            Name = "Large Station",
+            AccountId = accountId,
+            Feeds = new[] { feedUrl }
+        };
+        var createdStation = await stationsService.CreateAsync(station);
+
+        var profile = new Profile
+        {
+            Id = profileId,
+            AccountId = accountId,
+            LastActiveStationId = createdStation.Id,
+            LastActiveEpisodeId = null
+        };
+        var createdProfile = await profilesService.CreateAsync(profile);
+
+        // A feed with well over the old 50-item cap. The Edit view must show every episode.
+        const int episodeCount = 120;
+        var baseDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        for (var i = 0; i < episodeCount; i++)
+        {
+            await episodesService.CreateAsync(new Episode
+            {
+                Guid = $"large-guid-{i:D3}",
+                FeedId = "large-feed",
+                FeedUrl = feedUrl,
+                Title = $"Episode {i:D3}",
+                PublishedAt = baseDate.AddDays(i)
+            });
+        }
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/stations/{createdStation.Id}/playlist?profileId={createdProfile.Id}");
+        request.Headers.Add("X-API-KEY", _testApiKey);
+
+        var res = await _client.SendAsync(request);
+        Assert.That(res.IsSuccessStatusCode, Is.True);
+
+        var playlist = await res.Content.ReadFromJsonAsync<List<EpisodePlayStateDto>>();
+        Assert.That(playlist, Is.Not.Null);
+        Assert.That(playlist!.Count, Is.EqualTo(episodeCount),
+            "The playlist must contain every episode, not a truncated window");
+
+        // Default order is oldest -> newest.
+        Assert.That(playlist[0].Episode.Title, Is.EqualTo("Episode 000"));
+        Assert.That(playlist[^1].Episode.Title, Is.EqualTo("Episode 119"));
+    }
+
+    [Test]
     public async Task GetCompletedPlaylist_Works()
     {
         var accountId = Guid.NewGuid().ToString();

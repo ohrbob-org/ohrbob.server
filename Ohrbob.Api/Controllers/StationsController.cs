@@ -168,24 +168,11 @@ public class StationsController : ControllerBase
                 IsCompleted = listenedIds.Contains(ep.Id)
             });
         }
-        
-        // Window the results to ensure the active playhead and upcoming episodes are always visible
-        var finalResult = result;
-        var activeIndex = result.FindIndex(r => r.IsActive);
-        if (activeIndex >= 0)
-        {
-            // Take up to 5 completed episodes before the active one, and the rest after it
-            var startIndex = Math.Max(0, activeIndex - 5);
-            finalResult = result.Skip(startIndex).Take(50).ToList();
-        }
-        else
-        {
-            // If all are completed or no active is found, take the last 50 so that latest episodes are visible
-            var startIndex = Math.Max(0, result.Count - 50);
-            finalResult = result.Skip(startIndex).Take(50).ToList();
-        }
-        
-        return Ok(finalResult);
+
+        // Return the full ordered playlist. The Edit view lists every episode of the
+        // station (completed ones marked as such), so capping the result here truncates
+        // large feeds (see issue #4).
+        return Ok(result);
     }
 
     [EndpointSummary("Get station completed playlist")]
