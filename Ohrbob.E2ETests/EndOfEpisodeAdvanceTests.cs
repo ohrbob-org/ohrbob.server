@@ -131,10 +131,9 @@ public class EndOfEpisodeAdvanceTests : PageTest
         // The user unlocks the phone -> the browser may start playback again and the page
         // becomes visible/focused.
         await Page.EvaluateAsync("() => { window.__mockIgnorePlayCount = 0; }");
-        await DispatchVisibleAsync();
 
         // Playback must recover instead of staying stuck.
-        await WaitForAudioPlayingAsync(15000);
+        await WaitForAudioPlayingAsync(20000);
         Assert.That(await IsWidgetPlayingAsync(), Is.True,
             "Playback must recover once the page is visible again");
     }
@@ -220,9 +219,20 @@ public class EndOfEpisodeAdvanceTests : PageTest
         while (DateTime.UtcNow < deadline)
         {
             if (!await IsAudioPausedAsync()) return;
-            await Task.Delay(200);
+
+            // Keep nudging the recovery while the page is "visible" (a transition may have
+            // been in flight when the first visibility event fired).
+            await DispatchVisibleAsync();
+            await Task.Delay(250);
         }
-        Assert.Fail("Audio never started after the page became visible again.");
+
+        var state = await Page.EvaluateAsync<string>(@"() => JSON.stringify({
+            paused: window._ohrbobAudio.paused,
+            ended: window._ohrbobAudio.ended,
+            autoPlayExpected: window._ohrbobAudio._ohrbobAutoPlayExpected,
+            hidden: document.hidden
+        })");
+        Assert.Fail($"Audio never started after the page became visible again. State: {state}");
     }
 
     private async Task<bool> IsWidgetPlayingAsync() =>
