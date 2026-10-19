@@ -96,6 +96,7 @@ builder.Services.AddSingleton<ListenStateService>();
 builder.Services.AddSingleton<FeedsService>();
 builder.Services.AddSingleton<SubscriptionPolicy>();
 builder.Services.AddSingleton<IMigration, Migration_0_0_8_AddIndexes>();
+builder.Services.AddSingleton<IMigration, Migration_0_0_9_BackfillPlainDescriptions>();
 builder.Services.AddSingleton<DatabaseMigrator>();
 builder.Services.AddHostedService<FeedUpdateWorker>();
 

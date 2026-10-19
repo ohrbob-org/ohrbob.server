@@ -18,6 +18,7 @@ public class EpisodesService : MongoDbService<Episode>
             .Set(e => e.FeedId, entryIn.FeedId)
             .Set(e => e.Title, entryIn.Title)
             .Set(e => e.Description, entryIn.Description)
+            .Set(e => e.PlainDescription, entryIn.PlainDescription)
             .Set(e => e.AudioUrl, entryIn.AudioUrl)
             .Set(e => e.ImageUrl, entryIn.ImageUrl)
             .Set(e => e.PublishedAt, entryIn.PublishedAt);

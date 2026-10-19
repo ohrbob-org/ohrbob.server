@@ -145,6 +145,32 @@ public class DatabaseMigratorTests
         AssertIndexExists(listenStateIndexes, "userId_createdAt");
     }
 
+    [Test]
+    public async Task BackfillPlainDescriptionsMigration_DecodesStoredHtmlDescriptions()
+    {
+        var episodes = _dbContext.GetCollection<Episode>("EpisodeCollection");
+        await episodes.InsertManyAsync(new[]
+        {
+            new Episode { Id = "e1", Guid = "e1", Description = "<p>R&#252;cktritt von B&#228;rbel</p>", PlainDescription = string.Empty },
+            new Episode { Id = "e2", Guid = "e2", Description = "No entities here", PlainDescription = string.Empty },
+            new Episode { Id = "e3", Guid = "e3", Description = string.Empty, PlainDescription = string.Empty }
+        });
+
+        var migrator = CreateMigrator(new Migration_0_0_9_BackfillPlainDescriptions());
+        await migrator.MigrateAsync();
+
+        var e1 = await episodes.Find(e => e.Id == "e1").FirstOrDefaultAsync();
+        Assert.That(e1!.PlainDescription, Is.EqualTo("Rücktritt von Bärbel"));
+        Assert.That(e1.Description, Is.EqualTo("<p>R&#252;cktritt von B&#228;rbel</p>"),
+            "The raw stored description must be left untouched");
+
+        var e2 = await episodes.Find(e => e.Id == "e2").FirstOrDefaultAsync();
+        Assert.That(e2!.PlainDescription, Is.EqualTo("No entities here"));
+
+        var e3 = await episodes.Find(e => e.Id == "e3").FirstOrDefaultAsync();
+        Assert.That(e3!.PlainDescription, Is.EqualTo(string.Empty));
+    }
+
     private async Task SeedStoredVersionAsync(string version)
     {
         var collection = _dbContext.GetCollection<DbVersion>(DatabaseMigrator.VersionCollectionName);

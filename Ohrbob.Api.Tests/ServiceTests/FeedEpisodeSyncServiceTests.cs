@@ -75,4 +75,33 @@ public class FeedEpisodeSyncServiceTests
         Assert.That(added!.Title, Is.EqualTo("Brand New"));
         Assert.That(added.AudioUrl, Is.EqualTo("https://example.com/ep2.mp3"));
     }
+
+    [Test]
+    public async Task Sync_PopulatesPlainDescription_FromEntityEncodedHtml()
+    {
+        var feed = new OhrbobFeed { Url = "https://example.com/entity-feed.xml", Title = "Entity Feed" };
+        await _feedsService.CreateAsync(feed);
+
+        const string rawHtml = "<p>R&#252;cktritt von B&#228;rbel &amp; gr&#246;&#223;te</p>";
+        var items = new[]
+        {
+            new FeedItem
+            {
+                Id = "ep-entity",
+                Link = "https://example.com/entity.mp3",
+                Title = "Entity",
+                Description = rawHtml,
+                PublishingDate = DateTime.UtcNow
+            },
+        };
+
+        await FeedEpisodeSyncService.SyncAsync(_episodesService, feed, items);
+
+        var episode = await _episodesService.FindByGuidAndFeedIdAsync("ep-entity", feed.Id);
+        Assert.That(episode, Is.Not.Null);
+        Assert.That(episode!.PlainDescription, Is.EqualTo("Rücktritt von Bärbel & größte"),
+            "The plain-text field must have the entities decoded and the tags stripped");
+        Assert.That(episode.Description, Is.EqualTo(rawHtml),
+            "The raw feed HTML must be preserved unchanged");
+    }
 }

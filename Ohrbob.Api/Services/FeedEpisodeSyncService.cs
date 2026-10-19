@@ -1,4 +1,5 @@
 using CodeHollow.FeedReader;
+using Ohrbob.Server.Shared.Text;
 using OhrbobFeed = Ohrbob.Server.Shared.Data.Feed;
 using Ohrbob.Server.Shared.Data;
 
@@ -21,6 +22,9 @@ public static class FeedEpisodeSyncService
 
             var (audioUrl, episodeImageUrl) = ExtractMediaUrls(feed.ImageUrl, item);
 
+            var description = item.Description ?? string.Empty;
+            var plainDescription = HtmlText.ToPlainText(description);
+
             var existingEpisode = await episodesService.FindByGuidAndFeedIdAsync(guid, feed.Id);
             if (existingEpisode == null)
             {
@@ -30,7 +34,8 @@ public static class FeedEpisodeSyncService
                     FeedId = feed.Id,
                     FeedUrl = feed.Url,
                     Title = item.Title ?? string.Empty,
-                    Description = item.Description ?? string.Empty,
+                    Description = description,
+                    PlainDescription = plainDescription,
                     ImageUrl = episodeImageUrl,
                     PublishedAt = item.PublishingDate,
                     AudioUrl = audioUrl
@@ -38,14 +43,16 @@ public static class FeedEpisodeSyncService
                 await episodesService.CreateAsync(newEpisode);
             }
             else if (existingEpisode.Title != (item.Title ?? string.Empty)
-                || existingEpisode.Description != (item.Description ?? string.Empty)
+                || existingEpisode.Description != description
+                || existingEpisode.PlainDescription != plainDescription
                 || existingEpisode.AudioUrl != audioUrl
                 || existingEpisode.ImageUrl != episodeImageUrl
                 || existingEpisode.PublishedAt != item.PublishingDate
                 || existingEpisode.FeedUrl != feed.Url)
             {
                 existingEpisode.Title = item.Title ?? string.Empty;
-                existingEpisode.Description = item.Description ?? string.Empty;
+                existingEpisode.Description = description;
+                existingEpisode.PlainDescription = plainDescription;
                 existingEpisode.AudioUrl = audioUrl;
                 existingEpisode.ImageUrl = episodeImageUrl;
                 existingEpisode.PublishedAt = item.PublishingDate;
