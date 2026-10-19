@@ -85,6 +85,37 @@ public class ThemeTests : PageTest
             "An explicit saved preference must win over the OS preference");
     }
 
+    [Test]
+    public async Task Account_CanChangeTheme_AndItPersists()
+    {
+        await Page.GotoAsync($"{_factory.ServerAddress}/Account");
+
+        var darkLabel = Page.Locator("label[for='themeDark']");
+        await darkLabel.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 15000 });
+        await darkLabel.ClickAsync();
+
+        await Expect(Page.Locator("html")).ToHaveAttributeAsync("data-bs-theme", "dark", new() { Timeout = 5000 });
+        Assert.That(await CookieValueAsync("ohrbob_theme"), Is.EqualTo("dark"),
+            "Choosing a theme must persist it to the ohrbob_theme cookie");
+
+        // The choice is remembered across a full page load, and reflected in the settings.
+        await Page.GotoAsync(_factory.ServerAddress);
+        Assert.That(await CurrentThemeAsync(), Is.EqualTo("dark"), "The saved theme must survive navigation");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Account");
+        await Expect(Page.Locator("input[name='theme'][value='dark']")).ToBeCheckedAsync();
+
+        // Switching back to "system" is stored as such.
+        await Page.Locator("label[for='themeSystem']").ClickAsync();
+        Assert.That(await CookieValueAsync("ohrbob_theme"), Is.EqualTo("system"),
+            "Choosing System must store the system mode, not a resolved light/dark value");
+    }
+
     private async Task<string?> CurrentThemeAsync() =>
         await Page.EvaluateAsync<string?>("() => document.documentElement.getAttribute('data-bs-theme')");
+
+    private async Task<string?> CookieValueAsync(string name)
+    {
+        var cookies = await Context.CookiesAsync();
+        return cookies.FirstOrDefault(c => c.Name == name)?.Value;
+    }
 }

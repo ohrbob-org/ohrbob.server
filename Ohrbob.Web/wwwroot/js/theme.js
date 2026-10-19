@@ -65,5 +65,21 @@
     window.ohrbobApplyTheme = apply;
     window.ohrbobSetTheme = setTheme;
 
+    // The Appearance selector on /Account. Delegated so it also works after an
+    // htmx-boosted swap of #main-content.
+    document.addEventListener('change', function (event) {
+        var target = event.target;
+        if (!target || target.name !== 'theme' || target.type !== 'radio') return;
+
+        setTheme(target.value);
+
+        if (document.body) {
+            var labels = { system: 'System', light: 'Light', dark: 'Dark' };
+            document.body.dispatchEvent(new CustomEvent('showToast', {
+                detail: { message: 'Theme set to ' + (labels[target.value] || target.value) + '.', type: 'success' }
+            }));
+        }
+    });
+
     apply();
 })();

@@ -81,6 +81,30 @@ else
     <p class="text-success">You are on Morebob. Manage billing via Stripe portal (coming soon).</p>
 }
 
+<!-- Appearance / theme settings -->
+@{
+    var themeMode = Context.Request.Cookies["ohrbob_theme"];
+    if (themeMode != "light" && themeMode != "dark") { themeMode = "system"; }
+}
+<div class="card mt-4" id="appearanceCard">
+    <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
+        <h4 class="mb-0">Appearance</h4>
+    </div>
+    <div class="card-body">
+        <p class="text-muted mb-3">Choose how ohrbob looks on this device. <strong>System</strong> follows your browser or operating system setting.</p>
+        <div role="group" aria-label="Theme">
+            <input type="radio" class="btn-check" name="theme" id="themeSystem" value="system" autocomplete="off" @(themeMode == "system" ? "checked" : "")>
+            <label class="btn btn-outline-primary" for="themeSystem"><i class="bi bi-circle-half me-1"></i> System</label>
+
+            <input type="radio" class="btn-check" name="theme" id="themeLight" value="light" autocomplete="off" @(themeMode == "light" ? "checked" : "")>
+            <label class="btn btn-outline-primary" for="themeLight"><i class="bi bi-sun me-1"></i> Light</label>
+
+            <input type="radio" class="btn-check" name="theme" id="themeDark" value="dark" autocomplete="off" @(themeMode == "dark" ? "checked" : "")>
+            <label class="btn btn-outline-primary" for="themeDark"><i class="bi bi-moon-stars me-1"></i> Dark</label>
+        </div>
+    </div>
+</div>
+
 @inject Microsoft.Extensions.Options.IOptions<Ohrbob.Web.Configuration.OhrbobApiOptions> ApiOptions
 
 <div class="card mt-4">
