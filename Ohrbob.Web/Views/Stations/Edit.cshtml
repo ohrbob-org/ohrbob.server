@@ -121,7 +121,7 @@
                     <div class="d-flex flex-column justify-content-between flex-grow-1 py-2 px-3" style="min-height: 90px; max-height: 90px; overflow: hidden;">
                         <!-- Row 1: Feed Title (Top) -->
                         <div class="d-flex align-items-center">
-                            <strong class="text-dark text-truncate" style="font-size: 1rem; max-width: 320px;" title="@feedData.Title">@feedData.Title</strong>
+                            <strong class="text-body text-truncate" style="font-size: 1rem; max-width: 320px;" title="@feedData.Title">@feedData.Title</strong>
                         </div>
 
                         <!-- Row 2: Playback order, span input, trash icon (Middle) -->
@@ -134,7 +134,7 @@
                                     var thumbTransform = activeValue == 1 ? "translateX(0)" : (activeValue == 2 ? "translateX(-50%)" : "translateX(-100%)");
                                 }
                                 <div class="playback-order-toggle-container d-inline-flex flex-column align-items-center" style="width: 100px;">
-                                     <div class="position-relative bg-light border rounded-pill d-flex align-items-center justify-content-between user-select-none"
+                                     <div class="position-relative bg-body-secondary border rounded-pill d-flex align-items-center justify-content-between user-select-none"
                                           style="width: 100%; height: 26px; padding: 2px; background-color:#e8ebee !important; border: 1px solid #ced4da; cursor: pointer;"
                                           id="sliderTrack-@currentFeedIndex" role="slider" aria-valuemin="0" aria-valuemax="2" aria-valuenow="@activeValue">
                                           
@@ -244,13 +244,13 @@
                                      class="w-100 h-100 rounded object-fit-cover shadow-sm" />
                                      
                                 <!-- Big Checkmark Overlay (Displayed if IsCompleted) -->
-                                <div class="completed-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75 rounded @(item.IsCompleted ? "" : "d-none")" style="transition: opacity 0.2s;">
+                                <div class="completed-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-body bg-opacity-75 rounded @(item.IsCompleted ? "" : "d-none")" style="transition: opacity 0.2s;">
                                     <i class="bi bi-check-lg text-primary" style="font-size: 2rem;"></i>
                                 </div>
                             </div>
                             
                             <!-- Metadata (Middle) -->
-                            <div class="flex-grow-1 min-w-0 text-dark" style="overflow: hidden;">
+                            <div class="flex-grow-1 min-w-0 text-body" style="overflow: hidden;">
                                 <div class="d-flex align-items-center min-w-0 w-100" style="gap: 8px;">
                                     <strong class="text-truncate" style="font-size: 1rem; line-height: 1.2; flex-grow: 1;">@item.Episode.Title</strong>
                                     @if(item.IsActive) {
@@ -317,7 +317,7 @@
                 <h5 class="modal-title" id="renameStationModalLabel">Station Settings</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-dark">
+            <div class="modal-body text-body">
                 <div class="mb-3">
                     <label for="newStationNameInput" class="form-label">Station Name</label>
                     <input type="text" class="form-control" id="newStationNameInput" placeholder="Enter station name" required />
@@ -327,7 +327,7 @@
                 </div>
                 <div class="form-check form-switch mt-3">
                     <input class="form-check-input" type="checkbox" role="switch" id="isAgingInput" @(Model.Station.IsAging ? "checked" : "")>
-                    <label class="form-check-label text-dark" for="isAgingInput">Enable Aging Content (Only keep the newest episode unplayed)</label>
+                    <label class="form-check-label text-body" for="isAgingInput">Enable Aging Content (Only keep the newest episode unplayed)</label>
                 </div>
             </div>
             <div class="modal-footer">
@@ -351,7 +351,7 @@
                 <h5 class="modal-title" id="confirmRemoveFeedModalLabel">Confirm Removal</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-dark">
+            <div class="modal-body text-body">
                 Are you sure you want to remove this feed?
             </div>
             <div class="modal-footer">
@@ -370,7 +370,7 @@
                 <h5 class="modal-title" id="manualAddFeedModalLabel">Manual Add Feed</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-dark">
+            <div class="modal-body text-body">
                 <div class="mb-3">
                     <label for="newFeedUrl" class="form-label">Feed RSS URL</label>
                     <input type="url" class="form-control" id="newFeedUrl" placeholder="https://..." required />
@@ -395,7 +395,7 @@
                 <h5 class="modal-title" id="importOpmlModalLabel">Import OPML</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-dark">
+            <div class="modal-body text-body">
                 <div class="mb-3">
                     <label for="opmlFileInput" class="form-label">OPML file</label>
                     <input type="file" class="form-control" id="opmlFileInput" accept=".opml,.xml,text/xml,application/xml" />
@@ -421,7 +421,7 @@
         <h5 class="modal-title" id="moveFeedModalLabel">Move feed to another station</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body text-dark">
+      <div class="modal-body text-body">
         <input type="hidden" id="moveFeedUrl" />
         <p class="text-muted small mb-2">Where should <strong id="moveFeedTitle"></strong> live?</p>
         <div id="moveFeedStationList">
@@ -457,7 +457,7 @@
                 <h5 class="modal-title" id="confirmMarkCompletedUntilModalLabel">Confirm Completing Episodes</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-dark">
+            <div class="modal-body text-body">
                 <p>Are you sure you want to mark the following episodes as completed?</p>
                 <div style="max-height: 250px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px;">
                     <ul class="list-group list-group-flush" id="episodesToMarkList">
@@ -481,7 +481,7 @@
                 <h5 class="modal-title" id="confirmClearCompletedModalLabel">Confirm Reset</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-dark">
+            <div class="modal-body text-body">
                 Are you sure you want to clear the completed state for this episode? It will return to the upcoming list.
             </div>
             <div class="modal-footer">
@@ -495,7 +495,7 @@
 <!-- Confirm Clear Completed Until Modal -->
 <div class="modal fade" id="confirmClearCompletedUntilModal" tabindex="-1" aria-labelledby="confirmClearCompletedUntilUntilModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content text-dark">
+        <div class="modal-content text-body">
             <div class="modal-header">
                 <h5 class="modal-title" id="confirmClearCompletedUntilModalLabel">Confirm Bulk Reset</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

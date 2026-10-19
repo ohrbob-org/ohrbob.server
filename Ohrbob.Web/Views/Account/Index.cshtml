@@ -111,12 +111,12 @@ else
     <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
         <h4 class="mb-0">Device Connectivity & API Keys</h4>
     </div>
-    <div class="card-body text-dark">
+    <div class="card-body text-body">
         <p class="text-muted">Generate API keys to connect external devices and players. Connect via the generated QR code.</p>
 
         @if (Model.ApiKeys == null || !Model.ApiKeys.Any())
         {
-            <div class="text-center py-4 text-muted border rounded mb-3 bg-light">
+            <div class="text-center py-4 text-muted border rounded mb-3 bg-body-secondary">
                 <i class="bi bi-key-fill" style="font-size: 2rem;"></i>
                 <p class="mt-2 mb-0">No active API keys found. Create one below to connect your devices.</p>
             </div>
@@ -124,7 +124,7 @@ else
         else
         {
             <div class="table-responsive">
-                <table class="table align-middle text-dark">
+                <table class="table align-middle text-body">
                     <thead>
                         <tr>
                             <th>Name</th>
@@ -145,7 +145,7 @@ else
 
                             <tr>
                                 <td><strong>@key.Name</strong></td>
-                                <td><span class="badge bg-light text-dark border">@profileName</span></td>
+                                <td><span class="badge bg-body-secondary text-body border">@profileName</span></td>
                                 <td><code>@abbrevToken</code></td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary" type="button" 
@@ -170,17 +170,17 @@ else
         }
 
         <!-- Create New Key Form -->
-        <div class="border rounded p-3 mt-4 bg-light text-dark">
+        <div class="border rounded p-3 mt-4 bg-body-secondary text-body">
             <h5>Generate New API Key</h5>
             <form asp-action="AddApiKey" method="post" class="row g-3 align-items-end">
                 @Html.AntiForgeryToken()
                 <div class="col-md-5">
                     <label for="keyName" class="form-label small text-muted">Device or Key Name</label>
-                    <input type="text" class="form-control form-control-sm text-dark bg-white" id="keyName" name="name" placeholder="e.g. My Smart Speaker, Living Room Tablet" required />
+                    <input type="text" class="form-control form-control-sm text-body bg-body" id="keyName" name="name" placeholder="e.g. My Smart Speaker, Living Room Tablet" required />
                 </div>
                 <div class="col-md-5">
                     <label for="profileId" class="form-label small text-muted">Profile Scope</label>
-                    <select class="form-select form-select-sm text-dark bg-white" id="profileId" name="profileId">
+                    <select class="form-select form-select-sm text-body bg-body" id="profileId" name="profileId">
                         <option value="">All Profiles (Account level)</option>
                         @foreach (var p in Model.Profiles)
                         {
@@ -206,22 +206,22 @@ else
                 <h5 class="modal-title" id="qrCodeModalLabel">Connect Device</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-center text-dark">
-                <p>Scan this QR code with your Ohrbob app/device to connect <strong class="text-dark"><span id="qrKeyName"></span></strong>.</p>
+            <div class="modal-body text-center text-body">
+                <p>Scan this QR code with your Ohrbob app/device to connect <strong class="text-body"><span id="qrKeyName"></span></strong>.</p>
                 <div id="qrcode-container" class="d-flex justify-content-center my-3 p-3 bg-white rounded border" style="width: fit-content; margin: 0 auto;"></div>
-                <div class="mt-2 text-dark text-start">
+                <div class="mt-2 text-body text-start">
                     <span class="small text-muted d-block mb-1">Deep link:</span>
-                    <code class="d-block text-break small p-2 bg-light border rounded text-dark mb-3" id="qrDeepLink"></code>
+                    <code class="d-block text-break small p-2 bg-body-secondary border rounded text-body mb-3" id="qrDeepLink"></code>
 
                     <label class="form-label small text-muted mb-1 d-block">Server URL</label>
                     <div class="input-group mb-3">
-                        <input type="text" class="form-control text-dark bg-light" id="qrServerUrl" readonly />
+                        <input type="text" class="form-control text-body bg-body-secondary" id="qrServerUrl" readonly />
                         <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('qrServerUrl').value); alert('Server URL copied to clipboard!');">Copy</button>
                     </div>
 
                     <label class="form-label small text-muted mb-1 d-block">API Token</label>
                     <div class="input-group">
-                        <input type="text" class="form-control text-dark bg-light" id="qrToken" readonly />
+                        <input type="text" class="form-control text-body bg-body-secondary" id="qrToken" readonly />
                         <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('qrToken').value); alert('Token copied to clipboard!');">Copy</button>
                     </div>
                 </div>

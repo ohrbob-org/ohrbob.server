@@ -18,7 +18,7 @@
                     <strong>ohrbob.web</strong>
                     <span class="badge bg-success ms-auto">running</span>
                 </div>
-                <div><code>@Model.WebVersion</code> @if (!string.IsNullOrEmpty(Model.WebTag)) { <span class="badge bg-light text-dark border">@Model.WebTag</span> }</div>
+                <div><code>@Model.WebVersion</code> @if (!string.IsNullOrEmpty(Model.WebTag)) { <span class="badge bg-body-secondary text-body border">@Model.WebTag</span> }</div>
                 <small class="text-muted">This portal. If you see this, it's up.</small>
             </div>
         </div>
@@ -32,7 +32,7 @@
                     <strong>ohrbob.api</strong>
                     <span class="badge @(Model.ApiReachable ? "bg-success" : "bg-danger") ms-auto">@(Model.ApiReachable ? "reachable" : "unreachable")</span>
                 </div>
-                <div><code>@(Model.ApiReachable ? Model.ApiVersion : "unknown")</code> @if (!string.IsNullOrEmpty(Model.ApiTag)) { <span class="badge bg-light text-dark border">@Model.ApiTag</span> }</div>
+                <div><code>@(Model.ApiReachable ? Model.ApiVersion : "unknown")</code> @if (!string.IsNullOrEmpty(Model.ApiTag)) { <span class="badge bg-body-secondary text-body border">@Model.ApiTag</span> }</div>
                 <small class="text-muted">Manages stations, feeds &amp; background polling.</small>
             </div>
         </div>
@@ -46,7 +46,7 @@
                     <strong>ohrbob.player</strong>
                     <span class="badge @(Model.PlayerReachable ? "bg-success" : "bg-danger") ms-auto">@(Model.PlayerReachable ? "reachable" : "unreachable")</span>
                 </div>
-                <div><code>@(Model.PlayerReachable ? Model.PlayerVersion : "unknown")</code> @if (!string.IsNullOrEmpty(Model.PlayerTag)) { <span class="badge bg-light text-dark border">@Model.PlayerTag</span> }</div>
+                <div><code>@(Model.PlayerReachable ? Model.PlayerVersion : "unknown")</code> @if (!string.IsNullOrEmpty(Model.PlayerTag)) { <span class="badge bg-body-secondary text-body border">@Model.PlayerTag</span> }</div>
                 <small class="text-muted">Streams audio &amp; syncs playhead position.</small>
             </div>
         </div>

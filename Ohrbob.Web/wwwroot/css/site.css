@@ -51,7 +51,7 @@ header {
 }
 
 .landing-footer {
-    background: #f8f9fa;
+    background: var(--bs-tertiary-bg);
 }
 
 
@@ -127,7 +127,7 @@ header {
 .radio-landing-container {
     position: relative;
     padding: 10vh 0;
-    background: #f8f9fa;
+    background: var(--bs-tertiary-bg);
     overflow: hidden;
 }
 .radio-axis {
@@ -201,11 +201,11 @@ header {
     transform: translateY(40px);
 }
 .step-text-box h2 {
-    color: #212529;
+    color: var(--bs-body-color);
     margin-bottom: 1rem;
 }
 .screenshot-card {
-    background: white;
+    background: var(--bs-body-bg);
     border-radius: 16px;
     height: 350px;
     display: flex;
@@ -214,7 +214,7 @@ header {
     font-weight: bold;
     color: #adb5bd;
     font-size: 1.5rem;
-    border: 1px solid #e9ecef;
+    border: 1px solid var(--bs-border-color);
     box-shadow: 0 20px 40px rgba(0,0,0,0.08);
     width: 100%;
     overflow: hidden;
@@ -245,7 +245,7 @@ header {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: white;
+    background: var(--bs-body-bg);
 }
 
 
@@ -549,3 +549,136 @@ header {
     z-index: 2;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
+
+/* ---------------------------------------------------------------------------
+   Dark mode overrides (issue #7).
+   Bootstrap 5.3 provides the base dark palette via [data-bs-theme=dark]; these
+   rules fix the app's custom components and the hard-coded brand utilities that
+   would otherwise be unreadable or out of place in dark mode.
+   --------------------------------------------------------------------------- */
+
+/* Brand text utilities use the theme's dark-mode emphasis colours. */
+[data-bs-theme=dark] .text-primary { color: var(--bs-primary-text-emphasis) !important; }
+[data-bs-theme=dark] .text-secondary { color: var(--bs-secondary-text-emphasis) !important; }
+[data-bs-theme=dark] .text-success { color: var(--bs-success-text-emphasis) !important; }
+[data-bs-theme=dark] .text-info { color: var(--bs-info-text-emphasis) !important; }
+[data-bs-theme=dark] .text-warning { color: var(--bs-warning-text-emphasis) !important; }
+[data-bs-theme=dark] .text-danger { color: var(--bs-danger-text-emphasis) !important; }
+
+/* Outline buttons using the brand secondary (violet) need lighter ink. */
+[data-bs-theme=dark] .btn-outline-secondary {
+    --bs-btn-color: var(--bs-secondary-text-emphasis);
+    --bs-btn-border-color: var(--bs-secondary-text-emphasis);
+    --bs-btn-hover-color: #10131a;
+    --bs-btn-hover-bg: var(--bs-secondary-text-emphasis);
+    --bs-btn-hover-border-color: var(--bs-secondary-text-emphasis);
+    --bs-btn-active-color: #10131a;
+    --bs-btn-active-bg: var(--bs-secondary-text-emphasis);
+    --bs-btn-active-border-color: var(--bs-secondary-text-emphasis);
+}
+
+/* Floating glass navigation bar. */
+[data-bs-theme=dark] .floating-nav-pill {
+    background: rgba(33, 37, 41, 0.85);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+[data-bs-theme=dark] .floating-nav-pill-center a { color: var(--bs-body-color); }
+
+/* Glass panels. */
+[data-bs-theme=dark] .glass-panel {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* "morebob" upgrade card. */
+[data-bs-theme=dark] .upgrade-card {
+    background: linear-gradient(135deg, #2b2f36 0%, #262a30 50%, #2f2a24 100%);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), inset 0 1.5px 0 rgba(255, 255, 255, 0.06);
+}
+[data-bs-theme=dark] .card-title-premium,
+[data-bs-theme=dark] .feature-title-premium { color: var(--bs-body-color); }
+[data-bs-theme=dark] .card-desc-premium,
+[data-bs-theme=dark] .feature-desc-premium { color: var(--bs-secondary-color); }
+[data-bs-theme=dark] .feature-icon-premium { color: var(--bs-success-text-emphasis); }
+[data-bs-theme=dark] .coming-soon-banner {
+    background-color: rgba(253, 178, 0, 0.15);
+    border-left-color: var(--bs-warning);
+    color: var(--bs-warning-text-emphasis);
+}
+
+/* Audio widget cover placeholders (markup lives in theme.css). */
+[data-bs-theme=dark] .audio-widget .audio-meta .track-cover-empty,
+[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-cover-container .expanded-cover-empty {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.55);
+}
+
+/* Landing page screenshot placeholders. */
+[data-bs-theme=dark] .screenshot-card { color: var(--bs-secondary-color); }
+
+/* ohrbob wordmark: the navy/violet letters need lighter inks on dark surfaces. */
+[data-bs-theme=dark] .ohrbob-logo .ohrbob-logo-text .char-1,
+[data-bs-theme=dark] .ohrbob-logo .ohrbob-logo-text .char-4 { color: #a9a5ff; }
+[data-bs-theme=dark] .ohrbob-logo .ohrbob-logo-text .char-2,
+[data-bs-theme=dark] .ohrbob-logo .ohrbob-logo-text .char-6 { color: #e9ecf5; }
+
+/* ---------------------------------------------------------------------------
+   Audio widget (theme.css renders it light-on-white; re-colour for dark).
+   --------------------------------------------------------------------------- */
+[data-bs-theme=dark] .audio-widget::before { background: #1b2130; opacity: 1; }
+[data-bs-theme=dark] .audio-widget .audio-meta .audio-info .track-title,
+[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-info .expanded-title { color: #f1f3f5; }
+[data-bs-theme=dark] .audio-widget .audio-meta .audio-info .track-description,
+[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-info .expanded-artist,
+[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-header .expanded-header-title { color: rgba(255, 255, 255, 0.65); }
+[data-bs-theme=dark] .audio-widget .audio-progress-group .time-elapsed,
+[data-bs-theme=dark] .audio-widget .audio-progress-group .time-total,
+[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-controls-group .expanded-progress-row .time-elapsed,
+[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-controls-group .expanded-progress-row .time-total { color: rgba(255, 255, 255, 0.65); }
+
+/* Glass control buttons. */
+[data-bs-theme=dark] .btn-glass {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.7);
+    text-shadow: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+[data-bs-theme=dark] .btn-glass:hover { background: rgba(255, 255, 255, 0.14); border-color: rgba(255, 255, 255, 0.25); color: #fff; }
+[data-bs-theme=dark] .btn-glass:active { background: rgba(255, 255, 255, 0.18); color: #fff; text-shadow: none; }
+
+/* Slider tracks (unfilled part must be light, not navy). */
+[data-bs-theme=dark] .audio-widget .audio-progress-group .audio-progress::-webkit-slider-runnable-track { background: linear-gradient(to right, #544ff4 0 var(--progress, 0%), rgba(255, 255, 255, 0.18) var(--progress, 0%) 100%); }
+[data-bs-theme=dark] .audio-widget .audio-progress-group .audio-progress::-moz-range-track { background: rgba(255, 255, 255, 0.18); }
+[data-bs-theme=dark] .audio-widget .audio-volume-group .audio-volume::-webkit-slider-runnable-track { background: linear-gradient(to right, #fc5d00 0 var(--progress, 0%), rgba(255, 255, 255, 0.18) var(--progress, 0%) 100%); }
+[data-bs-theme=dark] .audio-widget .audio-volume-group .audio-volume::-moz-range-track { background: rgba(255, 255, 255, 0.18); }
+[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-controls-group .expanded-progress-row .js-expanded-progress::-webkit-slider-runnable-track { background: linear-gradient(to right, #544ff4 0 var(--progress, 0%), rgba(255, 255, 255, 0.18) var(--progress, 0%) 100%); }
+[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-controls-group .expanded-progress-row .js-expanded-progress::-moz-range-track { background: rgba(255, 255, 255, 0.18); }
+
+/* Expanded card + jump cards. */
+[data-bs-theme=dark] .audio-widget .audio-expanded-card {
+    background: rgba(24, 27, 33, 0.97);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+}
+[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-header { border-bottom-color: rgba(255, 255, 255, 0.1); }
+[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-header .btn-close-expanded { color: rgba(255, 255, 255, 0.75); }
+[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-header .btn-close-expanded:hover { background-color: rgba(255, 255, 255, 0.08); }
+[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-controls-group {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .episode-nav-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .episode-nav-card .episode-nav-label,
+[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .episode-nav-card .episode-nav-artist { color: rgba(255, 255, 255, 0.6); }
+
+/* Collage gaps + the "add station" circle. */
+[data-bs-theme=dark] .collage-container { background-color: var(--bs-tertiary-bg); }
+[data-bs-theme=dark] .discover-plus-circle { background-color: rgba(255, 255, 255, 0.12); }
+[data-bs-theme=dark] .discover-plus-circle i { color: rgba(255, 255, 255, 0.75); }
+[data-bs-theme=dark] .discover-plus-circle:hover { background-color: var(--bs-primary); }
+[data-bs-theme=dark] .discover-plus-circle:hover i { color: #fff; }

@@ -42,10 +42,10 @@ else
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title text-dark" id="add-to-station-modal-label-@safeId">Add to Station</h5>
+                            <h5 class="modal-title text-body" id="add-to-station-modal-label-@safeId">Add to Station</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
-                        <div class="modal-body text-dark text-start">
+                        <div class="modal-body text-body text-start">
                             <form id="add-feed-form-@safeId" hx-boost="false" onsubmit="window.submitAddFeedJson(event, '@safeId')">
                                 <input type="hidden" name="feedUrl" value="@podcast.Url" />
                                 <input type="hidden" name="feedTitle" value="@podcast.Title" />
