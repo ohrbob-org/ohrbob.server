@@ -14,9 +14,11 @@ public class StationsApiService : OhrbobApiService
     {
     }
 
-    public virtual async Task<List<Ohrbob.Server.Shared.Requests.StationWithFeedsDto>?> GetStationsByAccountIdAsync(string accountId)
+    public virtual async Task<List<Ohrbob.Server.Shared.Requests.StationWithFeedsDto>?> GetStationsByAccountIdAsync(string accountId, string? profileId = null)
     {
-        using var request = BuildRequest(HttpMethod.Get, $"/stations/account/{accountId}");
+        var path = $"/stations/account/{accountId}";
+        if (!string.IsNullOrEmpty(profileId)) path += $"?profileId={profileId}";
+        using var request = BuildRequest(HttpMethod.Get, path);
         using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
         var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();

@@ -46,13 +46,23 @@ public class StationsController : ControllerBase
         _policy = policy;
     }
     [EndpointSummary("Get all stations by accountId")]
-    [EndpointDescription(@"Returns a list of all stations associated with an accountId")]
+    [EndpointDescription(@"Returns a list of all stations associated with an accountId. When a profileId is supplied, each station also reports how many episodes are still left to play for that profile (issue #6).")]
     [Authorize(policy: Consts.GetStationsPolicy)]
     [HttpGet("account/{accountId}")]
-    public async Task<ActionResult<List<StationWithFeedsDto>>> GetByAccountId(string accountId)
+    public async Task<ActionResult<List<StationWithFeedsDto>>> GetByAccountId(string accountId, [FromQuery] string? profileId = null)
     {
         var stations = await _stationsService.GetByAccountIdAsync(accountId);
         var dtos = new List<StationWithFeedsDto>();
+
+        // Completion lives in ListenState (per profile), so it can only be derived when a
+        // profile is supplied. Load the profile's completed episodes once, up front.
+        HashSet<string> completedEpisodeIds = new();
+        var hasProfile = !string.IsNullOrEmpty(profileId);
+        if (hasProfile)
+        {
+            var listenStates = await _listenStateService.GetStatesByUserIdAsync(profileId!);
+            completedEpisodeIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
+        }
 
         foreach (var station in stations)
         {
@@ -74,6 +84,19 @@ public class StationsController : ControllerBase
                     }
                     dto.Feeds.Add(stats);
                 }
+
+                if (hasProfile)
+                {
+                    // Same rule the player uses: an episode counts as unavailable once it is
+                    // completed or aged out, so this matches the player's "nothing to play" state.
+                    var episodes = await _episodesService.FindByFeedUrlsAsync(station.Feeds);
+                    var unavailable = PlaybackStrategyHelper.GetListenedAndAgedEpisodeIds(station, episodes, completedEpisodeIds);
+                    dto.UnplayedEpisodeCount = episodes.Count(e => !unavailable.Contains(e.Id));
+                }
+            }
+            else if (hasProfile)
+            {
+                dto.UnplayedEpisodeCount = 0;
             }
             dtos.Add(dto);
         }

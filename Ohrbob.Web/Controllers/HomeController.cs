@@ -52,7 +52,7 @@ public class HomeController : Controller
         var activeProfile = profiles.FirstOrDefault(p => p.Id == activeId) ?? profiles.First();
         ViewBag.ActiveStationId = activeProfile.LastActiveStationId;
         
-        var allStations = await _stationsService.GetStationsByAccountIdAsync(accountId) ?? new List<StationWithFeedsDto>();
+        var allStations = await _stationsService.GetStationsByAccountIdAsync(accountId, activeProfile.Id) ?? new List<StationWithFeedsDto>();
         
         var allowedStationIds = activeProfile.AllowedStationIds ?? Array.Empty<string>();
         var profileStations = allStations.Where(s => allowedStationIds.Contains(s.Station.Id)).ToList();

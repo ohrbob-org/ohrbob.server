@@ -117,8 +117,10 @@ public class EndOfEpisodeAdvanceTests : PageTest
         await ExpectWidgetTrackAsync("Episode A");
         await ExpectWidgetNextAsync("Episode B");
 
-        // The browser is about to silently ignore the auto-start of the next source.
-        await Page.EvaluateAsync("() => { window.__mockIgnorePlayCount = 1; }");
+        // The browser is about to silently ignore the auto-start of the next source. Swallow
+        // every play() attempt (including any recovery the periodic sync triggers) until we
+        // explicitly let playback resume, so the "still paused" state below is deterministic.
+        await Page.EvaluateAsync("() => { window.__mockIgnorePlayCount = 1000; }");
         await FireEndedAsync();
 
         // The optimistic UI advanced, but no audio is actually playing.
@@ -126,7 +128,9 @@ public class EndOfEpisodeAdvanceTests : PageTest
         Assert.That(await IsAudioPausedAsync(), Is.True,
             "Precondition: the mock browser ignored the background play() attempt");
 
-        // The user unlocks the phone -> the page becomes visible/focused again.
+        // The user unlocks the phone -> the browser may start playback again and the page
+        // becomes visible/focused.
+        await Page.EvaluateAsync("() => { window.__mockIgnorePlayCount = 0; }");
         await DispatchVisibleAsync();
 
         // Playback must recover instead of staying stuck.

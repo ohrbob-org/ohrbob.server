@@ -101,6 +101,36 @@ public class StationsApiServiceTests
         Assert.That(result.Count, Is.EqualTo(1));
         Assert.That(result[0].Station.Name, Is.EqualTo("St 1"));
     }
+
+    [Test]
+    public async Task GetStationsByAccountIdAsync_WithProfileId_SendsProfileIdInRequest()
+    {
+        var accountId = "acc-123";
+        var profileId = "prof-456";
+        var stations = new List<StationWithFeedsDto> { new StationWithFeedsDto { Station = new Station { Name = "St 1" } } };
+
+        HttpRequestMessage? captured = null;
+        _httpMessageHandlerMock
+            .Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .Callback<HttpRequestMessage, CancellationToken>((req, _) => captured = req)
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.OK,
+                Content = new StringContent(JsonSerializer.Serialize(stations))
+            });
+
+        var result = await _service.GetStationsByAccountIdAsync(accountId, profileId);
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(captured, Is.Not.Null);
+        Assert.That(captured!.RequestUri!.PathAndQuery,
+            Is.EqualTo($"/stations/account/{accountId}?profileId={profileId}"),
+            "The active profile must be forwarded so the API can report episodes left to play");
+    }
     
     [Test]
     public async Task CreateStationAsync_SendsCorrectRequestAndReturnsCreatedStation()

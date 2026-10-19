@@ -443,4 +443,124 @@ public class StationsControllerTests
         Assert.That(completedList[0].Episode.Id, Is.EqualTo(episode1.Id));
         Assert.That(completedList[0].Episode.Title, Is.EqualTo("Completed Episode"));
     }
+
+    // -------------------------------------------------------------------------------------
+    // Episodes left to play per profile ("nothing left to play" badge, issue #6)
+    // -------------------------------------------------------------------------------------
+
+    [Test]
+    public async Task GetStationsByAccountId_WithProfileId_ReportsEpisodesLeftToPlay()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var feedUrl = "https://test.unplayed.feed/url";
+
+        var stationsService = _app.Services.GetRequiredService<Ohrbob.Api.Services.StationsService>();
+        var profilesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ProfilesService>();
+        var episodesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.EpisodesService>();
+        var listenStateService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ListenStateService>();
+
+        var station = await stationsService.CreateAsync(new Station
+        {
+            Name = "Unplayed Station",
+            AccountId = accountId,
+            Feeds = new[] { feedUrl }
+        });
+        var profile = await profilesService.CreateAsync(new Profile { AccountId = accountId });
+
+        var ep1 = await episodesService.CreateAsync(new Episode
+        {
+            FeedId = "f1", FeedUrl = feedUrl, Title = "Episode 1", PublishedAt = DateTime.UtcNow.AddHours(-1)
+        });
+        var ep2 = await episodesService.CreateAsync(new Episode
+        {
+            FeedId = "f1", FeedUrl = feedUrl, Title = "Episode 2", PublishedAt = DateTime.UtcNow
+        });
+
+        Assert.That((await GetStationDtoAsync(accountId, profile.Id)).UnplayedEpisodeCount, Is.EqualTo(2),
+            "Both episodes are unplayed for a fresh profile");
+
+        await listenStateService.CreateAsync(new ListenState
+        {
+            UserId = profile.Id, StationId = station.Id, EpisodeId = ep1.Id, IsListened = true
+        });
+        Assert.That((await GetStationDtoAsync(accountId, profile.Id)).UnplayedEpisodeCount, Is.EqualTo(1),
+            "Completing an episode must reduce the number of episodes left to play");
+
+        await listenStateService.CreateAsync(new ListenState
+        {
+            UserId = profile.Id, StationId = station.Id, EpisodeId = ep2.Id, IsListened = true
+        });
+        Assert.That((await GetStationDtoAsync(accountId, profile.Id)).UnplayedEpisodeCount, Is.EqualTo(0),
+            "When every episode is completed nothing is left to play");
+    }
+
+    [Test]
+    public async Task GetStationsByAccountId_WithoutProfileId_LeavesEpisodesLeftToPlayUnset()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var feedUrl = "https://test.unplayed.feed/noprofile";
+
+        var stationsService = _app.Services.GetRequiredService<Ohrbob.Api.Services.StationsService>();
+        var episodesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.EpisodesService>();
+
+        await stationsService.CreateAsync(new Station
+        {
+            Name = "No Profile Station",
+            AccountId = accountId,
+            Feeds = new[] { feedUrl }
+        });
+        await episodesService.CreateAsync(new Episode
+        {
+            FeedId = "f-np", FeedUrl = feedUrl, Title = "Episode", PublishedAt = DateTime.UtcNow
+        });
+
+        Assert.That((await GetStationDtoAsync(accountId, null)).UnplayedEpisodeCount, Is.Null,
+            "Completion is per-profile, so the count can only be reported when a profileId is supplied");
+    }
+
+    [Test]
+    public async Task GetStationsByAccountId_WithProfileId_RespectsStationAging()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var feedUrl = "https://test.unplayed.feed/aging";
+
+        var stationsService = _app.Services.GetRequiredService<Ohrbob.Api.Services.StationsService>();
+        var profilesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ProfilesService>();
+        var episodesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.EpisodesService>();
+
+        await stationsService.CreateAsync(new Station
+        {
+            Name = "Aging Station",
+            AccountId = accountId,
+            Feeds = new[] { feedUrl },
+            IsAging = true
+        });
+        var profile = await profilesService.CreateAsync(new Profile { AccountId = accountId });
+
+        for (var i = 0; i < 3; i++)
+        {
+            await episodesService.CreateAsync(new Episode
+            {
+                FeedId = "f-aging", FeedUrl = feedUrl, Title = $"Episode {i}", PublishedAt = DateTime.UtcNow.AddDays(i)
+            });
+        }
+
+        Assert.That((await GetStationDtoAsync(accountId, profile.Id)).UnplayedEpisodeCount, Is.EqualTo(1),
+            "With aging enabled only the newest episode of a feed is left to play");
+    }
+
+    private async Task<StationWithFeedsDto> GetStationDtoAsync(string accountId, string? profileId)
+    {
+        var url = $"/api/stations/account/{accountId}";
+        if (!string.IsNullOrEmpty(profileId)) url += $"?profileId={profileId}";
+
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Add("X-API-KEY", _testApiKey);
+        var response = await _client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        var dtos = await response.Content.ReadFromJsonAsync<List<StationWithFeedsDto>>();
+        Assert.That(dtos, Is.Not.Null.And.Not.Empty);
+        return dtos!.Single();
+    }
 }
