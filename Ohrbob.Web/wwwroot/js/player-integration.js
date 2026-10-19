@@ -57,6 +57,13 @@
         let navigating = false;
         const PREV_RESTART_THRESHOLD_SECONDS = 5;
 
+        // Whether the player currently *intends* to be playing (i.e. it is not an explicit
+        // user pause, an error or a stopped/deleted station). Used by the recovery path to
+        // re-assert playback after the browser silently refused a background auto-advance.
+        // Stored on the (long-lived) audio element so global helpers can clear it too.
+        const setAutoPlayExpected = (value) => { audio._ohrbobAutoPlayExpected = Boolean(value); };
+        const isAutoPlayExpected = () => Boolean(audio._ohrbobAutoPlayExpected);
+
         const toCard = (ep) => {
             if (!ep) return null;
             return {
@@ -146,6 +153,7 @@
 
             navigator.mediaSession.setActionHandler('play', () => {
                 clearUserPaused();
+                setAutoPlayExpected(true);
                 const playPromise = audio.play();
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
@@ -157,6 +165,7 @@
 
             navigator.mediaSession.setActionHandler('pause', () => {
                 setUserPaused();
+                setAutoPlayExpected(false);
                 audio.pause();
                 widget.isPlaying = false;
                 updatePlayButton();
@@ -328,6 +337,7 @@
 
         audio.addEventListener('error', (e) => {
             console.error("AUDIO ERROR: ", audio.error ? audio.error.message : "unknown", audio.error ? audio.error.code : 0);
+            setAutoPlayExpected(false);
             widget.isPlaying = false;
             updatePlayButton();
         });
@@ -347,11 +357,13 @@
                 
                 if (isUserPaused()) {
                     // User asked to pause: load metadata but never auto-continue playback
+                    setAutoPlayExpected(false);
                     widget.isPlaying = false;
                     updatePlayButton();
                     return;
                 }
                 
+                setAutoPlayExpected(true);
                 const playPromise = audio.play();
                 if (playPromise !== undefined) {
                     playPromise.then(() => {
@@ -365,6 +377,7 @@
             } else {
                 // If it is already loaded, ensure widget.isPlaying reflects audio state!
                 widget.isPlaying = !audio.paused;
+                if (!audio.paused) setAutoPlayExpected(true);
                 updatePlayButton();
             }
         };
@@ -390,7 +403,9 @@
             });
         };
 
-        audio.onended = async () => {
+        // Optimistically move to the cached next episode and start it. This is the
+        // end-of-episode handoff; the server state is then advanced in the background.
+        const transitionToNextEpisode = async () => {
             navigating = true;
             try
             {
@@ -404,6 +419,7 @@
                     audio.src = fullStreamUri;
                     audio.currentTime = 0;
                     
+                    setAutoPlayExpected(true);
                     const playPromise = audio.play();
                     if (playPromise !== undefined) {
                         playPromise.catch(e => console.error('Play blocked or failed:', e));
@@ -414,6 +430,7 @@
                     const state = await apiCall('/stream/status');
                     if (state) applyStateToWidget(state);
                 } else {
+                    setAutoPlayExpected(false);
                     widget.isPlaying = false;
                     updatePlayButton();
                 }
@@ -422,6 +439,45 @@
             {
                 navigating = false;
             }
+        };
+
+        audio.onended = transitionToNextEpisode;
+
+        // Mobile browsers (notably iOS Safari, see WebKit bugs 173332 / 261554) suspend the
+        // page's JS and/or silently refuse to start a newly-assigned media source while the
+        // screen is locked / app is backgrounded: play() resolves but no audio is heard. This
+        // re-asserts playback once the page is visible/focused again (and from the periodic
+        // sync), respecting an explicit user pause.
+        const resumePlaybackIfInterrupted = async () => {
+            if (document.hidden || navigating) return;
+            if (isUserPaused() || !isAutoPlayExpected()) return;
+            if (!currentEpisodeData || !currentEpisodeData.streamUri || !activeStationId) return;
+            if (!audio.paused && !audio.ended) return;
+
+            // The episode concluded while we could not observe it: advance to the next one.
+            if (audio.ended) {
+                await transitionToNextEpisode();
+                return;
+            }
+
+            if (window._ohrbobCurrentLoadedUri === currentEpisodeData.streamUri &&
+                audio.src && audio.src !== window.location.href) {
+                // The correct source is loaded but playback never actually started: retry it.
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        widget.isPlaying = true;
+                        updatePlayButton();
+                    }).catch(e => console.error('Recovery play failed:', e));
+                } else {
+                    widget.isPlaying = true;
+                    updatePlayButton();
+                }
+                return;
+            }
+
+            // Nothing loaded for the current episode: load and start it.
+            setupAudio();
         };
 
         // Direct playback of a known episode object (used for prev/jump navigation).
@@ -444,7 +500,8 @@
                 window._ohrbobCurrentLoadedUri = fullStreamUri;
                 audio.src = fullStreamUri;
                 audio.currentTime = episode.playheadPositionSeconds || 0;
-                try { await audio.play(); widget.isPlaying = true; } catch (e) { widget.isPlaying = false; }
+                setAutoPlayExpected(true);
+                try { await audio.play(); widget.isPlaying = true; } catch (e) { setAutoPlayExpected(false); widget.isPlaying = false; }
                 updatePlayButton();
 
                 await apiCall('/stream/status', 'POST', {
@@ -502,6 +559,7 @@
             widget._ohrbobListenersBound = true;
             widget.addEventListener('play', () => {
                 clearUserPaused(); // explicit user action: resets to auto-play
+                setAutoPlayExpected(true);
                 if (!currentEpisodeData || !currentEpisodeData.streamUri) {
                     widget.isPlaying = false;
                     updatePlayButton();
@@ -525,6 +583,7 @@
             
             widget.addEventListener('pause', () => {
                 setUserPaused(); // user asked to pause: never auto-continue until they play again
+                setAutoPlayExpected(false);
                 audio.pause();
                 widget.isPlaying = false;
                 updatePlayButton();
@@ -625,8 +684,24 @@
                 }
             } else if (!currentEpisodeData) {
                 await syncState();
+            } else {
+                // Playback was expected but the media element is not playing (e.g. the browser
+                // silently refused a background auto-advance): re-assert it when possible.
+                await resumePlaybackIfInterrupted();
             }
         }, 10000);
+
+        // Recover playback as soon as the page is visible/focused again. Registered once; the
+        // wrapper always calls the latest instance's handler (initPlayer runs on every nav).
+        window._ohrbobResumeIfInterrupted = resumePlaybackIfInterrupted;
+        if (!window._ohrbobRecoveryBound) {
+            window._ohrbobRecoveryBound = true;
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) window._ohrbobResumeIfInterrupted?.();
+            });
+            window.addEventListener('focus', () => window._ohrbobResumeIfInterrupted?.());
+            window.addEventListener('pageshow', () => window._ohrbobResumeIfInterrupted?.());
+        }
 
         document.body.addEventListener('stationAdded', () => {
             if (currentEpisodeData) return; 
@@ -667,6 +742,7 @@
         if (activeStationId === stationId) {
             // Stop playback
             if (window._ohrbobAudio) {
+                window._ohrbobAudio._ohrbobAutoPlayExpected = false; // non-user stop: do not auto-resume
                 window._ohrbobAudio.pause();
                 window._ohrbobAudio.src = ''; // Clear source to stop buffer/playback completely
             }
