@@ -64,6 +64,7 @@ builder.Services.AddSingleton<ProfilesApiService>();
 builder.Services.AddSingleton<ApiKeysApiService>();
 builder.Services.AddHttpClient<PodcastIndexApiService>();
 builder.Services.Configure<OhrbobApiOptions>(builder.Configuration.GetSection("OhrbobApi"));
+builder.Services.AddSingleton<ChangelogService>();
 builder.Services.AddSingleton<BackendVersionCache>();
 builder.Services.AddHostedService<VersionPollingService>();
 builder.Services.AddHttpClient(VersionPollingService.ApiClientName, (sp, c) =>
