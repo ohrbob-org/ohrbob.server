@@ -107,6 +107,16 @@ public class AccountApiService : OhrbobApiService
         return await response.Content.ReadFromJsonAsync<Account>();
     }
 
+    public virtual async Task<Account?> UpdateLastSeenChangelogAsync(string accountId, string version)
+    {
+        using var request = BuildRequest(HttpMethod.Post, $"/account/id/{accountId}/changelog");
+        request.Content = new StringContent(JsonSerializer.Serialize(new UpdateLastSeenChangelogRequest() { LastSeenChangelog = version }), Encoding.UTF8, "application/json");
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Account>();
+    }
+
     public virtual async Task<TierLimits?> GetLimitsAsync(string accountId)
     {
         using var request = BuildRequest(HttpMethod.Get, $"/account/id/{accountId}/limits");

@@ -1,0 +1,38 @@
+@model Ohrbob.Web.Models.ChangelogViewModel
+
+@if (Model.ShowChangelog)
+{
+    <div class="modal fade" id="changelogModal" tabindex="-1" aria-labelledby="changelogModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changelogModalLabel">What's New in @Model.Version</h5>
+                </div>
+                <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+                    @Html.Raw(Model.ChangelogHtml)
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="dismissChangelog('@Model.Version')">Got it!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var changelogModal = new bootstrap.Modal(document.getElementById('changelogModal'));
+            changelogModal.show();
+        });
+
+        function dismissChangelog(version) {
+            fetch('/Account/UpdateLastSeenChangelog', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify(version)
+            });
+        }
+    </script>
+}

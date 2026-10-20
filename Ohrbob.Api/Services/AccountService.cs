@@ -23,6 +23,7 @@ public class AccountService : MongoDbService<Account>
             .Set(nameof(Account.Tier), entryIn.Tier)
             .Set(nameof(Account.StripeCustomerId), entryIn.StripeCustomerId)
             .Set(nameof(Account.StripeSubscriptionId), entryIn.StripeSubscriptionId)
+            .Set(nameof(Account.LastSeenChangelog), entryIn.LastSeenChangelog)
             ;
     }
 

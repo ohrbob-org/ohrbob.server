@@ -14,4 +14,5 @@ public class Account : DbEntry
     public SubscriptionTier Tier { get; set; } = SubscriptionTier.Free;
     public string? StripeCustomerId { get; set; }
     public string? StripeSubscriptionId { get; set; }
+    public string? LastSeenChangelog { get; set; }
 }
