@@ -17,23 +17,36 @@ namespace Ohrbob.Web.Tests;
 public class ConnectControllerTests
 {
     private const string AccountId = "a1";
+    private const string FrontendPlayerUrl = "https://player.ohrbob.org";
+    private const string ServerToken = "srv-token-123";
 
-    private static ConnectController CreateController(List<Profile> profiles, Action<ApiKey>? onCreate = null)
+    private static ConnectController CreateController(
+        List<Profile> profiles,
+        Action<ApiKey>? onCreate = null,
+        Func<ApiKey, ApiKey?>? createResult = null)
     {
         var logger = new Mock<ILogger<OhrbobApiService>>();
-        var options = Options.Create(new OhrbobApiOptions { BaseUrl = "https://test.api/", ApiKey = "k" });
+        var options = Options.Create(new OhrbobApiOptions
+        {
+            BaseUrl = "https://test.api/",
+            ApiKey = "k",
+            PlayerPublicUrl = FrontendPlayerUrl
+        });
         var factory = new Mock<IHttpClientFactory>();
 
         var profilesMock = new Mock<ProfilesApiService>(logger.Object, options, factory.Object);
         profilesMock.Setup(s => s.GetProfilesByAccountIdAsync(AccountId)).ReturnsAsync(profiles);
 
         // The POST action (added in a later task) creates API keys; the mock is wired here so that
-        // task can observe the created key through the optional onCreate callback.
+        // task can observe the created key through the optional onCreate callback, and so the
+        // failure branches can be exercised through the optional createResult override.
         var apiKeysMock = new Mock<ApiKeysApiService>(logger.Object, options, factory.Object);
         apiKeysMock.Setup(s => s.CreateApiKeyAsync(AccountId, It.IsAny<ApiKey>()))
             .ReturnsAsync((string _, ApiKey key) =>
             {
                 onCreate?.Invoke(key);
+                if (createResult != null) return createResult(key);
+                key.Token = ServerToken;
                 return key;
             });
 
@@ -90,8 +103,10 @@ public class ConnectControllerTests
         Assert.That(created.Name, Is.EqualTo("Living room"));
         var view = result as ViewResult;
         Assert.That(view!.ViewName, Is.EqualTo("Handoff"));
-        Assert.That((string)view.Model!, Does.StartWith("ohrbob://connect?server="));
-        Assert.That((string)view.Model!, Does.Contain("token="));
+        var deepLink = (string)view.Model!;
+        Assert.That(deepLink, Does.StartWith("ohrbob://connect?server="));
+        Assert.That(deepLink, Does.Contain("token=" + ServerToken));
+        Assert.That(deepLink, Does.Contain("server=" + Uri.EscapeDataString(FrontendPlayerUrl)));
     }
 
     [Test]
@@ -115,5 +130,31 @@ public class ConnectControllerTests
 
         Assert.That(createdKeys, Is.EqualTo(0));
         Assert.That(result, Is.InstanceOf<ViewResult>());
+    }
+
+    [Test]
+    public async Task App_Post_ApiReturnsNull_ReturnsCardWithError()
+    {
+        var controller = CreateController(new List<Profile>(), createResult: _ => null);
+
+        var result = await controller.App("Living room", "p1");
+
+        var view = result as ViewResult;
+        Assert.That(view, Is.Not.Null);
+        Assert.That(view!.Model, Is.InstanceOf<ConnectAppViewModel>());
+        Assert.That(controller.TempData["Error"], Is.EqualTo("Failed to create API key."));
+    }
+
+    [Test]
+    public async Task App_Post_ApiThrows_ReturnsCardWithError()
+    {
+        var controller = CreateController(new List<Profile>(), createResult: _ => throw new HttpRequestException("boom"));
+
+        var result = await controller.App("Living room", "p1");
+
+        var view = result as ViewResult;
+        Assert.That(view, Is.Not.Null);
+        Assert.That(view!.Model, Is.InstanceOf<ConnectAppViewModel>());
+        Assert.That(controller.TempData["Error"], Is.EqualTo("Failed to create API key."));
     }
 }
