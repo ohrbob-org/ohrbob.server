@@ -33,7 +33,7 @@ public class OnboardingController : Controller
     private string? GetAccountId() => User.FindFirst(Consts.OhrbobAccountIdClaim)?.Value;
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? returnUrl = null)
     {
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();
@@ -45,6 +45,7 @@ public class OnboardingController : Controller
         }
 
         // Default profile name based on OIDC claim
+        ViewData["ReturnUrl"] = returnUrl;
         ViewBag.DefaultName = User.Identity?.Name ?? "My Profile";
         ViewBag.LegalShown = _legalOptions.IsConfigured;
         return View();
@@ -52,15 +53,15 @@ public class OnboardingController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateProfile(string profileName, bool acceptTerms = false)
+    public async Task<IActionResult> CreateProfile(string profileName, bool acceptTerms = false, string? returnUrl = null)
     {
         if (_legalOptions.IsConfigured && !acceptTerms)
         {
             TempData["TermsRequired"] = true;
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { returnUrl });
         }
         var accountId = GetAccountId();
-        if (string.IsNullOrEmpty(accountId) || string.IsNullOrWhiteSpace(profileName)) return RedirectToAction(nameof(Index));
+        if (string.IsNullOrEmpty(accountId) || string.IsNullOrWhiteSpace(profileName)) return RedirectToAction(nameof(Index), new { returnUrl });
 
         // A user may abort onboarding and retry it later. In that case the first profile
         // already exists, so reuse it instead of creating a duplicate on every retry.
@@ -88,16 +89,17 @@ public class OnboardingController : Controller
             throw new Exception("CreateProfileAsync returned a null or empty Id! " + System.Text.Json.JsonSerializer.Serialize(created));
         }
         
-        return RedirectToAction(nameof(Station), new { profileId = created.Id });
+        return RedirectToAction(nameof(Station), new { profileId = created.Id, returnUrl });
     }
 
     [HttpGet]
-    public IActionResult Station(string profileId)
+    public IActionResult Station(string profileId, string? returnUrl = null)
     {
         if (string.IsNullOrEmpty(profileId))
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { returnUrl });
             
         ViewBag.ProfileId = profileId;
+        ViewData["ReturnUrl"] = returnUrl;
         
         var suggestions = new[] { 
             "Morning Commute", "News", "True Crime", "24h Chill", "Kids Party", 
@@ -113,22 +115,23 @@ public class OnboardingController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult CreateStation(string profileId, string stationName)
+    public IActionResult CreateStation(string profileId, string stationName, string? returnUrl = null)
     {
         if (string.IsNullOrEmpty(profileId) || string.IsNullOrWhiteSpace(stationName))
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { returnUrl });
             
-        return RedirectToAction("Feeds", new { profileId, stationName });
+        return RedirectToAction("Feeds", new { profileId, stationName, returnUrl });
     }
 
     [HttpGet]
-    public async Task<IActionResult> Feeds(string profileId, string stationName)
+    public async Task<IActionResult> Feeds(string profileId, string stationName, string? returnUrl = null)
     {
         if (string.IsNullOrEmpty(profileId) || string.IsNullOrEmpty(stationName))
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { returnUrl });
             
         ViewBag.ProfileId = profileId;
         ViewBag.StationName = stationName;
+        ViewData["ReturnUrl"] = returnUrl;
         
         // Auto-populate 4 podcasts based on station name
         var results = await _podcastApi.SearchAsync(stationName ?? "Podcast");
@@ -147,7 +150,7 @@ public class OnboardingController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Finish(List<string> selectedFeeds, string profileId, string stationName)
+    public async Task<IActionResult> Finish(List<string> selectedFeeds, string profileId, string stationName, string? returnUrl = null)
     {
         var accountId = GetAccountId();
 
@@ -179,10 +182,19 @@ public class OnboardingController : Controller
         // Complete onboarding
         await _accountService.CompleteOnboardingAsync(accountId);
 
+        // Send the person back to where they were heading (e.g. /connect/app), but only for
+        // local URLs — never redirect to an external destination.
+        var localReturnUrl = !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) ? returnUrl : null;
+
         if (Request.Headers.ContainsKey("HX-Request"))
         {
-            Response.Headers["HX-Redirect"] = "/";
+            Response.Headers["HX-Redirect"] = localReturnUrl ?? "/";
             return Ok();
+        }
+
+        if (localReturnUrl != null)
+        {
+            return Redirect(localReturnUrl);
         }
 
         return RedirectToAction("Index", "Home");

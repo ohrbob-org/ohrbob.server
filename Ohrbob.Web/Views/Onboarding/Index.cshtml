@@ -16,6 +16,7 @@
                     </p>
                     
                     <form asp-action="CreateProfile" method="post">
+                        <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
                         <div class="mb-4 text-start">
                             <label for="profileName" class="form-label fw-bold">Name your first Profile</label>
                             <input type="text" class="form-control form-control-lg" id="profileName" name="profileName" value="@ViewBag.DefaultName" required>

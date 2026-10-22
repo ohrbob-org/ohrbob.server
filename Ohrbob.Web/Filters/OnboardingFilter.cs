@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.WebUtilities;
 using Ohrbob.Web.Services;
 
 namespace Ohrbob.Web.Filters;
@@ -44,15 +45,20 @@ public class OnboardingFilter : IAsyncActionFilter
                 var account = await _accountService.GetAccountAsync(accountId);
                 if (account != null && account.NeedsOnboarding)
                 {
+                    // Remember where the person was heading so onboarding can send them back
+                    // (e.g. /connect/app) once it completes.
+                    var returnUrl = context.HttpContext.Request.Path + context.HttpContext.Request.QueryString;
+
                     // Redirect to onboarding via a full redirect, not HTMX partial
                     if (context.HttpContext.Request.Headers.ContainsKey("HX-Request"))
                     {
-                        context.HttpContext.Response.Headers["HX-Redirect"] = "/Onboarding";
+                        context.HttpContext.Response.Headers["HX-Redirect"] =
+                            QueryHelpers.AddQueryString("/Onboarding", "returnUrl", returnUrl);
                         context.Result = new OkResult();
                         return;
                     }
 
-                    context.Result = new RedirectToActionResult("Index", "Onboarding", null);
+                    context.Result = new RedirectToActionResult("Index", "Onboarding", new { returnUrl });
                     return;
                 }
             }

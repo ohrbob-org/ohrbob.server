@@ -16,6 +16,7 @@
                     
                     <form asp-action="CreateStation" method="post">
                         <input type="hidden" name="profileId" value="@ViewBag.ProfileId" />
+                        <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
                         <div class="mb-4 text-start">
                             <input type="text" class="form-control form-control-lg text-center" id="stationName" name="stationName" placeholder="e.g. My Awesome Mix" required>
                         </div>

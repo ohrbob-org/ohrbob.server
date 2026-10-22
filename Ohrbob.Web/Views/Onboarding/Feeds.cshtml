@@ -44,6 +44,7 @@
         <form asp-action="Finish" method="post" id="finish-form">
             <input type="hidden" name="profileId" value="@ViewBag.ProfileId" />
             <input type="hidden" name="stationName" value="@ViewBag.StationName" />
+            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
             <!-- Hidden inputs added dynamically -->
             <button type="submit" class="btn btn-success btn-lg rounded-pill px-5">Complete Setup <i class="bi bi-check-circle ms-2"></i></button>
         </form>
