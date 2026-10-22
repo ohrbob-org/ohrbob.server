@@ -17,15 +17,15 @@
             @Html.AntiForgeryToken()
             <div class="mb-3">
                 <label for="name" class="form-label">Key name</label>
-                <input type="text" class="form-control" id="name" name="name" placeholder="e.g. My Phone" required />
+                <input type="text" class="form-control" id="name" name="name" value="@Model.Name" placeholder="e.g. My Phone" required />
             </div>
             <div class="mb-3">
                 <label for="profileId" class="form-label">Profile scope</label>
                 <select class="form-select" id="profileId" name="profileId">
-                    <option value="">All Profiles (account level)</option>
+                    <option value="" selected="@(string.IsNullOrEmpty(Model.ProfileId) ? "selected" : null)">All Profiles (account level)</option>
                     @foreach (var p in Model.Profiles)
                     {
-                        <option value="@p.Id">@p.Name</option>
+                        <option value="@p.Id" selected="@(Model.ProfileId == p.Id ? "selected" : null)">@p.Name</option>
                     }
                 </select>
             </div>

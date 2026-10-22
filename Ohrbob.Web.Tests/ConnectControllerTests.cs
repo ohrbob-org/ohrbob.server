@@ -21,7 +21,7 @@ public class ConnectControllerTests
     private const string ServerToken = "srv-token-123";
 
     private static ConnectController CreateController(
-        List<Profile> profiles,
+        List<Profile>? profiles,
         Action<ApiKey>? onCreate = null,
         Func<ApiKey, ApiKey?>? createResult = null)
     {
@@ -95,7 +95,8 @@ public class ConnectControllerTests
     public async Task App_Post_CreatesKeyWithScopeAndReturnsDeepLink()
     {
         ApiKey? created = null;
-        var controller = CreateController(new List<Profile>(), onCreate: k => created = k);
+        var profiles = new List<Profile> { new() { Id = "p1", AccountId = AccountId, Name = "Main" } };
+        var controller = CreateController(profiles, onCreate: k => created = k);
 
         var result = await controller.App("Living room", "p1");
 
@@ -135,7 +136,8 @@ public class ConnectControllerTests
     [Test]
     public async Task App_Post_ApiReturnsNull_ReturnsCardWithError()
     {
-        var controller = CreateController(new List<Profile>(), createResult: _ => null);
+        var profiles = new List<Profile> { new() { Id = "p1", AccountId = AccountId, Name = "Main" } };
+        var controller = CreateController(profiles, createResult: _ => null);
 
         var result = await controller.App("Living room", "p1");
 
@@ -148,7 +150,8 @@ public class ConnectControllerTests
     [Test]
     public async Task App_Post_ApiThrows_ReturnsCardWithError()
     {
-        var controller = CreateController(new List<Profile>(), createResult: _ => throw new HttpRequestException("boom"));
+        var profiles = new List<Profile> { new() { Id = "p1", AccountId = AccountId, Name = "Main" } };
+        var controller = CreateController(profiles, createResult: _ => throw new HttpRequestException("boom"));
 
         var result = await controller.App("Living room", "p1");
 
@@ -156,5 +159,64 @@ public class ConnectControllerTests
         Assert.That(view, Is.Not.Null);
         Assert.That(view!.Model, Is.InstanceOf<ConnectAppViewModel>());
         Assert.That(controller.TempData["Error"], Is.EqualTo("Failed to create API key."));
+    }
+
+    [Test]
+    public async Task App_Get_WhenProfilesApiReturnsNull_StillRendersCard()
+    {
+        var controller = CreateController(null);
+
+        var result = await controller.App();
+
+        var view = result as ViewResult;
+        Assert.That(view, Is.Not.Null);
+        var model = view!.Model as ConnectAppViewModel;
+        Assert.That(model, Is.Not.Null);
+        Assert.That(model!.Profiles, Is.Empty);
+    }
+
+    [Test]
+    public async Task App_Post_WhenNoAccountClaim_ReturnsForbid()
+    {
+        var createdKeys = 0;
+        var controller = CreateController(new List<Profile>(), onCreate: _ => createdKeys++);
+        controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+
+        var result = await controller.App("Living room", "");
+
+        Assert.That(result, Is.InstanceOf<ForbidResult>());
+        Assert.That(createdKeys, Is.EqualTo(0));
+    }
+
+    [Test]
+    public async Task App_Post_ProfileIdNotInAccount_DoesNotCreateKeyAndReturnsCardWithError()
+    {
+        var createdKeys = 0;
+        var profiles = new List<Profile> { new() { Id = "p1", AccountId = AccountId, Name = "Mine" } };
+        var controller = CreateController(profiles, onCreate: _ => createdKeys++);
+
+        var result = await controller.App("Living room", "p-other-account");
+
+        Assert.That(createdKeys, Is.EqualTo(0));
+        var view = result as ViewResult;
+        Assert.That(view, Is.Not.Null);
+        Assert.That(view!.Model, Is.InstanceOf<ConnectAppViewModel>());
+        Assert.That(controller.TempData["Error"], Is.Not.Null);
+    }
+
+    [Test]
+    public async Task App_Post_ErrorPath_CarriesSubmittedNameAndScopeBackToCard()
+    {
+        var profiles = new List<Profile> { new() { Id = "p1", AccountId = AccountId, Name = "Mine" } };
+        var controller = CreateController(profiles);
+
+        var result = await controller.App("   ", "p1");
+
+        var view = result as ViewResult;
+        Assert.That(view, Is.Not.Null);
+        var model = view!.Model as ConnectAppViewModel;
+        Assert.That(model, Is.Not.Null);
+        Assert.That(model!.Name, Is.EqualTo("   "));
+        Assert.That(model.ProfileId, Is.EqualTo("p1"));
     }
 }

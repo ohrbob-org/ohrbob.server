@@ -194,7 +194,7 @@ public class OnboardingController : Controller
 
         if (localReturnUrl != null)
         {
-            return Redirect(localReturnUrl);
+            return LocalRedirect(localReturnUrl);
         }
 
         return RedirectToAction("Index", "Home");

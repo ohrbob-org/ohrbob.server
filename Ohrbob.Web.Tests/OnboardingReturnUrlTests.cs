@@ -171,7 +171,7 @@ public class OnboardingReturnUrlTests
 
         var result = await controller.Finish(new List<string>(), "p1", "My Station", returnUrl: ReturnUrl);
 
-        var redirect = result as RedirectResult;
+        var redirect = result as LocalRedirectResult;
         Assert.That(redirect, Is.Not.Null, "a local returnUrl should redirect straight to it");
         Assert.That(redirect!.Url, Is.EqualTo(ReturnUrl));
     }
@@ -195,6 +195,31 @@ public class OnboardingReturnUrlTests
 
         var redirect = result as RedirectToActionResult;
         Assert.That(redirect, Is.Not.Null, "an external returnUrl must fall back to the default destination");
+        Assert.That(redirect!.ActionName, Is.EqualTo("Index"));
+        Assert.That(redirect.ControllerName, Is.EqualTo("Home"));
+    }
+
+    [Test]
+    public async Task Finish_WhenReturnUrlIsProtocolRelativeExternal_IsIgnored()
+    {
+        var accountMock = CreateAccountMock(new Account { Id = AccountId, NeedsOnboarding = true });
+        var logger = new Mock<ILogger<OhrbobApiService>>();
+        var options = Options.Create(new OhrbobApiOptions { BaseUrl = "https://test.api/", ApiKey = "k" });
+        var factory = CreateFactory();
+        var profilesMock = new Mock<ProfilesApiService>(logger.Object, options, factory.Object);
+        var stationsMock = new Mock<StationsApiService>(logger.Object, options, factory.Object);
+        stationsMock.Setup(s => s.CreateStationAsync(AccountId, It.IsAny<Station>()))
+            .ReturnsAsync(new Station { Id = "s1", AccountId = AccountId, Name = "My Station" });
+        profilesMock.Setup(s => s.AddStationToProfileAsync("p1", "s1")).Returns(Task.CompletedTask);
+
+        var controller = CreateController(accountMock, profilesMock, stationsMock);
+
+        // A protocol-relative URL is treated as external by Url.IsLocalUrl and must not be followed.
+        var result = await controller.Finish(new List<string>(), "p1", "My Station", returnUrl: "//evil.example");
+
+        Assert.That(result, Is.Not.InstanceOf<LocalRedirectResult>());
+        var redirect = result as RedirectToActionResult;
+        Assert.That(redirect, Is.Not.Null, "a protocol-relative returnUrl must fall back to the default destination");
         Assert.That(redirect!.ActionName, Is.EqualTo("Index"));
         Assert.That(redirect.ControllerName, Is.EqualTo("Home"));
     }

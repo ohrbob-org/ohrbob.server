@@ -40,10 +40,22 @@ public class ConnectController : Controller
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();
 
+        var profiles = await _profiles.GetProfilesByAccountIdAsync(accountId) ?? new();
+        var submittedProfileId = profileId ?? string.Empty;
+
         if (string.IsNullOrWhiteSpace(name))
         {
             TempData["Error"] = "Please enter a name.";
-            return View(await BuildCardModel(accountId));
+            return View(BuildCardModel(profiles, name, submittedProfileId));
+        }
+
+        // A key may only be scoped to a profile that belongs to the signed-in account. Blank means
+        // account-level scope and is always allowed; anything else must match one of the account's
+        // own profiles so a key can never be pointed at another account's profile.
+        if (!string.IsNullOrEmpty(submittedProfileId) && !profiles.Any(p => p.Id == submittedProfileId))
+        {
+            TempData["Error"] = "Please choose a profile from this account.";
+            return View(BuildCardModel(profiles, name, submittedProfileId));
         }
 
         try
@@ -52,7 +64,7 @@ public class ConnectController : Controller
             {
                 AccountId = accountId,
                 Name = name.Trim(),
-                ProfileId = profileId ?? string.Empty
+                ProfileId = submittedProfileId
             };
             var createdKey = await _apiKeys.CreateApiKeyAsync(accountId, apiKey);
             if (createdKey != null)
@@ -67,12 +79,22 @@ public class ConnectController : Controller
         }
 
         TempData["Error"] = "Failed to create API key.";
-        return View(await BuildCardModel(accountId));
+        return View(BuildCardModel(profiles, name, submittedProfileId));
     }
 
     private async Task<ConnectAppViewModel> BuildCardModel(string accountId)
     {
         var profiles = await _profiles.GetProfilesByAccountIdAsync(accountId) ?? new();
-        return new ConnectAppViewModel { Profiles = profiles };
+        return BuildCardModel(profiles, string.Empty, string.Empty);
+    }
+
+    private static ConnectAppViewModel BuildCardModel(List<Profile> profiles, string? name, string? profileId)
+    {
+        return new ConnectAppViewModel
+        {
+            Profiles = profiles,
+            Name = name ?? string.Empty,
+            ProfileId = profileId ?? string.Empty
+        };
     }
 }
