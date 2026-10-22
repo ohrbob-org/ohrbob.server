@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -36,13 +37,18 @@ public class ConnectControllerTests
                 return key;
             });
 
-        var controller = new ConnectController(profilesMock.Object, options);
+        var controller = new ConnectController(profilesMock.Object, apiKeysMock.Object, options);
 
         var claims = new List<Claim> { new Claim(Consts.OhrbobAccountIdClaim, AccountId) };
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity(claims, "t")) }
         };
+
+        var tempDataProvider = new Mock<ITempDataProvider>();
+        tempDataProvider.Setup(p => p.LoadTempData(It.IsAny<HttpContext>()))
+            .Returns(new Dictionary<string, object>());
+        controller.TempData = new TempDataDictionary(controller.HttpContext, tempDataProvider.Object);
         return controller;
     }
 
@@ -70,5 +76,44 @@ public class ConnectControllerTests
         var result = await controller.App();
 
         Assert.That(result, Is.InstanceOf<ForbidResult>());
+    }
+
+    [Test]
+    public async Task App_Post_CreatesKeyWithScopeAndReturnsDeepLink()
+    {
+        ApiKey? created = null;
+        var controller = CreateController(new List<Profile>(), onCreate: k => created = k);
+
+        var result = await controller.App("Living room", "p1");
+
+        Assert.That(created!.ProfileId, Is.EqualTo("p1"));
+        Assert.That(created.Name, Is.EqualTo("Living room"));
+        var view = result as ViewResult;
+        Assert.That(view!.ViewName, Is.EqualTo("Handoff"));
+        Assert.That((string)view.Model!, Does.StartWith("ohrbob://connect?server="));
+        Assert.That((string)view.Model!, Does.Contain("token="));
+    }
+
+    [Test]
+    public async Task App_Post_AccountLevelScope_LeavesProfileIdEmpty()
+    {
+        ApiKey? created = null;
+        var controller = CreateController(new List<Profile>(), onCreate: k => created = k);
+
+        await controller.App("Kitchen", "");
+
+        Assert.That(created!.ProfileId, Is.EqualTo(string.Empty));
+    }
+
+    [Test]
+    public async Task App_Post_BlankName_DoesNotCreateKeyAndReturnsCard()
+    {
+        var createdKeys = 0;
+        var controller = CreateController(new List<Profile>(), onCreate: _ => createdKeys++);
+
+        var result = await controller.App("   ", "");
+
+        Assert.That(createdKeys, Is.EqualTo(0));
+        Assert.That(result, Is.InstanceOf<ViewResult>());
     }
 }
