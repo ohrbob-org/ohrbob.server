@@ -1,0 +1,19 @@
+@model string
+@{
+    ViewData["Title"] = "Opening the Ohrbob App";
+}
+
+<div class="card mx-auto mt-4 shadow-sm" style="max-width: 26rem;">
+    <div class="card-body p-4 text-center">
+        <h1 class="h4 mb-2">Opening the Ohrbob app…</h1>
+        <p class="text-muted">Your API key was created. If nothing happens, open the link manually.</p>
+
+        <a id="ohrbob-handoff-link" class="btn btn-primary w-100" href="@Model" hx-boost="false">Open in the Ohrbob app</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        window.location.href = @Html.Raw(Json.Serialize(Model));
+    </script>
+}
