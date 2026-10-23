@@ -121,7 +121,7 @@ fi
 echo "Generating changelog.md..."
 echo "# Changelog" > changelog.md
 echo "" >> changelog.md
-git log --no-merges --pretty=format:"* %h %s (%an)" -n 100 >> changelog.md
+git log --no-merges --pretty=format:"* %h %s" -n 100 >> changelog.md
 
 docker compose build
 docker compose push ohrbob.api ohrbob.player ohrbob.web

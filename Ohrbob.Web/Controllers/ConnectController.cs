@@ -25,12 +25,12 @@ public class ConnectController : Controller
     private string? GetAccountId() => User.FindFirst(Consts.OhrbobAccountIdClaim)?.Value;
 
     [HttpGet]
-    public async Task<IActionResult> App()
+    public async Task<IActionResult> App([FromQuery] string? name)
     {
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();
 
-        return View(await BuildCardModel(accountId));
+        return View(await BuildCardModel(accountId, name ?? string.Empty));
     }
 
     [HttpPost]
@@ -82,10 +82,10 @@ public class ConnectController : Controller
         return View(BuildCardModel(profiles, name, submittedProfileId));
     }
 
-    private async Task<ConnectAppViewModel> BuildCardModel(string accountId)
+    private async Task<ConnectAppViewModel> BuildCardModel(string accountId, string name)
     {
         var profiles = await _profiles.GetProfilesByAccountIdAsync(accountId) ?? new();
-        return BuildCardModel(profiles, string.Empty, string.Empty);
+        return BuildCardModel(profiles, name, string.Empty);
     }
 
     private static ConnectAppViewModel BuildCardModel(List<Profile> profiles, string? name, string? profileId)
