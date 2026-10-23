@@ -27,3 +27,6 @@ obj/
 
 # Local test data / scratch fixtures
 testdata/
+
+# changelog
+changelog.md
