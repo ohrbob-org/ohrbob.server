@@ -121,7 +121,12 @@ fi
 echo "Generating changelog.md..."
 echo "# Changelog" > changelog.md
 echo "" >> changelog.md
-git log --no-merges --pretty=format:"* %h %s" -n 100 >> changelog.md
+# Only commits since the previous release tag (skip the tag we are building, if HEAD is on it).
+BASE_TAG="$(git describe --tags --abbrev=0 2>/dev/null || true)"
+if [ -n "$BASE_TAG" ] && [ "$(git rev-list -n1 "$BASE_TAG")" = "$(git rev-parse HEAD)" ]; then
+  BASE_TAG="$(git describe --tags --abbrev=0 "$BASE_TAG^" 2>/dev/null || true)"
+fi
+git log --no-merges --pretty=format:"* %h %s" "${BASE_TAG:+$BASE_TAG..}HEAD" >> changelog.md
 
 docker compose build
 docker compose push ohrbob.api ohrbob.player ohrbob.web
