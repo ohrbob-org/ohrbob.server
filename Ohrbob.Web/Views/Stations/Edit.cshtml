@@ -258,9 +258,22 @@
                                     }
                                 </div>
                                 <p class="text-muted mb-1 mt-1 w-100 d-block" style="font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; height:1rem; max-width: 100%;">@item.Episode.PlainDescription</p>
-                                <small class="text-secondary" style="font-size: 0.75rem;">
-                                    Position: @(item.PositionSeconds)s / Published: @(item.Episode.PublishedAt?.ToString("g"))
-                                </small>
+                                <div class="d-flex align-items-center flex-wrap" style="gap: 6px;">
+                                    <small class="text-secondary" style="font-size: 0.75rem;">
+                                        Position: <span class="episode-position">@(item.PositionSeconds)</span>s / Published: @(item.Episode.PublishedAt?.ToString("g"))
+                                    </small>
+                                    <div class="d-inline-flex align-items-center" style="gap: 2px;">
+                                        <button type="button" class="btn btn-link text-secondary p-0 px-1 continue-episode-btn" title="Continue playing from @(item.PositionSeconds)s" style="font-size: 0.75rem; line-height: 1;" data-station-id="@Model.Station.Id" data-episode-id="@item.Episode.Id" data-position="@item.PositionSeconds">
+                                            <i class="bi bi-play-fill"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-link text-secondary p-0 px-1 reset-playhead-btn" title="Reset playhead to 0" style="font-size: 0.75rem; line-height: 1;" data-station-id="@Model.Station.Id" data-episode-id="@item.Episode.Id" data-position="@item.PositionSeconds">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-link text-secondary p-0 px-1 set-playhead-btn" title="Set playhead position" style="font-size: 0.75rem; line-height: 1;" data-station-id="@Model.Station.Id" data-episode-id="@item.Episode.Id" data-position="@item.PositionSeconds">
+                                            <i class="bi bi-sliders"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                             
                              <!-- Action Controls (Right) -->
@@ -511,6 +524,26 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmClearCompletedUntilBtn">Clear All Until Here</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Set Playhead Modal -->
+<div class="modal fade" id="setPlayheadModal" tabindex="-1" aria-labelledby="setPlayheadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="setPlayheadModalLabel">Set Playhead Position</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-body">
+                <label for="playheadSecondsInput" class="form-label">Position in seconds</label>
+                <input type="number" class="form-control" id="playheadSecondsInput" min="0" step="1" value="0" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmSetPlayheadBtn">Save</button>
             </div>
         </div>
     </div>

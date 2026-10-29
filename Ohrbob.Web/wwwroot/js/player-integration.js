@@ -519,6 +519,37 @@
             }
         };
 
+        // Explicit "continue this episode" from the station edit page: make it the active
+        // episode, persist the shown playhead and start playback.
+        window._ohrbobContinueEpisode = async (stationId, episodeId, positionSeconds) => {
+            if (!stationId || !episodeId) return;
+            const position = Number(positionSeconds) || 0;
+            clearUserPaused(); // explicit user action: play this episode
+            await apiCall('/stream/status', 'POST', { episodeId, stationId, positionSeconds: position });
+
+            const sameTrack = currentEpisodeData && currentEpisodeData.episodeId === episodeId &&
+                window._ohrbobCurrentLoadedUri === currentEpisodeData.streamUri &&
+                audio.src && audio.src !== window.location.href;
+
+            // syncState loads/starts a different episode; an already loaded one is only refreshed.
+            await syncState();
+            if (!sameTrack) return;
+
+            audio.currentTime = position;
+            setAutoPlayExpected(true);
+            try { await audio.play(); widget.isPlaying = true; } catch (e) { setAutoPlayExpected(false); widget.isPlaying = false; }
+            updatePlayButton();
+        };
+
+        // Keep the loaded audio in step when the edit page changes the playhead of the episode
+        // that is currently playing.
+        window._ohrbobSeekIfCurrent = (episodeId, positionSeconds) => {
+            if (!currentEpisodeData || currentEpisodeData.episodeId !== episodeId) return;
+            if (!Number.isFinite(positionSeconds)) return;
+            audio.currentTime = positionSeconds;
+            updateMediaSessionPosition();
+        };
+
         const goToNext = async () => {
             navigating = true;
             try

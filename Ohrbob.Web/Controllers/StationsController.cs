@@ -243,6 +243,31 @@ public class StationsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SetPlayhead(string id, string episodeId, int positionSeconds)
+    {
+        var accountId = GetAccountId();
+        if (string.IsNullOrEmpty(accountId)) return Forbid();
+
+        var station = await _stationsService.GetStationByIdAsync(id);
+        if (station == null || station.AccountId != accountId)
+            return NotFound();
+
+        var activeId = HttpContext.Request.Cookies["Ohrbob_ActiveProfileId"];
+        if (string.IsNullOrEmpty(activeId))
+        {
+            var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId);
+            activeId = profiles?.FirstOrDefault()?.Id;
+        }
+
+        if (string.IsNullOrEmpty(activeId))
+            return BadRequest("No active profile found.");
+
+        await _stationsService.SetEpisodePlayheadAsync(id, episodeId, activeId, Math.Max(0, positionSeconds));
+        return Ok();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ClearCompletedUntil(string id, string episodeId)
     {
         var accountId = GetAccountId();

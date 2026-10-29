@@ -170,6 +170,14 @@ public class StationsApiService : OhrbobApiService
         response.EnsureSuccessStatusCode();
     }
 
+    public virtual async Task SetEpisodePlayheadAsync(string stationId, string episodeId, string profileId, int positionSeconds)
+    {
+        using var request = BuildRequest(HttpMethod.Post, $"/stations/{stationId}/episodes/{episodeId}/playhead?profileId={profileId}&positionSeconds={positionSeconds}");
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+    }
+
     public virtual async Task ClearEpisodeCompletedUntilAsync(string stationId, string episodeId, string profileId)
     {
         using var request = BuildRequest(HttpMethod.Post, $"/stations/{stationId}/episodes/{episodeId}/clearUntil?profileId={profileId}");

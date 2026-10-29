@@ -549,6 +549,119 @@ public class StationsControllerTests
             "With aging enabled only the newest episode of a feed is left to play");
     }
 
+    [Test]
+    public async Task SetEpisodePlayhead_CreatesStateWhenMissing()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var feedUrl = "https://test.playhead.feed/new";
+
+        var stationsService = _app.Services.GetRequiredService<Ohrbob.Api.Services.StationsService>();
+        var profilesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ProfilesService>();
+        var episodesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.EpisodesService>();
+        var listenStateService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ListenStateService>();
+
+        var station = await stationsService.CreateAsync(new Station
+        {
+            Name = "Playhead Station",
+            AccountId = accountId,
+            Feeds = new[] { feedUrl }
+        });
+        var profile = await profilesService.CreateAsync(new Profile { AccountId = accountId });
+        var episode = await episodesService.CreateAsync(new Episode
+        {
+            FeedId = "f-playhead", FeedUrl = feedUrl, Title = "Playhead Episode", PublishedAt = DateTime.UtcNow
+        });
+
+        var response = await SetPlayheadAsync(station.Id, episode.Id, profile.Id, 77);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+
+        var state = await listenStateService.GetStateAsync(profile.Id, episode.Id);
+        Assert.That(state, Is.Not.Null);
+        Assert.That(state!.PositionSeconds, Is.EqualTo(77));
+        Assert.That(state.StationId, Is.EqualTo(station.Id));
+        Assert.That(state.IsListened, Is.False);
+    }
+
+    [Test]
+    public async Task SetEpisodePlayhead_UpdatesExistingStateWithoutChangingListenedFlag()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var feedUrl = "https://test.playhead.feed/existing";
+
+        var stationsService = _app.Services.GetRequiredService<Ohrbob.Api.Services.StationsService>();
+        var profilesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ProfilesService>();
+        var episodesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.EpisodesService>();
+        var listenStateService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ListenStateService>();
+
+        var station = await stationsService.CreateAsync(new Station
+        {
+            Name = "Existing Playhead Station",
+            AccountId = accountId,
+            Feeds = new[] { feedUrl }
+        });
+        var profile = await profilesService.CreateAsync(new Profile { AccountId = accountId });
+        var episode = await episodesService.CreateAsync(new Episode
+        {
+            FeedId = "f-playhead-2", FeedUrl = feedUrl, Title = "Existing Playhead Episode", PublishedAt = DateTime.UtcNow
+        });
+
+        await listenStateService.CreateAsync(new ListenState
+        {
+            UserId = profile.Id,
+            EpisodeId = episode.Id,
+            StationId = station.Id,
+            PositionSeconds = 10,
+            IsListened = true
+        });
+
+        var response = await SetPlayheadAsync(station.Id, episode.Id, profile.Id, 42);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+
+        var state = await listenStateService.GetStateAsync(profile.Id, episode.Id);
+        Assert.That(state, Is.Not.Null);
+        Assert.That(state!.PositionSeconds, Is.EqualTo(42));
+        Assert.That(state.IsListened, Is.True, "Changing the playhead must not change the completed state");
+    }
+
+    [Test]
+    public async Task SetEpisodePlayhead_ClampsNegativePositionToZero()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var feedUrl = "https://test.playhead.feed/negative";
+
+        var stationsService = _app.Services.GetRequiredService<Ohrbob.Api.Services.StationsService>();
+        var profilesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ProfilesService>();
+        var episodesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.EpisodesService>();
+        var listenStateService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ListenStateService>();
+
+        var station = await stationsService.CreateAsync(new Station
+        {
+            Name = "Negative Playhead Station",
+            AccountId = accountId,
+            Feeds = new[] { feedUrl }
+        });
+        var profile = await profilesService.CreateAsync(new Profile { AccountId = accountId });
+        var episode = await episodesService.CreateAsync(new Episode
+        {
+            FeedId = "f-playhead-3", FeedUrl = feedUrl, Title = "Negative Playhead Episode", PublishedAt = DateTime.UtcNow
+        });
+
+        var response = await SetPlayheadAsync(station.Id, episode.Id, profile.Id, -30);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+
+        var state = await listenStateService.GetStateAsync(profile.Id, episode.Id);
+        Assert.That(state, Is.Not.Null);
+        Assert.That(state!.PositionSeconds, Is.EqualTo(0));
+    }
+
+    private async Task<HttpResponseMessage> SetPlayheadAsync(string stationId, string episodeId, string profileId, int positionSeconds)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post,
+            $"/api/stations/{stationId}/episodes/{episodeId}/playhead?profileId={profileId}&positionSeconds={positionSeconds}");
+        request.Headers.Add("X-API-KEY", _testApiKey);
+        return await _client.SendAsync(request);
+    }
+
     private async Task<StationWithFeedsDto> GetStationDtoAsync(string accountId, string? profileId)
     {
         var url = $"/api/stations/account/{accountId}";

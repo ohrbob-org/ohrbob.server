@@ -285,6 +285,39 @@ public class StationsController : ControllerBase
         return Ok();
     }
 
+    [EndpointSummary("Set the stored playhead of an episode for a profile")]
+    [Authorize(policy: Consts.GetStationsPolicy)]
+    [HttpPost("{id}/episodes/{episodeId}/playhead")]
+    public async Task<IActionResult> SetEpisodePlayhead(string id, string episodeId, [FromQuery] string profileId, [FromQuery] int positionSeconds)
+    {
+        var station = await _stationsService.GetAsync(id);
+        if (station == null) return NotFound();
+
+        var profile = await _profilesService.GetAsync(profileId);
+        if (profile == null) return NotFound();
+
+        var position = Math.Max(0, positionSeconds);
+        var state = await _listenStateService.GetStateAsync(profileId, episodeId);
+        if (state == null)
+        {
+            state = new ListenState
+            {
+                UserId = profileId,
+                EpisodeId = episodeId,
+                StationId = id,
+                PositionSeconds = position
+            };
+            await _listenStateService.CreateAsync(state);
+        }
+        else
+        {
+            state.PositionSeconds = position;
+            await _listenStateService.UpdateAsync(state);
+        }
+
+        return Ok();
+    }
+
     [EndpointSummary("Clear episode completed state until for a profile")]
     [Authorize(policy: Consts.GetStationsPolicy)]
     [HttpPost("{id}/episodes/{episodeId}/clearUntil")]
