@@ -193,6 +193,14 @@ public class StreamController : ControllerBase
         var station = await _stations.Find(s => s.Id == stationId && s.DeletedAt == null).FirstOrDefaultAsync();
         if (station == null) return NotFound();
 
+        // Clients re-select the station that is already active (e.g. on startup). That must
+        // not discard the episode in progress -- otherwise a feed update in between makes
+        // the strategy pick the newly added episode instead of the unfinished one (see #9).
+        if (profile.LastActiveStationId == stationId && !string.IsNullOrEmpty(profile.LastActiveEpisodeId))
+        {
+            return Ok();
+        }
+
         // Clear active episode to let the strategy pick the next one based on the new station
         var update = Builders<Profile>.Update
             .Set(p => p.LastActiveStationId, stationId)

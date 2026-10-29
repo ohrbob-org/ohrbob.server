@@ -314,8 +314,140 @@ public class StreamControllerTests
         Assert.That(status.next.title, Is.EqualTo("Ep 3"));
     }
 
-    private static Station CreateOldestFirstStation(string stationId) =>
-        new() { Id = stationId, Name = "Test Station", Feeds = new[] { "https://feed.url" }, Schedule = new StationSchedule { Feeds = new List<StationFeedSchedule> { new StationFeedSchedule { Url = "https://feed.url", SortOrder = FeedSortOrder.OldestToNewest } } } };
+    private static Station CreateOldestFirstStation(string stationId, string feedUrl = "https://feed.url") =>
+        new() { Id = stationId, Name = "Test Station", Feeds = new[] { feedUrl }, Schedule = new StationSchedule { Feeds = new List<StationFeedSchedule> { new StationFeedSchedule { Url = feedUrl, SortOrder = FeedSortOrder.OldestToNewest } } } };
+
+    private static Station CreateNewestFirstStation(string stationId, string feedUrl = "https://feed.url") =>
+        new() { Id = stationId, Name = "Test Station", Feeds = new[] { feedUrl }, Schedule = new StationSchedule { Feeds = new List<StationFeedSchedule> { new StationFeedSchedule { Url = feedUrl, SortOrder = FeedSortOrder.NewestToOldest } } } };
+
+    [Test]
+    public async Task GetStatus_AfterFeedUpdateAddsNewEpisode_KeepsCurrentEpisodeAndPlayhead()
+    {
+        // Refs #9: the feed was updated while an episode was being listened to, adding a
+        // newer episode. The current episode must continue (at its playhead); the new
+        // episode may only become current once the old one has finished.
+        var stationId = ObjectId.GenerateNewId().ToString();
+        var listenedId = ObjectId.GenerateNewId().ToString();
+        var currentId = ObjectId.GenerateNewId().ToString();
+        var newId = ObjectId.GenerateNewId().ToString();
+
+        var profile = new Profile
+        {
+            AccountId = "test-account",
+            StreamToken = "token-123",
+            AllowedStationIds = new[] { stationId },
+            LastActiveStationId = stationId,
+            LastActiveEpisodeId = currentId
+        };
+
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(CreateNewestFirstStation(stationId));
+        await SeedEpisodesAsync(
+            new Episode { Id = listenedId, Title = "Older", FeedUrl = "https://feed.url", PublishedAt = new DateTime(2026, 10, 6, 20, 1, 0), AudioUrl = "https://audio/older" },
+            new Episode { Id = currentId, Title = "Playing", FeedUrl = "https://feed.url", PublishedAt = new DateTime(2026, 10, 20, 20, 1, 0), AudioUrl = "https://audio/playing" });
+        var listenStateCol = _app.MongoDbContext.GetCollection<ListenState>("ListenStateCollection");
+        await listenStateCol.InsertOneAsync(new ListenState { Id = ObjectId.GenerateNewId().ToString(), UserId = profile.Id, StationId = stationId, EpisodeId = listenedId, IsListened = true });
+        await listenStateCol.InsertOneAsync(new ListenState { Id = ObjectId.GenerateNewId().ToString(), UserId = profile.Id, StationId = stationId, EpisodeId = currentId, PositionSeconds = 1816, IsListened = false });
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+
+        var before = await (await _client.GetAsync("/stream/status")).Content.ReadFromJsonAsync<StatusResponse>();
+        Assert.That(before!.current!.episodeId, Is.EqualTo(currentId));
+
+        // Feed worker appends the new episode (append-only sync).
+        await SeedEpisodesAsync(
+            new Episode { Id = newId, Title = "New", FeedUrl = "https://feed.url", PublishedAt = new DateTime(2026, 10, 27, 22, 1, 0), AudioUrl = "https://audio/new" });
+
+        var response = await _client.GetAsync("/stream/status");
+        response.EnsureSuccessStatusCode();
+        var after = await response.Content.ReadFromJsonAsync<StatusResponse>();
+
+        Assert.That(after!.current!.episodeId, Is.EqualTo(currentId), "The new episode must not take over playback.");
+        Assert.That(after.current.playheadPositionSeconds, Is.EqualTo(1816));
+        Assert.That(after.next!.episodeId, Is.EqualTo(newId), "The new episode is next once the current one is finished.");
+
+        // Finishing the current episode is the only thing that moves playback on.
+        (await _client.PostAsync("/stream/next", null)).EnsureSuccessStatusCode();
+
+        var advanced = await (await _client.GetAsync("/stream/status")).Content.ReadFromJsonAsync<StatusResponse>();
+        Assert.That(advanced!.current!.episodeId, Is.EqualTo(newId));
+    }
+
+    [Test]
+    public async Task PlayStation_OnAlreadyActiveStation_KeepsCurrentEpisode()
+    {
+        // Refs #9: clients select the active station on startup (the app re-syncs its
+        // selection after fetching /stream/status). That must not discard the episode in
+        // progress, otherwise the fallback picks the first unplayed episode - after a feed
+        // update that is the newly added, newer episode instead of the unfinished one.
+        var stationId = ObjectId.GenerateNewId().ToString();
+        var currentId = ObjectId.GenerateNewId().ToString();
+        var newId = ObjectId.GenerateNewId().ToString();
+
+        var profile = new Profile
+        {
+            AccountId = "test-account",
+            StreamToken = "token-123",
+            AllowedStationIds = new[] { stationId },
+            LastActiveStationId = stationId,
+            LastActiveEpisodeId = currentId
+        };
+
+        var profilesCol = _app.MongoDbContext.GetCollection<Profile>("ProfileCollection");
+        await profilesCol.InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(CreateNewestFirstStation(stationId));
+        await SeedEpisodesAsync(
+            new Episode { Id = currentId, Title = "Playing", FeedUrl = "https://feed.url", PublishedAt = new DateTime(2026, 10, 20, 20, 1, 0), AudioUrl = "https://audio/playing" });
+        await _app.MongoDbContext.GetCollection<ListenState>("ListenStateCollection").InsertOneAsync(
+            new ListenState { Id = ObjectId.GenerateNewId().ToString(), UserId = profile.Id, StationId = stationId, EpisodeId = currentId, PositionSeconds = 1816, IsListened = false });
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+
+        // Feed worker appends the newer episode.
+        await SeedEpisodesAsync(
+            new Episode { Id = newId, Title = "New", FeedUrl = "https://feed.url", PublishedAt = new DateTime(2026, 10, 27, 22, 1, 0), AudioUrl = "https://audio/new" });
+
+        (await _client.PostAsync($"/stream/play-station/{stationId}", null)).EnsureSuccessStatusCode();
+
+        var status = await (await _client.GetAsync("/stream/status")).Content.ReadFromJsonAsync<StatusResponse>();
+        Assert.That(status!.current!.episodeId, Is.EqualTo(currentId),
+            "Re-selecting the active station must keep the episode in progress.");
+        Assert.That(status.current.playheadPositionSeconds, Is.EqualTo(1816));
+    }
+
+    [Test]
+    public async Task PlayStation_OnOtherStation_StartsFromStrategy()
+    {
+        var stationId = ObjectId.GenerateNewId().ToString();
+        var otherStationId = ObjectId.GenerateNewId().ToString();
+        var oldEpisodeId = ObjectId.GenerateNewId().ToString();
+        var otherEpisodeId = ObjectId.GenerateNewId().ToString();
+
+        var profile = new Profile
+        {
+            AccountId = "test-account",
+            StreamToken = "token-123",
+            AllowedStationIds = new[] { stationId, otherStationId },
+            LastActiveStationId = stationId,
+            LastActiveEpisodeId = oldEpisodeId
+        };
+
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+        var stations = _app.MongoDbContext.GetCollection<Station>("StationCollection");
+        await stations.InsertOneAsync(CreateOldestFirstStation(stationId, "https://feed.a"));
+        await stations.InsertOneAsync(CreateOldestFirstStation(otherStationId, "https://feed.b"));
+        await SeedEpisodesAsync(
+            new Episode { Id = oldEpisodeId, Title = "Old", FeedUrl = "https://feed.a", PublishedAt = DateTime.UtcNow.AddDays(-2) },
+            new Episode { Id = otherEpisodeId, Title = "Other", FeedUrl = "https://feed.b", PublishedAt = DateTime.UtcNow.AddDays(-1) });
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+
+        (await _client.PostAsync($"/stream/play-station/{otherStationId}", null)).EnsureSuccessStatusCode();
+
+        var status = await (await _client.GetAsync("/stream/status")).Content.ReadFromJsonAsync<StatusResponse>();
+        Assert.That(status!.stationId, Is.EqualTo(otherStationId));
+        Assert.That(status.current!.episodeId, Is.EqualTo(otherEpisodeId));
+    }
 
     private async Task SeedEpisodesAsync(params Episode[] episodes) =>
         await _app.MongoDbContext.GetCollection<Episode>("EpisodeCollection").InsertManyAsync(episodes);
