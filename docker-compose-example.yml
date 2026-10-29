@@ -62,6 +62,7 @@ services:
       - MongoDbData__DatabaseName=${MongoDbData__DatabaseName:-OhrbobData}
       - MongoDbLogs__ConnectionString=${MongoDbLogs__ConnectionString:-mongodb://mongodb:27017/OhrbobLogs}
       - MongoDbLogs__DatabaseName=${MongoDbLogs__DatabaseName:-OhrbobLogs}
+      - OhrbobPlayer__WebPublicUrl=${OhrbobPlayer__WebPublicUrl:-http://localhost:5003}
     ports:
       - "${PLAYER_PORT:-5002}:8080"
     depends_on:
