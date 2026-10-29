@@ -112,6 +112,7 @@ public class StreamController : ControllerBase
             return Ok(new 
             {
                 stationId = station.Id,
+                profileName = profile.Name,
                 stationName = station.Name,
                 isCompiling = isCompiling,
                 isEmpty = !isCompiling
@@ -133,6 +134,7 @@ public class StreamController : ControllerBase
         return Ok(new 
         { 
             stationId = station.Id,
+            profileName = profile.Name,
             stationName = station.Name, 
             current = new {
                 episodeId = currentEpisode.Id,
