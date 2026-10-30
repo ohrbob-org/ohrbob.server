@@ -59,6 +59,7 @@
             }
         }
         <li><a class="dropdown-item py-2" asp-controller="Stations" asp-action="Index" hx-boost="@(IsHtmxEnabled("Stations", "Index") ? "true" : "false")"><i class="bi bi-broadcast me-2"></i> Stations</a></li>
+        <li><a class="dropdown-item py-2" asp-controller="Stream" asp-action="Index" hx-boost="@(IsHtmxEnabled("Stream", "Index") ? "true" : "false")"><i class="bi bi-soundwave me-2"></i> Stream</a></li>
         <li><a class="dropdown-item py-2" asp-controller="Profiles" asp-action="Index" hx-boost="@(IsHtmxEnabled("Profiles", "Index") ? "true" : "false")"><i class="bi bi-people me-2"></i> Profiles</a></li>
         <li><a class="dropdown-item py-2" asp-controller="Account" asp-action="Index" hx-boost="@(IsHtmxEnabled("Account", "Index") ? "true" : "false")"><i class="bi bi-person-gear me-2"></i> Account</a></li>
         <li><hr class="dropdown-divider"></li>
