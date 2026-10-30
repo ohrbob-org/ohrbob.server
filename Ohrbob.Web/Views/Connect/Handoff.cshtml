@@ -17,5 +17,9 @@
    Layout = null for those, which discards layout sections. An inline script is evaluated by htmx in
    the swapped fragment and also runs on a full-page render. *@
 <script>
+    const widget = document.getElementById('ohrbob-player');
+    if (widget && widget.isPlaying) {
+        widget.dispatchEvent(new CustomEvent('pause', { bubbles: true }));
+    }
     window.location.href = @Json.Serialize(Model);
 </script>
