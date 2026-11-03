@@ -684,9 +684,10 @@ public class StationsControllerTests
         };
         createRequest.Headers.Add("X-API-KEY", _testApiKey);
         var createdStation = await (await _client.SendAsync(createRequest)).Content.ReadFromJsonAsync<Station>();
+        var originalCode = createdStation!.ShareCode;
 
-        createdStation!.Name = "Renamed";
-        createdStation.ShareCode = string.Empty;
+        createdStation.Name = "Renamed";
+        createdStation.ShareCode = "Different1";
 
         var updateRequest = new HttpRequestMessage(HttpMethod.Put, "/api/stations")
         {
@@ -697,8 +698,7 @@ public class StationsControllerTests
         var response = await _client.SendAsync(updateRequest);
         var updatedStation = await response.Content.ReadFromJsonAsync<Station>();
 
-        Assert.That(updatedStation!.ShareCode, Is.Not.Empty);
-        Assert.That(updatedStation.ShareCode, Has.Length.EqualTo(10));
+        Assert.That(updatedStation!.ShareCode, Is.EqualTo(originalCode));
     }
 
     [Test]
@@ -782,7 +782,8 @@ public class StationsControllerTests
             AccountId = accountId,
             Feeds = new[] { feedUrl }
         });
-        var profile = await profilesService.CreateAsync(new Profile { AccountId = accountId });
+        // The profile must not own the station: subscribed profiles use this endpoint too.
+        var profile = await profilesService.CreateAsync(new Profile { AccountId = Guid.NewGuid().ToString() });
         await episodesService.CreateAsync(new Episode
         {
             FeedId = "f-details", FeedUrl = feedUrl, Title = "Episode", PublishedAt = DateTime.UtcNow

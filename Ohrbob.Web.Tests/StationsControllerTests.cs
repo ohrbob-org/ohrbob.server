@@ -186,7 +186,7 @@ public class StationsControllerTests
 
         _stationsServiceMock
             .Setup(s => s.GetStationByIdAsync(stationId))
-            .ReturnsAsync(new Station { Id = stationId, AccountId = TestAccountId });
+            .ReturnsAsync(new Station { Id = stationId, AccountId = TestAccountId, IsPublic = true });
         
         _stationsServiceMock
             .Setup(s => s.UpdateStationAsync(station))
@@ -262,16 +262,24 @@ public class StationsControllerTests
     public async Task Edit_Post_PreservesShareCode()
     {
         var stationId = "st-123";
-        var posted = new Station { Id = stationId, Name = "Renamed", AccountId = TestAccountId, ShareCode = string.Empty };
+        var posted = new Station
+        {
+            Id = stationId, Name = "Renamed", AccountId = TestAccountId,
+            ShareCode = string.Empty, IsPublic = false, IsAging = false
+        };
         _stationsServiceMock.Setup(s => s.GetStationByIdAsync(stationId))
-            .ReturnsAsync(new Station { Id = stationId, AccountId = TestAccountId, ShareCode = "Abc123XYZ9" });
+            .ReturnsAsync(new Station
+            {
+                Id = stationId, AccountId = TestAccountId,
+                ShareCode = "Abc123XYZ9", IsPublic = true, IsAging = true
+            });
         _stationsServiceMock.Setup(s => s.UpdateStationAsync(It.IsAny<Station>()))
             .ReturnsAsync((Station station) => station);
 
         await _controller.Edit(stationId, posted);
 
         _stationsServiceMock.Verify(s => s.UpdateStationAsync(
-            It.Is<Station>(station => station.ShareCode == "Abc123XYZ9")), Times.Once);
+            It.Is<Station>(station => station.ShareCode == "Abc123XYZ9" && station.IsPublic && station.IsAging)), Times.Once);
     }
 
     [Test]

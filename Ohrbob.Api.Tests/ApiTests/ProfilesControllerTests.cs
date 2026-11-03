@@ -334,6 +334,29 @@ public class ProfilesControllerTests
     }
 
     [Test]
+    public async Task Subscribe_DeletedStation_ReturnsNotFound()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var stationsService = scope.ServiceProvider.GetRequiredService<StationsService>();
+        var controller = new Controllers.ProfilesController(profilesService, stationsService);
+
+        var profile = await profilesService.CreateAsync(new Profile
+        {
+            AccountId = Guid.NewGuid().ToString(), Name = "Subscriber"
+        });
+        var station = await stationsService.CreateAsync(new Station
+        {
+            AccountId = Guid.NewGuid().ToString(), Name = "Deleted", IsPublic = true
+        });
+        await stationsService.DeleteAsync(station!.Id);
+
+        var result = await controller.Subscribe(profile!.Id, station.Id);
+
+        Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.NotFoundObjectResult>());
+    }
+
+    [Test]
     public async Task Subscribe_DoesNotCountAgainstStationLimit()
     {
         using var scope = _app.Services.CreateScope();

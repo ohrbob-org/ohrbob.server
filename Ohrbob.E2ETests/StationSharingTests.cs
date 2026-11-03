@@ -101,10 +101,41 @@ public class StationSharingTests : PageTest
         await Expect(card.Locator("a[href*='/Stations/Edit/']")).ToHaveCountAsync(0);
         Assert.That(secondProfile.Id, Is.Not.EqualTo(activeProfileId), "A non-active profile should have been chosen");
 
+        await card.ClickAsync();
+        await Expect(Page.Locator($"#ohrbob-player[data-active-station-id='{station.Id}']"))
+            .ToBeVisibleAsync(new() { Timeout = 15000 });
+
         await card.Locator("button[title='Unsubscribe']").ClickAsync();
         await Expect(Page.Locator("#confirmationModal")).ToBeVisibleAsync();
         await Page.ClickAsync("#confirmationModalConfirmBtn");
         await Expect(Page.Locator(".card", new PageLocatorOptions { HasTextString = "Friend Station" })).ToHaveCountAsync(0, new() { Timeout = 15000 });
+    }
+
+    [Test]
+    public async Task PrivateStation_RefusesNewSubscribers_ButExistingSubscriberKeepsAccess()
+    {
+        var station = await CreateStationAsync(_ownerAccountId, _ownerProfileId, "Private Later", isPublic: true);
+
+        var (subscriberAccountId, subscriberProfileId) = await CreateAccountAsync("Existing Subscriber");
+        var profiles = _factory.Services.GetRequiredService<ProfilesApiService>();
+        await profiles.SubscribeToStationAsync(subscriberProfileId, station.Id);
+
+        await SetStationPublicAsync(station.Id, false, _ownerAccountId);
+
+        var (newcomerAccountId, _) = await CreateAccountAsync("Newcomer");
+        TestAuthHandler.TestAccountId = newcomerAccountId;
+        var response = await Page.GotoAsync($"{_factory.ServerAddress}/s/{station.ShareCode}");
+        Assert.That(response!.Status, Is.EqualTo(404), "Newcomers cannot open or subscribe to a private station");
+
+        TestAuthHandler.TestAccountId = subscriberAccountId;
+        await Page.GotoAsync($"{_factory.ServerAddress}/");
+        var card = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Private Later" }).First;
+        await Expect(card).ToBeVisibleAsync(new() { Timeout = 15000 });
+        await Expect(card.Locator("a[href*='/Stations/Edit/']")).ToHaveCountAsync(0);
+
+        await card.ClickAsync();
+        await Expect(Page.Locator($"#ohrbob-player[data-active-station-id='{station.Id}']"))
+            .ToBeVisibleAsync(new() { Timeout = 15000 });
     }
 
     private async Task<Station> CreateStationAsync(string accountId, string profileId, string name, bool isPublic)

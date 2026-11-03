@@ -16,9 +16,14 @@ public class Migration_0_0_10_StationShareCodes : IMigration
     public async Task ApplyAsync(IMongoDatabase database, CancellationToken cancellationToken = default)
     {
         var stations = database.GetCollection<Station>(typeof(Station).Name + "Collection");
-        var missing = await stations
-            .Find(Builders<Station>.Filter.Eq(s => s.ShareCode, string.Empty))
-            .ToListAsync(cancellationToken);
+        // Stations created before this release have no ShareCode field at all, so match both
+        // missing/null and empty values. The DeletedAt check keeps soft-deleted rows untouched.
+        var missingFilter = Builders<Station>.Filter.And(
+            Builders<Station>.Filter.Eq(s => s.DeletedAt, null),
+            Builders<Station>.Filter.Or(
+                Builders<Station>.Filter.Eq(s => s.ShareCode, null),
+                Builders<Station>.Filter.Eq(s => s.ShareCode, string.Empty)));
+        var missing = await stations.Find(missingFilter).ToListAsync(cancellationToken);
 
         foreach (var station in missing)
         {

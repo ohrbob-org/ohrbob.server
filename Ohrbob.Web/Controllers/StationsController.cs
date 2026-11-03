@@ -130,9 +130,11 @@ public class StationsController : Controller
         if (existingStation == null || existingStation.AccountId != accountId)
             return NotFound();
 
-        // Ensure AccountId and the share code are kept consistent
+        // Ensure server-owned fields are kept consistent
         station.AccountId = accountId;
         station.ShareCode = existingStation.ShareCode;
+        station.IsPublic = existingStation.IsPublic;
+        station.IsAging = existingStation.IsAging;
 
         await _stationsService.UpdateStationAsync(station);
         return RedirectToAction(nameof(Index));

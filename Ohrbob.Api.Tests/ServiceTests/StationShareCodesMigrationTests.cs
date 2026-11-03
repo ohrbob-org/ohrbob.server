@@ -29,14 +29,24 @@ public class StationShareCodesMigrationTests
         _dbContext.GetDatabase()!.RunCommand(new JsonCommand<BsonDocument>("{ dropDatabase: 1 }"));
     }
 
+    private IMongoCollection<BsonDocument> RawStations =>
+        _dbContext.GetDatabase()!.GetCollection<BsonDocument>("StationCollection");
+
     [Test]
-    public async Task Migration_BackfillsMissingCodes_AndIsIdempotent()
+    public async Task Migration_BackfillsLegacyStationsWithoutTheField_AndIsIdempotent()
     {
-        var stations = _dbContext.GetCollection<Station>("StationCollection");
-        await stations.InsertManyAsync(new[]
+        await RawStations.InsertManyAsync(new[]
         {
-            new Station { Id = "missing", AccountId = "a", Name = "Missing", ShareCode = string.Empty },
-            new Station { Id = "fixed", AccountId = "a", Name = "Fixed", ShareCode = "Abc123XYZ9" }
+            new BsonDocument { { "_id", "missing" }, { "AccountId", "a" }, { "Name", "Missing" } },
+            new BsonDocument
+            {
+                { "_id", "fixed" }, { "AccountId", "a" }, { "Name", "Fixed" }, { "ShareCode", "Abc123XYZ9" }
+            },
+            new BsonDocument
+            {
+                { "_id", "deleted" }, { "AccountId", "a" }, { "Name", "Deleted" },
+                { "DeletedAt", DateTime.UtcNow }
+            }
         });
 
         var migrator = new DatabaseMigrator(
@@ -47,11 +57,27 @@ public class StationShareCodesMigrationTests
         await migrator.MigrateAsync();
         await migrator.MigrateAsync();
 
-        var missing = await stations.Find(s => s.Id == "missing").FirstOrDefaultAsync();
-        var fixedStation = await stations.Find(s => s.Id == "fixed").FirstOrDefaultAsync();
+        var missing = await RawStations.Find(new BsonDocument("_id", "missing")).FirstOrDefaultAsync();
+        var fixedStation = await RawStations.Find(new BsonDocument("_id", "fixed")).FirstOrDefaultAsync();
+        var deleted = await RawStations.Find(new BsonDocument("_id", "deleted")).FirstOrDefaultAsync();
 
-        Assert.That(missing!.ShareCode, Has.Length.EqualTo(10));
-        Assert.That(missing.ShareCode, Does.Match("^[A-Za-z0-9]{10}$"));
-        Assert.That(fixedStation!.ShareCode, Is.EqualTo("Abc123XYZ9"));
+        Assert.That(missing!["ShareCode"].AsString, Has.Length.EqualTo(10));
+        Assert.That(fixedStation!["ShareCode"].AsString, Is.EqualTo("Abc123XYZ9"));
+        Assert.That(deleted!.Contains("ShareCode"), Is.False, "Soft-deleted stations keep no share code");
+    }
+
+    [Test]
+    public async Task RepairMigration_BackfillsStationsMissedByTheOldFilter()
+    {
+        await RawStations.InsertOneAsync(new BsonDocument
+        {
+            { "_id", "legacy" }, { "AccountId", "a" }, { "Name", "Legacy" }
+        });
+
+        await new Migration_0_0_11_RepairStationShareCodes()
+            .ApplyAsync(_dbContext.GetDatabase()!);
+
+        var repaired = await RawStations.Find(new BsonDocument("_id", "legacy")).FirstOrDefaultAsync();
+        Assert.That(repaired!["ShareCode"].AsString, Has.Length.EqualTo(10));
     }
 }

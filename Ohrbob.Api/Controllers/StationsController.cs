@@ -671,8 +671,8 @@ public class StationsController : ControllerBase
         var existing = await _stationsService.GetAsync(station.Id);
         if (existing == null)
             return NotFound();
-        if (string.IsNullOrEmpty(station.ShareCode))
-            station.ShareCode = existing.ShareCode;
+        // Share codes are assigned once and never rotated through a station update.
+        station.ShareCode = existing.ShareCode;
 
         if (_accountService != null && _policy != null)
         {
