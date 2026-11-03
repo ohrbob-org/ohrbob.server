@@ -17,6 +17,7 @@ public class ProfilesService : MongoDbService<Profile>
             .Set(p => p.Name, entryIn.Name)
             .Set(p => p.StreamToken, entryIn.StreamToken)
             .Set(p => p.AllowedStationIds, entryIn.AllowedStationIds)
+            .Set(p => p.SubscribedStationIds, entryIn.SubscribedStationIds)
             .Set(p => p.LastActiveStationId, entryIn.LastActiveStationId)
             .Set(p => p.LastActiveEpisodeId, entryIn.LastActiveEpisodeId);
     }
@@ -24,6 +25,13 @@ public class ProfilesService : MongoDbService<Profile>
     public async Task<List<Profile>> GetByAccountIdAsync(string accountId)
     {
         var filter = Builders<Profile>.Filter.Eq(p => p.AccountId, accountId);
+        filter = filter.ExcludeDeleted();
+        return await Collection.Find(filter).ToListAsync();
+    }
+
+    public async Task<List<Profile>> GetBySubscribedStationIdAsync(string stationId)
+    {
+        var filter = Builders<Profile>.Filter.AnyEq(p => p.SubscribedStationIds, stationId);
         filter = filter.ExcludeDeleted();
         return await Collection.Find(filter).ToListAsync();
     }

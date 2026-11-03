@@ -103,6 +103,18 @@ public class StationsController : ControllerBase
         return Ok(dtos);
     }
     
+    [EndpointSummary("Get a public station by its share code")]
+    [Authorize(policy: Consts.GetStationsPolicy)]
+    [HttpGet("share/{code}")]
+    public async Task<ActionResult<StationWithFeedsDto>> GetByShareCode(string code)
+    {
+        var station = await _stationsService.FindByShareCodeAsync(code);
+        if (station == null || !station.IsPublic)
+            return NotFound();
+
+        return Ok(await BuildStationDtoAsync(station));
+    }
+
     [EndpointSummary("Get station by id")]
     [EndpointDescription(@"Returns a station by its id")]
     [Authorize(policy: Consts.GetStationsPolicy)]
@@ -118,33 +130,54 @@ public class StationsController : ControllerBase
     [EndpointSummary("Get station details with feed stats")]
     [Authorize(policy: Consts.GetStationsPolicy)]
     [HttpGet("{id}/details")]
-    public async Task<ActionResult<StationWithFeedsDto>> GetDetailsById(string id)
+    public async Task<ActionResult<StationWithFeedsDto>> GetDetailsById(string id, [FromQuery] string? profileId = null)
     {
         var station = await _stationsService.GetAsync(id);
         if (station == null) return NotFound();
 
+        var dto = await BuildStationDtoAsync(station, profileId);
+        return Ok(dto);
+    }
+
+    private async Task<StationWithFeedsDto> BuildStationDtoAsync(Station station, string? profileId = null)
+    {
         var dto = new StationWithFeedsDto { Station = station };
-        
+
         if (station.Feeds != null)
         {
             foreach (var url in station.Feeds)
             {
                 var feed = await _feedsService.FindByUrlAsync(url);
                 var stats = new FeedStatsDto { Url = url };
-                
+
                 if (feed != null)
                 {
                     stats.Title = feed.Title;
                     stats.LastUpdated = feed.LastUpdated;
-                        stats.ImageUrl = feed.ImageUrl;
-                    
+                    stats.ImageUrl = feed.ImageUrl;
                     stats.EpisodeCount = await _episodesService.CountByFeedIdAsync(feed.Id);
                 }
                 dto.Feeds.Add(stats);
             }
         }
-        
-        return Ok(dto);
+
+        if (!string.IsNullOrEmpty(profileId))
+        {
+            if (station.Feeds == null || !station.Feeds.Any())
+            {
+                dto.UnplayedEpisodeCount = 0;
+            }
+            else
+            {
+                var listenStates = await _listenStateService.GetStatesByUserIdAsync(profileId);
+                var completedEpisodeIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
+                var episodes = await _episodesService.FindByFeedUrlsAsync(station.Feeds);
+                var unavailable = PlaybackStrategyHelper.GetListenedAndAgedEpisodeIds(station, episodes, completedEpisodeIds);
+                dto.UnplayedEpisodeCount = episodes.Count(e => !unavailable.Contains(e.Id));
+            }
+        }
+
+        return dto;
     }
 
     [EndpointSummary("Get station playlist")]
@@ -463,12 +496,25 @@ public class StationsController : ControllerBase
         {
             AccountId = accountId,
             Name = request.Name,
+            ShareCode = await GenerateUniqueShareCodeAsync(),
             IsPublic = request.IsPublic,
             Feeds = request.Feeds,
             Schedule = request.Schedule
         };
         var createdStation = await _stationsService.CreateAsync(station);
         return Ok(createdStation);
+    }
+
+    private async Task<string> GenerateUniqueShareCodeAsync()
+    {
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            var code = ShareCodeGenerator.Generate();
+            if (await _stationsService.FindByShareCodeAsync(code) == null)
+                return code;
+        }
+
+        throw new InvalidOperationException("Could not generate a unique station share code.");
     }
 
     [EndpointSummary("Add feeds to an existing station")]
@@ -622,11 +668,15 @@ public class StationsController : ControllerBase
         if (station.Schedule == null) station.Schedule = new StationSchedule();
         if (station.Schedule.Feeds == null) station.Schedule.Feeds = new List<StationFeedSchedule>();
 
+        var existing = await _stationsService.GetAsync(station.Id);
+        if (existing == null)
+            return NotFound();
+        // Share codes are assigned once and never rotated through a station update.
+        station.ShareCode = existing.ShareCode;
+
         if (_accountService != null && _policy != null)
         {
-            var existingStation = await _stationsService.GetAsync(station.Id);
-            if (existingStation == null)
-                return NotFound();
+            var existingStation = existing;
             var updateAccount = await _accountService.GetAsync(existingStation.AccountId);
             var updateLimits = _policy.For(updateAccount);
             if (!_policy.CanSetFeedCount(station.Schedule.Feeds.Count, updateLimits))
@@ -664,12 +714,18 @@ public class StationsController : ControllerBase
 
         // Clean up references in profiles
         var profiles = await _profilesService.GetByAccountIdAsync(station.AccountId);
-        foreach (var profile in profiles)
+        var subscribers = await _profilesService.GetBySubscribedStationIdAsync(id);
+        foreach (var profile in profiles.Concat(subscribers).DistinctBy(p => p.Id))
         {
             bool modified = false;
             if (profile.AllowedStationIds != null && profile.AllowedStationIds.Contains(id))
             {
                 profile.AllowedStationIds = profile.AllowedStationIds.Where(s => s != id).ToArray();
+                modified = true;
+            }
+            if (profile.SubscribedStationIds != null && profile.SubscribedStationIds.Contains(id))
+            {
+                profile.SubscribedStationIds = profile.SubscribedStationIds.Where(s => s != id).ToArray();
                 modified = true;
             }
             if (profile.LastActiveStationId == id)

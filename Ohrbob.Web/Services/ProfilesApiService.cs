@@ -126,4 +126,20 @@ public class ProfilesApiService : OhrbobApiService
         var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();
     }
+
+    public virtual async Task SubscribeToStationAsync(string profileId, string stationId)
+    {
+        using var request = BuildRequest(HttpMethod.Post, $"/profiles/{profileId}/subscriptions/{stationId}");
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public virtual async Task UnsubscribeFromStationAsync(string profileId, string stationId)
+    {
+        using var request = BuildRequest(HttpMethod.Delete, $"/profiles/{profileId}/subscriptions/{stationId}");
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+    }
 }

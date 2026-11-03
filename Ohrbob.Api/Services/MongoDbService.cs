@@ -48,8 +48,8 @@ public abstract class MongoDbService<T> where T : DbEntry
     public async Task<T?> GetAsync(string id, bool excludeDeleted = true)
     {
         var filter = Builders<T>.Filter.Eq(x => x.Id, id);
-        if(excludeDeleted) 
-            filter.ExcludeDeleted();
+        if (excludeDeleted)
+            filter = filter.ExcludeDeleted();
         var result = await Collection.FindAsync(filter);
         return await result.FirstOrDefaultAsync();
     }

@@ -93,6 +93,7 @@ public class ProfilesController : Controller
             // Update profile info
             profile.AccountId = accountId;
             profile.StreamToken = existingProfile.StreamToken; // ensure it isn't wiped out
+            profile.SubscribedStationIds = existingProfile.SubscribedStationIds ?? Array.Empty<string>();
             await _profilesService.UpdateProfileAsync(profile);
 
             // Handle stations assignments

@@ -88,7 +88,7 @@ public class AccountApiService : OhrbobApiService
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<Account>();
     }
-    public async Task<Account?> SetActiveProfileAsync(string accountId, string profileId)
+    public virtual async Task<Account?> SetActiveProfileAsync(string accountId, string profileId)
     {
         using var request = BuildRequest(HttpMethod.Post, $"/account/{accountId}/active-profile/{profileId}");
         using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));

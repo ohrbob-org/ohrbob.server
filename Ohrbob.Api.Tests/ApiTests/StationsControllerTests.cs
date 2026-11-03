@@ -654,6 +654,190 @@ public class StationsControllerTests
         Assert.That(state!.PositionSeconds, Is.EqualTo(0));
     }
 
+    [Test]
+    public async Task CreateStation_AssignsShareCode()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var station = new Station { Name = "Shareable", Feeds = Array.Empty<string>() };
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/api/stations/{accountId}")
+        {
+            Content = JsonContent.Create(station)
+        };
+        request.Headers.Add("X-API-KEY", _testApiKey);
+
+        var response = await _client.SendAsync(request);
+        var createdStation = await response.Content.ReadFromJsonAsync<Station>();
+
+        Assert.That(createdStation!.ShareCode, Has.Length.EqualTo(10));
+        Assert.That(createdStation.ShareCode, Does.Match("^[A-Za-z0-9]{10}$"));
+    }
+
+    [Test]
+    public async Task UpdateStation_WithEmptyShareCode_PreservesExistingCode()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var station = new Station { Name = "Keep Code", Feeds = Array.Empty<string>() };
+        var createRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/stations/{accountId}")
+        {
+            Content = JsonContent.Create(station)
+        };
+        createRequest.Headers.Add("X-API-KEY", _testApiKey);
+        var createdStation = await (await _client.SendAsync(createRequest)).Content.ReadFromJsonAsync<Station>();
+        var originalCode = createdStation!.ShareCode;
+
+        createdStation.Name = "Renamed";
+        createdStation.ShareCode = "Different1";
+
+        var updateRequest = new HttpRequestMessage(HttpMethod.Put, "/api/stations")
+        {
+            Content = JsonContent.Create(createdStation)
+        };
+        updateRequest.Headers.Add("X-API-KEY", _testApiKey);
+
+        var response = await _client.SendAsync(updateRequest);
+        var updatedStation = await response.Content.ReadFromJsonAsync<Station>();
+
+        Assert.That(updatedStation!.ShareCode, Is.EqualTo(originalCode));
+    }
+
+    [Test]
+    public async Task GetStationByShareCode_ReturnsPublicStation()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var station = new Station { Name = "Public Station", IsPublic = true, Feeds = Array.Empty<string>() };
+        var createRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/stations/{accountId}")
+        {
+            Content = JsonContent.Create(station)
+        };
+        createRequest.Headers.Add("X-API-KEY", _testApiKey);
+        var createdStation = await (await _client.SendAsync(createRequest)).Content.ReadFromJsonAsync<Station>();
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/stations/share/{createdStation!.ShareCode}");
+        request.Headers.Add("X-API-KEY", _testApiKey);
+
+        var response = await _client.SendAsync(request);
+
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        var dto = await response.Content.ReadFromJsonAsync<StationWithFeedsDto>();
+        Assert.That(dto!.Station.Id, Is.EqualTo(createdStation.Id));
+    }
+
+    [Test]
+    public async Task GetStationByShareCode_ReturnsNotFound_WhenPrivate()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var station = new Station { Name = "Private Station", IsPublic = false, Feeds = Array.Empty<string>() };
+        var createRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/stations/{accountId}")
+        {
+            Content = JsonContent.Create(station)
+        };
+        createRequest.Headers.Add("X-API-KEY", _testApiKey);
+        var createdStation = await (await _client.SendAsync(createRequest)).Content.ReadFromJsonAsync<Station>();
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/stations/share/{createdStation!.ShareCode}");
+        request.Headers.Add("X-API-KEY", _testApiKey);
+
+        var response = await _client.SendAsync(request);
+
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NotFound));
+    }
+
+    [Test]
+    public async Task GetStationByShareCode_ReturnsNotFound_WhenDeleted()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var station = new Station { Name = "Deleted Station", IsPublic = true, Feeds = Array.Empty<string>() };
+        var createRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/stations/{accountId}")
+        {
+            Content = JsonContent.Create(station)
+        };
+        createRequest.Headers.Add("X-API-KEY", _testApiKey);
+        var createdStation = await (await _client.SendAsync(createRequest)).Content.ReadFromJsonAsync<Station>();
+
+        var deleteRequest = new HttpRequestMessage(HttpMethod.Delete, $"/api/stations/{createdStation!.Id}");
+        deleteRequest.Headers.Add("X-API-KEY", _testApiKey);
+        await _client.SendAsync(deleteRequest);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/stations/share/{createdStation.ShareCode}");
+        request.Headers.Add("X-API-KEY", _testApiKey);
+
+        var response = await _client.SendAsync(request);
+
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.NotFound));
+    }
+
+    [Test]
+    public async Task GetStationDetails_WithProfileId_SetsUnplayedEpisodeCount()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var feedUrl = "https://test.details.feed/url";
+        var stationsService = _app.Services.GetRequiredService<Ohrbob.Api.Services.StationsService>();
+        var profilesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ProfilesService>();
+        var episodesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.EpisodesService>();
+
+        var station = await stationsService.CreateAsync(new Station
+        {
+            Name = "Details Station",
+            AccountId = accountId,
+            Feeds = new[] { feedUrl }
+        });
+        // The profile must not own the station: subscribed profiles use this endpoint too.
+        var profile = await profilesService.CreateAsync(new Profile { AccountId = Guid.NewGuid().ToString() });
+        await episodesService.CreateAsync(new Episode
+        {
+            FeedId = "f-details", FeedUrl = feedUrl, Title = "Episode", PublishedAt = DateTime.UtcNow
+        });
+
+        var request = new HttpRequestMessage(HttpMethod.Get,
+            $"/api/stations/{station!.Id}/details?profileId={profile!.Id}");
+        request.Headers.Add("X-API-KEY", _testApiKey);
+
+        var response = await _client.SendAsync(request);
+        var dto = await response.Content.ReadFromJsonAsync<StationWithFeedsDto>();
+
+        Assert.That(dto!.UnplayedEpisodeCount, Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task DeleteStation_RemovesItFromEveryProfileSubscriptions()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var station = new Station { Name = "Subscribed Station", Feeds = Array.Empty<string>() };
+        var createRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/stations/{accountId}")
+        {
+            Content = JsonContent.Create(station)
+        };
+        createRequest.Headers.Add("X-API-KEY", _testApiKey);
+        var createdStation = await (await _client.SendAsync(createRequest)).Content.ReadFromJsonAsync<Station>();
+
+        var profilesCol = _app.MongoDbContext.GetCollection<Profile>("ProfileCollection");
+        var subscribedProfile = new Profile
+        {
+            Id = Guid.NewGuid().ToString(),
+            AccountId = Guid.NewGuid().ToString(),
+            StreamToken = Guid.NewGuid().ToString(),
+            SubscribedStationIds = new[] { createdStation!.Id }
+        };
+        var otherProfile = new Profile
+        {
+            Id = Guid.NewGuid().ToString(),
+            AccountId = Guid.NewGuid().ToString(),
+            StreamToken = Guid.NewGuid().ToString(),
+            SubscribedStationIds = new[] { "other-station" }
+        };
+        await profilesCol.InsertManyAsync(new[] { subscribedProfile, otherProfile });
+
+        var deleteRequest = new HttpRequestMessage(HttpMethod.Delete, $"/api/stations/{createdStation.Id}");
+        deleteRequest.Headers.Add("X-API-KEY", _testApiKey);
+        await _client.SendAsync(deleteRequest);
+
+        var updated = await profilesCol.Find(p => p.Id == subscribedProfile.Id).FirstOrDefaultAsync();
+        var untouched = await profilesCol.Find(p => p.Id == otherProfile.Id).FirstOrDefaultAsync();
+        Assert.That(updated!.SubscribedStationIds, Does.Not.Contain(createdStation.Id));
+        Assert.That(untouched!.SubscribedStationIds, Is.EquivalentTo(new[] { "other-station" }));
+    }
+
     private async Task<HttpResponseMessage> SetPlayheadAsync(string stationId, string episodeId, string profileId, int positionSeconds)
     {
         var request = new HttpRequestMessage(HttpMethod.Post,

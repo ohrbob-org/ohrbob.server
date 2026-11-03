@@ -245,6 +245,206 @@ public class ProfilesControllerTests
     }
 
     [Test]
+    public async Task Subscribe_AddsStationToProfile()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var stationsService = scope.ServiceProvider.GetRequiredService<StationsService>();
+        var controller = new Controllers.ProfilesController(profilesService, stationsService);
+
+        var ownerAccountId = Guid.NewGuid().ToString();
+        var subscriberAccountId = Guid.NewGuid().ToString();
+        var profile = await profilesService.CreateAsync(new Profile { AccountId = subscriberAccountId, Name = "Subscriber" });
+        var station = await stationsService.CreateAsync(new Station
+        {
+            AccountId = ownerAccountId, Name = "Public Station", IsPublic = true
+        });
+
+        var result = await controller.Subscribe(profile!.Id, station!.Id);
+
+        Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.OkResult>());
+        var updated = await profilesService.GetAsync(profile.Id);
+        Assert.That(updated!.SubscribedStationIds, Contains.Item(station.Id));
+    }
+
+    [Test]
+    public async Task Subscribe_IsIdempotent()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var stationsService = scope.ServiceProvider.GetRequiredService<StationsService>();
+        var controller = new Controllers.ProfilesController(profilesService, stationsService);
+
+        var profile = await profilesService.CreateAsync(new Profile
+        {
+            AccountId = Guid.NewGuid().ToString(), Name = "Subscriber"
+        });
+        var station = await stationsService.CreateAsync(new Station
+        {
+            AccountId = Guid.NewGuid().ToString(), Name = "Public Station", IsPublic = true
+        });
+
+        await controller.Subscribe(profile!.Id, station!.Id);
+        await controller.Subscribe(profile.Id, station.Id);
+
+        var updated = await profilesService.GetAsync(profile.Id);
+        Assert.That(updated!.SubscribedStationIds.Count(id => id == station.Id), Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task Subscribe_PrivateStation_ReturnsForbidden()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var stationsService = scope.ServiceProvider.GetRequiredService<StationsService>();
+        var controller = new Controllers.ProfilesController(profilesService, stationsService);
+
+        var profile = await profilesService.CreateAsync(new Profile
+        {
+            AccountId = Guid.NewGuid().ToString(), Name = "Subscriber"
+        });
+        var station = await stationsService.CreateAsync(new Station
+        {
+            AccountId = Guid.NewGuid().ToString(), Name = "Private Station", IsPublic = false
+        });
+
+        var result = await controller.Subscribe(profile!.Id, station!.Id);
+
+        Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.ForbidResult>());
+    }
+
+    [Test]
+    public async Task Subscribe_OwnStation_ReturnsForbidden()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var stationsService = scope.ServiceProvider.GetRequiredService<StationsService>();
+        var controller = new Controllers.ProfilesController(profilesService, stationsService);
+
+        var accountId = Guid.NewGuid().ToString();
+        var profile = await profilesService.CreateAsync(new Profile { AccountId = accountId, Name = "Owner" });
+        var station = await stationsService.CreateAsync(new Station
+        {
+            AccountId = accountId, Name = "Own Station", IsPublic = true
+        });
+
+        var result = await controller.Subscribe(profile!.Id, station!.Id);
+
+        Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.ForbidResult>());
+    }
+
+    [Test]
+    public async Task Subscribe_DeletedStation_ReturnsNotFound()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var stationsService = scope.ServiceProvider.GetRequiredService<StationsService>();
+        var controller = new Controllers.ProfilesController(profilesService, stationsService);
+
+        var profile = await profilesService.CreateAsync(new Profile
+        {
+            AccountId = Guid.NewGuid().ToString(), Name = "Subscriber"
+        });
+        var station = await stationsService.CreateAsync(new Station
+        {
+            AccountId = Guid.NewGuid().ToString(), Name = "Deleted", IsPublic = true
+        });
+        await stationsService.DeleteAsync(station!.Id);
+
+        var result = await controller.Subscribe(profile!.Id, station.Id);
+
+        Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.NotFoundObjectResult>());
+    }
+
+    [Test]
+    public async Task Subscribe_DoesNotCountAgainstStationLimit()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var stationsService = scope.ServiceProvider.GetRequiredService<StationsService>();
+        var controller = new Controllers.ProfilesController(profilesService, stationsService);
+
+        var subscriberAccountId = Guid.NewGuid().ToString();
+        var profile = await profilesService.CreateAsync(new Profile
+        {
+            AccountId = subscriberAccountId, Name = "Subscriber"
+        });
+
+        // The Free tier allows two owned stations. Fill that quota, then subscribe to an
+        // unrelated public station; subscriptions are not owned stations and must not count.
+        for (var i = 0; i < 2; i++)
+        {
+            await stationsService.CreateAsync(new Station
+            {
+                AccountId = subscriberAccountId, Name = $"Owned {i}"
+            });
+        }
+        var publicStation = await stationsService.CreateAsync(new Station
+        {
+            AccountId = Guid.NewGuid().ToString(), Name = "Shared", IsPublic = true
+        });
+
+        var result = await controller.Subscribe(profile!.Id, publicStation!.Id);
+
+        Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.OkResult>());
+        var updated = await profilesService.GetAsync(profile.Id);
+        Assert.That(updated!.SubscribedStationIds, Contains.Item(publicStation.Id));
+    }
+
+    [Test]
+    public async Task Unsubscribe_RemovesStation_AndIsIdempotent()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var stationsService = scope.ServiceProvider.GetRequiredService<StationsService>();
+        var controller = new Controllers.ProfilesController(profilesService, stationsService);
+
+        var profile = await profilesService.CreateAsync(new Profile
+        {
+            AccountId = Guid.NewGuid().ToString(), Name = "Subscriber"
+        });
+        var station = await stationsService.CreateAsync(new Station
+        {
+            AccountId = Guid.NewGuid().ToString(), Name = "Public Station", IsPublic = true
+        });
+
+        await controller.Subscribe(profile!.Id, station!.Id);
+        await controller.Unsubscribe(profile.Id, station.Id);
+        var afterFirst = await profilesService.GetAsync(profile.Id);
+        await controller.Unsubscribe(profile.Id, station.Id);
+        var afterSecond = await profilesService.GetAsync(profile.Id);
+
+        Assert.That(afterFirst!.SubscribedStationIds, Does.Not.Contain(station.Id));
+        Assert.That(afterSecond!.SubscribedStationIds, Does.Not.Contain(station.Id));
+    }
+
+    [Test]
+    public async Task UpdateProfile_PreservesSubscribedStationIds_WhenPayloadOmitsThem()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var controller = new Controllers.ProfilesController(
+            profilesService,
+            scope.ServiceProvider.GetRequiredService<StationsService>());
+
+        var profile = await profilesService.CreateAsync(new Profile
+        {
+            AccountId = Guid.NewGuid().ToString(),
+            Name = "Original",
+            SubscribedStationIds = new[] { "station-1", "station-2" }
+        });
+
+        profile!.Name = "Renamed";
+        profile.SubscribedStationIds = Array.Empty<string>();
+
+        var result = await controller.Update(profile);
+
+        Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.OkObjectResult>());
+        var updated = await profilesService.GetAsync(profile.Id);
+        Assert.That(updated!.SubscribedStationIds, Is.EquivalentTo(new[] { "station-1", "station-2" }));
+    }
+
+    [Test]
     public async Task AddStation_ShouldAddStationId()
     {
         using var scope = _app.Services.CreateScope();
