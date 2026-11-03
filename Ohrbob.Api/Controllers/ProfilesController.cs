@@ -154,6 +154,15 @@ public class ProfilesController : ControllerBase
         var result = await _profilesService.DeleteAsync(id);
         if (!result) return NotFound();
 
+        // A station cannot be host-paced by a deleted profile.
+        var hostedStations = await _stationsService.GetByHostProfileIdAsync(id);
+        foreach (var hostedStation in hostedStations)
+        {
+            hostedStation.HostPaceEnabled = false;
+            hostedStation.HostProfileId = null;
+            await _stationsService.UpdateAsync(hostedStation);
+        }
+
         if (_accountService != null)
         {
             var account = await _accountService.GetAsync(profile.AccountId);

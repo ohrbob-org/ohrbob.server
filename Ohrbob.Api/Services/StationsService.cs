@@ -19,12 +19,21 @@ public class StationsService : MongoDbService<Station>
             .Set(s => s.IsPublic, entryIn.IsPublic)
             .Set(s => s.Feeds, entryIn.Feeds)
             .Set(s => s.Schedule, entryIn.Schedule)
-            .Set(s => s.IsAging, entryIn.IsAging);
+            .Set(s => s.IsAging, entryIn.IsAging)
+            .Set(s => s.HostPaceEnabled, entryIn.HostPaceEnabled)
+            .Set(s => s.HostProfileId, entryIn.HostProfileId);
     }
 
     public async Task<List<Station>> GetByAccountIdAsync(string accountId)
     {
         var filter = Builders<Station>.Filter.Eq(s => s.AccountId, accountId);
+        filter = filter.ExcludeDeleted();
+        return await Collection.Find(filter).ToListAsync();
+    }
+
+    public async Task<List<Station>> GetByHostProfileIdAsync(string profileId)
+    {
+        var filter = Builders<Station>.Filter.Eq(s => s.HostProfileId, profileId);
         filter = filter.ExcludeDeleted();
         return await Collection.Find(filter).ToListAsync();
     }

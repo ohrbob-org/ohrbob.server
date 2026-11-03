@@ -170,8 +170,17 @@ window.initRenameStation = function (stationId, initialIsAging) {
     const nameDisplay = document.getElementById('stationNameDisplay');
     const isAgingInput = document.getElementById('isAgingInput');
     const isPublicInput = document.getElementById('isPublicInput');
+    const hostPaceInput = document.getElementById('hostPaceInput');
+    const hostProfileSelect = document.getElementById('hostProfileSelect');
+    const hostProfileContainer = document.getElementById('hostProfileContainer');
 
-    if (!renameBtn || !modalEl || !saveBtn || !nameInput || !errorMsg || !nameDisplay || !isAgingInput || !isPublicInput) return;
+    if (!renameBtn || !modalEl || !saveBtn || !nameInput || !errorMsg || !nameDisplay || !isAgingInput || !isPublicInput
+        || !hostPaceInput || !hostProfileSelect || !hostProfileContainer) return;
+
+    const syncHostProfileVisibility = function () {
+        hostProfileContainer.classList.toggle('d-none', !hostPaceInput.checked);
+    };
+    hostPaceInput.addEventListener('change', syncHostProfileVisibility);
 
     let modal = null;
     let currentIsAging = initialIsAging;
@@ -213,6 +222,8 @@ window.initRenameStation = function (stationId, initialIsAging) {
         formData.append('name', newName);
         formData.append('isAging', isAgingInput.checked);
         formData.append('isPublic', isPublicInput.checked);
+        formData.append('hostPaceEnabled', hostPaceInput.checked);
+        formData.append('hostProfileId', hostProfileSelect.value);
 
         fetch(`/Stations/UpdateSettings/${stationId}`, {
             method: 'POST',
@@ -227,6 +238,9 @@ window.initRenameStation = function (stationId, initialIsAging) {
                 const data = await response.json();
                 nameDisplay.textContent = data.name;
                 currentIsAging = data.isAging;
+                hostPaceInput.checked = data.hostPaceEnabled;
+                hostProfileSelect.value = data.hostProfileId || hostProfileSelect.value;
+                syncHostProfileVisibility();
                 if (typeof window.setStationPublicState === 'function') {
                     window.setStationPublicState(data.isPublic);
                 }

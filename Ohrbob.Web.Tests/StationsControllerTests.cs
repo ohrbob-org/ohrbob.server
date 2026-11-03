@@ -232,7 +232,7 @@ public class StationsControllerTests
             .Setup(s => s.UpdateStationAsync(existingStation))
             .ReturnsAsync(existingStation);
 
-        var result = await _controller.UpdateSettings(stationId, "New Name", true, false);
+        var result = await _controller.UpdateSettings(stationId, "New Name", true, false, false, null);
 
         var okResult = result as OkObjectResult;
         Assert.That(okResult, Is.Not.Null);
@@ -252,10 +252,47 @@ public class StationsControllerTests
         _stationsServiceMock.Setup(s => s.UpdateStationAsync(It.IsAny<Station>()))
             .ReturnsAsync((Station station) => station);
 
-        var result = await _controller.UpdateSettings(stationId, "Station", false, true);
+        var result = await _controller.UpdateSettings(stationId, "Station", false, true, false, null);
 
         Assert.That(result, Is.InstanceOf<OkObjectResult>());
         _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.Is<Station>(station => station.IsPublic)), Times.Once);
+    }
+
+    [Test]
+    public async Task UpdateSettings_PersistsHostPaceAndHostProfile()
+    {
+        var stationId = "st-123";
+        var existingStation = new Station { Id = stationId, AccountId = TestAccountId, Name = "Station" };
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync(stationId)).ReturnsAsync(existingStation);
+        _profilesServiceMock.Setup(p => p.GetProfileByIdAsync("host-profile")).ReturnsAsync(new Profile
+        {
+            Id = "host-profile", AccountId = TestAccountId, Name = "Host"
+        });
+        _stationsServiceMock.Setup(s => s.UpdateStationAsync(It.IsAny<Station>()))
+            .ReturnsAsync((Station station) => station);
+
+        var result = await _controller.UpdateSettings(stationId, "Station", false, false, true, "host-profile");
+
+        Assert.That(result, Is.InstanceOf<OkObjectResult>());
+        _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.Is<Station>(station =>
+            station.HostPaceEnabled && station.HostProfileId == "host-profile")), Times.Once);
+    }
+
+    [Test]
+    public async Task UpdateSettings_HostProfileFromAnotherAccount_ReturnsBadRequest()
+    {
+        var stationId = "st-123";
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync(stationId)).ReturnsAsync(
+            new Station { Id = stationId, AccountId = TestAccountId, Name = "Station" });
+        _profilesServiceMock.Setup(p => p.GetProfileByIdAsync("foreign")).ReturnsAsync(new Profile
+        {
+            Id = "foreign", AccountId = "someone-else", Name = "Foreign"
+        });
+
+        var result = await _controller.UpdateSettings(stationId, "Station", false, false, true, "foreign");
+
+        Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
+        _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.IsAny<Station>()), Times.Never);
     }
 
     [Test]

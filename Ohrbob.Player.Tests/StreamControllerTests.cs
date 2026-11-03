@@ -99,6 +99,106 @@ public class StreamControllerTests
     }
 
     [Test]
+    public async Task GetStatus_Subscriber_OnlySeesHostCompletedEpisodes()
+    {
+        var stationId = ObjectId.GenerateNewId().ToString();
+        var ep1 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Completed by host", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-2), AudioUrl = "https://audio/1" };
+        var ep2 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Not completed by host", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-1), AudioUrl = "https://audio/2" };
+
+        var profile = new Profile
+        {
+            AccountId = "subscriber", StreamToken = "token-123", AllowedStationIds = new[] { stationId }
+        };
+        var station = CreateOldestFirstStation(stationId);
+        station.AccountId = "owner-account";
+        station.HostPaceEnabled = true;
+        station.HostProfileId = "host-profile";
+
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(station);
+        await SeedEpisodesAsync(ep1, ep2);
+        await _app.MongoDbContext.GetCollection<ListenState>("ListenStateCollection").InsertOneAsync(new ListenState
+        {
+            UserId = "host-profile", EpisodeId = ep1.Id, StationId = stationId, IsListened = true
+        });
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+        var response = await _client.GetAsync("/stream/status");
+        response.EnsureSuccessStatusCode();
+
+        var status = await response.Content.ReadFromJsonAsync<StatusResponse>();
+        Assert.That(status!.current, Is.Not.Null);
+        Assert.That(status.current!.episodeId, Is.EqualTo(ep1.Id));
+        Assert.That(status.next, Is.Null, "The host has not completed a second episode");
+    }
+
+    [Test]
+    public async Task Next_Subscriber_StopsAtHostFrontier()
+    {
+        var stationId = ObjectId.GenerateNewId().ToString();
+        var ep1 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 1", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-2) };
+        var ep2 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 2", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-1) };
+        var ep3 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 3", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow };
+
+        var profile = new Profile
+        {
+            AccountId = "subscriber", StreamToken = "token-123",
+            LastActiveStationId = stationId, LastActiveEpisodeId = ep1.Id
+        };
+        var station = CreateOldestFirstStation(stationId);
+        station.AccountId = "owner-account";
+        station.HostPaceEnabled = true;
+        station.HostProfileId = "host-profile";
+
+        var profilesCol = _app.MongoDbContext.GetCollection<Profile>("ProfileCollection");
+        await profilesCol.InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(station);
+        await SeedEpisodesAsync(ep1, ep2, ep3);
+        await _app.MongoDbContext.GetCollection<ListenState>("ListenStateCollection").InsertManyAsync(new[]
+        {
+            new ListenState { Id = Guid.NewGuid().ToString(), UserId = "host-profile", EpisodeId = ep1.Id, StationId = stationId, IsListened = true },
+            new ListenState { Id = Guid.NewGuid().ToString(), UserId = "host-profile", EpisodeId = ep2.Id, StationId = stationId, IsListened = true }
+        });
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+        var first = await _client.PostAsync("/stream/next", null);
+        first.EnsureSuccessStatusCode();
+
+        var updated = await profilesCol.Find(p => p.Id == profile.Id).FirstOrDefaultAsync();
+        Assert.That(updated!.LastActiveEpisodeId, Is.EqualTo(ep2.Id));
+
+        var second = await _client.PostAsync("/stream/next", null);
+        second.EnsureSuccessStatusCode();
+
+        var afterFrontier = await profilesCol.Find(p => p.Id == profile.Id).FirstOrDefaultAsync();
+        Assert.That(afterFrontier!.LastActiveEpisodeId, Is.EqualTo(ep2.Id), "There is no host-completed episode after ep2");
+    }
+
+    [Test]
+    public async Task GetStations_IncludesSubscribedStations()
+    {
+        var profile = new Profile
+        {
+            AccountId = "subscriber", StreamToken = "token-123",
+            AllowedStationIds = new[] { "owned-station" },
+            SubscribedStationIds = new[] { "subscribed-station" }
+        };
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertManyAsync(new[]
+        {
+            new Station { Id = "owned-station", Name = "Owned", Feeds = Array.Empty<string>() },
+            new Station { Id = "subscribed-station", Name = "Subscribed", Feeds = Array.Empty<string>() }
+        });
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+        var response = await _client.GetAsync("/stream/stations");
+        response.EnsureSuccessStatusCode();
+
+        var stations = await response.Content.ReadFromJsonAsync<List<Ohrbob.Server.Shared.Requests.StationWithFeedsDto>>();
+        Assert.That(stations!.Select(s => s.Station.Id), Is.EquivalentTo(new[] { "owned-station", "subscribed-station" }));
+    }
+
+    [Test]
     public async Task SyncStatus_UpdatesProfileAndListenState()
     {
         var stationId = ObjectId.GenerateNewId().ToString();

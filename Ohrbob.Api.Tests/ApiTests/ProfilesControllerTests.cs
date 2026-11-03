@@ -245,6 +245,34 @@ public class ProfilesControllerTests
     }
 
     [Test]
+    public async Task DeleteHostProfile_DisablesHostPaceOnItsStations()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var stationsService = scope.ServiceProvider.GetRequiredService<StationsService>();
+        var controller = new Controllers.ProfilesController(
+            profilesService,
+            stationsService,
+            scope.ServiceProvider.GetRequiredService<AccountService>(),
+            scope.ServiceProvider.GetRequiredService<SubscriptionPolicy>());
+
+        var accountId = Guid.NewGuid().ToString();
+        var first = await profilesService.CreateAsync(new Profile { AccountId = accountId, Name = "First", StreamToken = Guid.NewGuid().ToString() });
+        var host = await profilesService.CreateAsync(new Profile { AccountId = accountId, Name = "Host", StreamToken = Guid.NewGuid().ToString() });
+        var station = await stationsService.CreateAsync(new Station
+        {
+            AccountId = accountId, Name = "Host Paced", HostPaceEnabled = true, HostProfileId = host!.Id
+        });
+
+        var result = await controller.Delete(host.Id);
+
+        Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.OkResult>());
+        var updated = await stationsService.GetAsync(station!.Id);
+        Assert.That(updated!.HostPaceEnabled, Is.False);
+        Assert.That(updated.HostProfileId, Is.Null);
+    }
+
+    [Test]
     public async Task Subscribe_AddsStationToProfile()
     {
         using var scope = _app.Services.CreateScope();

@@ -46,8 +46,11 @@ public class StreamController : ControllerBase
         var profile = await GetProfile();
         if (profile == null) return Unauthorized();
 
-        var allowedStationIds = profile.AllowedStationIds ?? Array.Empty<string>();
-        var stations = await _stations.Find(s => allowedStationIds.Contains(s.Id)).ToListAsync();
+        var accessibleStationIds = (profile.AllowedStationIds ?? Array.Empty<string>())
+            .Concat(profile.SubscribedStationIds ?? Array.Empty<string>())
+            .Distinct()
+            .ToArray();
+        var stations = await _stations.Find(s => accessibleStationIds.Contains(s.Id) && s.DeletedAt == null).ToListAsync();
 
         
         var stationIds = stations.Select(s => s.Id).ToList();
@@ -98,9 +101,15 @@ public class StreamController : ControllerBase
              }
         }
         
+        if (currentEpisode != null &&
+            !await _playbackStrategy.IsEpisodePlayableAsync(station, currentEpisode, profile))
+        {
+            currentEpisode = null;
+        }
+
         if (currentEpisode == null)
         {
-             currentEpisode = await _playbackStrategy.GetNextEpisodeAsync(station, null, profile.Id);
+             currentEpisode = await _playbackStrategy.GetNextEpisodeAsync(station, null, profile);
              if (currentEpisode != null) activeEpisodeId = currentEpisode.Id;
         }
 
@@ -122,8 +131,8 @@ public class StreamController : ControllerBase
         var listenState = await _listenStateService.GetStateAsync(profile.Id, currentEpisode.Id);
         int position = listenState?.PositionSeconds ?? 0;
 
-        var nextEpisode = await _playbackStrategy.GetNextEpisodeAsync(station, currentEpisode.Id, profile.Id);
-        var prevEpisode = await _playbackStrategy.GetPreviousEpisodeAsync(station, currentEpisode.Id, profile.Id);
+        var nextEpisode = await _playbackStrategy.GetNextEpisodeAsync(station, currentEpisode.Id, profile);
+        var prevEpisode = await _playbackStrategy.GetPreviousEpisodeAsync(station, currentEpisode.Id, profile);
 
         // Resolve feed titles for artist display (feed title fallback to station name)
         var stationFeeds = await _feeds.Find(f => station.Feeds.Contains(f.Url)).ToListAsync();
@@ -195,6 +204,11 @@ public class StreamController : ControllerBase
         var station = await _stations.Find(s => s.Id == stationId && s.DeletedAt == null).FirstOrDefaultAsync();
         if (station == null) return NotFound();
 
+        var accessibleStationIds = (profile.AllowedStationIds ?? Array.Empty<string>())
+            .Concat(profile.SubscribedStationIds ?? Array.Empty<string>())
+            .ToHashSet();
+        if (!accessibleStationIds.Contains(stationId)) return Forbid();
+
         // Clients re-select the station that is already active (e.g. on startup). That must
         // not discard the episode in progress -- otherwise a feed update in between makes
         // the strategy pick the newly added episode instead of the unfinished one (see #9).
@@ -229,7 +243,7 @@ public class StreamController : ControllerBase
             await _listenStateService.UpsertStateAsync(profile.Id, station.Id, profile.LastActiveEpisodeId, 0, true);
         }
 
-        var nextEpisode = await _playbackStrategy.GetNextEpisodeAsync(station, profile.LastActiveEpisodeId, profile.Id);
+        var nextEpisode = await _playbackStrategy.GetNextEpisodeAsync(station, profile.LastActiveEpisodeId, profile);
         if (nextEpisode == null) return Ok();
 
         var update = Builders<Profile>.Update.Set(p => p.LastActiveEpisodeId, nextEpisode.Id);
@@ -251,7 +265,7 @@ public class StreamController : ControllerBase
         var station = await _stations.Find(s => s.Id == profile.LastActiveStationId && s.DeletedAt == null).FirstOrDefaultAsync();
         if (station == null) return BadRequest();
 
-        var prevEpisode = await _playbackStrategy.GetPreviousEpisodeAsync(station, profile.LastActiveEpisodeId, profile.Id);
+        var prevEpisode = await _playbackStrategy.GetPreviousEpisodeAsync(station, profile.LastActiveEpisodeId, profile);
         if (prevEpisode == null) return Ok();
 
         var update = Builders<Profile>.Update.Set(p => p.LastActiveEpisodeId, prevEpisode.Id);

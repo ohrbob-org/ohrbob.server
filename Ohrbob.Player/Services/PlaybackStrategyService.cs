@@ -18,21 +18,28 @@ public class PlaybackStrategyService
         _listenStateService = listenStateService;
     }
 
-    public async Task<Episode?> GetNextEpisodeAsync(Station station, string? currentEpisodeId, string profileId)
+    public async Task<Episode?> GetNextEpisodeAsync(Station station, string? currentEpisodeId, Profile listener)
     {
         if (station.Feeds == null || station.Feeds.Length == 0) return null;
-        
+
         var filter = Builders<Episode>.Filter.In(e => e.FeedUrl, station.Feeds);
         var episodes = await _episodes.Find(filter).ToListAsync();
 
-        var listenedEpisodeIds = await _listenStateService.GetListenedEpisodeIdsAsync(profileId);
-        var listenedSet = listenedEpisodeIds.ToHashSet();
-        listenedSet = PlaybackStrategyHelper.GetListenedAndAgedEpisodeIds(station, episodes, listenedSet);
+        var hostCompleted = await _listenStateService.GetHostCompletedEpisodeIdsAsync(station, episodes);
+        var allowedEpisodes = HostPaceHelper.GetAllowedEpisodes(
+            station, listener.AccountId, episodes, hostCompleted);
+
+        var listenedEpisodeIds = await _listenStateService.GetListenedEpisodeIdsAsync(listener.Id);
+        var listenedSet = HostPaceHelper.GetUnavailableEpisodeIds(
+            station, listener.AccountId, episodes, listenedEpisodeIds.ToHashSet(), hostCompleted);
+
         // Never return the current episode as "next".
         if (!string.IsNullOrEmpty(currentEpisodeId)) listenedSet.Add(currentEpisodeId);
 
-        // Full deterministic playlist order (including listened) so navigation is positional.
-        var ordered = PlaybackStrategyHelper.GetOrderedPlaylist(episodes, station, new HashSet<string>(), currentEpisodeId);
+        // Only allowed episodes enter the positional playlist; otherwise prev/next could
+        // navigate into episodes the host has not released yet.
+        var ordered = PlaybackStrategyHelper.GetOrderedPlaylist(
+            allowedEpisodes, station, new HashSet<string>(), currentEpisodeId);
 
         int startIndex = 0;
         if (!string.IsNullOrEmpty(currentEpisodeId))
@@ -49,7 +56,7 @@ public class PlaybackStrategyService
         return ordered.FirstOrDefault(e => !listenedSet.Contains(e.Id));
     }
 
-    public async Task<Episode?> GetPreviousEpisodeAsync(Station station, string? currentEpisodeId, string profileId)
+    public async Task<Episode?> GetPreviousEpisodeAsync(Station station, string? currentEpisodeId, Profile listener)
     {
         if (station.Feeds == null || station.Feeds.Length == 0) return null;
         if (string.IsNullOrEmpty(currentEpisodeId)) return null;
@@ -57,11 +64,24 @@ public class PlaybackStrategyService
         var filter = Builders<Episode>.Filter.In(e => e.FeedUrl, station.Feeds);
         var episodes = await _episodes.Find(filter).ToListAsync();
 
+        var hostCompleted = await _listenStateService.GetHostCompletedEpisodeIdsAsync(station, episodes);
+        var allowedEpisodes = HostPaceHelper.GetAllowedEpisodes(
+            station, listener.AccountId, episodes, hostCompleted);
+
         // Full ordered playlist including listened episodes, so history is navigable.
-        var ordered = PlaybackStrategyHelper.GetOrderedPlaylist(episodes, station, new HashSet<string>(), currentEpisodeId);
+        var ordered = PlaybackStrategyHelper.GetOrderedPlaylist(
+            allowedEpisodes, station, new HashSet<string>(), currentEpisodeId);
 
         var index = ordered.FindIndex(e => e.Id == currentEpisodeId);
         if (index <= 0) return null;
         return ordered[index - 1];
+    }
+
+    public async Task<bool> IsEpisodePlayableAsync(Station station, Episode episode, Profile listener)
+    {
+        if (!HostPaceHelper.AppliesTo(station, listener.AccountId)) return true;
+
+        var hostCompleted = await _listenStateService.GetHostCompletedEpisodeIdsAsync(station, new[] { episode });
+        return HostPaceHelper.IsEpisodeAllowed(station, listener.AccountId, episode, hostCompleted);
     }
 }

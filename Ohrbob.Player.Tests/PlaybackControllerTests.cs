@@ -62,6 +62,32 @@ public class PlaybackControllerTests
     }
 
     [Test]
+    public async Task SetState_Subscriber_CannotCompleteEpisodeBeforeHost()
+    {
+        var profile = new Profile { AccountId = "test-account", StreamToken = "token-123" };
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(new Station
+        {
+            Id = "station-1",
+            AccountId = "owner-account",
+            Name = "Host Paced",
+            Feeds = new[] { "feed" },
+            HostPaceEnabled = true,
+            HostProfileId = "host-profile"
+        });
+        await _app.MongoDbContext.GetCollection<Episode>("EpisodeCollection").InsertOneAsync(new Episode
+        {
+            Id = "ep-1", FeedUrl = "feed", Title = "Episode", PublishedAt = DateTime.UtcNow
+        });
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+        var request = new Controllers.SetStateRequest { StationId = "station-1", IsListened = true };
+        var response = await _client.PostAsJsonAsync("/api/playback/state/ep-1", request);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+    }
+
+    [Test]
     public async Task StateEndpoints_GetAndSetState_Works()
     {
         var profile = new Profile { AccountId = "test-account", StreamToken = "token-123" };
