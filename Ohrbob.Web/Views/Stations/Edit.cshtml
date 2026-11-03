@@ -217,9 +217,12 @@
             </div>
         </div>
 
-        <div class="mb-4 mx-auto d-flex flex-wrap align-items-center gap-2 border rounded px-3 py-2 bg-body-tertiary" style="max-width: 760px;">
+        <div class="mt-4 d-flex align-items-center justify-content-center" style="gap: 12px;">
+            Share Station:
+        </div>
+        <div class="mb-4 mx-auto d-flex align-items-center gap-2 border rounded px-3 py-2 bg-body-tertiary" style="max-width: 760px;">
             <i class="bi bi-link-45deg fs-4 text-body-secondary" aria-hidden="true"></i>
-            <input type="text" id="shareStationUrl" class="form-control border-0 bg-transparent shadow-none flex-grow-1" style="min-width: 180px;"
+            <input type="text" id="shareStationUrl" class="form-control border-0 shadow-none flex-grow-1"
                    readonly value="@Url.Action("Index", "Share", new { code = Model.Station.ShareCode }, Context.Request.Scheme)" aria-label="Station share link" />
             <select id="shareVisibilitySelect" class="form-select" style="width: auto;" aria-label="Station visibility">
                 <option value="public" selected="@(Model.Station.IsPublic)">Public</option>
