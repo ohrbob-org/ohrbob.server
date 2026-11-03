@@ -47,6 +47,31 @@ public class ListenStateService : MongoDbService<ListenState>
         return states;
     }
 
+    public async Task<List<string>> GetListenedEpisodeIdsAsync(string userId, IEnumerable<string> episodeIds)
+    {
+        var ids = episodeIds.Distinct().ToList();
+        if (ids.Count == 0) return new List<string>();
+
+        var filter = Builders<ListenState>.Filter.And(
+            Builders<ListenState>.Filter.Eq(s => s.UserId, userId),
+            Builders<ListenState>.Filter.Eq(s => s.IsListened, true),
+            Builders<ListenState>.Filter.In(s => s.EpisodeId, ids),
+            Builders<ListenState>.Filter.Eq(x => x.DeletedAt, null)
+        );
+        return await Collection.Find(filter).Project(s => s.EpisodeId).ToListAsync();
+    }
+
+    public async Task<HashSet<string>> GetHostCompletedEpisodeIdsAsync(
+        Station station, IEnumerable<Episode> stationEpisodes)
+    {
+        if (!station.HostPaceEnabled || string.IsNullOrEmpty(station.HostProfileId))
+            return new HashSet<string>();
+
+        var episodeIds = stationEpisodes.Select(e => e.Id);
+        var listened = await GetListenedEpisodeIdsAsync(station.HostProfileId, episodeIds);
+        return listened.ToHashSet();
+    }
+
     public async Task UpsertStateAsync(string userId, string stationId, string episodeId, int positionSeconds, bool isListened)
     {
         var existing = await GetStateAsync(userId, episodeId);
