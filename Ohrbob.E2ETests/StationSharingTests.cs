@@ -121,6 +121,66 @@ public class StationSharingTests : PageTest
     }
 
     [Test]
+    public async Task HostPace_SubscriberOnlyGetsEpisodesCompletedByHost()
+    {
+        if (!await TestCasts.IsAvailableAsync())
+            Assert.Ignore($"podcast-testcasts is not reachable at {TestCasts.ConfigureBaseUrl}.");
+
+        var slug = $"host-pace-{Guid.NewGuid():N}";
+        await TestCasts.ConfigureAsync(new TestCastPodcast(slug, "Host Pace Feed", new[]
+        {
+            new TestCastEpisode("Episode A", $"{slug}-a.mp3"),
+            new TestCastEpisode("Episode B", $"{slug}-b.mp3"),
+            new TestCastEpisode("Episode C", $"{slug}-c.mp3")
+        }));
+
+        var stations = _factory.Services.GetRequiredService<StationsApiService>();
+        var station = await CreateStationWithFeedsAsync(
+            _ownerAccountId, _ownerProfileId, "Host Paced", true, new[] { TestCasts.FeedUrl(slug) });
+        await WaitForEpisodesAsync(station.Id, 3);
+
+        var playlist = await stations.GetStationPlaylistAsync(station.Id, _ownerProfileId);
+        Assert.That(playlist, Is.Not.Null.And.Count.GreaterThanOrEqualTo(3));
+        var first = playlist![0].Episode;
+        var second = playlist[1].Episode;
+
+        // The host has completed only the first episode; enable Host Pace through the settings modal.
+        await stations.MarkEpisodeCompletedAsync(station.Id, first.Id, _ownerProfileId);
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{station.Id}");
+        await Page.ClickAsync("#renameStationBtn");
+        await Page.CheckAsync("#hostPaceInput");
+        await Page.SelectOptionAsync("#hostProfileSelect", _ownerProfileId);
+        await Page.ClickAsync("#saveStationNameBtn");
+        await Expect(Page.Locator("#renameStationModal")).ToBeHiddenAsync(new() { Timeout = 10000 });
+
+        var (subscriberAccountId, subscriberProfileId) = await CreateAccountAsync("Paced Listener");
+        var profiles = _factory.Services.GetRequiredService<ProfilesApiService>();
+        await profiles.SubscribeToStationAsync(subscriberProfileId, station.Id);
+
+        TestAuthHandler.TestAccountId = subscriberAccountId;
+        await Page.GotoAsync($"{_factory.ServerAddress}/");
+        var card = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Host Paced" }).First;
+        await Expect(card).ToBeVisibleAsync(new() { Timeout = 15000 });
+
+        await card.ClickAsync();
+        await Expect(Page.Locator("#ohrbob-player")).ToHaveAttributeAsync("track", first.Title, new() { Timeout = 15000 });
+
+        // Completing the only released episode makes the station empty for the subscriber.
+        await stations.MarkEpisodeCompletedAsync(station.Id, first.Id, subscriberProfileId);
+        await Page.ReloadAsync();
+        var emptyCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Host Paced" }).First;
+        await Expect(emptyCard.Locator(".badge.bg-danger")).ToBeVisibleAsync(new() { Timeout = 15000 });
+
+        // The host releases the next episode and the subscriber receives it.
+        await stations.MarkEpisodeCompletedAsync(station.Id, second.Id, _ownerProfileId);
+        await Page.ReloadAsync();
+        var releasedCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Host Paced" }).First;
+        await Expect(releasedCard.Locator(".badge.bg-danger")).Not.ToBeVisibleAsync(new() { Timeout = 15000 });
+        await releasedCard.ClickAsync();
+        await Expect(Page.Locator("#ohrbob-player")).ToHaveAttributeAsync("track", second.Title, new() { Timeout = 15000 });
+    }
+
+    [Test]
     public async Task Viewer_CanAddSharedPodcastToOwnStation()
     {
         if (!await TestCasts.IsAvailableAsync())
@@ -205,6 +265,19 @@ public class StationSharingTests : PageTest
         var profiles = _factory.Services.GetRequiredService<ProfilesApiService>();
         await profiles.AddStationToProfileAsync(profileId, station.Id);
         return station;
+    }
+
+    private async Task WaitForEpisodesAsync(string stationId, int minimum)
+    {
+        var stations = _factory.Services.GetRequiredService<StationsApiService>();
+        var deadline = DateTime.UtcNow.AddSeconds(60);
+        while (DateTime.UtcNow < deadline)
+        {
+            var details = await stations.GetStationDetailsByIdAsync(stationId);
+            if ((details?.Feeds.Sum(f => f.EpisodeCount) ?? 0) >= minimum) return;
+            await Task.Delay(500);
+        }
+        Assert.Fail($"Feed episodes were not parsed within the timeout (station {stationId}).");
     }
 
     private async Task<(string AccountId, string ProfileId)> CreateAccountAsync(string label)
