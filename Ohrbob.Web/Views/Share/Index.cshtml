@@ -87,7 +87,7 @@
     <div class="modal fade" id="subscribeProfileModal" tabindex="-1" aria-labelledby="subscribeProfileModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <form asp-controller="Share" asp-action="Subscribe" asp-route-code="@Model.Code" method="post">
+                <form asp-controller="Share" asp-action="Subscribe" asp-route-code="@Model.Code" method="post" hx-boost="false">
                     <div class="modal-header">
                         <h5 class="modal-title" id="subscribeProfileModalLabel">Who is listening?</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
