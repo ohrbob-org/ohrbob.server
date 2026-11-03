@@ -57,6 +57,17 @@ public class HomeController : Controller
         var allowedStationIds = activeProfile.AllowedStationIds ?? Array.Empty<string>();
         var profileStations = allStations.Where(s => allowedStationIds.Contains(s.Station.Id)).ToList();
 
+        var subscribedStationIds = activeProfile.SubscribedStationIds ?? Array.Empty<string>();
+        foreach (var stationId in subscribedStationIds)
+        {
+            if (profileStations.Any(s => s.Station.Id == stationId)) continue;
+
+            var subscribed = await _stationsService.GetStationDetailsByIdAsync(stationId, activeProfile.Id);
+            if (subscribed != null) profileStations.Add(subscribed);
+        }
+
+        ViewBag.SubscribedStationIds = subscribedStationIds.ToHashSet();
+
         return View(profileStations);
     }
 

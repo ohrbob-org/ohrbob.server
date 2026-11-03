@@ -319,6 +319,31 @@ public class StationsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Unsubscribe(string id)
+    {
+        var accountId = GetAccountId();
+        if (string.IsNullOrEmpty(accountId)) return Forbid();
+
+        var activeId = HttpContext.Request.Cookies["Ohrbob_ActiveProfileId"];
+        if (string.IsNullOrEmpty(activeId))
+        {
+            var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId);
+            activeId = profiles?.FirstOrDefault()?.Id;
+        }
+
+        if (string.IsNullOrEmpty(activeId))
+            return BadRequest("No active profile found.");
+
+        var profile = await _profilesService.GetProfileByIdAsync(activeId);
+        if (profile == null || profile.AccountId != accountId)
+            return Forbid();
+
+        await _profilesService.UnsubscribeFromStationAsync(activeId, id);
+        return RedirectToAction("Index", "Home");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> MoveFeed([FromBody] MoveFeedRequest request)
     {
         var accountId = GetAccountId();

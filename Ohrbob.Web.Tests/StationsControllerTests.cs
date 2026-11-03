@@ -287,6 +287,24 @@ public class StationsControllerTests
         _stationsServiceMock.Verify(s => s.UpdateScheduleAsync(It.IsAny<string>(), It.IsAny<StationSchedule>()), Times.Never);
     }
 
+    [Test]
+    public async Task Unsubscribe_RemovesSubscriptionForActiveProfile_AndRedirectsHome()
+    {
+        _controller.ControllerContext.HttpContext.Request.Headers.Cookie = "Ohrbob_ActiveProfileId=p1";
+        _profilesServiceMock.Setup(p => p.GetProfileByIdAsync("p1")).ReturnsAsync(new Profile
+        {
+            Id = "p1", AccountId = TestAccountId, Name = "Main"
+        });
+
+        var result = await _controller.Unsubscribe("st-1");
+
+        var redirect = result as RedirectToActionResult;
+        Assert.That(redirect, Is.Not.Null);
+        Assert.That(redirect!.ActionName, Is.EqualTo("Index"));
+        Assert.That(redirect.ControllerName, Is.EqualTo("Home"));
+        _profilesServiceMock.Verify(p => p.UnsubscribeFromStationAsync("p1", "st-1"), Times.Once);
+    }
+
     private static Station MakeStation(string id, string accountId, string name, params (string url, FeedSortOrder order, int eps)[] feeds)
     {
         var station = new Station { Id = id, AccountId = accountId, Name = name };
