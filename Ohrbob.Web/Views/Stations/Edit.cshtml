@@ -369,7 +369,7 @@
                     <input class="form-check-input" type="checkbox" role="switch" id="hostPaceInput" @(Model.Station.HostPaceEnabled ? "checked" : "")>
                     <label class="form-check-label text-body" for="hostPaceInput">Host Pace &mdash; subscribers can only play episodes the host has completed</label>
                 </div>
-                <div class="mt-2 @(Model.Station.HostPaceEnabled ? "" : "d-none")" id="hostProfileContainer">
+                <div class="mt-2 ms-4 ps-3 border-start @(Model.Station.HostPaceEnabled ? "" : "d-none")" id="hostProfileContainer">
                     <label class="form-label" for="hostProfileSelect">Host profile</label>
                     <select class="form-select" id="hostProfileSelect">
                         @foreach (var profile in ownerProfiles)
@@ -377,7 +377,7 @@
                             <option value="@profile.Id" selected="@(profile.Id == Model.Station.HostProfileId)">@profile.Name</option>
                         }
                     </select>
-                    <div class="form-text">Host Pace uses this profile's completed episodes. Your other profiles stay unrestricted.</div>
+                    <div class="form-text">Host Pace uses this profile's completed episodes. Your other profiles are also limited to those episodes.</div>
                 </div>
             </div>
             <div class="modal-footer">

@@ -33,12 +33,21 @@ public class HostPaceHelperTests
     }
 
     [Test]
-    public void GetUnavailableEpisodeIds_OwnerIsNotRestricted()
+    public void GetUnavailableEpisodeIds_HostProfileIsNotRestricted()
     {
         var unavailable = HostPaceHelper.GetUnavailableEpisodeIds(
-            Station(), "owner", Episodes(), new HashSet<string>(), new HashSet<string>());
+            Station(), "host-profile", Episodes(), new HashSet<string>(), new HashSet<string>());
 
         Assert.That(unavailable, Is.Empty);
+    }
+
+    [Test]
+    public void GetUnavailableEpisodeIds_OtherOwnerProfileIsRestricted()
+    {
+        var unavailable = HostPaceHelper.GetUnavailableEpisodeIds(
+            Station(), "other-owner-profile", Episodes(), new HashSet<string>(), new HashSet<string> { "ep-1" });
+
+        Assert.That(unavailable, Is.EquivalentTo(new[] { "ep-2", "ep-3" }));
     }
 
     [Test]
@@ -72,6 +81,7 @@ public class HostPaceHelperTests
 
         Assert.That(HostPaceHelper.IsEpisodeAllowed(Station(), "subscriber", episodes[0], new HashSet<string>()), Is.False);
         Assert.That(HostPaceHelper.IsEpisodeAllowed(Station(), "subscriber", episodes[0], new HashSet<string> { "ep-1" }), Is.True);
-        Assert.That(HostPaceHelper.IsEpisodeAllowed(Station(), "owner", episodes[0], new HashSet<string>()), Is.True);
+        Assert.That(HostPaceHelper.IsEpisodeAllowed(Station(), "host-profile", episodes[0], new HashSet<string>()), Is.True);
+        Assert.That(HostPaceHelper.IsEpisodeAllowed(Station(), "other-owner-profile", episodes[0], new HashSet<string>()), Is.False);
     }
 }
