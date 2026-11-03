@@ -165,6 +165,22 @@ public class ShareControllerTests
     }
 
     [Test]
+    public async Task Index_IncludesOwnerName()
+    {
+        var dto = new StationWithFeedsDto
+        {
+            Station = new Station { Id = "st-1", Name = "Shared", IsPublic = true, AccountId = "owner" }
+        };
+        _stations.Setup(s => s.GetStationByShareCodeAsync("code")).ReturnsAsync(dto);
+        _accounts.Setup(a => a.GetAccountAsync("owner")).ReturnsAsync(new Account { Id = "owner", Name = "Kai" });
+
+        var result = await CreateController().Index("code");
+
+        var model = (result as ViewResult)?.Model as ShareViewModel;
+        Assert.That(model!.OwnerName, Is.EqualTo("Kai"));
+    }
+
+    [Test]
     public async Task Index_Owner_IsMarkedAsOwner()
     {
         var dto = new StationWithFeedsDto
