@@ -94,7 +94,7 @@ public class StationsController : ControllerBase
                     var episodes = await _episodesService.FindByFeedUrlsAsync(station.Feeds);
                     var hostCompleted = await GetHostCompletedEpisodeIdsAsync(station, episodes);
                     var unavailable = HostPaceHelper.GetUnavailableEpisodeIds(
-                        station, listenerProfile?.AccountId ?? string.Empty,
+                        station, listenerProfile?.Id ?? string.Empty,
                         episodes, completedEpisodeIds, hostCompleted);
                     dto.UnplayedEpisodeCount = episodes.Count(e => !unavailable.Contains(e.Id));
                 }
@@ -180,7 +180,7 @@ public class StationsController : ControllerBase
                 var episodes = await _episodesService.FindByFeedUrlsAsync(station.Feeds);
                 var hostCompleted = await GetHostCompletedEpisodeIdsAsync(station, episodes);
                 var unavailable = HostPaceHelper.GetUnavailableEpisodeIds(
-                    station, profile?.AccountId ?? string.Empty, episodes, completedEpisodeIds, hostCompleted);
+                    station, profile?.Id ?? string.Empty, episodes, completedEpisodeIds, hostCompleted);
                 dto.UnplayedEpisodeCount = episodes.Count(e => !unavailable.Contains(e.Id));
             }
         }
@@ -219,10 +219,10 @@ public class StationsController : ControllerBase
 
         var listenedIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
         listenedIds = HostPaceHelper.GetUnavailableEpisodeIds(
-            station, profile.AccountId, episodes, listenedIds, hostCompleted);
+            station, profile.Id, episodes, listenedIds, hostCompleted);
 
         var visibleEpisodes = HostPaceHelper.GetAllowedEpisodes(
-            station, profile.AccountId, episodes, hostCompleted);
+            station, profile.Id, episodes, hostCompleted);
 
         // Pass empty HashSet to GetOrderedPlaylist so we compute order of ALL visible episodes
         // without filtering completed ones.
@@ -276,10 +276,10 @@ public class StationsController : ControllerBase
 
         var listenedIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
         listenedIds = HostPaceHelper.GetUnavailableEpisodeIds(
-            station, profile.AccountId, episodes, listenedIds, hostCompleted);
+            station, profile.Id, episodes, listenedIds, hostCompleted);
 
         var visibleEpisodes = HostPaceHelper.GetAllowedEpisodes(
-            station, profile.AccountId, episodes, hostCompleted);
+            station, profile.Id, episodes, hostCompleted);
 
         // Order all visible episodes (treating all as unplayed), then filter for completed ones.
         var fullOrderedSequence = PlaybackStrategyHelper.GetOrderedPlaylist(
@@ -318,7 +318,7 @@ public class StationsController : ControllerBase
         if (episode == null) return NotFound();
 
         var hostCompleted = await GetHostCompletedEpisodeIdsAsync(station, stationEpisodes);
-        if (!HostPaceHelper.IsEpisodeAllowed(station, profile.AccountId, episode, hostCompleted))
+        if (!HostPaceHelper.IsEpisodeAllowed(station, profile.Id, episode, hostCompleted))
             return Forbid();
 
         var state = await _listenStateService.GetStateAsync(profileId, episodeId);
@@ -441,10 +441,10 @@ public class StationsController : ControllerBase
         var hostCompleted = await GetHostCompletedEpisodeIdsAsync(station, episodes);
         var listenedIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
         listenedIds = HostPaceHelper.GetUnavailableEpisodeIds(
-            station, profile.AccountId, episodes, listenedIds, hostCompleted);
+            station, profile.Id, episodes, listenedIds, hostCompleted);
 
         var visibleEpisodes = HostPaceHelper.GetAllowedEpisodes(
-            station, profile.AccountId, episodes, hostCompleted);
+            station, profile.Id, episodes, hostCompleted);
         var orderedPlaylist = PlaybackStrategyHelper.GetOrderedPlaylist(
             visibleEpisodes, station, new HashSet<string>(), null);
         var firstIncomplete = orderedPlaylist.FirstOrDefault(e => !listenedIds.Contains(e.Id));
@@ -685,15 +685,15 @@ public class StationsController : ControllerBase
 
         var targetEpisode = episodes.FirstOrDefault(e => e.Id == episodeId);
         if (targetEpisode == null) return NotFound();
-        if (!HostPaceHelper.IsEpisodeAllowed(station, profile.AccountId, targetEpisode, hostCompleted))
+        if (!HostPaceHelper.IsEpisodeAllowed(station, profile.Id, targetEpisode, hostCompleted))
             return Forbid();
 
         var listenedIds = listenStates.Where(s => s.IsListened).Select(s => s.EpisodeId).ToHashSet();
         listenedIds = HostPaceHelper.GetUnavailableEpisodeIds(
-            station, profile.AccountId, episodes, listenedIds, hostCompleted);
+            station, profile.Id, episodes, listenedIds, hostCompleted);
 
         var visibleEpisodes = HostPaceHelper.GetAllowedEpisodes(
-            station, profile.AccountId, episodes, hostCompleted);
+            station, profile.Id, episodes, hostCompleted);
 
         var orderedEpisodes = PlaybackStrategyHelper.GetOrderedPlaylist(
             visibleEpisodes, station, listenedIds, profile.LastActiveEpisodeId);

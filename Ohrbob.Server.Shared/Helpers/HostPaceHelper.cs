@@ -11,11 +11,11 @@ namespace Ohrbob.Server.Shared.Helpers;
 /// </summary>
 public static class HostPaceHelper
 {
-    public static bool AppliesTo(Station station, string listenerAccountId)
+    public static bool AppliesTo(Station station, string listenerProfileId)
     {
         return station.HostPaceEnabled
                && !string.IsNullOrEmpty(station.HostProfileId)
-               && station.AccountId != listenerAccountId;
+               && station.HostProfileId != listenerProfileId;
     }
 
     public static bool IsEpisodeAllowed(
