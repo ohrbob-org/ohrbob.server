@@ -49,17 +49,26 @@ public class StationSharingTests : PageTest
 
         await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{station.Id}");
         await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station");
+        await Expect(Page.Locator("#shareVisibilitySelect")).ToHaveValueAsync("private");
 
-        await Page.ClickAsync("#renameStationBtn");
-        await Page.CheckAsync("#isPublicInput");
-        await Page.ClickAsync("#saveStationNameBtn");
-        await Expect(Page.Locator("#renameStationModal")).ToBeHiddenAsync(new() { Timeout = 10000 });
-
-        await Page.ClickAsync("#shareStationBtn");
+        // The inline visibility dropdown persists immediately.
+        await Page.SelectOptionAsync("#shareVisibilitySelect", "public");
+        await Expect(Page.Locator("#shareVisibilitySelect")).ToBeEnabledAsync(new() { Timeout = 10000 });
         var shareUrl = await Page.InputValueAsync("#shareStationUrl");
         Assert.That(shareUrl, Does.Contain("/s/"));
 
+        // Opening Station Settings shows the synced switch.
+        await Page.ClickAsync("#renameStationBtn");
+        await Expect(Page.Locator("#isPublicInput")).ToBeCheckedAsync();
+
+        // Saving the settings switch syncs the inline dropdown back to private.
+        await Page.UncheckAsync("#isPublicInput");
+        await Page.ClickAsync("#saveStationNameBtn");
+        await Expect(Page.Locator("#renameStationModal")).ToBeHiddenAsync(new() { Timeout = 10000 });
+        await Expect(Page.Locator("#shareVisibilitySelect")).ToHaveValueAsync("private");
+
         // Anonymous visitors see the read-only overview with exactly one Subscribe action.
+        await SetStationPublicAsync(station.Id, true, _ownerAccountId);
         TestAuthHandler.IsAuthenticated = false;
         await Page.GotoAsync(shareUrl);
         await Expect(Page.Locator("h1")).ToContainTextAsync("Shared Station");
