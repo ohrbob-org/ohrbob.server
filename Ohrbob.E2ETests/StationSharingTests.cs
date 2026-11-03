@@ -153,6 +153,12 @@ public class StationSharingTests : PageTest
         await Page.ClickAsync("#saveStationNameBtn");
         await Expect(Page.Locator("#renameStationModal")).ToBeHiddenAsync(new() { Timeout = 10000 });
 
+        await Page.ReloadAsync();
+        await Expect(Page.Locator("h1 .badge:has-text('Host Pace')")).ToBeVisibleAsync();
+
+        await Page.GotoAsync($"{_factory.ServerAddress}/s/{station.ShareCode}");
+        await Expect(Page.Locator(".badge:has-text('Host Pace')").First).ToBeVisibleAsync();
+
         var (subscriberAccountId, subscriberProfileId) = await CreateAccountAsync("Paced Listener");
         var profiles = _factory.Services.GetRequiredService<ProfilesApiService>();
         await profiles.SubscribeToStationAsync(subscriberProfileId, station.Id);
@@ -161,6 +167,7 @@ public class StationSharingTests : PageTest
         await Page.GotoAsync($"{_factory.ServerAddress}/");
         var card = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Host Paced" }).First;
         await Expect(card).ToBeVisibleAsync(new() { Timeout = 15000 });
+        await Expect(card.Locator(".badge:has-text('Host Pace')")).ToBeVisibleAsync();
 
         await card.ClickAsync();
         await Expect(Page.Locator("#ohrbob-player")).ToHaveAttributeAsync("track", first.Title, new() { Timeout = 15000 });
