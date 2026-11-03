@@ -334,6 +334,41 @@ public class ProfilesControllerTests
     }
 
     [Test]
+    public async Task Subscribe_DoesNotCountAgainstStationLimit()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var stationsService = scope.ServiceProvider.GetRequiredService<StationsService>();
+        var controller = new Controllers.ProfilesController(profilesService, stationsService);
+
+        var subscriberAccountId = Guid.NewGuid().ToString();
+        var profile = await profilesService.CreateAsync(new Profile
+        {
+            AccountId = subscriberAccountId, Name = "Subscriber"
+        });
+
+        // The Free tier allows two owned stations. Fill that quota, then subscribe to an
+        // unrelated public station; subscriptions are not owned stations and must not count.
+        for (var i = 0; i < 2; i++)
+        {
+            await stationsService.CreateAsync(new Station
+            {
+                AccountId = subscriberAccountId, Name = $"Owned {i}"
+            });
+        }
+        var publicStation = await stationsService.CreateAsync(new Station
+        {
+            AccountId = Guid.NewGuid().ToString(), Name = "Shared", IsPublic = true
+        });
+
+        var result = await controller.Subscribe(profile!.Id, publicStation!.Id);
+
+        Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.OkResult>());
+        var updated = await profilesService.GetAsync(profile.Id);
+        Assert.That(updated!.SubscribedStationIds, Contains.Item(publicStation.Id));
+    }
+
+    [Test]
     public async Task Unsubscribe_RemovesStation_AndIsIdempotent()
     {
         using var scope = _app.Services.CreateScope();
