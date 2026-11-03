@@ -63,4 +63,34 @@ public class ShareController : Controller
 
         return View(model);
     }
+
+    [Authorize]
+    [HttpPost("{code}/subscribe")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Subscribe(string code, string profileId)
+    {
+        var accountId = GetAccountId();
+        if (string.IsNullOrEmpty(accountId)) return Forbid();
+
+        var station = await _stationsService.GetStationByShareCodeAsync(code);
+        if (station == null) return NotFound();
+
+        if (station.Station.AccountId == accountId) return Forbid();
+
+        var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId) ?? new List<Profile>();
+        var profile = profiles.FirstOrDefault(p => p.Id == profileId);
+        if (profile == null) return Forbid();
+
+        await _profilesService.SubscribeToStationAsync(profile.Id, station.Station.Id);
+        await _accountService.SetActiveProfileAsync(accountId, profile.Id);
+
+        Response.Cookies.Append("Ohrbob_ActiveProfileId", profile.Id, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            Expires = DateTimeOffset.UtcNow.AddDays(30)
+        });
+
+        return RedirectToAction("Index", "Home");
+    }
 }

@@ -107,6 +107,64 @@ public class ShareControllerTests
     }
 
     [Test]
+    public async Task Subscribe_ChosenProfile_AddsSubscription_AndActivatesProfile()
+    {
+        var dto = new StationWithFeedsDto
+        {
+            Station = new Station { Id = "st-1", Name = "Shared", IsPublic = true, AccountId = "owner" }
+        };
+        _stations.Setup(s => s.GetStationByShareCodeAsync("code")).ReturnsAsync(dto);
+        _profiles.Setup(p => p.GetProfilesByAccountIdAsync(TestAccountId)).ReturnsAsync(new List<Profile>
+        {
+            new() { Id = "p1", Name = "Alice" },
+            new() { Id = "p2", Name = "Bob" }
+        });
+        _accounts.Setup(a => a.SetActiveProfileAsync(TestAccountId, "p2"))
+            .ReturnsAsync(new Account { Id = TestAccountId });
+
+        var controller = CreateController(TestAccountId);
+
+        var result = await controller.Subscribe("code", "p2");
+
+        var redirect = result as RedirectToActionResult;
+        Assert.That(redirect, Is.Not.Null);
+        Assert.That(redirect!.ActionName, Is.EqualTo("Index"));
+        Assert.That(redirect.ControllerName, Is.EqualTo("Home"));
+        _profiles.Verify(p => p.SubscribeToStationAsync("p2", "st-1"), Times.Once);
+        _accounts.Verify(a => a.SetActiveProfileAsync(TestAccountId, "p2"), Times.Once);
+        Assert.That(controller.Response.Headers.SetCookie.ToString(), Does.Contain("Ohrbob_ActiveProfileId=p2"));
+    }
+
+    [Test]
+    public async Task Subscribe_ProfileFromAnotherAccount_ReturnsForbid()
+    {
+        var dto = new StationWithFeedsDto
+        {
+            Station = new Station { Id = "st-1", Name = "Shared", IsPublic = true, AccountId = "owner" }
+        };
+        _stations.Setup(s => s.GetStationByShareCodeAsync("code")).ReturnsAsync(dto);
+        _profiles.Setup(p => p.GetProfilesByAccountIdAsync(TestAccountId)).ReturnsAsync(new List<Profile>
+        {
+            new() { Id = "p1", Name = "Alice" }
+        });
+
+        var result = await CreateController(TestAccountId).Subscribe("code", "someone-elses-profile");
+
+        Assert.That(result, Is.InstanceOf<ForbidResult>());
+        _profiles.Verify(p => p.SubscribeToStationAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task Subscribe_PrivateStation_ReturnsNotFound()
+    {
+        _stations.Setup(s => s.GetStationByShareCodeAsync("code")).ReturnsAsync((StationWithFeedsDto?)null);
+
+        var result = await CreateController(TestAccountId).Subscribe("code", "p1");
+
+        Assert.That(result, Is.InstanceOf<NotFoundResult>());
+    }
+
+    [Test]
     public async Task Index_Owner_IsMarkedAsOwner()
     {
         var dto = new StationWithFeedsDto
