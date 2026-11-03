@@ -6,6 +6,7 @@ public class ShareViewModel
 {
     public StationWithFeedsDto Station { get; set; } = new();
     public string Code { get; set; } = string.Empty;
+    public string OwnerName { get; set; } = string.Empty;
     public bool IsAuthenticated { get; set; }
     public bool IsOwner { get; set; }
     public bool AllProfilesSubscribed { get; set; }

@@ -35,11 +35,13 @@ public class ShareController : Controller
         var accountId = GetAccountId();
         var isAuthenticated = !string.IsNullOrEmpty(accountId);
         var isOwner = isAuthenticated && station.Station.AccountId == accountId;
+        var owner = await _accountService.GetAccountAsync(station.Station.AccountId);
 
         var model = new ShareViewModel
         {
             Station = station,
             Code = code,
+            OwnerName = owner?.Name ?? string.Empty,
             IsAuthenticated = isAuthenticated,
             IsOwner = isOwner
         };

@@ -3,83 +3,127 @@
 @{
     ViewData["Title"] = Model.Station.Station.Name;
     var station = Model.Station.Station;
+    var feeds = Model.Station.Feeds;
     var feedSchedules = station.Schedule?.Feeds ?? new List<Ohrbob.Server.Shared.Data.StationFeedSchedule>();
     var firstAvailableProfile = Model.Profiles.FirstOrDefault(p => !p.IsSubscribed);
+    var totalEpisodes = feeds.Sum(f => f.EpisodeCount);
+
+    string gridClass = "collage-grid-1";
+    if (feeds.Count > 1 && feeds.Count <= 4) gridClass = "collage-grid-2";
+    else if (feeds.Count > 4 && feeds.Count <= 9) gridClass = "collage-grid-3";
+    else if (feeds.Count > 9) gridClass = "collage-grid-4";
 }
 
-<div class="container py-4 py-lg-5" style="max-width: 960px;">
-    <div class="text-center mb-4">
-        <span class="badge bg-success mb-2">Shared station</span>
-        <h1 class="display-5 fw-bold mb-2">@station.Name</h1>
-        <p class="text-body-secondary mb-0">
-            @(Model.Station.Feeds.Count) podcast@(Model.Station.Feeds.Count == 1 ? "" : "s")
+<div class="container py-4 py-lg-5" style="max-width: 1080px;">
+    <div class="row align-items-center g-4 g-lg-5 mb-5">
+        <div class="col-12 col-md-auto">
+            <div class="position-relative mx-auto" style="width: 280px; max-width: 100%;">
+                <div class="collage-container @gridClass shadow" style="width: 280px; height: 280px; max-width: 100%; aspect-ratio: 1 / 1; border-radius: 1rem; overflow: hidden; position: relative;">
+                    @if (!feeds.Any())
+                    {
+                        <div class="collage-fallback">?</div>
+                    }
+                    else
+                    {
+                        foreach (var feed in feeds.Take(16))
+                        {
+                            if (!string.IsNullOrEmpty(feed.ImageUrl))
+                            {
+                                <img src="@feed.ImageUrl" class="collage-item" alt="@feed.Title" />
+                            }
+                            else
+                            {
+                                <div class="collage-fallback">@((feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper())</div>
+                            }
+                        }
+                    }
+                </div>
+
+                <div class="position-absolute" style="right: 12px; bottom: 12px;">
+                    @if (Model.IsOwner)
+                    {
+                        <button type="button" class="btn btn-primary btn-lg rounded-pill px-4 shadow" disabled>Your station</button>
+                    }
+                    else if (!Model.IsAuthenticated)
+                    {
+                        <a asp-controller="Home" asp-action="Login"
+                           asp-route-returnUrl="@Url.Action("Index", "Share", new { code = Model.Code })"
+                           class="btn btn-primary btn-lg rounded-pill px-4 shadow" hx-boost="false">Subscribe</a>
+                    }
+                    else if (Model.AllProfilesSubscribed || firstAvailableProfile == null)
+                    {
+                        <button type="button" class="btn btn-success btn-lg rounded-pill px-4 shadow" disabled>Subscribed</button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-primary btn-lg rounded-pill px-4 shadow"
+                                data-bs-toggle="modal" data-bs-target="#subscribeProfileModal">Subscribe</button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md text-center text-md-start">
+            <span class="badge bg-success mb-2">Shared station</span>
+            <h1 class="display-5 fw-bold mb-2">@station.Name</h1>
+            @if (!string.IsNullOrEmpty(Model.OwnerName))
+            {
+                <p class="lead text-body-secondary mb-2">by @Model.OwnerName</p>
+            }
+            <p class="mb-1">
+                <strong>@feeds.Count</strong> podcast@(feeds.Count == 1 ? "" : "s")
+                <span class="text-body-secondary mx-1">&middot;</span>
+                <strong>@totalEpisodes</strong> episode@(totalEpisodes == 1 ? "" : "s")
+            </p>
             @if (station.IsAging)
             {
-                <span>&middot; aging content enabled</span>
+                <span class="badge bg-secondary">Aging content enabled</span>
             }
-        </p>
+        </div>
     </div>
 
-    <div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
-        @foreach (var feed in Model.Station.Feeds)
+    <h2 class="h4 mb-3">Podcasts</h2>
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 mb-4">
+        @foreach (var feed in feeds)
         {
             var schedule = feedSchedules.FirstOrDefault(f => f.Url == feed.Url);
             var color = string.IsNullOrEmpty(schedule?.Color) ? "#ccc" : schedule.Color;
             <div class="col">
-                <div class="card h-100 border-0 shadow-sm" style="border-left: 4px solid @color !important;">
-                    <div class="d-flex align-items-stretch">
-                        @if (!string.IsNullOrEmpty(feed.ImageUrl))
-                        {
-                            <img src="@feed.ImageUrl" alt="@feed.Title" style="width: 96px; height: 96px; object-fit: cover; flex-shrink: 0;" />
-                        }
-                        else
-                        {
-                            <div class="d-flex align-items-center justify-content-center bg-secondary-subtle" style="width: 96px; height: 96px; flex-shrink: 0;">
-                                <span class="fs-3">@((feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper())</span>
-                            </div>
-                        }
-                        <div class="card-body py-2">
-                            <h2 class="h6 card-title text-truncate mb-1" title="@feed.Title">@feed.Title</h2>
-                            <div class="small text-body-secondary">
-                                @feed.EpisodeCount episode@(feed.EpisodeCount == 1 ? "" : "s")
-                                @if (schedule != null)
-                                {
-                                    <span>&middot; @(schedule.EpisodesToPlay) per rotation &middot; @schedule.SortOrder</span>
-                                }
-                            </div>
-                            @if (feed.LastUpdated.HasValue)
-                            {
-                                <div class="small text-body-secondary">Updated @feed.LastUpdated.Value.ToLocalTime().ToString("g")</div>
-                            }
+                <div class="card h-100 shadow-sm" style="border-left: 4px solid @color !important;">
+                    @if (!string.IsNullOrEmpty(feed.ImageUrl))
+                    {
+                        <img src="@feed.ImageUrl" class="card-img-top" alt="@feed.Title" style="aspect-ratio: 1 / 1; object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <div class="card-img-top d-flex align-items-center justify-content-center bg-secondary-subtle" style="aspect-ratio: 1 / 1;">
+                            <span class="display-5">@((feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper())</span>
                         </div>
+                    }
+                    <div class="card-body py-2">
+                        <h3 class="h6 card-title text-truncate mb-1" title="@feed.Title">@feed.Title</h3>
+                        <div class="small text-body-secondary">
+                            @feed.EpisodeCount episode@(feed.EpisodeCount == 1 ? "" : "s")
+                        </div>
+                        @if (schedule != null)
+                        {
+                            <div class="small text-body-secondary">
+                                @(schedule.EpisodesToPlay) per rotation
+                            </div>
+                        }
+                        @if (feed.LastUpdated.HasValue)
+                        {
+                            <div class="small text-body-secondary text-truncate" title="Updated @feed.LastUpdated.Value.ToLocalTime().ToString("g")">
+                                Updated @feed.LastUpdated.Value.ToLocalTime().ToString("d")
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
         }
     </div>
 
-    <div class="text-center">
-        @if (Model.IsOwner)
-        {
-            <button type="button" class="btn btn-primary btn-lg px-5" disabled>Your station</button>
-        }
-        else if (!Model.IsAuthenticated)
-        {
-            <a asp-controller="Home" asp-action="Login"
-               asp-route-returnUrl="@Url.Action("Index", "Share", new { code = Model.Code })"
-               class="btn btn-primary btn-lg px-5" hx-boost="false">Subscribe</a>
-        }
-        else if (Model.AllProfilesSubscribed || firstAvailableProfile == null)
-        {
-            <button type="button" class="btn btn-success btn-lg px-5" disabled>Subscribed</button>
-        }
-        else
-        {
-            <button type="button" class="btn btn-primary btn-lg px-5"
-                    data-bs-toggle="modal" data-bs-target="#subscribeProfileModal">Subscribe</button>
-        }
-        <p class="small text-body-secondary mt-3 mb-0">Read-only station view. Only the owner can change its feeds or rotation.</p>
-    </div>
+    <p class="small text-body-secondary text-center mb-0">Read-only station view. Only the owner can change its feeds or rotation.</p>
 </div>
 
 @if (Model.IsAuthenticated && !Model.IsOwner && firstAvailableProfile != null)
