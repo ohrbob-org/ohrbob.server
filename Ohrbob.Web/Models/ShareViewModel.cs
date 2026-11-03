@@ -11,6 +11,7 @@ public class ShareViewModel
     public bool IsOwner { get; set; }
     public bool AllProfilesSubscribed { get; set; }
     public List<ShareProfileOption> Profiles { get; set; } = new();
+    public List<Ohrbob.Server.Shared.Requests.StationWithFeedsDto> OwnStations { get; set; } = new();
 }
 
 public class ShareProfileOption

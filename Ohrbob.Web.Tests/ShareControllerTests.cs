@@ -165,6 +165,29 @@ public class ShareControllerTests
     }
 
     [Test]
+    public async Task Index_AuthenticatedUser_LoadsOwnStationsForAddAction()
+    {
+        var dto = new StationWithFeedsDto
+        {
+            Station = new Station { Id = "st-1", Name = "Shared", IsPublic = true, AccountId = "owner" }
+        };
+        _stations.Setup(s => s.GetStationByShareCodeAsync("code")).ReturnsAsync(dto);
+        _stations.Setup(s => s.GetStationsByAccountIdAsync(TestAccountId)).ReturnsAsync(new List<StationWithFeedsDto>
+        {
+            new() { Station = new Station { Id = "mine", Name = "My Station" } }
+        });
+        _profiles.Setup(p => p.GetProfilesByAccountIdAsync(TestAccountId)).ReturnsAsync(new List<Profile>
+        {
+            new() { Id = "p1", Name = "Alice" }
+        });
+
+        var result = await CreateController(TestAccountId).Index("code");
+
+        var model = (result as ViewResult)?.Model as ShareViewModel;
+        Assert.That(model!.OwnStations.Select(s => s.Station.Name), Is.EqualTo(new[] { "My Station" }));
+    }
+
+    [Test]
     public async Task Index_IncludesOwnerName()
     {
         var dto = new StationWithFeedsDto

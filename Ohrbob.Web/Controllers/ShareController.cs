@@ -46,6 +46,11 @@ public class ShareController : Controller
             IsOwner = isOwner
         };
 
+        if (isAuthenticated)
+        {
+            model.OwnStations = await _stationsService.GetStationsByAccountIdAsync(accountId!) ?? new();
+        }
+
         if (isAuthenticated && !isOwner)
         {
             var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId!) ?? new List<Profile>();

@@ -121,6 +121,44 @@ public class StationSharingTests : PageTest
     }
 
     [Test]
+    public async Task Viewer_CanAddSharedPodcastToOwnStation()
+    {
+        if (!await TestCasts.IsAvailableAsync())
+            Assert.Ignore($"podcast-testcasts is not reachable at {TestCasts.ConfigureBaseUrl}.");
+
+        var slug = $"share-add-{Guid.NewGuid():N}";
+        await TestCasts.ConfigureAsync(new TestCastPodcast(slug, "Shared Feed",
+            new[] { new TestCastEpisode("Episode 1", $"{slug}-1.mp3") }));
+
+        var station = await CreateStationWithFeedsAsync(
+            _ownerAccountId, _ownerProfileId, "Feed Station", true, new[] { TestCasts.FeedUrl(slug) });
+
+        var (viewerAccountId, viewerProfileId) = await CreateAccountAsync("Adder");
+        var target = await CreateStationAsync(viewerAccountId, viewerProfileId, "My Target Station", false);
+
+        TestAuthHandler.TestAccountId = viewerAccountId;
+        await Page.GotoAsync($"{_factory.ServerAddress}/s/{station.ShareCode}");
+
+        await Page.Locator("button[title='Add this podcast to a station']").First.ClickAsync();
+        await Page.CheckAsync($"input[name='stationIds'][value='{target.Id}']");
+        await Page.Locator(".modal.show button[type='submit']:has-text('Confirm Add')").ClickAsync();
+        await Expect(Page.Locator(".modal.show")).ToHaveCountAsync(0, new() { Timeout = 15000 });
+
+        var stations = _factory.Services.GetRequiredService<StationsApiService>();
+        Station? updated = null;
+        var deadline = DateTime.UtcNow.AddSeconds(15);
+        while (DateTime.UtcNow < deadline)
+        {
+            updated = await stations.GetStationByIdAsync(target.Id);
+            if (updated?.Feeds.Contains(TestCasts.FeedUrl(slug)) == true) break;
+            await Task.Delay(250);
+        }
+
+        Assert.That(updated, Is.Not.Null);
+        Assert.That(updated!.Feeds, Does.Contain(TestCasts.FeedUrl(slug)));
+    }
+
+    [Test]
     public async Task PrivateStation_RefusesNewSubscribers_ButExistingSubscriberKeepsAccess()
     {
         var station = await CreateStationAsync(_ownerAccountId, _ownerProfileId, "Private Later", isPublic: true);
@@ -147,7 +185,11 @@ public class StationSharingTests : PageTest
             .ToBeVisibleAsync(new() { Timeout = 15000 });
     }
 
-    private async Task<Station> CreateStationAsync(string accountId, string profileId, string name, bool isPublic)
+    private Task<Station> CreateStationAsync(string accountId, string profileId, string name, bool isPublic) =>
+        CreateStationWithFeedsAsync(accountId, profileId, name, isPublic, Array.Empty<string>());
+
+    private async Task<Station> CreateStationWithFeedsAsync(
+        string accountId, string profileId, string name, bool isPublic, string[] feedUrls)
     {
         var stations = _factory.Services.GetRequiredService<StationsApiService>();
         var station = await stations.CreateStationAsync(accountId, new Station
@@ -155,7 +197,7 @@ public class StationSharingTests : PageTest
             AccountId = accountId,
             Name = name,
             IsPublic = isPublic,
-            Feeds = Array.Empty<string>()
+            Feeds = feedUrls
         });
         Assert.That(station, Is.Not.Null);
         Assert.That(station!.ShareCode, Is.Not.Empty);
