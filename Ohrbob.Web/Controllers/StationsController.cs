@@ -95,12 +95,12 @@ public class StationsController : Controller
         var allStations = await _stationsService.GetStationsByAccountIdAsync(accountId) ?? new();
         ViewBag.OtherStations = allStations.Where(s => s.Station.Id != id).ToList();
 
+        var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId) ?? new List<Profile>();
+        ViewBag.Profiles = profiles;
+
         var activeId = HttpContext.Request.Cookies["Ohrbob_ActiveProfileId"];
-        if (string.IsNullOrEmpty(activeId))
-        {
-            var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId);
-            activeId = profiles?.FirstOrDefault()?.Id;
-        }
+        if (string.IsNullOrEmpty(activeId) || profiles.All(p => p.Id != activeId))
+            activeId = profiles.FirstOrDefault()?.Id;
 
         if (!string.IsNullOrEmpty(activeId))
         {
@@ -135,6 +135,8 @@ public class StationsController : Controller
         station.ShareCode = existingStation.ShareCode;
         station.IsPublic = existingStation.IsPublic;
         station.IsAging = existingStation.IsAging;
+        station.HostPaceEnabled = existingStation.HostPaceEnabled;
+        station.HostProfileId = existingStation.HostProfileId;
 
         await _stationsService.UpdateStationAsync(station);
         return RedirectToAction(nameof(Index));
@@ -299,7 +301,8 @@ public class StationsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateSettings(string id, string name, bool isAging, bool isPublic)
+    public async Task<IActionResult> UpdateSettings(
+        string id, string name, bool isAging, bool isPublic, bool hostPaceEnabled, string? hostProfileId)
     {
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();
@@ -311,12 +314,31 @@ public class StationsController : Controller
         if (existingStation == null || existingStation.AccountId != accountId)
             return NotFound();
 
+        if (hostPaceEnabled)
+        {
+            if (string.IsNullOrEmpty(hostProfileId))
+                return BadRequest("Choose a host profile for Host Pace.");
+
+            var hostProfile = await _profilesService.GetProfileByIdAsync(hostProfileId);
+            if (hostProfile == null || hostProfile.AccountId != accountId)
+                return BadRequest("The host profile must belong to your account.");
+        }
+
         existingStation.Name = name;
         existingStation.IsAging = isAging;
         existingStation.IsPublic = isPublic;
+        existingStation.HostPaceEnabled = hostPaceEnabled;
+        existingStation.HostProfileId = hostPaceEnabled ? hostProfileId : null;
         await _stationsService.UpdateStationAsync(existingStation);
 
-        return Ok(new { name = existingStation.Name, isAging = existingStation.IsAging, isPublic = existingStation.IsPublic });
+        return Ok(new
+        {
+            name = existingStation.Name,
+            isAging = existingStation.IsAging,
+            isPublic = existingStation.IsPublic,
+            hostPaceEnabled = existingStation.HostPaceEnabled,
+            hostProfileId = existingStation.HostProfileId
+        });
     }
 
     [HttpPost]
