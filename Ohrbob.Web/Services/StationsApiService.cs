@@ -35,9 +35,21 @@ public class StationsApiService : OhrbobApiService
         return await response.Content.ReadFromJsonAsync<Station>();
     }
 
-    public virtual async Task<Ohrbob.Server.Shared.Requests.StationWithFeedsDto?> GetStationDetailsByIdAsync(string id)
+    public virtual async Task<Ohrbob.Server.Shared.Requests.StationWithFeedsDto?> GetStationDetailsByIdAsync(string id, string? profileId = null)
     {
-        using var request = BuildRequest(HttpMethod.Get, $"/stations/{id}/details");
+        var path = $"/stations/{id}/details";
+        if (!string.IsNullOrEmpty(profileId)) path += $"?profileId={profileId}";
+        using var request = BuildRequest(HttpMethod.Get, path);
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<Ohrbob.Server.Shared.Requests.StationWithFeedsDto>();
+    }
+
+    public virtual async Task<Ohrbob.Server.Shared.Requests.StationWithFeedsDto?> GetStationByShareCodeAsync(string code)
+    {
+        using var request = BuildRequest(HttpMethod.Get, $"/stations/share/{Uri.EscapeDataString(code)}");
         using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
         var response = await client.SendAsync(request);
         if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;

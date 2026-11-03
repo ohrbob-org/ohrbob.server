@@ -1,0 +1,127 @@
+@model Ohrbob.Web.Models.ShareViewModel
+
+@{
+    ViewData["Title"] = Model.Station.Station.Name;
+    var station = Model.Station.Station;
+    var feedSchedules = station.Schedule?.Feeds ?? new List<Ohrbob.Server.Shared.Data.StationFeedSchedule>();
+    var firstAvailableProfile = Model.Profiles.FirstOrDefault(p => !p.IsSubscribed);
+}
+
+<div class="container py-4 py-lg-5" style="max-width: 960px;">
+    <div class="text-center mb-4">
+        <span class="badge bg-success mb-2">Shared station</span>
+        <h1 class="display-5 fw-bold mb-2">@station.Name</h1>
+        <p class="text-body-secondary mb-0">
+            @(Model.Station.Feeds.Count) podcast@(Model.Station.Feeds.Count == 1 ? "" : "s")
+            @if (station.IsAging)
+            {
+                <span>&middot; aging content enabled</span>
+            }
+        </p>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 g-3 mb-4">
+        @foreach (var feed in Model.Station.Feeds)
+        {
+            var schedule = feedSchedules.FirstOrDefault(f => f.Url == feed.Url);
+            var color = string.IsNullOrEmpty(schedule?.Color) ? "#ccc" : schedule.Color;
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm" style="border-left: 4px solid @color !important;">
+                    <div class="d-flex align-items-stretch">
+                        @if (!string.IsNullOrEmpty(feed.ImageUrl))
+                        {
+                            <img src="@feed.ImageUrl" alt="@feed.Title" style="width: 96px; height: 96px; object-fit: cover; flex-shrink: 0;" />
+                        }
+                        else
+                        {
+                            <div class="d-flex align-items-center justify-content-center bg-secondary-subtle" style="width: 96px; height: 96px; flex-shrink: 0;">
+                                <span class="fs-3">@((feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper())</span>
+                            </div>
+                        }
+                        <div class="card-body py-2">
+                            <h2 class="h6 card-title text-truncate mb-1" title="@feed.Title">@feed.Title</h2>
+                            <div class="small text-body-secondary">
+                                @feed.EpisodeCount episode@(feed.EpisodeCount == 1 ? "" : "s")
+                                @if (schedule != null)
+                                {
+                                    <span>&middot; @(schedule.EpisodesToPlay) per rotation &middot; @schedule.SortOrder</span>
+                                }
+                            </div>
+                            @if (feed.LastUpdated.HasValue)
+                            {
+                                <div class="small text-body-secondary">Updated @feed.LastUpdated.Value.ToLocalTime().ToString("g")</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="text-center">
+        @if (Model.IsOwner)
+        {
+            <button type="button" class="btn btn-primary btn-lg px-5" disabled>Your station</button>
+        }
+        else if (!Model.IsAuthenticated)
+        {
+            <a asp-controller="Home" asp-action="Login"
+               asp-route-returnUrl="@Url.Action("Index", "Share", new { code = Model.Code })"
+               class="btn btn-primary btn-lg px-5" hx-boost="false">Subscribe</a>
+        }
+        else if (Model.AllProfilesSubscribed || firstAvailableProfile == null)
+        {
+            <button type="button" class="btn btn-success btn-lg px-5" disabled>Subscribed</button>
+        }
+        else
+        {
+            <button type="button" class="btn btn-primary btn-lg px-5"
+                    data-bs-toggle="modal" data-bs-target="#subscribeProfileModal">Subscribe</button>
+        }
+        <p class="small text-body-secondary mt-3 mb-0">Read-only station view. Only the owner can change its feeds or rotation.</p>
+    </div>
+</div>
+
+@if (Model.IsAuthenticated && !Model.IsOwner && firstAvailableProfile != null)
+{
+    <div class="modal fade" id="subscribeProfileModal" tabindex="-1" aria-labelledby="subscribeProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form asp-controller="Share" asp-action="Subscribe" asp-route-code="@Model.Code" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="subscribeProfileModalLabel">Who is listening?</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-body">
+                        <p class="text-body-secondary">Choose the profile that should have this station in its Listen grid.</p>
+                        @foreach (var profile in Model.Profiles)
+                        {
+                            var isFirstAvailable = firstAvailableProfile.Id == profile.Id;
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="profileId"
+                                       id="subscribe-profile-@profile.Id" value="@profile.Id"
+                                       checked="@(profile.IsActive && !profile.IsSubscribed || (!Model.Profiles.Any(p => p.IsActive && !p.IsSubscribed) && isFirstAvailable))"
+                                       disabled="@profile.IsSubscribed" />
+                                <label class="form-check-label" for="subscribe-profile-@profile.Id">
+                                    @profile.Name
+                                    @if (profile.IsSubscribed)
+                                    {
+                                        <span class="badge bg-success ms-1">Subscribed</span>
+                                    }
+                                    else if (profile.IsActive)
+                                    {
+                                        <span class="badge bg-secondary ms-1">Active</span>
+                                    }
+                                </label>
+                            </div>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Subscribe</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
