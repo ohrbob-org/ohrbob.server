@@ -800,6 +800,91 @@ public class StationsControllerTests
     }
 
     [Test]
+    public async Task GetDetails_HostPacedSubscriber_OnlyCountsHostCompletedEpisodes()
+    {
+        var ownerAccountId = Guid.NewGuid().ToString();
+        var subscriberAccountId = Guid.NewGuid().ToString();
+        var stationsService = _app.Services.GetRequiredService<Ohrbob.Api.Services.StationsService>();
+        var profilesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ProfilesService>();
+        var episodesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.EpisodesService>();
+        var listenStateService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ListenStateService>();
+
+        var host = await profilesService.CreateAsync(new Profile { AccountId = ownerAccountId, Name = "Host", StreamToken = Guid.NewGuid().ToString() });
+        var subscriber = await profilesService.CreateAsync(new Profile { AccountId = subscriberAccountId, Name = "Subscriber", StreamToken = Guid.NewGuid().ToString() });
+        var station = await stationsService.CreateAsync(new Station
+        {
+            AccountId = ownerAccountId, Name = "Host Paced", Feeds = new[] { "https://host.pace/feed" },
+            HostPaceEnabled = true, HostProfileId = host!.Id
+        });
+        var ep1 = await episodesService.CreateAsync(new Episode { FeedUrl = "https://host.pace/feed", Title = "Released", PublishedAt = DateTime.UtcNow.AddDays(-2) });
+        await episodesService.CreateAsync(new Episode { FeedUrl = "https://host.pace/feed", Title = "Not released", PublishedAt = DateTime.UtcNow.AddDays(-1) });
+        await listenStateService.CreateAsync(new ListenState
+        {
+            UserId = host.Id, EpisodeId = ep1!.Id, StationId = station!.Id, IsListened = true
+        });
+
+        var request = new HttpRequestMessage(HttpMethod.Get,
+            $"/api/stations/{station.Id}/details?profileId={subscriber!.Id}");
+        request.Headers.Add("X-API-KEY", _testApiKey);
+        var response = await _client.SendAsync(request);
+        var dto = await response.Content.ReadFromJsonAsync<StationWithFeedsDto>();
+
+        Assert.That(dto!.UnplayedEpisodeCount, Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task MarkEpisodeCompleted_SubscriberCannotCompleteUnreleasedEpisode()
+    {
+        var ownerAccountId = Guid.NewGuid().ToString();
+        var subscriberAccountId = Guid.NewGuid().ToString();
+        var stationsService = _app.Services.GetRequiredService<Ohrbob.Api.Services.StationsService>();
+        var profilesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ProfilesService>();
+        var episodesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.EpisodesService>();
+
+        var host = await profilesService.CreateAsync(new Profile { AccountId = ownerAccountId, Name = "Host", StreamToken = Guid.NewGuid().ToString() });
+        var subscriber = await profilesService.CreateAsync(new Profile { AccountId = subscriberAccountId, Name = "Subscriber", StreamToken = Guid.NewGuid().ToString() });
+        var station = await stationsService.CreateAsync(new Station
+        {
+            AccountId = ownerAccountId, Name = "Host Paced", Feeds = new[] { "https://host.pace/forbid" },
+            HostPaceEnabled = true, HostProfileId = host!.Id
+        });
+        var unreleased = await episodesService.CreateAsync(new Episode
+        {
+            FeedUrl = "https://host.pace/forbid", Title = "Unreleased", PublishedAt = DateTime.UtcNow
+        });
+
+        var request = new HttpRequestMessage(HttpMethod.Post,
+            $"/api/stations/{station!.Id}/episodes/{unreleased!.Id}/complete?profileId={subscriber!.Id}");
+        request.Headers.Add("X-API-KEY", _testApiKey);
+        var response = await _client.SendAsync(request);
+
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.Forbidden));
+    }
+
+    [Test]
+    public async Task CreateStation_WithHostProfileFromAnotherAccount_ReturnsBadRequest()
+    {
+        var ownerAccountId = Guid.NewGuid().ToString();
+        var profilesService = _app.Services.GetRequiredService<Ohrbob.Api.Services.ProfilesService>();
+        var foreignProfile = await profilesService.CreateAsync(new Profile
+        {
+            AccountId = Guid.NewGuid().ToString(), Name = "Someone else", StreamToken = Guid.NewGuid().ToString()
+        });
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/api/stations/{ownerAccountId}")
+        {
+            Content = JsonContent.Create(new Station
+            {
+                Name = "Invalid host", HostPaceEnabled = true, HostProfileId = foreignProfile!.Id
+            })
+        };
+        request.Headers.Add("X-API-KEY", _testApiKey);
+        var response = await _client.SendAsync(request);
+
+        Assert.That(response.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+    }
+
+    [Test]
     public async Task DeleteStation_RemovesItFromEveryProfileSubscriptions()
     {
         var accountId = Guid.NewGuid().ToString();

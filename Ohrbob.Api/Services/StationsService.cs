@@ -31,6 +31,13 @@ public class StationsService : MongoDbService<Station>
         return await Collection.Find(filter).ToListAsync();
     }
 
+    public async Task<List<Station>> GetByHostProfileIdAsync(string profileId)
+    {
+        var filter = Builders<Station>.Filter.Eq(s => s.HostProfileId, profileId);
+        filter = filter.ExcludeDeleted();
+        return await Collection.Find(filter).ToListAsync();
+    }
+
     public async Task<Station?> FindByShareCodeAsync(string code)
     {
         var filter = Builders<Station>.Filter.Eq(s => s.ShareCode, code);
