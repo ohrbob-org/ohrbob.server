@@ -124,70 +124,56 @@ header {
 }
 
 /* Landing Page Layout */
+html:has(.radio-landing-container) {
+    scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+    html:has(.radio-landing-container) {
+        scroll-behavior: auto;
+    }
+}
+
+.landing-hero {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 1rem 4rem;
+}
+.landing-hero-logo {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+}
+.landing-hero h1 {
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    line-height: 1.15;
+    margin-bottom: 1rem;
+}
+.landing-hero-lead {
+    max-width: 44rem;
+}
+
 .radio-landing-container {
     position: relative;
-    padding: 10vh 0;
-    background: var(--bs-tertiary-bg);
-    overflow: hidden;
-}
-.radio-axis {
-    position: absolute;
-    left: 50%;
-    top: 0;
-    /* bottom: 0; */ z-index: 2; /* Height set by JS */
-    width: 4px;
-    background: rgba(37, 140, 251, 0.15);
-    transform: translateX(-50%);
-    border-radius: 2px;
-}
-.radio-dial {
-    position: absolute;
-    left: 50%;
-    top: 0;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: var(--bs-primary);
-    transform: translate(-50%, -50%);
-    box-shadow: 0 0 20px rgba(37, 140, 251, 0.8);
-    z-index: 10;
+    padding: 0 0 2rem;
+    scroll-margin-top: 7rem;
 }
 .radio-step {
     position: relative;
-    min-height: 80vh;
     display: flex;
     align-items: center;
     width: 100%;
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 0 2rem;
+    padding: 3rem 2rem;
 }
-.wave-node {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1;
-}
-.wave-ring {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0);
-    width: 100px;
-    height: 100px;
-    border: 2px solid var(--bs-primary);
-    border-radius: 50%;
-    opacity: 0;
+.radio-step + .radio-step {
+    border-top: 1px solid var(--bs-border-color-translucent);
 }
 .step-content {
     display: flex;
     width: 100%;
     justify-content: space-between;
     align-items: center;
-    gap: 4rem;
-    position: relative;
-    z-index: 5;
+    gap: 3rem;
 }
 .step-left .step-content {
     flex-direction: row;
@@ -195,14 +181,31 @@ header {
 .step-right .step-content {
     flex-direction: row-reverse;
 }
+.step-content.text-only {
+    justify-content: center;
+}
+.step-content.text-only .step-text-box {
+    width: 100%;
+    max-width: 46rem;
+}
 .step-text-box, .step-card-box {
-    width: 45%;
-    opacity: 0; 
-    transform: translateY(40px);
+    width: 50%;
 }
 .step-text-box h2 {
     color: var(--bs-body-color);
     margin-bottom: 1rem;
+}
+.step-index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-bottom: .75rem;
+    border-radius: 50%;
+    background: rgba(var(--bs-primary-rgb), .12);
+    color: var(--bs-primary);
+    font-weight: 700;
 }
 .screenshot-card {
     background: var(--bs-body-bg);
@@ -211,11 +214,8 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    color: #adb5bd;
-    font-size: 1.5rem;
     border: 1px solid var(--bs-border-color);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    box-shadow: 0 .5rem 1.5rem rgba(0,0,0,0.08);
     width: 100%;
     overflow: hidden;
 }
@@ -224,103 +224,78 @@ header {
     max-height: 100%;
     object-fit: contain;
 }
+.tier-badge-premium {
+    background: rgba(var(--bs-primary-rgb), .12);
+    color: var(--bs-primary);
+    font-weight: 700;
+}
+
+.landing-footer {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 4rem 1rem 5rem;
+    background: transparent;
+}
+.landing-logo-wrapper {
+    font-size: 3.5rem;
+}
+
+.landing-tiers {
+    padding: 3.5rem 1rem 5rem;
+    border-top: 1px solid var(--bs-border-color);
+    background: var(--bs-tertiary-bg);
+}
+.landing-tier-card {
+    max-width: 760px;
+    margin: 0 auto;
+    border: 1px solid var(--bs-border-color);
+    border-radius: .75rem;
+    overflow: hidden;
+    background: var(--bs-body-bg);
+}
+.landing-tier-table {
+    max-width: none;
+    margin: 0;
+}
+.landing-tier-table > :not(caption) > * > * {
+    padding: .85rem 1rem;
+}
+.landing-tier-table thead th {
+    border-bottom-width: 2px;
+}
+.landing-tier-table tbody th {
+    font-weight: 600;
+}
+.landing-tier-premium {
+    color: var(--bs-primary);
+}
+.landing-tier-table thead .landing-tier-premium {
+    color: var(--bs-primary);
+}
+
 @media (max-width: 768px) {
-    .radio-axis { left: 32px; }
-    .wave-node { left: 32px; }
+    .landing-hero {
+        padding-top: 1.5rem;
+    }
     .step-content {
         flex-direction: column !important;
-        padding-left: 50px;
+        gap: 1.5rem;
     }
     .step-text-box, .step-card-box {
         width: 100%;
     }
-    .step-card-box {
-        margin-top: 2rem;
+    .radio-step {
+        padding: 2rem 1rem;
     }
-}
-
-.landing-footer {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: var(--bs-body-bg);
-}
-
-
-.landing-logo-wrapper {
-    font-size: 4rem;
-}
-/* Dynamic Landing Logo */
-.landing-dynamic-logo {
-  display: inline-grid;
-  grid-template-columns: min-content;
-  justify-items: center;
-  align-items: center;
-}
-.landing-dynamic-logo .ohrbob-logo-icon {
-  grid-row: 1;
-  grid-column: 1;
-  width: 100%;
-  min-width: 0;
-  margin-bottom: 0.15em;
-  position: relative;
-  z-index: 10;
-}
-.landing-dynamic-logo .ohrbob-logo-text {
-  grid-row: 2;
-  grid-column: 1;
-  width: max-content;
-}
-
-@media (max-width: 768px) {
-  .landing-dynamic-logo {
-    display: inline-flex !important;
-    flex-direction: row !important;
-  }
-  .landing-dynamic-logo .ohrbob-logo-icon {
-    height: 1em;
-    width: auto !important;
-    margin-right: 0.25em;
-    margin-bottom: 0;
-    display: flex;
-    align-items: center;
-  }
-  .landing-dynamic-logo .ohrbob-logo-icon img,
-  .landing-dynamic-logo .ohrbob-logo-icon svg {
-    height: 1em !important;
-    width: auto !important;
-  }
-  .landing-dynamic-logo .ohrbob-logo-text {
-    width: auto;
-  }
-  
-  /* Left align the footer on mobile so icon is at ~30px */
-  .landing-footer {
-      align-items: flex-start !important;
-      padding-left: 0; padding-right: 1rem; overflow-x: hidden;
-      background:transparent;
-  }
-  
-  .landing-logo-wrapper { font-size: 2.5rem; padding-left: 12px; }
-  .landing-footer p.lead, .landing-footer .d-flex {
-      justify-content: flex-start !important;
-      padding-left: 50px;
-  }
-}
-
-.logo-wave-node {
-    /* inherit from .wave-node but override to fit inside the logo icon exactly */
-    width: 0;
-    height: 0;
-    left: 50% !important;
-    top: 50% !important;
-}
-.logo-wave-node .wave-ring {
-    border-width: 3px;
-    border-color: #fc5d00; /* Use Ohrbob orange for the grand finale */
-    box-shadow: 0 0 20px rgba(252, 93, 0, 0.4);
+    .screenshot-card {
+        height: 260px;
+    }
+    .landing-tier-table {
+        font-size: .95rem;
+    }
+    .landing-tier-table > :not(caption) > * > * {
+        padding: .7rem .6rem;
+    }
 }
 
 /* About page: pulsing status dot */

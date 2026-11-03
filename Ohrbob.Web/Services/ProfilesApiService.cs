@@ -38,6 +38,32 @@ public class ProfilesApiService : OhrbobApiService
         request.Content = new StringContent(JsonSerializer.Serialize(profile), Encoding.UTF8, "application/json");
         using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
         var response = await client.SendAsync(request);
+        
+        if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            string detail = "Profile limit reached";
+            try
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                if (content.StartsWith("{"))
+                {
+                    var problem = JsonSerializer.Deserialize<Microsoft.AspNetCore.Mvc.ProblemDetails>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    if (problem != null)
+                    {
+                        detail = !string.IsNullOrEmpty(problem.Detail) ? problem.Detail : 
+                                 !string.IsNullOrEmpty(problem.Title) ? problem.Title : "Profile limit reached";
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(content))
+                {
+                    // For raw string or "string"
+                    detail = content.Trim('\"');
+                }
+            }
+            catch {}
+            throw new LimitExceededException(detail);
+        }
+
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<Profile>();
     }
@@ -57,6 +83,31 @@ public class ProfilesApiService : OhrbobApiService
         using var request = BuildRequest(HttpMethod.Delete, $"/profiles/{profileId}");
         using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
         var response = await client.SendAsync(request);
+        
+        if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            string detail = "Cannot delete profile";
+            try
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                if (content.StartsWith("{"))
+                {
+                    var problem = JsonSerializer.Deserialize<Microsoft.AspNetCore.Mvc.ProblemDetails>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    if (problem != null)
+                    {
+                        detail = !string.IsNullOrEmpty(problem.Detail) ? problem.Detail : 
+                                 !string.IsNullOrEmpty(problem.Title) ? problem.Title : detail;
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(content))
+                {
+                    detail = content.Trim('\"');
+                }
+            }
+            catch {}
+            throw new LimitExceededException(detail); // Reuse the same exception type for simplicity
+        }
+
         response.EnsureSuccessStatusCode();
     }
 

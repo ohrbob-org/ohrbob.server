@@ -14,12 +14,13 @@ namespace Ohrbob.Web.Tests;
 
 public class ProfilesApiServiceTests
 {
-    private readonly Mock<HttpMessageHandler> _httpMessageHandlerMock;
-    private readonly Mock<IHttpClientFactory> _httpClientFactoryMock;
-    private readonly ProfilesApiService _service;
+    private Mock<HttpMessageHandler> _httpMessageHandlerMock;
+    private Mock<IHttpClientFactory> _httpClientFactoryMock;
+    private ProfilesApiService _service;
     private readonly string _baseUri = "https://api.example.com";
 
-    public ProfilesApiServiceTests()
+    [SetUp]
+    public void Setup()
     {
         _httpMessageHandlerMock = new Mock<HttpMessageHandler>();
         var httpClient = new HttpClient(_httpMessageHandlerMock.Object)
@@ -66,5 +67,60 @@ public class ProfilesApiServiceTests
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Has.Count.EqualTo(1));
         Assert.That(result[0].Name, Is.EqualTo("P1"));
+    }
+
+    [Test]
+    public void CreateProfileAsync_ThrowsLimitExceededException_OnBadRequest()
+    {
+        var accountId = "acc-1";
+        var profile = new Profile { Name = "New Profile" };
+        var problemDetails = new Microsoft.AspNetCore.Mvc.ProblemDetails
+        {
+            Title = "Profile limit reached",
+            Detail = "Cannot create more profiles."
+        };
+
+        _httpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req => 
+                    req.Method == HttpMethod.Post && 
+                    req.RequestUri!.ToString() == $"{_baseUri}/profiles/{accountId}"),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Content = JsonContent.Create(problemDetails)
+            });
+
+        var ex = Assert.ThrowsAsync<LimitExceededException>(() => _service.CreateProfileAsync(accountId, profile));
+        Assert.That(ex.Message, Is.EqualTo("Cannot create more profiles."));
+    }
+
+    [Test]
+    public void DeleteProfileAsync_ThrowsLimitExceededException_OnBadRequest()
+    {
+        var profileId = "prof-1";
+        var problemDetails = new Microsoft.AspNetCore.Mvc.ProblemDetails
+        {
+            Title = "Profile Delete Error",
+            Detail = "Cannot delete the last remaining profile of an account."
+        };
+
+        _httpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.Is<HttpRequestMessage>(req => 
+                    req.Method == HttpMethod.Delete && 
+                    req.RequestUri!.ToString() == $"{_baseUri}/profiles/{profileId}"),
+                ItExpr.IsAny<CancellationToken>())
+            .ReturnsAsync(new HttpResponseMessage
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Content = JsonContent.Create(problemDetails)
+            });
+
+        var ex = Assert.ThrowsAsync<LimitExceededException>(() => _service.DeleteProfileAsync(profileId));
+        Assert.That(ex.Message, Is.EqualTo("Cannot delete the last remaining profile of an account."));
     }
 }

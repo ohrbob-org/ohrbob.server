@@ -25,7 +25,7 @@ public class ConnectController : Controller
     private string? GetAccountId() => User.FindFirst(Consts.OhrbobAccountIdClaim)?.Value;
 
     [HttpGet]
-    public async Task<IActionResult> App([FromQuery] string? name)
+    public async Task<IActionResult> App([FromQuery] string? name = null)
     {
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();

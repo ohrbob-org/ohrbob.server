@@ -29,7 +29,13 @@ public class ProfilesControllerTests
                 {
                     new KeyValuePair<string, string?>("MongoDbLogs:ConnectionString", "mongodb://localhost:27017/TestLogs"),
                     new KeyValuePair<string, string?>("MongoDbLogs:DatabaseName", "TestLogs"),
-                    new KeyValuePair<string, string?>("ApiKey", _testApiKey)
+                    new KeyValuePair<string, string?>("ApiKey", _testApiKey),
+                    new KeyValuePair<string, string?>("SubscriptionTiers:Morebob:MaxStations", "-1"),
+                    new KeyValuePair<string, string?>("SubscriptionTiers:Morebob:MaxFeedsPerStation", "-1"),
+                    new KeyValuePair<string, string?>("SubscriptionTiers:Free:MaxStations", "2"),
+                    new KeyValuePair<string, string?>("SubscriptionTiers:Free:MaxFeedsPerStation", "10"),
+                    new KeyValuePair<string, string?>("SubscriptionTiers:Free:MaxProfiles", "1"),
+                    new KeyValuePair<string, string?>("SubscriptionTiers:Morebob:MaxProfiles", "5")
                 });
             }
         );
@@ -100,7 +106,7 @@ public class ProfilesControllerTests
             accountService,
             policy);
 
-        var account = new Account { Email = $"dup-{Guid.NewGuid()}@test.com", Name = "Onboarding Retry" };
+        var account = new Account { Email = $"dup-{Guid.NewGuid()}@test.com", Name = "Onboarding Retry", Tier = SubscriptionTier.Morebob };
         var storedAccount = await accountService.CreateAsync(account);
         Assert.That(storedAccount, Is.Not.Null);
 
@@ -124,6 +130,118 @@ public class ProfilesControllerTests
 
         var profiles = await profilesService.GetByAccountIdAsync(storedAccount.Id);
         Assert.That(profiles, Has.Count.EqualTo(2));
+    }
+
+    [Test]
+    public async Task CreateProfile_WhenFreeTierLimitReached_ShouldReturnBadRequest()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var accountService = scope.ServiceProvider.GetRequiredService<AccountService>();
+        var policy = scope.ServiceProvider.GetRequiredService<SubscriptionPolicy>();
+        var controller = new Controllers.ProfilesController(
+            profilesService,
+            scope.ServiceProvider.GetRequiredService<StationsService>(),
+            accountService,
+            policy);
+
+        var account = new Account { Email = $"dup-{Guid.NewGuid()}@test.com", Name = "Limit Test Free", Tier = SubscriptionTier.Free };
+        var storedAccount = await accountService.CreateAsync(account);
+
+        // First profile (limit is 1 for free tier)
+        var firstResult = await controller.Create(storedAccount!.Id, new Profile { Name = "First" });
+        Assert.That(firstResult.Result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.OkObjectResult>());
+
+        // Second profile should fail
+        var secondResult = await controller.Create(storedAccount.Id, new Profile { Name = "Second" });
+        Assert.That(secondResult.Result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.BadRequestObjectResult>());
+        var badRequest = secondResult.Result as Microsoft.AspNetCore.Mvc.BadRequestObjectResult;
+        Assert.That(badRequest!.Value, Is.EqualTo("Profile limit reached"));
+    }
+
+    [Test]
+    public async Task CreateProfile_WhenMorebobTierLimitReached_ShouldReturnBadRequest()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var accountService = scope.ServiceProvider.GetRequiredService<AccountService>();
+        var policy = scope.ServiceProvider.GetRequiredService<SubscriptionPolicy>();
+        var controller = new Controllers.ProfilesController(
+            profilesService,
+            scope.ServiceProvider.GetRequiredService<StationsService>(),
+            accountService,
+            policy);
+
+        var account = new Account { Email = $"dup-{Guid.NewGuid()}@test.com", Name = "Limit Test Morebob", Tier = SubscriptionTier.Morebob };
+        var storedAccount = await accountService.CreateAsync(account);
+
+        // Create up to the limit (5 for Morebob)
+        for (int i = 0; i < 5; i++)
+        {
+            var result = await controller.Create(storedAccount!.Id, new Profile { Name = $"Profile {i}" });
+            Assert.That(result.Result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.OkObjectResult>());
+        }
+
+        // 6th profile should fail
+        var extraResult = await controller.Create(storedAccount!.Id, new Profile { Name = "Extra" });
+        Assert.That(extraResult.Result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.BadRequestObjectResult>());
+        var badRequest = extraResult.Result as Microsoft.AspNetCore.Mvc.BadRequestObjectResult;
+        Assert.That(badRequest!.Value, Is.EqualTo("Profile limit reached"));
+    }
+
+    [Test]
+    public async Task DeleteProfile_WhenNotLastProfile_ShouldReturnOk()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var accountService = scope.ServiceProvider.GetRequiredService<AccountService>();
+        var controller = new Controllers.ProfilesController(
+            profilesService,
+            scope.ServiceProvider.GetRequiredService<StationsService>(),
+            accountService,
+            scope.ServiceProvider.GetRequiredService<SubscriptionPolicy>());
+
+        var accountId = Guid.NewGuid().ToString();
+        var profile1 = new Profile { AccountId = accountId, Name = "Profile 1", StreamToken = "token1" };
+        var profile2 = new Profile { AccountId = accountId, Name = "Profile 2", StreamToken = "token2" };
+        
+        await profilesService.CreateAsync(profile1);
+        var p2Created = await profilesService.CreateAsync(profile2);
+
+        var result = await controller.Delete(p2Created!.Id!);
+        Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.OkResult>());
+
+        var profiles = await profilesService.GetByAccountIdAsync(accountId);
+        Assert.That(profiles.Count, Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task DeleteProfile_WhenLastProfile_ShouldReturnBadRequest()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var accountService = scope.ServiceProvider.GetRequiredService<AccountService>();
+        var controller = new Controllers.ProfilesController(
+            profilesService,
+            scope.ServiceProvider.GetRequiredService<StationsService>(),
+            accountService,
+            scope.ServiceProvider.GetRequiredService<SubscriptionPolicy>());
+
+        var accountId = Guid.NewGuid().ToString();
+        var profile = new Profile { AccountId = accountId, Name = "Only Profile", StreamToken = "token" };
+        var created = await profilesService.CreateAsync(profile);
+
+        var result = await controller.Delete(created!.Id!);
+        
+        Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.BadRequestObjectResult>());
+        var badRequest = result as Microsoft.AspNetCore.Mvc.BadRequestObjectResult;
+        
+        var problem = badRequest!.Value as Microsoft.AspNetCore.Mvc.ProblemDetails;
+        Assert.That(problem, Is.Not.Null);
+        Assert.That(problem!.Title, Is.EqualTo("Profile Delete Error"));
+        
+        var profiles = await profilesService.GetByAccountIdAsync(accountId);
+        Assert.That(profiles.Count, Is.EqualTo(1));
     }
 
     [Test]

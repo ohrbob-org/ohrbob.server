@@ -1,5 +1,6 @@
 ﻿@using Ohrbob.Server.Shared.Requests
 @model List<StationWithFeedsDto>
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
 @{
     ViewData["Title"] = "Listen";
 }
@@ -91,303 +92,161 @@
 }
 else
 {
-    <style>
-        /* Landing page specific layout: 
-           Make header fixed so it doesn't take up space, eliminating the white bar above the landing container.
-           Also set the body background to match the landing page color. */
-        header { 
-            position: fixed !important; 
-            width: 100%; 
-            left: 0; 
-        }
-        body { 
-            background-color: var(--bs-tertiary-bg); 
-        }
-        .radio-axis {
-            z-index: 10 !important;
-        }
-        .radio-landing-container {
-            position: relative;
-            z-index: 10;
-            background-color: transparent !important;
-        }
-        .landing-footer {
-            position: relative;
-            z-index: 20;
-            background-color: transparent !important;
-        }
-        .broadcast-node {
-            z-index: 0; /* Below the logo image */
-        }
-        .broadcast-ring {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            z-index:-1;
-            transform: translate(-50%, -50%); /* Center perfectly */
-            opacity: 0;
-            pointer-events: none;
-            overflow: visible;
-        }
-        .broadcast-ring circle {
-            stroke: rgba(var(--bs-primary-rgb), 0.3);
-            stroke-width: 16px;
-            stroke-linecap: round;
-            fill: none;
-            /* 100 pathLength; 25 is exactly a 90-degree arc */
-            stroke-dasharray: 25 100;
-            transform-origin: center;
-            /* Starts at right (0deg). Rotate -135deg puts the 90deg arc from top-left to top-right */
-            transform: rotate(-135deg);
-        }
-        .wave-node, .wave-ring {
-            pointer-events: none;
-        }
-    </style>
     var landingSteps = new[] {
         new { Title = "Build your own radio stations", Desc = "<p>Combine your favorite podcasts into personalized radio stations that you can tune into whenever you want.</p><p>The best part? Your stations are made just for you—they pause when you leave and wait for your return, so you never miss a moment.</p>", 
-            Card = "images/screenshots/stations.png" },
+            Card = "images/screenshots/stations.png", Badge = "" },
+        new { Title = "Tune the rotation", Desc = "<p>Open the rotation editor and decide exactly which episodes play in each station: reorder them, skip what you have already heard and keep the queue in your hands.</p><p>News content is supported too, so time-sensitive shows age out on their own and your station always sounds current. Your listening experience, fully personalized.</p>", 
+            Card = "images/screenshots/rotation.png", Badge = "" },
         new { Title = "Profiles for everyone", Desc = "<p>Got a unique taste in podcasts? Create different profiles to keep your listening habits separate from your family and friends.</p><p>With ohrbob Profiles, everyone gets their own personalized listening state without mixing up episodes.</p>", 
-            Card = "images/screenshots/profiles.png" },
+            Card = "images/screenshots/profiles.png", Badge = "" },
         new { Title = "Listen together", Desc = "<p>Share your favorite stations and listen to the same episodes with your friends. Say goodbye to unwanted true crime spoilers!</p>", 
-            Card = "images/screenshots/together.png" },
+            Card = "images/screenshots/together.png", Badge = "" },
         new { Title = "Stream anywhere", Desc = "<p>Take your stations wherever you go. Whether you're on the move or relaxing at home, stream directly to your Wi-Fi radio or any web-enabled device.</p>", 
-            Card = "images/screenshots/radio.png" },
+            Card = "images/screenshots/radio.png", Badge = "morebob" },
         new { Title = "Proudly Open Source", Desc = "<p>We believe in full transparency. Enjoy our hosted service, or take control and host it yourself.</p><p>Missing a feature? Our community is always growing, and we'd love for you to join us as a contributor! Check us out on <a href=\"https://github.com/ohrbob-org/\" target=\"_blank\" rel=\"noopener\">GitHub</a>.</p>", 
-            Card = "images/screenshots/opensource.png" }
+            Card = "images/screenshots/opensource.png", Badge = "" }
     };
 
-    <div class="full-width-escape" style="position: relative;">
-        <!-- The broadcast node must be a sibling to the main container, absolutely positioned at the bottom, so it sits behind EVERYTHING in the DOM naturally -->
-        <!--<div class="wave-node broadcast-node" style="position: absolute; bottom: 150px; left: 50%; width: 0; height: 0;"></div>-->
-        
-        <div class="radio-axis">
-            <div class="radio-dial"></div>
-        </div>
-        <div class="radio-landing-container">
 
+    <div class="full-width-escape">
+        <section class="landing-hero text-center" aria-labelledby="landing-title">
+            <div class="ohrbob-logo ohrbob-logo-above landing-hero-logo" aria-hidden="true">
+                <span class="ohrbob-logo-icon">
+                    <img src="~/images/ohrbob-logo.svg" alt="" />
+                </span>
+                <span class="ohrbob-logo-text">
+                    <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
+                </span>
+            </div>
+
+            <h1 id="landing-title" class="display-4 fw-bold">Your own radio station,<br class="d-none d-sm-block" /> built from the podcasts you love.</h1>
+            <p class="lead text-body-secondary mx-auto landing-hero-lead">
+                Bundle your favorite podcasts into stations, press play, and let ohrbob pick up exactly where you left off &mdash; on any device, for everyone in your household.
+            </p>
+
+            <div class="d-flex flex-column flex-sm-row justify-content-center gap-3 mt-4" hx-boost="false">
+                <a asp-controller="Home" asp-action="Login" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-primary btn-lg px-4 rounded-pill" hx-boost="false">
+                    Sign-Up for free!
+                </a>
+                <a href="#features" class="btn btn-outline-secondary btn-lg px-4 rounded-pill" hx-boost="false">See how it works</a>
+            </div>
+        </section>
+
+        <div class="radio-landing-container" id="features">
             @for (int i = 0; i < landingSteps.Length; i++)
             {
                 var isEven = i % 2 == 0;
-                <div class="radio-step @(isEven ? "step-left" : "step-right")">
-                    <div class="wave-node">
-                        <div class="wave-ring ring-1"></div>
-                        <div class="wave-ring ring-2"></div>
-                        <div class="wave-ring ring-3"></div>
-                    </div>
-                    <div class="step-content">
+                var card = landingSteps[i].Card;
+                // The screenshot is optional: a step still renders as text until its image exists.
+                var hasCard = !string.IsNullOrEmpty(card) && System.IO.File.Exists(System.IO.Path.Combine(Env.WebRootPath ?? "", card));
+                <section class="radio-step @(isEven ? "step-left" : "step-right")" aria-labelledby="feature-title-@i">
+                    <div class="step-content @(hasCard ? "" : "text-only")">
                         <div class="step-text-box">
-                            <h2 class="display-5 fw-bold">@landingSteps[i].Title</h2>
-                            <p class="lead text-muted">@Html.Raw(landingSteps[i].Desc)</p>
+                            <span class="step-index" aria-hidden="true">@(i + 1)</span>
+                            <h2 id="feature-title-@i" class="display-6 fw-bold">@landingSteps[i].Title</h2>
+                            <div class="lead text-body-secondary">@Html.Raw(landingSteps[i].Desc)</div>
+                            @if (!string.IsNullOrEmpty(landingSteps[i].Badge))
+                            {
+                                <p class="mt-3 mb-0"><span class="badge tier-badge-premium">@landingSteps[i].Badge tier</span></p>
+                            }
                         </div>
-                        <div class="step-card-box">
-                            <div class="screenshot-card shadow-lg"><img src="@Url.Content($"~/{landingSteps[i].Card}")" asp-append-version="true" alt="@landingSteps[i].Title" /></div>
-                        </div>
+                        @if (hasCard)
+                        {
+                            <div class="step-card-box">
+                                <div class="screenshot-card shadow-sm">
+                                    <img src="@Url.Content($"~/{card}")" asp-append-version="true" loading="lazy" decoding="async" alt="Screenshot: @landingSteps[i].Title" />
+                                </div>
+                            </div>
+                        }
                     </div>
-                </div>
+                </section>
             }
         </div>
-        
-        <div class="landing-footer">
-            <h1 class="display-4 fw-bold text-primary mb-3" style="display:none">Ohrbob</h1>
-            <div class="landing-logo-wrapper">
-                <div class="ohrbob-logo landing-dynamic-logo">
+
+        <section class="landing-footer text-center" aria-labelledby="start-heading">
+            <div class="landing-logo-wrapper" aria-hidden="true">
+                <div class="ohrbob-logo ohrbob-logo-above">
                     <span class="ohrbob-logo-icon">
-                        <div class="wave-node logo-wave-node">
-                            <div class="wave-ring logo-ring-1"></div>
-                            <div class="wave-ring logo-ring-2"></div>
-                            <div class="wave-ring logo-ring-3"></div>
-                        </div>
-                        <img src="~/images/ohrbob-logo.svg" alt="Icon" style="position: relative; z-index: 2;">
+                        <img src="~/images/ohrbob-logo.svg" alt="" />
                     </span>
                     <span class="ohrbob-logo-text">
                         <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
                     </span>
                 </div>
             </div>
-            <p class="lead text-muted mb-4">Start your journey.</p>
-            
-            <div class="d-flex justify-content-center gap-3 mt-4" hx-boost="false">
+            <h2 id="start-heading" class="h3 fw-bold mt-4 mb-2">Start your journey.</h2>
+            <p class="text-body-secondary mb-4">Free to use. No credit card required.</p>
+
+            <div class="d-flex flex-column flex-sm-row justify-content-center gap-3" hx-boost="false">
                 <a asp-controller="Home" asp-action="Login" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-primary btn-lg px-4 rounded-pill" hx-boost="false">
                     Sign-Up for free!
                 </a>
-                <a href="https://github.com/ohrbob-org/" target="_blank" rel="noopener" class="btn btn-outline-dark btn-lg px-4 rounded-pill" title="ohrbob on GitHub">
+                <a href="https://github.com/ohrbob-org/" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-lg px-4 rounded-pill" title="ohrbob on GitHub">
                     <i class="bi bi-github me-2"></i>GitHub
                 </a>
             </div>
-        </div>
+        </section>
+
+        @* shortcut: the tier numbers below mirror SubscriptionTiersOptions; move them to configuration if they change often. *@
+        <section class="landing-tiers" aria-labelledby="tiers-heading">
+            <h2 id="tiers-heading" class="display-6 fw-bold text-center">Free or morebob?</h2>
+            <p class="lead text-body-secondary text-center mb-4">
+                Start for free. Move to morebob when you want more stations, more profiles and streaming.
+            </p>
+
+            <div class="landing-tier-card">
+                <table class="table landing-tier-table align-middle">
+                    <caption class="visually-hidden">Comparison of the Free and morebob subscription tiers.</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">What you get</th>
+                            <th scope="col">Free</th>
+                            <th scope="col" class="landing-tier-premium">morebob</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th scope="row">Radio stations</th>
+                            <td>2</td>
+                            <td><strong>Unlimited</strong></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Podcasts &amp; feeds per station</th>
+                            <td>10</td>
+                            <td><strong>Unlimited</strong></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Listening profiles</th>
+                            <td>1</td>
+                            <td><strong>Up to 5</strong></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Streaming to Wi-Fi radios &amp; other devices</th>
+                            <td><span aria-hidden="true" class="text-body-tertiary">&mdash;</span><span class="visually-hidden">Not included</span></td>
+                            <td><i class="bi bi-check-lg text-success" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">App support</th>
+                            <td colspan="2" class="text-center">Android Auto, Linux, Windows, Mac</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Your own listening progress per profile</th>
+                            <td><i class="bi bi-check-lg text-success" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
+                            <td><i class="bi bi-check-lg text-success" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Share stations with family &amp; friends</th>
+                            <td><i class="bi bi-check-lg text-success" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
+                            <td><i class="bi bi-check-lg text-success" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Open source &amp; self-hostable</th>
+                            <td><i class="bi bi-check-lg text-success" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
+                            <td><i class="bi bi-check-lg text-success" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            if (typeof gsap === 'undefined') return;
-            
-            gsap.registerPlugin(ScrollTrigger);
-
-            // Calculate dynamic axis height to end exactly at the logo icon center
-            function updateAxisHeight() {
-                const axis = document.querySelector('.radio-axis');
-                const logoIcon = document.querySelector('.landing-dynamic-logo .ohrbob-logo-icon');
-                const container = document.querySelector('.full-width-escape');
-                
-                if (axis && logoIcon && container) {
-                    const containerRect = container.getBoundingClientRect();
-                    const logoRect = logoIcon.getBoundingClientRect();
-                    // Distance from top of container to center of logo icon
-                    const logoCenterY = (logoRect.top - containerRect.top) + (logoRect.height / 2);
-                    axis.style.height = logoCenterY + 'px';
-                    
-                    // Refresh ScrollTrigger to recalculate heights
-                    ScrollTrigger.refresh();
-                }
-            }
-            
-            // Run on load, and shortly after (images loading), and resize
-            updateAxisHeight();
-            setTimeout(updateAxisHeight, 500);
-            window.addEventListener('resize', updateAxisHeight);
-
-            // Animate the radio dial moving down the axis
-            gsap.to(".radio-dial", {
-                top: "100%",
-                ease: "none",
-                scrollTrigger: {
-                    trigger: ".radio-axis",
-                    start: "top center",
-                    end: "bottom center",
-                    scrub: true
-                }
-            });
-
-            // Ping animation when dial hits the logo
-            const logoRings = document.querySelectorAll('.logo-wave-node .wave-ring');
-            if (logoRings.length > 0) {
-                gsap.timeline({
-                    scrollTrigger: {
-                        trigger: ".radio-axis",
-                        start: "bottom center", // Fires exactly when the dial hits the end of the line
-                        toggleActions: "play none none reverse"
-                    }
-                })
-                .to(logoRings, {
-                    scale: 12,
-                    opacity: 0,
-                    duration: 3,
-                    stagger: 0.3,
-                    ease: "none",
-                    startAt: { opacity: 0.8, scale: 0.5 }
-                });
-            }
-
-            // New continuous directional broadcast animation (Pooling System)
-            const broadcastNode = document.querySelector('.broadcast-node');
-            if (broadcastNode) {
-                // Create a pool of 6 SVG rings (15s duration / 3s stagger = 5 active rings + 1 buffer)
-                const poolSize = 6;
-                const rings = [];
-                for (let i = 0; i < poolSize; i++) {
-                    const ring = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                    ring.setAttribute("class", "broadcast-ring");
-                    
-                    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                    circle.setAttribute("cx", "50%");
-                    circle.setAttribute("cy", "50%");
-                    // 2px less than 50% radius to ensure the 4px stroke stays inside bounding box if needed
-                    circle.setAttribute("r", "calc(50% - 2px)");
-                    circle.setAttribute("pathLength", "100");
-                    
-                    ring.appendChild(circle);
-                    broadcastNode.appendChild(ring);
-                    rings.push(ring);
-                }
-                
-                // Travel distance: well above the screen
-                // Ensure we have a height even if calculated before layout finishes
-                const travelDistance = -((window.innerHeight || 1000) * 2);
-
-                // Instead of a single stagger tween, we build a timeline for each ring
-                // so we can animate opacity independently near the end of its life.
-                rings.forEach((ring, index) => {
-                    const tl = gsap.timeline({ 
-                        repeat: -1, 
-                        delay: index * 3 
-                    });
-                    
-                    // 1. The main expansion and upward movement (15s total)
-                    tl.fromTo(ring, 
-                        { 
-                            width: "50px", 
-                            height: "50px", 
-                            opacity: .3,
-                            xPercent: -50, // Keep horizontally centered
-                            yPercent: -50, // Keep vertically centered as base
-                            y: 0 
-                        }, 
-                        {
-                            width: "2000px", // Expand outward reasonably
-                            height:"2000px",
-                            xPercent: -50,
-                            yPercent: -50,
-                            y: travelDistance, // ALSO travel up the entire page
-                            duration: 15, // Travel time
-                            ease: "none" // Natural expanding ease
-                        }, 
-                        0 // Start at time 0 of the timeline
-                    );
-
-                    // 2. The fade out ONLY at the end (starts at 12s, lasts 3s)
-                    tl.to(ring, 
-                        {
-                            opacity: 0,
-                            duration: 3,
-                            ease: "power1.inOut" // smooth fade
-                        }, 
-                        12 // Start at 12s mark
-                    );
-                    
-                    // Fast-forward exactly one full 15-second cycle 
-                    // so the screen is already pre-populated with distributed waves on load!
-                    tl.totalTime(15);
-                });
-            }
-
-            // Animate each step's waves and content reveal
-            const steps = document.querySelectorAll('.radio-step');
-            
-            steps.forEach((step) => {
-                const rings = step.querySelectorAll('.wave-ring');
-                const text = step.querySelector('.step-text-box');
-                const card = step.querySelector('.step-card-box');
-                
-                const tl = gsap.timeline({
-                    scrollTrigger: {
-                        trigger: step,
-                        start: "top 65%", // Trigger when step is 65% down the viewport
-                        toggleActions: "play none none reverse"
-                    }
-                });
-
-                // Wave pulse effect
-                tl.to(rings, {
-                    scale: 6,
-                    opacity: 0,
-                    duration: 2.5,
-                    stagger: 0.2,
-                    ease: "power2.out",
-                    startAt: { opacity: 0.6, scale: 0.5 }
-                }, 0);
-
-                // Content reveal
-                tl.to([text, card], {
-                    opacity: 1,
-                    y: 0,
-                    duration: 0.8,
-                    stagger: 0.2,
-                    ease: "back.out(1.2)"
-                }, 0.3); // Start slightly after waves begin
-            });
-        });
-    </script>
 }
-

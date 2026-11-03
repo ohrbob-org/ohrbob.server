@@ -45,8 +45,15 @@ public class ProfilesController : Controller
 
         if (ModelState.IsValid)
         {
-            await _profilesService.CreateProfileAsync(accountId, profile);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _profilesService.CreateProfileAsync(accountId, profile);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (LimitExceededException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+            }
         }
         return View(profile);
     }
@@ -133,7 +140,14 @@ public class ProfilesController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        await _profilesService.DeleteProfileAsync(id);
+        try
+        {
+            await _profilesService.DeleteProfileAsync(id);
+        }
+        catch (LimitExceededException ex)
+        {
+            TempData["Error"] = ex.Message;
+        }
         return RedirectToAction(nameof(Index));
     }
 

@@ -65,7 +65,6 @@ public class ProfilesController : ControllerBase
             if(existing.Count >= limits.MaxProfiles)
                 return BadRequest("Profile limit reached");
         }
-
         var created = await _profilesService.CreateAsync(profile);
         return Ok(created);
     }
