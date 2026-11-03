@@ -161,7 +161,7 @@ window.submitAddFeedJson = function (event, safeId) {
     });
 };
 
-window.initRenameStation = function (stationId, initialIsAging, initialIsPublic) {
+window.initRenameStation = function (stationId, initialIsAging) {
     const renameBtn = document.getElementById('renameStationBtn');
     const modalEl = document.getElementById('renameStationModal');
     const saveBtn = document.getElementById('saveStationNameBtn');
@@ -175,12 +175,10 @@ window.initRenameStation = function (stationId, initialIsAging, initialIsPublic)
 
     let modal = null;
     let currentIsAging = initialIsAging;
-    let currentIsPublic = initialIsPublic;
 
     renameBtn.addEventListener('click', function () {
         nameInput.value = nameDisplay.textContent.trim();
         isAgingInput.checked = currentIsAging;
-        isPublicInput.checked = currentIsPublic;
         nameInput.classList.remove('is-invalid');
         errorMsg.classList.add('d-none');
         if (!modal) {
@@ -229,7 +227,6 @@ window.initRenameStation = function (stationId, initialIsAging, initialIsPublic)
                 const data = await response.json();
                 nameDisplay.textContent = data.name;
                 currentIsAging = data.isAging;
-                currentIsPublic = data.isPublic;
                 if (typeof window.setStationPublicState === 'function') {
                     window.setStationPublicState(data.isPublic);
                 }
@@ -294,42 +291,62 @@ window.initRenameStation = function (stationId, initialIsAging, initialIsPublic)
     }
 };
 
-window.initShareStation = function (stationId) {
-    const shareBtn = document.getElementById('shareStationBtn');
-    const modalEl = document.getElementById('shareStationModal');
+window.initShareBar = function (stationId) {
     const urlInput = document.getElementById('shareStationUrl');
+    const visibilitySelect = document.getElementById('shareVisibilitySelect');
     const copyBtn = document.getElementById('copyShareLinkBtn');
-    const publicContent = document.getElementById('sharePublicContent');
-    const privateContent = document.getElementById('sharePrivateContent');
-    const settingsBtn = document.getElementById('openSettingsFromShareBtn');
 
-    if (!shareBtn || !modalEl || !urlInput || !copyBtn || !publicContent || !privateContent || !settingsBtn) return;
+    if (!urlInput || !visibilitySelect || !copyBtn) return;
 
-    let isPublic = !publicContent.classList.contains('d-none');
+    let previousVisibility = visibilitySelect.value;
 
-    const render = function () {
-        publicContent.classList.toggle('d-none', !isPublic);
-        privateContent.classList.toggle('d-none', isPublic);
-        settingsBtn.classList.toggle('d-none', isPublic);
+    const applyState = function (value) {
+        const isPublic = Boolean(value);
+        visibilitySelect.value = isPublic ? 'public' : 'private';
+        const switchInput = document.getElementById('isPublicInput');
+        if (switchInput) switchInput.checked = isPublic;
+        previousVisibility = visibilitySelect.value;
     };
 
-    window.setStationPublicState = function (value) {
-        isPublic = Boolean(value);
-        render();
-    };
+    window.setStationPublicState = applyState;
 
-    shareBtn.addEventListener('click', function () {
-        render();
-        bootstrap.Modal.getOrCreateInstance(modalEl).show();
-    });
+    visibilitySelect.addEventListener('change', function () {
+        const wanted = visibilitySelect.value;
+        const name = document.getElementById('stationNameDisplay')?.textContent.trim() || '';
+        const isAging = document.getElementById('isAgingInput')?.checked || false;
+        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        const token = tokenInput ? tokenInput.value : '';
 
-    settingsBtn.addEventListener('click', function () {
-        const shareModal = bootstrap.Modal.getOrCreateInstance(modalEl);
-        modalEl.addEventListener('hidden.bs.modal', function () {
-            const renameBtn = document.getElementById('renameStationBtn');
-            if (renameBtn) renameBtn.click();
-        }, { once: true });
-        shareModal.hide();
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('isAging', isAging);
+        formData.append('isPublic', wanted === 'public');
+        visibilitySelect.disabled = true;
+
+        fetch(`/Stations/UpdateSettings/${stationId}`, {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': token },
+            body: formData
+        })
+        .then(async response => {
+            visibilitySelect.disabled = false;
+            if (!response.ok) throw new Error(await response.text());
+            const data = await response.json();
+            applyState(data.isPublic);
+            document.body.dispatchEvent(new CustomEvent('showToast', {
+                detail: {
+                    message: data.isPublic ? 'Station is now public.' : 'Station is now private.',
+                    type: 'success'
+                }
+            }));
+        })
+        .catch(() => {
+            visibilitySelect.disabled = false;
+            visibilitySelect.value = previousVisibility;
+            document.body.dispatchEvent(new CustomEvent('showToast', {
+                detail: { message: 'Could not update station visibility.', type: 'danger' }
+            }));
+        });
     });
 
     copyBtn.addEventListener('click', async function () {
