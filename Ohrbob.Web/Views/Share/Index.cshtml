@@ -64,7 +64,13 @@
         </div>
 
         <div class="col-12 col-md text-center text-md-start">
-            <span class="badge bg-success mb-2">Shared station</span>
+            <div class="mb-2">
+                <span class="badge bg-success">Shared station</span>
+                @if (station.HostPaceEnabled)
+                {
+                    <span class="badge bg-info text-dark ms-1" title="Only episodes the host has completed are available">Host Pace</span>
+                }
+            </div>
             <h1 class="display-5 fw-bold mb-2">@station.Name</h1>
             @if (!string.IsNullOrEmpty(Model.OwnerName))
             {
