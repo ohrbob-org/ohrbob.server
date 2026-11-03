@@ -206,6 +206,9 @@ public class StationsControllerTests
     {
         var stationId = "st-123";
         var schedule = new StationSchedule();
+        _stationsServiceMock
+            .Setup(s => s.GetStationByIdAsync(stationId))
+            .ReturnsAsync(new Station { Id = stationId, AccountId = TestAccountId });
 
         var result = await _controller.UpdateSchedule(stationId, schedule);
 
@@ -229,7 +232,7 @@ public class StationsControllerTests
             .Setup(s => s.UpdateStationAsync(existingStation))
             .ReturnsAsync(existingStation);
 
-        var result = await _controller.UpdateSettings(stationId, "New Name", true);
+        var result = await _controller.UpdateSettings(stationId, "New Name", true, false);
 
         var okResult = result as OkObjectResult;
         Assert.That(okResult, Is.Not.Null);
@@ -238,6 +241,50 @@ public class StationsControllerTests
         Assert.That(jsonValue, Is.Not.Null);
         
         _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.Is<Station>(s => s.Name == "New Name" && s.IsAging == true)), Times.Once);
+    }
+
+    [Test]
+    public async Task UpdateSettings_PersistsIsPublic()
+    {
+        var stationId = "st-123";
+        var existingStation = new Station { Id = stationId, AccountId = TestAccountId, Name = "Station", IsPublic = false };
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync(stationId)).ReturnsAsync(existingStation);
+        _stationsServiceMock.Setup(s => s.UpdateStationAsync(It.IsAny<Station>()))
+            .ReturnsAsync((Station station) => station);
+
+        var result = await _controller.UpdateSettings(stationId, "Station", false, true);
+
+        Assert.That(result, Is.InstanceOf<OkObjectResult>());
+        _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.Is<Station>(station => station.IsPublic)), Times.Once);
+    }
+
+    [Test]
+    public async Task Edit_Post_PreservesShareCode()
+    {
+        var stationId = "st-123";
+        var posted = new Station { Id = stationId, Name = "Renamed", AccountId = TestAccountId, ShareCode = string.Empty };
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync(stationId))
+            .ReturnsAsync(new Station { Id = stationId, AccountId = TestAccountId, ShareCode = "Abc123XYZ9" });
+        _stationsServiceMock.Setup(s => s.UpdateStationAsync(It.IsAny<Station>()))
+            .ReturnsAsync((Station station) => station);
+
+        await _controller.Edit(stationId, posted);
+
+        _stationsServiceMock.Verify(s => s.UpdateStationAsync(
+            It.Is<Station>(station => station.ShareCode == "Abc123XYZ9")), Times.Once);
+    }
+
+    [Test]
+    public async Task UpdateSchedule_StationOwnedByAnotherAccount_ReturnsNotFound()
+    {
+        var stationId = "st-123";
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync(stationId))
+            .ReturnsAsync(new Station { Id = stationId, AccountId = "someone-else" });
+
+        var result = await _controller.UpdateSchedule(stationId, new StationSchedule());
+
+        Assert.That(result, Is.InstanceOf<NotFoundResult>());
+        _stationsServiceMock.Verify(s => s.UpdateScheduleAsync(It.IsAny<string>(), It.IsAny<StationSchedule>()), Times.Never);
     }
 
     private static Station MakeStation(string id, string accountId, string name, params (string url, FeedSortOrder order, int eps)[] feeds)

@@ -161,7 +161,7 @@ window.submitAddFeedJson = function (event, safeId) {
     });
 };
 
-window.initRenameStation = function (stationId, initialIsAging) {
+window.initRenameStation = function (stationId, initialIsAging, initialIsPublic) {
     const renameBtn = document.getElementById('renameStationBtn');
     const modalEl = document.getElementById('renameStationModal');
     const saveBtn = document.getElementById('saveStationNameBtn');
@@ -169,15 +169,18 @@ window.initRenameStation = function (stationId, initialIsAging) {
     const errorMsg = document.getElementById('renameErrorMsg');
     const nameDisplay = document.getElementById('stationNameDisplay');
     const isAgingInput = document.getElementById('isAgingInput');
+    const isPublicInput = document.getElementById('isPublicInput');
 
-    if (!renameBtn || !modalEl || !saveBtn || !nameInput || !errorMsg || !nameDisplay || !isAgingInput) return;
+    if (!renameBtn || !modalEl || !saveBtn || !nameInput || !errorMsg || !nameDisplay || !isAgingInput || !isPublicInput) return;
 
     let modal = null;
     let currentIsAging = initialIsAging;
+    let currentIsPublic = initialIsPublic;
 
     renameBtn.addEventListener('click', function () {
         nameInput.value = nameDisplay.textContent.trim();
         isAgingInput.checked = currentIsAging;
+        isPublicInput.checked = currentIsPublic;
         nameInput.classList.remove('is-invalid');
         errorMsg.classList.add('d-none');
         if (!modal) {
@@ -211,6 +214,7 @@ window.initRenameStation = function (stationId, initialIsAging) {
         const formData = new FormData();
         formData.append('name', newName);
         formData.append('isAging', isAgingInput.checked);
+        formData.append('isPublic', isPublicInput.checked);
 
         fetch(`/Stations/UpdateSettings/${stationId}`, {
             method: 'POST',
@@ -225,6 +229,10 @@ window.initRenameStation = function (stationId, initialIsAging) {
                 const data = await response.json();
                 nameDisplay.textContent = data.name;
                 currentIsAging = data.isAging;
+                currentIsPublic = data.isPublic;
+                if (typeof window.setStationPublicState === 'function') {
+                    window.setStationPublicState(data.isPublic);
+                }
                 document.title = `Edit Station - ${data.name} | ohrbob`;
                 if (modal) modal.hide();
 
@@ -284,6 +292,57 @@ window.initRenameStation = function (stationId, initialIsAging) {
             }, { once: true });
         });
     }
+};
+
+window.initShareStation = function (stationId) {
+    const shareBtn = document.getElementById('shareStationBtn');
+    const modalEl = document.getElementById('shareStationModal');
+    const urlInput = document.getElementById('shareStationUrl');
+    const copyBtn = document.getElementById('copyShareLinkBtn');
+    const publicContent = document.getElementById('sharePublicContent');
+    const privateContent = document.getElementById('sharePrivateContent');
+    const settingsBtn = document.getElementById('openSettingsFromShareBtn');
+
+    if (!shareBtn || !modalEl || !urlInput || !copyBtn || !publicContent || !privateContent || !settingsBtn) return;
+
+    let isPublic = !publicContent.classList.contains('d-none');
+
+    const render = function () {
+        publicContent.classList.toggle('d-none', !isPublic);
+        privateContent.classList.toggle('d-none', isPublic);
+        settingsBtn.classList.toggle('d-none', isPublic);
+    };
+
+    window.setStationPublicState = function (value) {
+        isPublic = Boolean(value);
+        render();
+    };
+
+    shareBtn.addEventListener('click', function () {
+        render();
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    });
+
+    settingsBtn.addEventListener('click', function () {
+        const shareModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modalEl.addEventListener('hidden.bs.modal', function () {
+            const renameBtn = document.getElementById('renameStationBtn');
+            if (renameBtn) renameBtn.click();
+        }, { once: true });
+        shareModal.hide();
+    });
+
+    copyBtn.addEventListener('click', async function () {
+        urlInput.select();
+        try {
+            await navigator.clipboard.writeText(urlInput.value);
+        } catch {
+            document.execCommand('copy');
+        }
+        document.body.dispatchEvent(new CustomEvent('showToast', {
+            detail: { message: 'Share link copied.', type: 'success' }
+        }));
+    });
 };
 
 window.initFeedMenus = function () {

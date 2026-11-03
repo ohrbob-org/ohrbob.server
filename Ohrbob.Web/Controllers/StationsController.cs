@@ -130,8 +130,9 @@ public class StationsController : Controller
         if (existingStation == null || existingStation.AccountId != accountId)
             return NotFound();
 
-        // Ensure AccountId is kept consistent
+        // Ensure AccountId and the share code are kept consistent
         station.AccountId = accountId;
+        station.ShareCode = existingStation.ShareCode;
 
         await _stationsService.UpdateStationAsync(station);
         return RedirectToAction(nameof(Index));
@@ -185,7 +186,10 @@ public class StationsController : Controller
     {
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();
-        Console.WriteLine($"DEBUG Web UpdateSchedule: Feeds.Count = {schedule?.Feeds?.Count}");
+
+        var station = await _stationsService.GetStationByIdAsync(id);
+        if (station == null || station.AccountId != accountId) return NotFound();
+
         await _stationsService.UpdateScheduleAsync(id, schedule);
         return Ok();
     }
@@ -293,7 +297,7 @@ public class StationsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateSettings(string id, string name, bool isAging)
+    public async Task<IActionResult> UpdateSettings(string id, string name, bool isAging, bool isPublic)
     {
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();
@@ -307,9 +311,10 @@ public class StationsController : Controller
 
         existingStation.Name = name;
         existingStation.IsAging = isAging;
+        existingStation.IsPublic = isPublic;
         await _stationsService.UpdateStationAsync(existingStation);
 
-        return Ok(new { name = existingStation.Name, isAging = existingStation.IsAging });
+        return Ok(new { name = existingStation.Name, isAging = existingStation.IsAging, isPublic = existingStation.IsPublic });
     }
 
     [HttpPost]

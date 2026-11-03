@@ -216,6 +216,12 @@
                 </ul>
             </div>
         </div>
+
+        <div class="mb-4 text-center">
+            <button type="button" class="btn btn-outline-primary" id="shareStationBtn">
+                <i class="bi bi-share me-2"></i>Share Station
+            </button>
+        </div>
         
     </div>
     
@@ -342,6 +348,10 @@
                     <input class="form-check-input" type="checkbox" role="switch" id="isAgingInput" @(Model.Station.IsAging ? "checked" : "")>
                     <label class="form-check-label text-body" for="isAgingInput">Enable Aging Content (Only keep the newest episode unplayed)</label>
                 </div>
+                <div class="form-check form-switch mt-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="isPublicInput" @(Model.Station.IsPublic ? "checked" : "")>
+                    <label class="form-check-label text-body" for="isPublicInput">Public station &mdash; anyone with the link can view and subscribe</label>
+                </div>
             </div>
             <div class="modal-footer">
                 <form asp-action="Delete" asp-route-id="@Model.Station.Id" method="post" hx-target="#main-content" hx-swap="innerHTML" hx-push-url="/Stations" id="delete-station-form-edit" class="me-auto">
@@ -351,6 +361,38 @@
                 </form>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="saveStationNameBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Share Station Modal -->
+<div class="modal fade" id="shareStationModal" tabindex="-1" aria-labelledby="shareStationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="shareStationModalLabel">Share Station</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-body">
+                <div id="sharePublicContent" class="@(Model.Station.IsPublic ? "" : "d-none")">
+                    <p class="text-body-secondary">Anyone with this link can view the station and subscribe to it.</p>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="shareStationUrl" readonly
+                               value="@Url.Action("Index", "Share", new { code = Model.Station.ShareCode }, Context.Request.Scheme)" />
+                        <button type="button" class="btn btn-primary" id="copyShareLinkBtn">
+                            <i class="bi bi-clipboard me-1"></i>Copy
+                        </button>
+                    </div>
+                </div>
+                <div id="sharePrivateContent" class="@(Model.Station.IsPublic ? "d-none" : "")">
+                    <p class="mb-2">This station is private.</p>
+                    <p class="text-body-secondary mb-0">Make it public in Station Settings to let friends view and subscribe to it.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary d-none" id="openSettingsFromShareBtn">Open Station Settings</button>
             </div>
         </div>
     </div>
@@ -1115,7 +1157,8 @@
                 });
 
                 // Initialize rename station functionality (revamped as Station Settings)
-                window.initRenameStation("@Model.Station.Id", @(Model.Station.IsAging ? "true" : "false"));
+                window.initRenameStation("@Model.Station.Id", @(Model.Station.IsAging ? "true" : "false"), @(Model.Station.IsPublic ? "true" : "false"));
+                window.initShareStation("@(Model.Station.ShareCode)");
 
                 // Initialize move-feed functionality
                 window.initMoveFeed("@Model.Station.Id");
