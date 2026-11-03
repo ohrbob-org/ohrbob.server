@@ -55,7 +55,7 @@
                                 @if (isSubscribed)
                                 {
                                     <div class="d-flex align-items-center ms-2">
-                                        <span class="badge bg-info text-dark">Subscribed</span>
+                                        <span class="badge bg-info text-white">Subscribed</span>
                                         <form asp-controller="Stations" asp-action="Unsubscribe" asp-route-id="@dto.Station.Id"
                                               method="post" hx-target="#main-content" hx-swap="innerHTML" class="ms-2 mb-0">
                                             <button type="button" class="btn btn-link p-0 text-secondary" title="Unsubscribe"
@@ -77,7 +77,7 @@
                                     <small class="text-muted">@feedCount podcasts</small>
                                     @if (dto.Station.HostPaceEnabled)
                                     {
-                                        <span class="badge bg-info text-dark" title="Only episodes the host has completed are available">Host Pace</span>
+                                        <span class="badge bg-info text-white" title="Only episodes the host has completed are available">Host Pace</span>
                                     }
                                 </p>
                                 @{
