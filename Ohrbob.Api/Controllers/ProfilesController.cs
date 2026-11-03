@@ -74,9 +74,61 @@ public class ProfilesController : ControllerBase
     [HttpPut()]
     public async Task<IActionResult> Update([FromBody] Profile profile)
     {
+        // The profile edit form does not round-trip subscriptions, so an empty list means
+        // "unchanged" rather than "remove every subscription".
+        if (profile.SubscribedStationIds == null || profile.SubscribedStationIds.Length == 0)
+        {
+            var existing = await _profilesService.GetAsync(profile.Id);
+            if (existing == null) return NotFound();
+            profile.SubscribedStationIds = existing.SubscribedStationIds;
+        }
+
         var updated = await _profilesService.UpdateAsync(profile);
         if (updated == null) return NotFound();
         return Ok(updated);
+    }
+
+    [EndpointSummary("Subscribe a profile to a public station")]
+    [Authorize(Policy = Consts.GetAccountPolicy)]
+    [HttpPost("{id}/subscriptions/{stationId}")]
+    public async Task<IActionResult> Subscribe(string id, string stationId)
+    {
+        var profile = await _profilesService.GetAsync(id);
+        if (profile == null) return NotFound("Profile not found");
+
+        var station = await _stationsService.GetAsync(stationId);
+        if (station == null) return NotFound("Station not found");
+
+        if (!station.IsPublic || station.AccountId == profile.AccountId)
+            return Forbid();
+
+        var subscribed = profile.SubscribedStationIds?.ToList() ?? new List<string>();
+        if (!subscribed.Contains(stationId))
+        {
+            subscribed.Add(stationId);
+            profile.SubscribedStationIds = subscribed.ToArray();
+            await _profilesService.UpdateAsync(profile);
+        }
+
+        return Ok();
+    }
+
+    [EndpointSummary("Unsubscribe a profile from a station")]
+    [Authorize(Policy = Consts.GetAccountPolicy)]
+    [HttpDelete("{id}/subscriptions/{stationId}")]
+    public async Task<IActionResult> Unsubscribe(string id, string stationId)
+    {
+        var profile = await _profilesService.GetAsync(id);
+        if (profile == null) return NotFound("Profile not found");
+
+        var subscribed = profile.SubscribedStationIds?.ToList() ?? new List<string>();
+        if (subscribed.Remove(stationId))
+        {
+            profile.SubscribedStationIds = subscribed.ToArray();
+            await _profilesService.UpdateAsync(profile);
+        }
+
+        return Ok();
     }
 
     [EndpointSummary("Delete profile")]

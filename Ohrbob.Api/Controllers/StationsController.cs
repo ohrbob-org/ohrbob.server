@@ -714,12 +714,18 @@ public class StationsController : ControllerBase
 
         // Clean up references in profiles
         var profiles = await _profilesService.GetByAccountIdAsync(station.AccountId);
-        foreach (var profile in profiles)
+        var subscribers = await _profilesService.GetBySubscribedStationIdAsync(id);
+        foreach (var profile in profiles.Concat(subscribers).DistinctBy(p => p.Id))
         {
             bool modified = false;
             if (profile.AllowedStationIds != null && profile.AllowedStationIds.Contains(id))
             {
                 profile.AllowedStationIds = profile.AllowedStationIds.Where(s => s != id).ToArray();
+                modified = true;
+            }
+            if (profile.SubscribedStationIds != null && profile.SubscribedStationIds.Contains(id))
+            {
+                profile.SubscribedStationIds = profile.SubscribedStationIds.Where(s => s != id).ToArray();
                 modified = true;
             }
             if (profile.LastActiveStationId == id)

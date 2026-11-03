@@ -798,6 +798,45 @@ public class StationsControllerTests
         Assert.That(dto!.UnplayedEpisodeCount, Is.EqualTo(1));
     }
 
+    [Test]
+    public async Task DeleteStation_RemovesItFromEveryProfileSubscriptions()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var station = new Station { Name = "Subscribed Station", Feeds = Array.Empty<string>() };
+        var createRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/stations/{accountId}")
+        {
+            Content = JsonContent.Create(station)
+        };
+        createRequest.Headers.Add("X-API-KEY", _testApiKey);
+        var createdStation = await (await _client.SendAsync(createRequest)).Content.ReadFromJsonAsync<Station>();
+
+        var profilesCol = _app.MongoDbContext.GetCollection<Profile>("ProfileCollection");
+        var subscribedProfile = new Profile
+        {
+            Id = Guid.NewGuid().ToString(),
+            AccountId = Guid.NewGuid().ToString(),
+            StreamToken = Guid.NewGuid().ToString(),
+            SubscribedStationIds = new[] { createdStation!.Id }
+        };
+        var otherProfile = new Profile
+        {
+            Id = Guid.NewGuid().ToString(),
+            AccountId = Guid.NewGuid().ToString(),
+            StreamToken = Guid.NewGuid().ToString(),
+            SubscribedStationIds = new[] { "other-station" }
+        };
+        await profilesCol.InsertManyAsync(new[] { subscribedProfile, otherProfile });
+
+        var deleteRequest = new HttpRequestMessage(HttpMethod.Delete, $"/api/stations/{createdStation.Id}");
+        deleteRequest.Headers.Add("X-API-KEY", _testApiKey);
+        await _client.SendAsync(deleteRequest);
+
+        var updated = await profilesCol.Find(p => p.Id == subscribedProfile.Id).FirstOrDefaultAsync();
+        var untouched = await profilesCol.Find(p => p.Id == otherProfile.Id).FirstOrDefaultAsync();
+        Assert.That(updated!.SubscribedStationIds, Does.Not.Contain(createdStation.Id));
+        Assert.That(untouched!.SubscribedStationIds, Is.EquivalentTo(new[] { "other-station" }));
+    }
+
     private async Task<HttpResponseMessage> SetPlayheadAsync(string stationId, string episodeId, string profileId, int positionSeconds)
     {
         var request = new HttpRequestMessage(HttpMethod.Post,
