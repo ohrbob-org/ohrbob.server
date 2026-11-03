@@ -13,4 +13,10 @@ public class Station : DbEntry
 
     public bool IsPublic { get; set; }
     public bool IsAging { get; set; }
+
+    /// <summary>When enabled, subscribers may only play episodes the host profile has completed.</summary>
+    public bool HostPaceEnabled { get; set; }
+
+    /// <summary>The owner profile whose completed episodes gate subscriber playback.</summary>
+    public string? HostProfileId { get; set; }
 }

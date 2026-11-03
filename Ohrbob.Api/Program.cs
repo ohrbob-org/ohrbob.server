@@ -99,6 +99,7 @@ builder.Services.AddSingleton<IMigration, Migration_0_0_8_AddIndexes>();
 builder.Services.AddSingleton<IMigration, Migration_0_0_9_BackfillPlainDescriptions>();
 builder.Services.AddSingleton<IMigration, Migration_0_0_10_StationShareCodes>();
 builder.Services.AddSingleton<IMigration, Migration_0_0_11_RepairStationShareCodes>();
+builder.Services.AddSingleton<IMigration, Migration_0_0_12_HostPaceDefaults>();
 builder.Services.AddSingleton<DatabaseMigrator>();
 builder.Services.AddHostedService<FeedUpdateWorker>();
 
