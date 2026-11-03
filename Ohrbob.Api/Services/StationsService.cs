@@ -15,6 +15,7 @@ public class StationsService : MongoDbService<Station>
     {
         return Builders<Station>.Update
             .Set(s => s.Name, entryIn.Name)
+            .Set(s => s.ShareCode, entryIn.ShareCode)
             .Set(s => s.IsPublic, entryIn.IsPublic)
             .Set(s => s.Feeds, entryIn.Feeds)
             .Set(s => s.Schedule, entryIn.Schedule)
@@ -26,5 +27,12 @@ public class StationsService : MongoDbService<Station>
         var filter = Builders<Station>.Filter.Eq(s => s.AccountId, accountId);
         filter = filter.ExcludeDeleted();
         return await Collection.Find(filter).ToListAsync();
+    }
+
+    public async Task<Station?> FindByShareCodeAsync(string code)
+    {
+        var filter = Builders<Station>.Filter.Eq(s => s.ShareCode, code);
+        filter = filter.ExcludeDeleted();
+        return await Collection.Find(filter).FirstOrDefaultAsync();
     }
 }
