@@ -25,6 +25,14 @@ public class PlaywrightWebApplicationFactory : WebApplicationFactory<Program>
         });
 
         _host = builder.Build();
+
+        // Do not register OS file watchers for the served host. Four dozen tests each build
+        // their own host in one process; Razor's asp-append-version watchers would otherwise
+        // exceed the per-user inotify instance limit.
+        var environment = _host.Services.GetRequiredService<IWebHostEnvironment>();
+        environment.WebRootFileProvider = new NoWatchFileProvider(environment.WebRootFileProvider);
+        environment.ContentRootFileProvider = new NoWatchFileProvider(environment.ContentRootFileProvider);
+
         _host.Start();
 
         var server = _host.Services.GetRequiredService<IServer>();
