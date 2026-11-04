@@ -52,6 +52,12 @@ public class PlaybackStrategyService
         var forward = ordered.Skip(startIndex).FirstOrDefault(e => !listenedSet.Contains(e.Id));
         if (forward != null) return forward;
 
+        // Endless spin: keep walking the full rotation order, wrapping back to the first episode.
+        if (station.EndlessSpin)
+        {
+            return ordered.Skip(startIndex).FirstOrDefault() ?? ordered.FirstOrDefault();
+        }
+
         // Wrap around to the first unplayed episode (end-of-playlist behavior).
         return ordered.FirstOrDefault(e => !listenedSet.Contains(e.Id));
     }
@@ -73,7 +79,11 @@ public class PlaybackStrategyService
             allowedEpisodes, station, new HashSet<string>(), currentEpisodeId);
 
         var index = ordered.FindIndex(e => e.Id == currentEpisodeId);
-        if (index <= 0) return null;
+        if (index < 0) return null;
+        if (index == 0)
+        {
+            return station.EndlessSpin && ordered.Count > 1 ? ordered[^1] : null;
+        }
         return ordered[index - 1];
     }
 

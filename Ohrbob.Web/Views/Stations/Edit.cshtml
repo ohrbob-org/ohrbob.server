@@ -363,6 +363,10 @@
                     <label class="form-check-label text-body" for="isAgingInput">Enable Aging Content (Only keep the newest episode unplayed)</label>
                 </div>
                 <div class="form-check form-switch mt-3">
+                    <input class="form-check-input" type="checkbox" role="switch" id="endlessSpinInput" @(Model.Station.EndlessSpin ? "checked" : "")>
+                    <label class="form-check-label text-body" for="endlessSpinInput">Endless Spin &mdash; start over at the first episode after the last one, forever</label>
+                </div>
+                <div class="form-check form-switch mt-3">
                     <input class="form-check-input" type="checkbox" role="switch" id="isPublicInput" @(Model.Station.IsPublic ? "checked" : "")>
                     <label class="form-check-label text-body" for="isPublicInput">Public station &mdash; anyone with the link can view and subscribe</label>
                 </div>
@@ -1156,7 +1160,7 @@
                 });
 
                 // Initialize rename station functionality (revamped as Station Settings)
-                window.initRenameStation("@Model.Station.Id", @(Model.Station.IsAging ? "true" : "false"));
+                window.initRenameStation("@Model.Station.Id", @(Model.Station.IsAging ? "true" : "false"), @(Model.Station.EndlessSpin ? "true" : "false"));
                 window.initShareBar("@Model.Station.Id");
 
                 // Initialize move-feed functionality

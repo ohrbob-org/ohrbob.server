@@ -14,6 +14,9 @@ public class Station : DbEntry
     public bool IsPublic { get; set; }
     public bool IsAging { get; set; }
 
+    /// <summary>When enabled, playback restarts at the first episode after the last one, forever.</summary>
+    public bool EndlessSpin { get; set; }
+
     /// <summary>When enabled, subscribers may only play episodes the host profile has completed.</summary>
     public bool HostPaceEnabled { get; set; }
 

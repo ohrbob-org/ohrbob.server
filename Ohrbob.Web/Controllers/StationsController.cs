@@ -135,6 +135,7 @@ public class StationsController : Controller
         station.ShareCode = existingStation.ShareCode;
         station.IsPublic = existingStation.IsPublic;
         station.IsAging = existingStation.IsAging;
+        station.EndlessSpin = existingStation.EndlessSpin;
         station.HostPaceEnabled = existingStation.HostPaceEnabled;
         station.HostProfileId = existingStation.HostProfileId;
 
@@ -302,7 +303,7 @@ public class StationsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateSettings(
-        string id, string name, bool isAging, bool isPublic, bool hostPaceEnabled, string? hostProfileId)
+        string id, string name, bool isAging, bool isPublic, bool endlessSpin, bool hostPaceEnabled, string? hostProfileId)
     {
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();
@@ -327,6 +328,7 @@ public class StationsController : Controller
         existingStation.Name = name;
         existingStation.IsAging = isAging;
         existingStation.IsPublic = isPublic;
+        existingStation.EndlessSpin = endlessSpin;
         existingStation.HostPaceEnabled = hostPaceEnabled;
         existingStation.HostProfileId = hostPaceEnabled ? hostProfileId : null;
         await _stationsService.UpdateStationAsync(existingStation);
@@ -336,6 +338,7 @@ public class StationsController : Controller
             name = existingStation.Name,
             isAging = existingStation.IsAging,
             isPublic = existingStation.IsPublic,
+            endlessSpin = existingStation.EndlessSpin,
             hostPaceEnabled = existingStation.HostPaceEnabled,
             hostProfileId = existingStation.HostProfileId
         });

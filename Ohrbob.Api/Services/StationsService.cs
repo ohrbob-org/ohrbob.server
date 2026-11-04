@@ -20,6 +20,7 @@ public class StationsService : MongoDbService<Station>
             .Set(s => s.Feeds, entryIn.Feeds)
             .Set(s => s.Schedule, entryIn.Schedule)
             .Set(s => s.IsAging, entryIn.IsAging)
+            .Set(s => s.EndlessSpin, entryIn.EndlessSpin)
             .Set(s => s.HostPaceEnabled, entryIn.HostPaceEnabled)
             .Set(s => s.HostProfileId, entryIn.HostProfileId);
     }

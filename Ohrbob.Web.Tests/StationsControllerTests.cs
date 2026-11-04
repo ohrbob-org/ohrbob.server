@@ -232,7 +232,7 @@ public class StationsControllerTests
             .Setup(s => s.UpdateStationAsync(existingStation))
             .ReturnsAsync(existingStation);
 
-        var result = await _controller.UpdateSettings(stationId, "New Name", true, false, false, null);
+        var result = await _controller.UpdateSettings(stationId, "New Name", true, false, false, false, null);
 
         var okResult = result as OkObjectResult;
         Assert.That(okResult, Is.Not.Null);
@@ -252,10 +252,25 @@ public class StationsControllerTests
         _stationsServiceMock.Setup(s => s.UpdateStationAsync(It.IsAny<Station>()))
             .ReturnsAsync((Station station) => station);
 
-        var result = await _controller.UpdateSettings(stationId, "Station", false, true, false, null);
+        var result = await _controller.UpdateSettings(stationId, "Station", false, true, false, false, null);
 
         Assert.That(result, Is.InstanceOf<OkObjectResult>());
         _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.Is<Station>(station => station.IsPublic)), Times.Once);
+    }
+
+    [Test]
+    public async Task UpdateSettings_PersistsEndlessSpin()
+    {
+        var stationId = "st-123";
+        var existingStation = new Station { Id = stationId, AccountId = TestAccountId, Name = "Station" };
+        _stationsServiceMock.Setup(s => s.GetStationByIdAsync(stationId)).ReturnsAsync(existingStation);
+        _stationsServiceMock.Setup(s => s.UpdateStationAsync(It.IsAny<Station>()))
+            .ReturnsAsync((Station station) => station);
+
+        var result = await _controller.UpdateSettings(stationId, "Station", false, false, true, false, null);
+
+        Assert.That(result, Is.InstanceOf<OkObjectResult>());
+        _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.Is<Station>(station => station.EndlessSpin)), Times.Once);
     }
 
     [Test]
@@ -271,7 +286,7 @@ public class StationsControllerTests
         _stationsServiceMock.Setup(s => s.UpdateStationAsync(It.IsAny<Station>()))
             .ReturnsAsync((Station station) => station);
 
-        var result = await _controller.UpdateSettings(stationId, "Station", false, false, true, "host-profile");
+        var result = await _controller.UpdateSettings(stationId, "Station", false, false, false, true, "host-profile");
 
         Assert.That(result, Is.InstanceOf<OkObjectResult>());
         _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.Is<Station>(station =>
@@ -289,7 +304,7 @@ public class StationsControllerTests
             Id = "foreign", AccountId = "someone-else", Name = "Foreign"
         });
 
-        var result = await _controller.UpdateSettings(stationId, "Station", false, false, true, "foreign");
+        var result = await _controller.UpdateSettings(stationId, "Station", false, false, false, true, "foreign");
 
         Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
         _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.IsAny<Station>()), Times.Never);
@@ -302,13 +317,13 @@ public class StationsControllerTests
         var posted = new Station
         {
             Id = stationId, Name = "Renamed", AccountId = TestAccountId,
-            ShareCode = string.Empty, IsPublic = false, IsAging = false
+            ShareCode = string.Empty, IsPublic = false, IsAging = false, EndlessSpin = false
         };
         _stationsServiceMock.Setup(s => s.GetStationByIdAsync(stationId))
             .ReturnsAsync(new Station
             {
                 Id = stationId, AccountId = TestAccountId,
-                ShareCode = "Abc123XYZ9", IsPublic = true, IsAging = true
+                ShareCode = "Abc123XYZ9", IsPublic = true, IsAging = true, EndlessSpin = true
             });
         _stationsServiceMock.Setup(s => s.UpdateStationAsync(It.IsAny<Station>()))
             .ReturnsAsync((Station station) => station);
@@ -316,7 +331,7 @@ public class StationsControllerTests
         await _controller.Edit(stationId, posted);
 
         _stationsServiceMock.Verify(s => s.UpdateStationAsync(
-            It.Is<Station>(station => station.ShareCode == "Abc123XYZ9" && station.IsPublic && station.IsAging)), Times.Once);
+            It.Is<Station>(station => station.ShareCode == "Abc123XYZ9" && station.IsPublic && station.IsAging && station.EndlessSpin)), Times.Once);
     }
 
     [Test]

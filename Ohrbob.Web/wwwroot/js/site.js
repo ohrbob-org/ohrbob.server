@@ -161,7 +161,7 @@ window.submitAddFeedJson = function (event, safeId) {
     });
 };
 
-window.initRenameStation = function (stationId, initialIsAging) {
+window.initRenameStation = function (stationId, initialIsAging, initialEndlessSpin) {
     const renameBtn = document.getElementById('renameStationBtn');
     const modalEl = document.getElementById('renameStationModal');
     const saveBtn = document.getElementById('saveStationNameBtn');
@@ -169,12 +169,13 @@ window.initRenameStation = function (stationId, initialIsAging) {
     const errorMsg = document.getElementById('renameErrorMsg');
     const nameDisplay = document.getElementById('stationNameDisplay');
     const isAgingInput = document.getElementById('isAgingInput');
+    const endlessSpinInput = document.getElementById('endlessSpinInput');
     const isPublicInput = document.getElementById('isPublicInput');
     const hostPaceInput = document.getElementById('hostPaceInput');
     const hostProfileSelect = document.getElementById('hostProfileSelect');
     const hostProfileContainer = document.getElementById('hostProfileContainer');
 
-    if (!renameBtn || !modalEl || !saveBtn || !nameInput || !errorMsg || !nameDisplay || !isAgingInput || !isPublicInput
+    if (!renameBtn || !modalEl || !saveBtn || !nameInput || !errorMsg || !nameDisplay || !isAgingInput || !endlessSpinInput || !isPublicInput
         || !hostPaceInput || !hostProfileSelect || !hostProfileContainer) return;
 
     const syncHostProfileVisibility = function () {
@@ -184,10 +185,12 @@ window.initRenameStation = function (stationId, initialIsAging) {
 
     let modal = null;
     let currentIsAging = initialIsAging;
+    let currentEndlessSpin = initialEndlessSpin;
 
     renameBtn.addEventListener('click', function () {
         nameInput.value = nameDisplay.textContent.trim();
         isAgingInput.checked = currentIsAging;
+        endlessSpinInput.checked = currentEndlessSpin;
         nameInput.classList.remove('is-invalid');
         errorMsg.classList.add('d-none');
         if (!modal) {
@@ -222,6 +225,7 @@ window.initRenameStation = function (stationId, initialIsAging) {
         formData.append('name', newName);
         formData.append('isAging', isAgingInput.checked);
         formData.append('isPublic', isPublicInput.checked);
+        formData.append('endlessSpin', endlessSpinInput.checked);
         formData.append('hostPaceEnabled', hostPaceInput.checked);
         formData.append('hostProfileId', hostProfileSelect.value);
 
@@ -238,6 +242,7 @@ window.initRenameStation = function (stationId, initialIsAging) {
                 const data = await response.json();
                 nameDisplay.textContent = data.name;
                 currentIsAging = data.isAging;
+                currentEndlessSpin = data.endlessSpin;
                 hostPaceInput.checked = data.hostPaceEnabled;
                 hostProfileSelect.value = data.hostProfileId || hostProfileSelect.value;
                 syncHostProfileVisibility();

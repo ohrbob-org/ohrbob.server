@@ -578,6 +578,72 @@ public class StreamControllerTests
     }
 
     [Test]
+    public async Task Next_EndlessSpin_WrapsAroundAndContinuesInOrder()
+    {
+        var stationId = ObjectId.GenerateNewId().ToString();
+        var ep1Id = ObjectId.GenerateNewId().ToString();
+        var ep2Id = ObjectId.GenerateNewId().ToString();
+        var ep3Id = ObjectId.GenerateNewId().ToString();
+
+        var profile = new Profile { AccountId = "test-account", StreamToken = "token-123", LastActiveStationId = stationId, LastActiveEpisodeId = ep3Id };
+        var station = CreateOldestFirstStation(stationId);
+        station.EndlessSpin = true;
+
+        var profilesCol = _app.MongoDbContext.GetCollection<Profile>("ProfileCollection");
+        await profilesCol.InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(station);
+        await SeedEpisodesAsync(
+            new Episode { Id = ep1Id, Title = "Ep 1", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-3) },
+            new Episode { Id = ep2Id, Title = "Ep 2", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-2) },
+            new Episode { Id = ep3Id, Title = "Ep 3", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-1) });
+        await _app.MongoDbContext.GetCollection<ListenState>("ListenStateCollection").InsertManyAsync(new[]
+        {
+            new ListenState { Id = ObjectId.GenerateNewId().ToString(), UserId = profile.Id, StationId = stationId, EpisodeId = ep1Id, IsListened = true },
+            new ListenState { Id = ObjectId.GenerateNewId().ToString(), UserId = profile.Id, StationId = stationId, EpisodeId = ep2Id, IsListened = true },
+            new ListenState { Id = ObjectId.GenerateNewId().ToString(), UserId = profile.Id, StationId = stationId, EpisodeId = ep3Id, IsListened = true }
+        });
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+
+        var response = await _client.PostAsync("/stream/next", null);
+        response.EnsureSuccessStatusCode();
+        var updatedProfile = await profilesCol.Find(p => p.Id == profile.Id).FirstOrDefaultAsync();
+        Assert.That(updatedProfile.LastActiveEpisodeId, Is.EqualTo(ep1Id), "The last episode must wrap around to the first one");
+
+        var secondResponse = await _client.PostAsync("/stream/next", null);
+        secondResponse.EnsureSuccessStatusCode();
+        updatedProfile = await profilesCol.Find(p => p.Id == profile.Id).FirstOrDefaultAsync();
+        Assert.That(updatedProfile.LastActiveEpisodeId, Is.EqualTo(ep2Id), "Playback must keep going forward after wrapping");
+    }
+
+    [Test]
+    public async Task Prev_EndlessSpin_WrapsToLastEpisode()
+    {
+        var stationId = ObjectId.GenerateNewId().ToString();
+        var ep1Id = ObjectId.GenerateNewId().ToString();
+        var ep2Id = ObjectId.GenerateNewId().ToString();
+
+        var profile = new Profile { AccountId = "test-account", StreamToken = "token-123", LastActiveStationId = stationId, LastActiveEpisodeId = ep1Id };
+        var station = CreateOldestFirstStation(stationId);
+        station.EndlessSpin = true;
+
+        var profilesCol = _app.MongoDbContext.GetCollection<Profile>("ProfileCollection");
+        await profilesCol.InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(station);
+        await SeedEpisodesAsync(
+            new Episode { Id = ep1Id, Title = "Ep 1", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-2) },
+            new Episode { Id = ep2Id, Title = "Ep 2", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-1) });
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+
+        var response = await _client.PostAsync("/stream/prev", null);
+        response.EnsureSuccessStatusCode();
+
+        var updatedProfile = await profilesCol.Find(p => p.Id == profile.Id).FirstOrDefaultAsync();
+        Assert.That(updatedProfile.LastActiveEpisodeId, Is.EqualTo(ep2Id));
+    }
+
+    [Test]
     public async Task Next_SkipsListenedEpisode_AheadOfCurrent()
     {
         var stationId = ObjectId.GenerateNewId().ToString();

@@ -662,6 +662,32 @@ public class StationsEditTests : PageTest
         await Expect(Page.Locator("#importOpmlModal")).ToBeVisibleAsync();
     }
 
+    [Test]
+    public async Task EndlessSpin_Toggle_PersistsAcrossReload()
+    {
+        var stationsService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.StationsApiService>();
+        var station = await stationsService.CreateStationAsync(_testAccountId, new Station
+        {
+            AccountId = _testAccountId,
+            Name = "Endless Spin Station",
+            Feeds = Array.Empty<string>()
+        });
+
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{station!.Id}");
+        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+
+        await Page.ClickAsync("#renameStationBtn");
+        await Expect(Page.Locator("#endlessSpinInput")).Not.ToBeCheckedAsync();
+
+        await Page.CheckAsync("#endlessSpinInput");
+        await Page.ClickAsync("#saveStationNameBtn");
+        await Expect(Page.Locator("#renameStationModal")).Not.ToBeVisibleAsync(new() { Timeout = 10000 });
+
+        await Page.ReloadAsync();
+        await Page.ClickAsync("#renameStationBtn");
+        await Expect(Page.Locator("#endlessSpinInput")).ToBeCheckedAsync();
+    }
+
     private async Task ClickStationMoreMenuItemAsync(string itemSelector)
     {
         await Page.ClickAsync("#stationMoreMenuBtn");

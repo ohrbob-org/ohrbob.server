@@ -89,7 +89,7 @@
                                         <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true" style="width: 0.7rem; height: 0.7rem; border-width: 0.15em;"></span>Compiling...
                                     </span>
                                 }
-                                else if (dto.UnplayedEpisodeCount is 0 || (dto.UnplayedEpisodeCount is null && totalEpisodes == 0))
+                                else if (!dto.Station.EndlessSpin && (dto.UnplayedEpisodeCount is 0 || (dto.UnplayedEpisodeCount is null && totalEpisodes == 0)))
                                 {
                                     <span class="badge bg-danger" title="There are no episodes left to play in this station: it either has no episodes yet, or you have already completed every episode.">
                                         Empty
