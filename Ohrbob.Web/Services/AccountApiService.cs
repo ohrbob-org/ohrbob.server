@@ -56,6 +56,15 @@ public class AccountApiService : OhrbobApiService
         return await response.Content.ReadFromJsonAsync<Account>();
     }
 
+    public virtual async Task DeleteAccountAsync(string accountId)
+    {
+        using var request = BuildRequest(HttpMethod.Delete, $"/account/id/{accountId}");
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        if (response.StatusCode == HttpStatusCode.NotFound) return;
+        response.EnsureSuccessStatusCode();
+    }
+
     
     public async Task<Account?> AddIdentityProviderAsync(string accountId, IdpUser idpUser)
     {

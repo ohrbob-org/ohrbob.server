@@ -38,4 +38,19 @@ public class ListenStateService : MongoDbService<ListenState>
         );
         return await Collection.Find(filter).FirstOrDefaultAsync();
     }
+
+    public async Task DeleteForProfilesAndStationsAsync(
+        IEnumerable<string> profileIds, IEnumerable<string> stationIds)
+    {
+        var filters = new List<FilterDefinition<ListenState>>();
+        var userIds = profileIds.ToList();
+        var stations = stationIds.ToList();
+        if (userIds.Count > 0)
+            filters.Add(Builders<ListenState>.Filter.In(s => s.UserId, userIds));
+        if (stations.Count > 0)
+            filters.Add(Builders<ListenState>.Filter.In(s => s.StationId, stations));
+        if (filters.Count == 0) return;
+
+        await Collection.DeleteManyAsync(Builders<ListenState>.Filter.Or(filters));
+    }
 }

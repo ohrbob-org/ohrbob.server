@@ -45,4 +45,7 @@ public class StationsService : MongoDbService<Station>
         filter = filter.ExcludeDeleted();
         return await Collection.Find(filter).FirstOrDefaultAsync();
     }
+
+    public async Task DeleteByAccountIdAsync(string accountId) =>
+        await Collection.DeleteManyAsync(s => s.AccountId == accountId);
 }

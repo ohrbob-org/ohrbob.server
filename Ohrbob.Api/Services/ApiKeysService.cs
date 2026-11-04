@@ -25,4 +25,7 @@ public class ApiKeysService : MongoDbService<ApiKey>
             .Set(x => x.Name, entryIn.Name)
             .Set(x => x.ProfileId, entryIn.ProfileId);
     }
+
+    public async Task DeleteByAccountIdAsync(string accountId) =>
+        await Collection.DeleteManyAsync(k => k.AccountId == accountId);
 }

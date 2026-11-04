@@ -13,6 +13,7 @@ public static class Consts
         new ApiPolicy(AddIdpPolicy, AllScope),
         new ApiPolicy(RemoveIdpPolicy, AllScope),
         new ApiPolicy(GetAccountPolicy, AllScope),
+        new ApiPolicy(DeleteAccountPolicy, AllScope),
         new ApiPolicy(GetStationsPolicy, AllScope),
         new ApiPolicy(CreateStationPolicy, AllScope),
         new ApiPolicy(UpdateStationPolicy, AllScope),
@@ -25,6 +26,7 @@ public static class Consts
     public const string AddIdpPolicy = nameof(AddIdpPolicy);
     public const string RemoveIdpPolicy = nameof(RemoveIdpPolicy);
     public const string GetAccountPolicy = nameof(GetAccountPolicy);
+    public const string DeleteAccountPolicy = nameof(DeleteAccountPolicy);
     public const string GetStationsPolicy = nameof(GetStationsPolicy);
     public const string CreateStationPolicy = nameof(CreateStationPolicy);
     public const string UpdateStationPolicy = nameof(UpdateStationPolicy);

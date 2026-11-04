@@ -35,4 +35,7 @@ public class ProfilesService : MongoDbService<Profile>
         filter = filter.ExcludeDeleted();
         return await Collection.Find(filter).ToListAsync();
     }
+
+    public async Task DeleteByAccountIdAsync(string accountId) =>
+        await Collection.DeleteManyAsync(p => p.AccountId == accountId);
 }

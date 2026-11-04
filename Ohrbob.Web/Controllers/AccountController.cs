@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Ohrbob.Server.Shared.Data;
 using Ohrbob.Web.Models;
@@ -48,10 +50,33 @@ public class AccountController : Controller
         return View(model);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Delete()
+    {
+        var accountId = GetAccountId();
+        if (string.IsNullOrEmpty(accountId)) return Forbid();
+        var account = await _accounts.GetAccountAsync(accountId);
+        if (account == null) return NotFound();
+        return View(account);
+    }
+
+    [HttpPost]
+    [ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed()
+    {
+        var accountId = GetAccountId();
+        if (string.IsNullOrEmpty(accountId)) return Forbid();
+
+        await _accounts.DeleteAccountAsync(accountId);
+        Response.Cookies.Delete("Ohrbob_ActiveProfileId");
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return RedirectToAction("Index", "Home");
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddApiKey(string name, string profileId)
-    {
+    public async Task<IActionResult> AddApiKey(string name, string profileId)    {
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();
 

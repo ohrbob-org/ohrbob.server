@@ -15,13 +15,26 @@ public class AccountController : ControllerBase
     private readonly ILogger<AccountController> _logger;
     private readonly AccountService _accountService;
     private readonly ProfilesService _profilesService;
+    private readonly StationsService _stationsService;
+    private readonly ListenStateService _listenStateService;
+    private readonly ApiKeysService _apiKeysService;
     private readonly LinkGenerator _linkGenerator;
 
-    public AccountController(ILogger<AccountController> logger, AccountService accountService, ProfilesService profilesService, LinkGenerator linkGenerator)
+    public AccountController(
+        ILogger<AccountController> logger,
+        AccountService accountService,
+        ProfilesService profilesService,
+        StationsService stationsService,
+        ListenStateService listenStateService,
+        ApiKeysService apiKeysService,
+        LinkGenerator linkGenerator)
     {
         _logger = logger;
         _accountService = accountService;
         _profilesService = profilesService;
+        _stationsService = stationsService;
+        _listenStateService = listenStateService;
+        _apiKeysService = apiKeysService;
         _linkGenerator = linkGenerator;
     }
     
@@ -89,6 +102,58 @@ public class AccountController : ControllerBase
             return Ok(existingAccount);
         return NotFound();
     }
+    [EndpointSummary("Delete an account and all of its data")]
+    [EndpointDescription(@"Removes the account, its profiles, stations, API keys and listening history.
+References to the deleted stations are removed from other profiles. Shared feed and episode data is kept.
+200 - Deleted.
+404 - Account not found.")]
+    [Authorize(Policy = Consts.DeleteAccountPolicy)]
+    [HttpDelete("id/{id}")]
+    public async Task<IActionResult> Delete(string id)
+    {
+        var account = await _accountService.GetAsync(id);
+        if (account == null) return NotFound();
+
+        var profiles = await _profilesService.GetByAccountIdAsync(id);
+        var stations = await _stationsService.GetByAccountIdAsync(id);
+
+        // Remove the deleted stations from other accounts' profiles.
+        foreach (var station in stations)
+        {
+            var subscribers = await _profilesService.GetBySubscribedStationIdAsync(station.Id);
+            foreach (var profile in subscribers.Where(p => p.AccountId != id))
+            {
+                var changed = false;
+                if (profile.AllowedStationIds?.Contains(station.Id) == true)
+                {
+                    profile.AllowedStationIds = profile.AllowedStationIds.Where(s => s != station.Id).ToArray();
+                    changed = true;
+                }
+                if (profile.SubscribedStationIds?.Contains(station.Id) == true)
+                {
+                    profile.SubscribedStationIds = profile.SubscribedStationIds.Where(s => s != station.Id).ToArray();
+                    changed = true;
+                }
+                if (profile.LastActiveStationId == station.Id)
+                {
+                    profile.LastActiveStationId = null;
+                    profile.LastActiveEpisodeId = null;
+                    changed = true;
+                }
+                if (changed) await _profilesService.UpdateAsync(profile);
+            }
+        }
+
+        await _listenStateService.DeleteForProfilesAndStationsAsync(
+            profiles.Select(p => p.Id), stations.Select(s => s.Id));
+        await _apiKeysService.DeleteByAccountIdAsync(id);
+        await _stationsService.DeleteByAccountIdAsync(id);
+        await _profilesService.DeleteByAccountIdAsync(id);
+        await _accountService.DeleteAsync(id, hardDelete: true);
+
+        return Ok();
+    }
+
     [EndpointSummary("Find Account based on E-Mail. Useful to get Account Id.")]
     [EndpointDescription(@"200 - Found and returns the account.
 

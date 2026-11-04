@@ -5,10 +5,12 @@ using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Driver;
 using Ohrbob.Api.Configuration;
 using Ohrbob.Api.Extensions;
 using Ohrbob.Server.Shared.Data;
 using Ohrbob.Server.Shared.Requests;
+using ApiKey = Ohrbob.Server.Shared.Data.ApiKey;
 
 namespace Ohrbob.Api.Tests.ApiTests;
 
@@ -204,5 +206,60 @@ public class AccountsControllerTests
         var updatedAccount = await response.Content.ReadFromJsonAsync<Account>();
         Assert.That(updatedAccount, Is.Not.Null);
         Assert.That(updatedAccount.LastUsedProfileId, Is.EqualTo(profile.Id));
+    }
+
+    [Test]
+    public async Task DeleteAccount_RemovesOwnedDataAndStationReferences()
+    {
+        var account = await CreateTestAccountAsync();
+        var otherAccount = await CreateTestAccountAsync();
+        var db = _app.MongoDbContext!;
+
+        var profile = new Profile { Id = Guid.NewGuid().ToString(), AccountId = account.Id, Name = "Owner Profile", StreamToken = Guid.NewGuid().ToString() };
+        var otherProfile = new Profile
+        {
+            Id = Guid.NewGuid().ToString(),
+            AccountId = otherAccount.Id,
+            Name = "Subscriber",
+            StreamToken = Guid.NewGuid().ToString(),
+            AllowedStationIds = new[] { "station-1" },
+            SubscribedStationIds = new[] { "station-1" },
+            LastActiveStationId = "station-1",
+            LastActiveEpisodeId = "episode-1"
+        };
+        await db.GetCollection<Profile>("ProfileCollection").InsertManyAsync(new[] { profile, otherProfile });
+
+        await db.GetCollection<Station>("StationCollection").InsertOneAsync(new Station
+        {
+            Id = "station-1", AccountId = account.Id, Name = "Station", Feeds = Array.Empty<string>()
+        });
+        await db.GetCollection<ListenState>("ListenStateCollection").InsertManyAsync(new[]
+        {
+            new ListenState { Id = Guid.NewGuid().ToString(), UserId = profile.Id, StationId = "station-1", EpisodeId = "episode-1" },
+            new ListenState { Id = Guid.NewGuid().ToString(), UserId = otherProfile.Id, StationId = "station-1", EpisodeId = "episode-1" }
+        });
+        await db.GetCollection<ApiKey>("ApiKeyCollection").InsertOneAsync(new ApiKey
+        {
+            Id = Guid.NewGuid().ToString(), AccountId = account.Id, Name = "Key", Token = "token"
+        });
+
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/account/id/{account.Id}");
+        request.Headers.Add("X-API-KEY", _testApiKey);
+        var response = await _client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        Assert.That(await db.GetCollection<Account>("AccountCollection").Find(a => a.Id == account.Id).FirstOrDefaultAsync(), Is.Null);
+        Assert.That(await db.GetCollection<Profile>("ProfileCollection").Find(p => p.AccountId == account.Id).FirstOrDefaultAsync(), Is.Null);
+        Assert.That(await db.GetCollection<Station>("StationCollection").Find(s => s.AccountId == account.Id).FirstOrDefaultAsync(), Is.Null);
+        Assert.That(await db.GetCollection<ListenState>("ListenStateCollection").Find(s => s.StationId == "station-1").FirstOrDefaultAsync(), Is.Null);
+        Assert.That(await db.GetCollection<ApiKey>("ApiKeyCollection").Find(k => k.AccountId == account.Id).FirstOrDefaultAsync(), Is.Null);
+
+        var updatedOtherProfile = await db.GetCollection<Profile>("ProfileCollection")
+            .Find(p => p.Id == otherProfile.Id).FirstOrDefaultAsync();
+        Assert.That(updatedOtherProfile, Is.Not.Null);
+        Assert.That(updatedOtherProfile.SubscribedStationIds, Is.Empty);
+        Assert.That(updatedOtherProfile.AllowedStationIds, Is.Empty);
+        Assert.That(updatedOtherProfile.LastActiveStationId, Is.Null);
+        Assert.That(updatedOtherProfile.LastActiveEpisodeId, Is.Null);
     }
 }

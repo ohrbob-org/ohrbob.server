@@ -1,0 +1,28 @@
+@model Ohrbob.Server.Shared.Data.Account
+@{
+    ViewData["Title"] = "Delete Account";
+}
+
+<h1 class="text-danger">Delete account</h1>
+
+<div class="card border-danger mb-4">
+    <div class="card-body">
+        <h5 class="card-title">This cannot be undone.</h5>
+        <p class="card-text">Deleting the account for <strong>@Model.Email</strong> permanently removes:</p>
+        <ul class="mb-3">
+            <li>All of your profiles and their listening history</li>
+            <li>All of your stations, including their share links</li>
+            <li>All API keys and device connections</li>
+            <li>Your subscriptions to shared stations</li>
+        </ul>
+        <p class="mb-0">Stations you shared with others will stop working immediately. You can sign in again later, but you will start with a brand-new empty account.</p>
+    </div>
+</div>
+
+<form asp-action="Delete" method="post" class="d-flex gap-2">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-danger">
+        <i class="bi bi-trash3-fill me-1"></i>Delete my account
+    </button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
