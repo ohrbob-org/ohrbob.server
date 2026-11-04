@@ -20,19 +20,34 @@ public class DiscoverController : Controller
     private readonly PodcastIndexApiService _podcastIndexApi;
     private readonly StationsApiService _stationsService;
     private readonly ProfilesApiService _profilesService;
+    private readonly RecommendationService _recommendationService;
 
-    public DiscoverController(PodcastIndexApiService podcastIndexApi, StationsApiService stationsService, ProfilesApiService profilesService)
+    public DiscoverController(PodcastIndexApiService podcastIndexApi, StationsApiService stationsService, ProfilesApiService profilesService, RecommendationService recommendationService)
     {
         _podcastIndexApi = podcastIndexApi;
         _stationsService = stationsService;
         _profilesService = profilesService;
+        _recommendationService = recommendationService;
     }
 
     private string? GetAccountId() => User.FindFirst(Consts.OhrbobAccountIdClaim)?.Value;
 
-    public IActionResult Index()
+    public async Task<IActionResult> Index(string? q)
     {
-        return View();
+        var accountId = GetAccountId();
+        if (accountId != null)
+        {
+            ViewBag.Stations = await _stationsService.GetStationsByAccountIdAsync(accountId);
+        }
+
+        ViewBag.Query = q;
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            ViewBag.SearchResults = await _podcastIndexApi.SearchAsync(q);
+        }
+
+        ViewBag.CategoryRoster = await _recommendationService.GetCategoryRosterAsync();
+        return View(await _recommendationService.BuildLanesAsync());
     }
 
     [HttpGet]

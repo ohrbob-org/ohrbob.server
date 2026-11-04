@@ -89,6 +89,7 @@ public class FeedUpdateWorker : BackgroundService
                 feed.Title = parsedFeed.Title ?? feed.Title;
                 feed.Description = parsedFeed.Description ?? feed.Description;
                 feed.ImageUrl = parsedFeed.ImageUrl ?? feed.ImageUrl;
+                feed.Category = FeedMetadataParser.ParseCategory(parsedFeed.OriginalDocument as string);
                 feed.LastUpdated = DateTime.UtcNow;
 
                 if (parsedFeed.OriginalDocument is string xmlContent && !string.IsNullOrWhiteSpace(xmlContent))

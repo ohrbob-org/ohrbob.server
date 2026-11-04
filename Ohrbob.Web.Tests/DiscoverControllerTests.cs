@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Ohrbob.Server.Shared.Data;
 using Ohrbob.Web.Controllers;
+using Ohrbob.Web.Models;
 using Ohrbob.Web.Services;
 using Ohrbob.Web;
 using Microsoft.Extensions.Configuration;
@@ -37,7 +38,11 @@ public class DiscoverControllerTests
         var podcastLoggerMock = new Mock<ILogger<PodcastIndexApiService>>();
         var podcastIndexApi = new PodcastIndexApiService(new HttpClient(), configMock.Object, podcastLoggerMock.Object);
 
-        _controller = new DiscoverController(podcastIndexApi, _stationsServiceMock.Object, _profilesServiceMock.Object);
+        var feedsServiceMock = new Mock<FeedsApiService>(loggerMock.Object, optionsMock, clientFactoryMock.Object);
+        var recommendationLoggerMock = new Mock<ILogger<RecommendationService>>();
+        var recommendationService = new RecommendationService(feedsServiceMock.Object, podcastIndexApi, configMock.Object, recommendationLoggerMock.Object);
+
+        _controller = new DiscoverController(podcastIndexApi, _stationsServiceMock.Object, _profilesServiceMock.Object, recommendationService);
 
         // Setup mock user context with the Consts.OhrbobAccountIdClaim
         var claims = new List<Claim>
@@ -56,6 +61,16 @@ public class DiscoverControllerTests
         {
             HttpContext = httpContext
         };
+    }
+
+    [Test]
+    public async Task Index_WithQuery_ExposesQueryAndSearchResults()
+    {
+        var result = await _controller.Index("maus");
+
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        Assert.That(_controller.ViewBag.Query, Is.EqualTo("maus"));
+        Assert.That(_controller.ViewBag.SearchResults, Is.InstanceOf<List<PodcastSearchResult>>());
     }
 
     [Test]

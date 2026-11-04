@@ -185,6 +185,61 @@ public class CompilingStationTests : PageTest
     }
 
     [Test]
+    public async Task Discover_ShowsRecommendationLanes_AndHidesThemWhileSearching()
+    {
+        var feed = new Feed
+        {
+            Id = Guid.NewGuid().ToString(),
+            Url = $"https://example.com/e2e-comedy-{Guid.NewGuid()}.xml",
+            Title = "E2E Comedy Show",
+            Category = "Comedy",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var client = new MongoClient("mongodb://localhost:27019");
+        var feedsCollection = client.GetDatabase("OhrbobData").GetCollection<Feed>("FeedCollection");
+        await feedsCollection.InsertOneAsync(feed);
+
+        try
+        {
+            await Page.GotoAsync($"{_factory.ServerAddress}/Discover");
+
+            var lanes = Page.Locator("#recommendation-lanes");
+            await Expect(lanes).ToBeVisibleAsync();
+
+            var comedyLane = Page.Locator(".discover-lane", new PageLocatorOptions { HasTextString = "Comedy" }).First;
+            await Expect(comedyLane).ToBeVisibleAsync();
+            await Expect(comedyLane.Locator(".card", new LocatorLocatorOptions { HasTextString = "E2E Comedy Show" })).ToBeVisibleAsync();
+
+            await Page.FillAsync("#discover-search", "maus");
+            await Expect(lanes).Not.ToBeVisibleAsync();
+
+            await Page.FillAsync("#discover-search", "");
+            await Expect(lanes).ToBeVisibleAsync();
+        }
+        finally
+        {
+            await feedsCollection.DeleteOneAsync(f => f.Id == feed.Id);
+        }
+    }
+
+    [Test]
+    public async Task Discover_QueryParameter_PrefillsSearch_AndCategoryButtonsSearch()
+    {
+        await Page.GotoAsync($"{_factory.ServerAddress}/Discover?q=maus");
+
+        var searchInput = Page.Locator("#discover-search");
+        await Expect(searchInput).ToHaveValueAsync("maus");
+        await Expect(Page.Locator("#recommendation-lanes")).Not.ToBeVisibleAsync();
+        await Expect(Page.Locator("#search-results .col").First).ToBeVisibleAsync(new() { Timeout = 15000 });
+
+        var categoryButton = Page.Locator("#category-roster a").First;
+        await Expect(categoryButton).ToBeVisibleAsync();
+        await categoryButton.ClickAsync();
+        await Page.WaitForURLAsync("**/Discover?q=*");
+    }
+
+    [Test]
     public async Task Discover_AddFeed_WhenLimitExceeded_ShowsToast_AndFormStaysVisible()
     {
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");

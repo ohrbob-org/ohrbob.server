@@ -22,3 +22,15 @@ public class PodcastIndexSearchResponse
     [JsonPropertyName("feeds")]
     public List<PodcastSearchResult>? Feeds { get; set; }
 }
+
+public class PodcastIndexCategory
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+}
+
+public class PodcastIndexCategoriesResponse
+{
+    [JsonPropertyName("feeds")]
+    public List<PodcastIndexCategory>? Categories { get; set; }
+}

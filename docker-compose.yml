@@ -102,6 +102,7 @@ services:
       - Legal__Email=${Legal__Email:-}
       - PodcastIndex__ApiKey=${PodcastIndex__ApiKey:-}
       - PodcastIndex__ApiSecret=${PodcastIndex__ApiSecret:-}
+      - "Discover__LaneCategories=${Discover__LaneCategories:-Comedy,News,True Crime,Business,Health & Fitness}"
     ports:
       - "${WEB_PORT:-5003}:8080"
     volumes:

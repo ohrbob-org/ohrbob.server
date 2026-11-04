@@ -1,8 +1,4 @@
-@using Ohrbob.Server.Shared.Requests
 @model List<Ohrbob.Web.Models.PodcastSearchResult>
-@{
-    var stations = ViewBag.Stations as List<StationWithFeedsDto> ?? new List<StationWithFeedsDto>();
-}
 
 @if (Model == null || !Model.Any())
 {
@@ -14,81 +10,6 @@ else
 {
     @foreach (var podcast in Model)
     {
-        var safeId = Guid.NewGuid().ToString("N");
-        var hasStations = stations.Any();
-        <div class="col">
-            <div class="card h-100 shadow-sm position-relative">
-                <div class="position-relative">
-                    @if (!string.IsNullOrEmpty(podcast.Image))
-                    {
-                        <img src="@podcast.Image" class="card-img-top" alt="Cover" style="aspect-ratio: 1; object-fit: cover; border-bottom: 1px solid var(--bs-border-color);">
-                    }
-                    <button class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center shadow-lg" 
-                            type="button" 
-                            style="position: absolute; right: 15px; bottom: -25px; width: 50px; height: 50px; z-index: 10;"
-                            data-bs-toggle="modal" 
-                            data-bs-target="#add-to-station-modal-@safeId">
-                        <i class="bi bi-plus-lg" style="font-size: 1.5rem; color: white;"></i>
-                    </button>
-                </div>
-                <div class="card-body d-flex flex-column" style="padding-top: 30px;">
-                    <h5 class="card-title text-truncate" title="@podcast.Title">@podcast.Title</h5>
-                    <p class="card-text text-muted small text-truncate mb-0" title="@podcast.Author">@podcast.Author</p>
-                </div>
-            </div>
-            
-            <!-- Modal -->
-            <div class="modal fade" id="add-to-station-modal-@safeId" tabindex="-1" aria-labelledby="add-to-station-modal-label-@safeId" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title text-body" id="add-to-station-modal-label-@safeId">Add to Station</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body text-body text-start">
-                            <form id="add-feed-form-@safeId" hx-boost="false" onsubmit="window.submitAddFeedJson(event, '@safeId')">
-                                <input type="hidden" name="feedUrl" value="@podcast.Url" />
-                                <input type="hidden" name="feedTitle" value="@podcast.Title" />
-                                
-                                <!-- Existing Stations Section -->
-                                @if (hasStations)
-                                {
-                                    <div class="mb-2 fw-bold small text-muted text-start">Select Stations:</div>
-                                    <div class="station-list-container mb-3 text-start" style="max-height: 200px; overflow-y: auto;">
-                                        @foreach (var station in stations)
-                                        {
-                                            <div class="form-check mb-2">
-                                                <input class="form-check-input" type="checkbox" name="stationIds" value="@station.Station.Id" id="station-@station.Station.Id-@safeId" data-feeds="@string.Join(";", station.Station.Feeds ?? Array.Empty<string>())" onchange="window.validateFormSelection('@safeId')">
-                                                <label class="form-check-label" for="station-@station.Station.Id-@safeId">
-                                                    @station.Station.Name
-                                                </label>
-                                            </div>
-                                        }
-                                    </div>
-                                }
-                                
-                                <!-- Create New Section -->
-                                <div class="form-check mb-3 @(hasStations ? "border-bottom pb-2" : "")">
-                                    <input class="form-check-input" type="checkbox" name="createNewStation" value="true" id="create-new-@safeId" @(!hasStations ? "checked" : "") onchange="window.toggleNewStationInput('@safeId')">
-                                    <label class="form-check-label fw-bold" for="create-new-@safeId">
-                                        Create a new station from this feed
-                                    </label>
-                                </div>
-                                <div class="mb-3" id="new-station-name-container-@safeId" style="display: @(hasStations ? "none" : "block");">
-                                    <label class="form-label small text-muted">New Station Name</label>
-                                    <input type="text" class="form-control form-control-sm" name="newStationName" value="@podcast.Title" placeholder="Station Name" />
-                                </div>
-
-                                
-                                <div class="modal-footer px-0 pb-0">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                    <button type="submit" class="btn btn-primary" id="confirm-btn-@safeId" @(hasStations ? "disabled" : "")>Confirm Add</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @await Html.PartialAsync("_PodcastCard", podcast)
     }
 }

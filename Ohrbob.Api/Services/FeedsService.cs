@@ -19,6 +19,7 @@ public class FeedsService : MongoDbService<Feed>
             .Set(f => f.Title, entryIn.Title)
             .Set(f => f.Description, entryIn.Description)
             .Set(f => f.ImageUrl, entryIn.ImageUrl)
+            .Set(f => f.Category, entryIn.Category)
             .Set(f => f.Keywords, entryIn.Keywords)
             .Set(f => f.LastUpdated, entryIn.LastUpdated);
     }
@@ -47,7 +48,8 @@ public class FeedsService : MongoDbService<Feed>
                 Url = url,
                 Title = parsedFeed.Title ?? string.Empty,
                 Description = parsedFeed.Description ?? string.Empty,
-                ImageUrl = parsedFeed.ImageUrl ?? string.Empty
+                ImageUrl = parsedFeed.ImageUrl ?? string.Empty,
+                Category = FeedMetadataParser.ParseCategory(parsedFeed.OriginalDocument as string)
             };
         }
         catch

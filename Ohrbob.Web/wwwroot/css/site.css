@@ -712,3 +712,15 @@ html:has(.radio-landing-container) {
     --bs-btn-hover-color: #10131a; --bs-btn-hover-bg: var(--bs-danger-text-emphasis); --bs-btn-hover-border-color: var(--bs-danger-text-emphasis);
     --bs-btn-active-color: #10131a; --bs-btn-active-bg: var(--bs-danger-text-emphasis); --bs-btn-active-border-color: var(--bs-danger-text-emphasis);
 }
+
+/* Discover recommendation lanes */
+.discover-lane-track > .col {
+    flex: 0 0 220px;
+    max-width: 220px;
+}
+
+/* Fade the category lane out at both edges */
+.category-roster-track {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+}

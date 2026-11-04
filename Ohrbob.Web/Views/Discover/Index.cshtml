@@ -1,5 +1,9 @@
+@model List<Ohrbob.Web.Models.RecommendationLane>
 @{
     ViewData["Title"] = "Discover";
+    var query = ViewBag.Query as string;
+    var hasQuery = !string.IsNullOrWhiteSpace(query);
+    var categoryRoster = ViewBag.CategoryRoster as IReadOnlyList<string> ?? Array.Empty<string>();
 }
 
 <div class="container mt-4">
@@ -9,17 +13,54 @@
             <div class="input-group input-group-lg">
                 <span class="input-group-text"><i class="bi bi-search"></i></span>
                 <input type="search" 
+                       id="discover-search"
                        class="form-control" 
                        placeholder="Search podcasts by name, author..." 
                        name="query"
+                       value="@query"
                        hx-get="/Discover/Search"
                        hx-target="#search-results"
                        hx-trigger="keyup changed delay:500ms, search" />
             </div>
         </div>
     </div>
+
+    <div id="recommendation-lanes" class="mb-4 @(hasQuery ? "d-none" : "")">
+        @foreach (var lane in Model.Where(l => l.Podcasts.Any()))
+        {
+            <section class="discover-lane mb-4" aria-label="@lane.Category recommendations">
+                <h5 class="mb-2">@lane.Category</h5>
+                <div class="discover-lane-track d-flex flex-nowrap gap-3 overflow-auto pb-2">
+                    @foreach (var podcast in lane.Podcasts)
+                    {
+                        @await Html.PartialAsync("_PodcastCard", podcast)
+                    }
+                </div>
+            </section>
+        }
+    </div>
+
+    @if (categoryRoster.Count > 0)
+    {
+        <div id="category-roster" class="mb-4">
+            <h5 class="mb-2">Browse categories</h5>
+            <div class="category-roster-track d-flex flex-nowrap gap-2 overflow-auto py-2">
+                @foreach (var category in categoryRoster)
+                {
+                    <a class="btn btn-outline-secondary rounded-pill flex-shrink-0 @((hasQuery && query == category) ? "active" : "")" href="@Url.Action("Index", "Discover", new { q = category })">@category</a>
+                }
+            </div>
+        </div>
+    }
     
     <div id="search-results" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        <!-- Results will load here via HTMX -->
+        @if (ViewBag.SearchResults is List<Ohrbob.Web.Models.PodcastSearchResult> searchResults)
+        {
+            @await Html.PartialAsync("_SearchResults", searchResults)
+        }
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/discover.js" asp-append-version="true"></script>
+}
