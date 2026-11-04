@@ -139,15 +139,13 @@ public class HomeController : Controller
             return Redirect(targetUrl);
         }
 
-        var githubId = HttpContext.RequestServices.GetRequiredService<IConfiguration>()["Oidc:GitHub:ClientId"];
-        var githubSecret = HttpContext.RequestServices.GetRequiredService<IConfiguration>()["Oidc:GitHub:ClientSecret"];
-        ViewBag.GitHubEnabled = !string.IsNullOrWhiteSpace(githubId) && !string.IsNullOrWhiteSpace(githubSecret);
-        ViewBag.ReturnUrl = returnUrl;
-        if (string.IsNullOrEmpty(provider))
+        var config = HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+        foreach (var p in OidcProviderConfig.All)
         {
-            return View();
+            ViewData[p + "Enabled"] = OidcProviderConfig.IsEnabled(config, p);
         }
-        if (provider == "GitHub" && ViewBag.GitHubEnabled == false)
+        ViewBag.ReturnUrl = returnUrl;
+        if (string.IsNullOrEmpty(provider) || !OidcProviderConfig.IsEnabled(config, provider))
         {
             return View();
         }

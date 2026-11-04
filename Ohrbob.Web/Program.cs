@@ -88,7 +88,7 @@ builder.Services.Configure<HtmxNavigationOptions>(builder.Configuration.GetSecti
 builder.Services.Configure<StreamOptions>(builder.Configuration.GetSection(StreamOptions.SectionName));
 
 
-builder.Services.AddAuthentication(options =>
+var authBuilder = builder.Services.AddAuthentication(options =>
     {
         options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -101,10 +101,21 @@ builder.Services.AddAuthentication(options =>
         options.Cookie.IsEssential = true;
         options.ExpireTimeSpan = TimeSpan.FromDays(30);
         options.SlidingExpiration = true;
-    })
-    .AddOpenIdConnect("Nextcloud", options =>
+    });
+
+if (OidcProviderConfig.Enabled(builder.Configuration).Length == 0)
+{
+    throw new InvalidOperationException(
+        "No login provider configured. Set the credentials for at least one of Oidc__Nextcloud__*, Oidc__Google__* or Oidc__GitHub__* in .env.");
+}
+
+void AddOidc(string scheme, string callbackPath, params string[] scopes)
+{
+    if (!OidcProviderConfig.IsEnabled(builder.Configuration, scheme)) return;
+
+    var oidc = builder.Configuration.GetSection($"Oidc:{scheme}");
+    authBuilder.AddOpenIdConnect(scheme, options =>
     {
-        var oidc = builder.Configuration.GetSection("Oidc:Nextcloud");
         options.Authority = oidc["Authority"];
         options.ClientId = oidc["ClientId"];
         options.ClientSecret = oidc["ClientSecret"];
@@ -114,47 +125,8 @@ builder.Services.AddAuthentication(options =>
         options.GetClaimsFromUserInfoEndpoint = true;
         options.ClaimActions.MapJsonKey("picture", "picture");
         options.TokenValidationParameters.NameClaimType = "name";
-        options.Scope.Add("openid");
-        options.Scope.Add("profile");
-        options.CallbackPath = "/signin-nextcloud";
-        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
-        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-        options.NonceCookie.SameSite = SameSiteMode.Lax;
-        options.NonceCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-        options.Events = new OpenIdConnectEvents
-        {
-            OnTokenValidated = async context =>
-            {
-                context.Properties.IsPersistent = true;
-                await CreateOrGetAccountAsync(context);
-            },
-            OnRedirectToIdentityProvider = context =>
-            {
-                if (context.Request.Scheme == "https")
-                {
-                    context.ProtocolMessage.RedirectUri = context.ProtocolMessage.RedirectUri
-                        .Replace("http://", "https://");
-                }
-                return Task.CompletedTask;
-            }
-        };
-    })
-    .AddOpenIdConnect("Google", options =>
-    {
-        var oidc = builder.Configuration.GetSection("Oidc:Google");
-        options.Authority = oidc["Authority"];
-        options.ClientId = oidc["ClientId"];
-        options.ClientSecret = oidc["ClientSecret"];
-        options.ResponseType = "code";
-        options.ResponseMode = "query";
-        options.SaveTokens = true;
-        options.GetClaimsFromUserInfoEndpoint = true;
-        options.ClaimActions.MapJsonKey("picture", "picture");
-        options.TokenValidationParameters.NameClaimType = "name";
-        options.Scope.Add("openid");
-        options.Scope.Add("profile");
-        options.Scope.Add("email");
-        options.CallbackPath = "/signin-google";
+        foreach (var scope in scopes) options.Scope.Add(scope);
+        options.CallbackPath = callbackPath;
         options.CorrelationCookie.SameSite = SameSiteMode.Lax;
         options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.NonceCookie.SameSite = SameSiteMode.Lax;
@@ -177,16 +149,18 @@ builder.Services.AddAuthentication(options =>
             }
         };
     });
+}
 
-var githubSection = builder.Configuration.GetSection("Oidc:GitHub");
-var githubId = githubSection["ClientId"];
-var githubSecret = githubSection["ClientSecret"];
-if (!string.IsNullOrWhiteSpace(githubId) && !string.IsNullOrWhiteSpace(githubSecret))
+AddOidc("Nextcloud", "/signin-nextcloud", "openid", "profile");
+AddOidc("Google", "/signin-google", "openid", "profile", "email");
+
+if (OidcProviderConfig.IsEnabled(builder.Configuration, "GitHub"))
 {
-    builder.Services.AddAuthentication().AddGitHub("GitHub", options =>
+    var githubSection = builder.Configuration.GetSection("Oidc:GitHub");
+    authBuilder.AddGitHub("GitHub", options =>
     {
-        options.ClientId = githubId!;
-        options.ClientSecret = githubSecret!;
+        options.ClientId = githubSection["ClientId"]!;
+        options.ClientSecret = githubSection["ClientSecret"]!;
         options.CallbackPath = "/signin-github";
         options.Scope.Add("user:email");
         options.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");

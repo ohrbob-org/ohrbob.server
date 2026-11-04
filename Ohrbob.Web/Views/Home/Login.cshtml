@@ -38,12 +38,18 @@
             </svg>
         </div>
         <div class="d-grid gap-3">
-            <a asp-controller="Home" asp-action="Login" asp-route-provider="Nextcloud" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-outline-primary btn-lg rounded-pill login-btn" hx-boost="false">
-                <i class="bi bi-cloud-fill me-2"></i> Continue with Nextcloud
-            </a>
-            <a asp-controller="Home" asp-action="Login" asp-route-provider="Google" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-outline-danger btn-lg rounded-pill login-btn" hx-boost="false">
-                <i class="bi bi-google me-2"></i> Continue with Google
-            </a>
+            @if (ViewBag.NextcloudEnabled == true)
+            {
+                <a asp-controller="Home" asp-action="Login" asp-route-provider="Nextcloud" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-outline-primary btn-lg rounded-pill login-btn" hx-boost="false">
+                    <i class="bi bi-cloud-fill me-2"></i> Continue with Nextcloud
+                </a>
+            }
+            @if (ViewBag.GoogleEnabled == true)
+            {
+                <a asp-controller="Home" asp-action="Login" asp-route-provider="Google" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-outline-danger btn-lg rounded-pill login-btn" hx-boost="false">
+                    <i class="bi bi-google me-2"></i> Continue with Google
+                </a>
+            }
             @if (ViewBag.GitHubEnabled == true)
             {
                 <a asp-controller="Home" asp-action="Login" asp-route-provider="GitHub" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-outline-dark btn-lg rounded-pill login-btn" hx-boost="false">

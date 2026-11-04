@@ -98,7 +98,7 @@ At minimum, review these entries (everything else works with the defaults):
 | Variable | What to do |
 |---|---|
 | `ApiKeys__0__Key` / `OhrbobApi__ApiKey` | Set both to the same long random string (the Web portal uses it to call the Api). Generate one e.g. with `openssl rand -hex 32`. |
-| `Oidc__Google__*`, `Oidc__Nextcloud__*`, `Oidc__GitHub__*` | Fill in the login provider(s) you want. Unused providers can stay empty — that login button is then disabled. For GitHub, create an OAuth App and set the callback URL to `https://<your-host>/signin-github`. |
+| `Oidc__Google__*`, `Oidc__Nextcloud__*`, `Oidc__GitHub__*` | Fill in the login provider(s) you want — at least one is required. Unused providers can stay empty: their login button is hidden. For GitHub, create an OAuth App and set the callback URL to `https://<your-host>/signin-github`. |
 | `Legal__*` | Set `Legal__Show=true` plus your name/address/email if you need the legal notice (Impressum) page. |
 | `PodcastIndex__ApiKey` / `PodcastIndex__ApiSecret` | Required for podcast search/discovery in the Web UI. |
 | `Discover__LaneCategories` | Comma-separated Discover recommendation lanes (default: `Comedy,News,True Crime,Business,Health & Fitness`). |
