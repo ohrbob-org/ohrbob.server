@@ -12,6 +12,7 @@
         <ul class="text-muted">
             <li><strong>Ohrbob.Api:</strong> The backend REST API built in .NET, managing users, stations, feeds, and the sync state.</li>
             <li><strong>Ohrbob.Web:</strong> The frontend web UI built with HTMX and Razor Pages.</li>
+            <li><strong>Ohrbob.Player:</strong> The playback API handling media streams and playback configuration.</li>
             <li><strong>MongoDB:</strong> The primary data store for all user data, station configurations, and playhead states.</li>
         </ul>
 
@@ -20,16 +21,16 @@
         
         <pre class="bg-dark text-light p-3 rounded mt-3 mb-4"><code>git clone https://github.com/ohrbob-org/ohrbob.server.git
 cd ohrbob.server
-cp .env.example .env
+cp .env-example .env
 # Edit .env with your desired secrets and configuration
 docker compose up -d</code></pre>
 
         <h3 class="mt-5 mb-3">3. Configuration & Secrets</h3>
         <p class="text-muted">Ohrbob requires a few environment variables to operate securely. You should configure these in your <code>.env</code> file:</p>
         <ul class="text-muted">
-            <li><code>Ohrbob__Jwt__Key</code>: A strong secret key used for API authentication.</li>
+            <li><code>ApiKeys__0__Key</code> & <code>OhrbobApi__ApiKey</code>: A matching secret string used to authenticate the Web UI with the REST API.</li>
             <li><code>PodcastIndex__ApiKey</code> & <code>PodcastIndex__ApiSecret</code>: Credentials for the PodcastIndex API (required for search and discovery). You can get these for free at PodcastIndex.org.</li>
-            <li><code>MongoDB__ConnectionString</code>: Automatically configured if using the provided Docker Compose stack, but can be pointed to an external instance.</li>
+            <li><code>MongoDbData__ConnectionString</code>: Automatically configured if using the provided Docker Compose stack, but can be pointed to an external instance.</li>
         </ul>
 
         <h3 class="mt-5 mb-3">4. Authentication Providers</h3>
