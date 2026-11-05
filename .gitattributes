@@ -1,0 +1,17 @@
+# Normalize line endings; the repository uses LF everywhere.
+* text=auto eol=lf
+
+# Binary assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+*.blend binary
+*.blend1 binary
+
+# Design/plan documents should not count as source in language stats
+docs/** linguist-documentation
