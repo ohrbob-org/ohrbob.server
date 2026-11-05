@@ -1,0 +1,42 @@
+@{
+    ViewData["Title"] = "Self-Hosting";
+}
+
+<div class="container mt-5 mb-5">
+    <h1 class="mb-4">How to Self-Host Ohrbob</h1>
+    <p class="lead">Ohrbob is open-source and designed to be easily self-hostable. Keep total control of your data and run your own private podcast sync server.</p>
+
+    <div class="mt-5">
+        <h3 class="mb-3">1. Architecture Overview</h3>
+        <p class="text-muted">The Ohrbob ecosystem consists of several interconnected pieces:</p>
+        <ul class="text-muted">
+            <li><strong>Ohrbob.Api:</strong> The backend REST API built in .NET, managing users, stations, feeds, and the sync state.</li>
+            <li><strong>Ohrbob.Web:</strong> The frontend web UI built with HTMX and Razor Pages.</li>
+            <li><strong>MongoDB:</strong> The primary data store for all user data, station configurations, and playhead states.</li>
+            <li><strong>Redis:</strong> Used for caching, rate limiting, and background job queuing.</li>
+        </ul>
+
+        <h3 class="mt-5 mb-3">2. Deploying via Docker Compose (Recommended)</h3>
+        <p class="text-muted">The easiest way to get started is by using Docker Compose. We provide an all-in-one <code>docker-compose.yml</code> file in our repository.</p>
+        
+        <pre class="bg-dark text-light p-3 rounded mt-3 mb-4"><code>git clone https://github.com/ohrbob-org/ohrbob.server.git
+cd ohrbob.server
+cp .env.example .env
+# Edit .env with your desired secrets and configuration
+docker compose up -d</code></pre>
+
+        <h3 class="mt-5 mb-3">3. Configuration & Secrets</h3>
+        <p class="text-muted">Ohrbob requires a few environment variables to operate securely. You should configure these in your <code>.env</code> file:</p>
+        <ul class="text-muted">
+            <li><code>Ohrbob__Jwt__Key</code>: A strong secret key used for API authentication.</li>
+            <li><code>PodcastIndex__ApiKey</code> & <code>PodcastIndex__ApiSecret</code>: Credentials for the PodcastIndex API (required for search and discovery). You can get these for free at PodcastIndex.org.</li>
+            <li><code>MongoDB__ConnectionString</code> & <code>Redis__ConnectionString</code>: Automatically configured if using the provided Docker Compose stack, but can be pointed to external instances.</li>
+        </ul>
+
+        <h3 class="mt-5 mb-3">4. Authentication Providers</h3>
+        <p class="text-muted">You can enable OpenID Connect (OIDC) providers like Google, GitHub, or your own Keycloak instance by adding them to the configuration, allowing seamless single sign-on for your users.</p>
+
+        <h3 class="mt-5 mb-3">5. Client Connections</h3>
+        <p class="text-muted">Once your server is running, you can connect the Avalonia desktop/mobile app by navigating to the Settings screen in the app, entering your self-hosted server URL, and logging in using the API Key generated in your web profile.</p>
+    </div>
+</div>
