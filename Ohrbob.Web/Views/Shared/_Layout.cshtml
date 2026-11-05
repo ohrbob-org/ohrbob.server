@@ -75,6 +75,7 @@
                             <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="SelfHost" hx-boost="@(IsHtmxEnabled("Home", "SelfHost") ? "true" : "false")"><i class="bi bi-server me-2"></i> Self-Hosting</a></li>
                             <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Faq" hx-boost="@(IsHtmxEnabled("Home", "Faq") ? "true" : "false")"><i class="bi bi-question-circle me-2"></i> FAQ</a></li>
                             <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Status" hx-boost="@(IsHtmxEnabled("Home", "Status") ? "true" : "false")"><i class="bi bi-activity me-2"></i> Status</a></li>
+                            <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Privacy" hx-boost="@(IsHtmxEnabled("Home", "Privacy") ? "true" : "false")"><i class="bi bi-shield-lock me-2"></i> Privacy Policy</a></li>
                             @if (LegalOptions.Value.IsConfigured)
                             {
                                 <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Legal" hx-boost="@(IsHtmxEnabled("Home", "Legal") ? "true" : "false")"><i class="bi bi-shield-check me-2"></i> Legal</a></li>
@@ -129,6 +130,7 @@
                             <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="SelfHost" class="text-muted text-decoration-none">Self-Hosting</a></li>
                             <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="Faq" class="text-muted text-decoration-none">FAQ</a></li>
                             <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="Status" class="text-muted text-decoration-none">Status</a></li>
+                            <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="Privacy" class="text-muted text-decoration-none">Privacy Policy</a></li>
                             <li class="mb-2"><a href="https://github.com/ohrbob-org/ohrbob.server" target="_blank" rel="noopener" class="text-muted text-decoration-none">Source Code</a></li>
                         </ul>
                     </div>

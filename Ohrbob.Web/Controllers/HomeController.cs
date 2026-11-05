@@ -74,7 +74,7 @@ public class HomeController : Controller
     [AllowAnonymous]
     public IActionResult Privacy()
     {
-        return View();
+        return View(_legalOptions);
     }
 
     [AllowAnonymous]

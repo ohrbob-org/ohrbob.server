@@ -1,0 +1,290 @@
+@{
+    ViewData["Title"] = "FAQ";
+}
+
+<div class="container mt-5 mb-5">
+    <h1 class="mb-4">Frequently Asked Questions</h1>
+    <p class="lead mb-5">Got questions? We have answers. If you can't find what you're looking for, feel free to open an issue on our GitHub.</p>
+
+    <div class="accordion" id="faqAccordion">
+        <!-- Q1 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                    What is Ohrbob?
+                </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Ohrbob is a multi-platform, open-source podcast player and syncing server. It lets you organize your podcasts into stations, configure how they play, and keeps your listening state synchronized across all your devices.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingTwo">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                    Is Ohrbob free?
+                </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Yes! Ohrbob is entirely open-source and free to use. You can host your own server or use community-provided instances.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingThree">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                    What platforms does the Ohrbob app support?
+                </button>
+            </h2>
+            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Currently, the Avalonia-based app runs on Android, Linux, and Windows. MacOS and iOS support are planned for the future. You can also listen directly in the web UI from any browser!
+                </div>
+            </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingFour">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                    Do I need an account to use it?
+                </button>
+            </h2>
+            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Yes, an account is required to save your station configurations and synchronize your playback state across devices.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingFive">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                    What are Stations?
+                </button>
+            </h2>
+            <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Stations are groups of podcasts you curate. Instead of manually queuing episodes one by one, you create a "News" station or a "Comedy" station, and Ohrbob automatically compiles a playlist based on your rules.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q6 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingSix">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+                    Can I import my existing podcasts?
+                </button>
+            </h2>
+            <div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Absolutely. You can import an OPML file exported from your previous podcast app directly into your profile, then assign those feeds to your stations.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q7 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingSeven">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+                    What does "Endless Spin" mean?
+                </button>
+            </h2>
+            <div id="collapseSeven" class="accordion-collapse collapse" aria-labelledby="headingSeven" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    When enabled, if your station runs out of new episodes to play, Endless Spin automatically reaches into the backlog of the feeds in that station and queues up older, unplayed episodes.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q8 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingEight">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
+                    What is "Host Pace"?
+                </button>
+            </h2>
+            <div id="collapseEight" class="accordion-collapse collapse" aria-labelledby="headingEight" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    If you have one podcast that publishes daily and another that publishes weekly, the daily one might drown out the weekly one in your playlist. Host Pace intelligently spaces out episodes to maintain a balanced mix from all your feeds.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q9 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingNine">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNine" aria-expanded="false" aria-controls="collapseNine">
+                    How does "Aging Content" work?
+                </button>
+            </h2>
+            <div id="collapseNine" class="accordion-collapse collapse" aria-labelledby="headingNine" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    This setting automatically cleans up your playlist by dropping episodes that are older than a certain number of days, ensuring you're only presented with fresh content.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q10 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingTen">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTen" aria-expanded="false" aria-controls="collapseTen">
+                    Is my listening history private?
+                </button>
+            </h2>
+            <div id="collapseTen" class="accordion-collapse collapse" aria-labelledby="headingTen" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Yes. Your listening data is stored securely in the database of the server you are using. If you self-host, you retain 100% control over your data.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q11 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingEleven">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEleven" aria-expanded="false" aria-controls="collapseEleven">
+                    How do I add a private Patreon feed?
+                </button>
+            </h2>
+            <div id="collapseEleven" class="accordion-collapse collapse" aria-labelledby="headingEleven" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    When editing a station, use the "Add via URL" feature. Simply paste your unique Patreon or premium RSS feed link, and Ohrbob will fetch and authenticate it securely.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q12 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingTwelve">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwelve" aria-expanded="false" aria-controls="collapseTwelve">
+                    Can I share a Station I created?
+                </button>
+            </h2>
+            <div id="collapseTwelve" class="accordion-collapse collapse" aria-labelledby="headingTwelve" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Yes! You can mark a station as public/shareable, giving you a unique link. Anyone with the link can subscribe to that station and get exactly the same feed configuration.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q13 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingThirteen">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThirteen" aria-expanded="false" aria-controls="collapseThirteen">
+                    Is there a limit to how many Stations I can have?
+                </button>
+            </h2>
+            <div id="collapseThirteen" class="accordion-collapse collapse" aria-labelledby="headingThirteen" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    No hard limits are enforced by default. You can create as many stations and profiles as you need to organize your listening habits.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q14 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingFourteen">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFourteen" aria-expanded="false" aria-controls="collapseFourteen">
+                    Does the app download episodes locally?
+                </button>
+            </h2>
+            <div id="collapseFourteen" class="accordion-collapse collapse" aria-labelledby="headingFourteen" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    The native apps download episodes for offline playback. The web UI streams directly from the podcast host. A dedicated streaming feature for the native apps is coming soon.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q15 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingFifteen">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFifteen" aria-expanded="false" aria-controls="collapseFifteen">
+                    Will there be an iOS or Mac app?
+                </button>
+            </h2>
+            <div id="collapseFifteen" class="accordion-collapse collapse" aria-labelledby="headingFifteen" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Yes, MacOS and iOS support are actively planned thanks to the cross-platform nature of Avalonia UI.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q16 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingSixteen">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSixteen" aria-expanded="false" aria-controls="collapseSixteen">
+                    How do I self-host Ohrbob?
+                </button>
+            </h2>
+            <div id="collapseSixteen" class="accordion-collapse collapse" aria-labelledby="headingSixteen" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    We provide a comprehensive Docker Compose setup. Check out our <a asp-controller="Home" asp-action="SelfHost">Self-Hosting Guide</a> for step-by-step instructions.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q17 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingSeventeen">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeventeen" aria-expanded="false" aria-controls="collapseSeventeen">
+                    Do I need a PodcastIndex API key to self-host?
+                </button>
+            </h2>
+            <div id="collapseSeventeen" class="accordion-collapse collapse" aria-labelledby="headingSeventeen" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Yes, to use the built-in search and discovery features, you need a free API key from PodcastIndex.org.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q18 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingEighteen">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEighteen" aria-expanded="false" aria-controls="collapseEighteen">
+                    I found a bug. How do I report it?
+                </button>
+            </h2>
+            <div id="collapseEighteen" class="accordion-collapse collapse" aria-labelledby="headingEighteen" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Please open an issue on our <a href="https://github.com/ohrbob-org/" target="_blank">GitHub repository</a>. Provide as much detail as possible to help us reproduce the problem.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q19 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingNineteen">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNineteen" aria-expanded="false" aria-controls="collapseNineteen">
+                    Can I contribute to the project?
+                </button>
+            </h2>
+            <div id="collapseNineteen" class="accordion-collapse collapse" aria-labelledby="headingNineteen" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    We welcome contributions! Whether it's code, bug reports, documentation, or translations, head over to GitHub and open a pull request.
+                </div>
+            </div>
+        </div>
+
+        <!-- Q20 -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingTwenty">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwenty" aria-expanded="false" aria-controls="collapseTwenty">
+                    What does the name "Ohrbob" mean?
+                </button>
+            </h2>
+            <div id="collapseTwenty" class="accordion-collapse collapse" aria-labelledby="headingTwenty" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    "Ohr" is the German word for ear, and "Bob" is... well, just Bob. It's your friendly digital ear companion!
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
