@@ -1,6 +1,8 @@
 **/.dockerignore
 **/.env
 .env
+**/.envrc
+.envrc
 **/.git
 **/.gitignore
 **/.vs
