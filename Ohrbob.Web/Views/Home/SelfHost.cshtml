@@ -13,7 +13,6 @@
             <li><strong>Ohrbob.Api:</strong> The backend REST API built in .NET, managing users, stations, feeds, and the sync state.</li>
             <li><strong>Ohrbob.Web:</strong> The frontend web UI built with HTMX and Razor Pages.</li>
             <li><strong>MongoDB:</strong> The primary data store for all user data, station configurations, and playhead states.</li>
-            <li><strong>Redis:</strong> Used for caching, rate limiting, and background job queuing.</li>
         </ul>
 
         <h3 class="mt-5 mb-3">2. Deploying via Docker Compose (Recommended)</h3>
@@ -30,7 +29,7 @@ docker compose up -d</code></pre>
         <ul class="text-muted">
             <li><code>Ohrbob__Jwt__Key</code>: A strong secret key used for API authentication.</li>
             <li><code>PodcastIndex__ApiKey</code> & <code>PodcastIndex__ApiSecret</code>: Credentials for the PodcastIndex API (required for search and discovery). You can get these for free at PodcastIndex.org.</li>
-            <li><code>MongoDB__ConnectionString</code> & <code>Redis__ConnectionString</code>: Automatically configured if using the provided Docker Compose stack, but can be pointed to external instances.</li>
+            <li><code>MongoDB__ConnectionString</code>: Automatically configured if using the provided Docker Compose stack, but can be pointed to an external instance.</li>
         </ul>
 
         <h3 class="mt-5 mb-3">4. Authentication Providers</h3>
