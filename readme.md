@@ -160,6 +160,8 @@ You only need this if you want to hack on the C# code directly.
 ## 🤝 How to Contribute
 Pull requests and feedback are welcome! Report bugs and request features in the [issue tracker](https://github.com/ohrbob-org/ohrbob.server/issues), or pick up an open [`help-wanted` issue](https://github.com/ohrbob-org/ohrbob.server/issues?q=is%3Aissue+is%3Aopen+label%3Ahelp-wanted) if you'd like to jump in.
 
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for the dev setup, test commands and coding conventions. Everyone taking part is expected to follow our [Code of Conduct](CODE_OF_CONDUCT.md). Please report security problems privately as described in [SECURITY.md](SECURITY.md), not in a public issue.
+
 ## 📄 License
 Ohrbob is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
