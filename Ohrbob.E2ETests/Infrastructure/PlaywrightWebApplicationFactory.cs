@@ -53,8 +53,7 @@ public class PlaywrightWebApplicationFactory : WebApplicationFactory<Program>
                 { "OhrbobApi:ApiKey", "***REMOVED***" },
                 { "OhrbobApi:PlayerApiUrl", "http://127.0.0.1:5002" },
                 { "OhrbobApi:PlayerPublicUrl", "http://127.0.0.1:5002" },
-                { "PodcastIndex:ApiKey", "***REMOVED***" },
-                { "PodcastIndex:ApiSecret", "***REMOVED***" },
+                // PodcastIndex credentials are read from the top-level `.env` (loaded by Program.cs).
                 { "Oidc:Nextcloud:Authority", "https://localhost" },
                 { "Oidc:Nextcloud:ClientId", "dummy-client-id" },
                 { "Oidc:Nextcloud:ClientSecret", "dummy-client-secret" },
