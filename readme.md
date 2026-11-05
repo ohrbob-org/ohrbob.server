@@ -79,7 +79,7 @@ The recommended way to run Ohrbob locally is via Docker Compose. It starts Mongo
 
 ### 1. Clone the repository
 ```bash
-git clone <your-repo-url> ohrbob2
+git clone https://github.com/ohrbob-org/ohrbob.server ohrbob2
 cd ohrbob2
 ```
 
@@ -138,7 +138,7 @@ You only need this if you want to hack on the C# code directly.
 
 
 ## 🤝 How to Contribute
-Pull requests and feedback are welcome! Check out open issues tagged `help-wanted` if you'd like to jump in.
+Pull requests and feedback are welcome! Report bugs and request features in the [issue tracker](https://github.com/ohrbob-org/ohrbob.server/issues), or pick up an open [`help-wanted` issue](https://github.com/ohrbob-org/ohrbob.server/issues?q=is%3Aissue+is%3Aopen+label%3Ahelp-wanted) if you'd like to jump in.
 
 ## 📄 License
 Ohrbob is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
