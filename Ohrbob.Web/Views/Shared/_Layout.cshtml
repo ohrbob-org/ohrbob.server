@@ -82,25 +82,53 @@
 
     @if (User.Identity?.IsAuthenticated != true)
     {
-        <footer class="border-top footer text-muted">
-            <div class="container d-flex justify-content-between align-items-center">
-                
-                <div style="font-size: 1rem;">
-                    <div class="ohrbob-logo">
-                        <span class="ohrbob-logo-text">
-                            <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
-                        </span>
+        <footer class="border-top footer text-muted py-5 bg-body-tertiary">
+            <div class="container">
+                <div class="row gy-4">
+                    <div class="col-lg-4 col-md-6">
+                        <div style="font-size: 1.5rem; margin-bottom: 1rem;">
+                            <div class="ohrbob-logo">
+                                <span class="ohrbob-logo-text">
+                                    <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
+                                </span>
+                            </div>
+                        </div>
+                        <p class="small text-muted">
+                            The multi-platform, open-source podcast sync server and player. Organize your podcasts into stations and keep your listening state consistent everywhere.
+                        </p>
                     </div>
-                </div>
-                <div class="d-flex align-items-center gap-3">
-                    @if (LegalOptions.Value.IsConfigured)
-                    {
-                        <a asp-area="" asp-controller="Home" asp-action="Legal" class="text-muted text-decoration-none small">Legal</a>
-                    }
-                    <a asp-area="" asp-controller="Home" asp-action="About" class="text-muted text-decoration-none small">About</a>
-                    <a href="https://github.com/ohrbob-org/" target="_blank" rel="noopener" class="text-muted text-decoration-none" title="ohrbob on GitHub">
-                        <i class="bi bi-github" style="font-size: 1.25rem;"></i>
-                    </a>
+                    
+                    <div class="col-lg-2 col-md-3 col-6">
+                        <h5 class="text-body mb-3">Product</h5>
+                        <ul class="list-unstyled small mb-0">
+                            <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="Features" class="text-muted text-decoration-none">Features</a></li>
+                            <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="About" class="text-muted text-decoration-none">About</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-2 col-md-3 col-6">
+                        <h5 class="text-body mb-3">Resources</h5>
+                        <ul class="list-unstyled small mb-0">
+                            <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="SelfHost" class="text-muted text-decoration-none">Self-Hosting</a></li>
+                            <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="Faq" class="text-muted text-decoration-none">FAQ</a></li>
+                            <li class="mb-2"><a href="https://github.com/ohrbob-org/ohrbob.server" target="_blank" rel="noopener" class="text-muted text-decoration-none">Source Code</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="col-lg-4 col-md-12">
+                        <h5 class="text-body mb-3">Community & Legal</h5>
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <a href="https://github.com/ohrbob-org/" target="_blank" rel="noopener" class="text-muted text-decoration-none" title="ohrbob on GitHub">
+                                <i class="bi bi-github" style="font-size: 1.5rem;"></i>
+                            </a>
+                        </div>
+                        <ul class="list-unstyled small mb-0">
+                            @if (LegalOptions.Value.IsConfigured)
+                            {
+                                <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="Legal" class="text-muted text-decoration-none">Legal & Privacy</a></li>
+                            }
+                        </ul>
+                    </div>
                 </div>
             </div>
         </footer>
