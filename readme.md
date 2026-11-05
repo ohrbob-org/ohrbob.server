@@ -113,6 +113,26 @@ docker compose logs -f   # optional: follow startup logs
 ### 5. Open the app
 Navigate to `http://localhost:5003` in your browser to access the Web UI.
 
+### Prebuilt Docker images
+
+If you don't want to build from source, released images are published on [Docker Hub](https://hub.docker.com/u/kaiwegner):
+
+| Image | Purpose |
+|---|---|
+| `kaiwegner/ohrbob.web` | Web portal (the UI) |
+| `kaiwegner/ohrbob.api` | Admin/management REST API |
+| `kaiwegner/ohrbob.player` | Playback control plane and `/stream/*` audio endpoints |
+| `kaiwegner/ohrbob.stream` | Streaming component |
+| `kaiwegner/ohrbob.testcasts` | Throwaway fake podcast host, used only by the E2E playback tests |
+
+Tags follow the release versions (`0.2.1`, `0.2.0`, …), and `latest` tracks the newest build. To run the published images instead of building locally, use the example compose file with a tag:
+
+```bash
+RELEASE_TAG=0.2.1 docker compose -f docker-compose-example.yml up -d
+```
+
+To update an existing deployment: `docker compose -f docker-compose-example.yml pull && docker compose -f docker-compose-example.yml up -d`.
+
 ### Exposed Services
 When running via Docker Compose, the following services are exposed to your host machine:
 *   **MongoDB:** `localhost:27019` (mapped to container `27017`)
