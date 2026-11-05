@@ -13,7 +13,7 @@ For now, I am trying to make the current implementation resilient and fix any bu
 I'm working on bringing cross-platform apps and direct network streaming to the project. Here is what's coming:
 
 ### 1. Multi-Platform Apps (Avalonia UI)
-Unifying mobile and desktop apps into a single codebase.
+Unifying mobile and desktop apps into a single codebase. The client apps live in a separate repository: [ohrbob-org/ohrbob.app](https://github.com/ohrbob-org/ohrbob.app).
 
 * [ ] **Core Setup:** Cross-platform solution (Android, iOS, Windows, macOS, Linux) with shared C# MVVM logic.
 * [ ] **Adaptive UI:** Responsive touch and desktop interfaces with native platform integrations.
