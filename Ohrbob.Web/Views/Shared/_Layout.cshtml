@@ -71,6 +71,7 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow">
                             <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Features" hx-boost="@(IsHtmxEnabled("Home", "Features") ? "true" : "false")"><i class="bi bi-star me-2"></i> Features</a></li>
+                            <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Clients" hx-boost="@(IsHtmxEnabled("Home", "Clients") ? "true" : "false")"><i class="bi bi-display me-2"></i> Clients</a></li>
                             <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="About" hx-boost="@(IsHtmxEnabled("Home", "About") ? "true" : "false")"><i class="bi bi-book me-2"></i> Our Story</a></li>
                             <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="SelfHost" hx-boost="@(IsHtmxEnabled("Home", "SelfHost") ? "true" : "false")"><i class="bi bi-server me-2"></i> Self-Hosting</a></li>
                             <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Faq" hx-boost="@(IsHtmxEnabled("Home", "Faq") ? "true" : "false")"><i class="bi bi-question-circle me-2"></i> FAQ</a></li>
@@ -120,6 +121,7 @@
                         <h5 class="text-body mb-3">Product</h5>
                         <ul class="list-unstyled small mb-0">
                             <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="Features" class="text-muted text-decoration-none">Features</a></li>
+                            <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="Clients" class="text-muted text-decoration-none">Clients</a></li>
                             <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="About" class="text-muted text-decoration-none">About</a></li>
                         </ul>
                     </div>

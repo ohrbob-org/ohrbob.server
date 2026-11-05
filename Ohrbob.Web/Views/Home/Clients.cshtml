@@ -1,0 +1,131 @@
+@{
+    ViewData["Title"] = "Clients";
+}
+
+<div class="container mt-5 mb-5 pb-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold mb-3">Ohrbob Clients</h1>
+        <p class="lead text-muted mx-auto" style="max-width: 600px;">
+            Ohrbob is available on multiple platforms. Choose the client that fits your device to keep your podcasts synced everywhere.
+        </p>
+    </div>
+    
+    <div class="row g-4 justify-content-center">
+        <!-- Web -->
+        <div class="col-md-6 col-lg-5">
+            <div class="d-flex p-4 rounded-4 bg-body-tertiary h-100" style="transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div class="flex-shrink-0">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 text-primary" style="width: 4rem; height: 4rem;">
+                        <i class="bi bi-browser-chrome fs-2"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-4 d-flex flex-column justify-content-center">
+                    <h4 class="mb-2 fw-bold">Web</h4>
+                    <p class="text-muted small mb-3">No installation needed. Simply log-in in your browser to listen and manage your stations on any device.</p>
+                    <div class="mt-auto">
+                        <a asp-controller="Home" asp-action="Login" class="btn btn-sm btn-primary rounded-pill px-3">Open Web App</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Android -->
+        <div class="col-md-6 col-lg-5">
+            <div class="d-flex p-4 rounded-4 bg-body-tertiary h-100" style="transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div class="flex-shrink-0">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success bg-opacity-10 text-success" style="width: 4rem; height: 4rem;">
+                        <i class="bi bi-android2 fs-2"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-4 d-flex flex-column justify-content-center">
+                    <h4 class="mb-2 fw-bold">Android</h4>
+                    <p class="text-muted small mb-3">Take your podcasts on the go with Android Auto support.</p>
+                    <div class="mt-auto">
+                        <a href="https://play.google.com/store/apps/details?id=org.ohrbob.App" target="_blank" rel="noopener" class="btn btn-sm btn-success rounded-pill px-3"><i class="bi bi-google-play me-1"></i> Google Play</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AppImage -->
+        <div class="col-md-6 col-lg-5">
+            <div class="d-flex p-4 rounded-4 bg-body-tertiary h-100" style="transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div class="flex-shrink-0">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger bg-opacity-10 text-danger" style="width: 4rem; height: 4rem;">
+                        <i class="bi bi-ubuntu fs-2"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-4 d-flex flex-column justify-content-center">
+                    <h4 class="mb-2 fw-bold">AppImage <span class="fw-normal text-muted fs-6">(Linux)</span></h4>
+                    <p class="text-muted small mb-3">A standalone application format for Linux. Download and run it directly.</p>
+                    <div class="mt-auto">
+                        <a href="https://github.com/ohrbob-org/ohrbob.app/releases" target="_blank" rel="noopener" class="btn btn-sm btn-danger rounded-pill px-3"><i class="bi bi-download me-1"></i> Download AppImage</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Windows -->
+        <div class="col-md-6 col-lg-5">
+            <div class="d-flex p-4 rounded-4 bg-body-tertiary h-100" style="transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div class="flex-shrink-0">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-info bg-opacity-10 text-info" style="width: 4rem; height: 4rem;">
+                        <i class="bi bi-windows fs-2"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-4 d-flex flex-column justify-content-center">
+                    <h4 class="mb-2 fw-bold">Windows</h4>
+                    <p class="text-muted small mb-3">Native Windows application. Download the installer executable.</p>
+                    <div class="mt-auto">
+                        <a href="https://github.com/ohrbob-org/ohrbob.app/releases" target="_blank" rel="noopener" class="btn btn-sm btn-info text-white rounded-pill px-3"><i class="bi bi-download me-1"></i> Download Installer</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flatpak -->
+        <div class="col-md-6 col-lg-5">
+            <div class="d-flex p-4 rounded-4 bg-body-tertiary h-100" style="transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div class="flex-shrink-0">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning bg-opacity-10 text-warning" style="width: 4rem; height: 4rem;">
+                        <i class="bi bi-box fs-2"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-4 d-flex flex-column justify-content-center">
+                    <h4 class="mb-2 fw-bold">Flatpak <span class="fw-normal text-muted fs-6">(Linux)</span></h4>
+                    <p class="text-muted small mb-0">Run Ohrbob securely on any Linux distribution using Flatpak. <span class="badge bg-secondary ms-1">Coming Soon</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- macOS -->
+        <div class="col-md-6 col-lg-5">
+            <div class="d-flex p-4 rounded-4 bg-body-tertiary h-100" style="transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div class="flex-shrink-0">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary bg-opacity-10 text-secondary" style="width: 4rem; height: 4rem;">
+                        <i class="bi bi-apple fs-2"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-4 d-flex flex-column justify-content-center">
+                    <h4 class="mb-2 fw-bold">macOS</h4>
+                    <p class="text-muted small mb-0">Native macOS application. <span class="badge bg-secondary ms-1">Coming Soon</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- iOS -->
+        <div class="col-md-6 col-lg-5">
+            <div class="d-flex p-4 rounded-4 bg-body-tertiary h-100" style="transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                <div class="flex-shrink-0">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary bg-opacity-10 text-secondary" style="width: 4rem; height: 4rem;">
+                        <i class="bi bi-phone fs-2"></i>
+                    </div>
+                </div>
+                <div class="flex-grow-1 ms-4 d-flex flex-column justify-content-center">
+                    <h4 class="mb-2 fw-bold">iOS</h4>
+                    <p class="text-muted small mb-0">Take your podcasts on the go with your iPhone. <span class="badge bg-secondary ms-1">Coming Soon</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

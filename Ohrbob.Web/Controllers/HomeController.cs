@@ -118,6 +118,12 @@ public class HomeController : Controller
     }
 
     [AllowAnonymous]
+    public IActionResult Clients()
+    {
+        return View();
+    }
+
+    [AllowAnonymous]
     public IActionResult AboutStatus()
     {
         return PartialView("_AboutStatus", BuildAboutViewModel());
