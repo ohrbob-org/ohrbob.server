@@ -30,3 +30,8 @@ testdata/
 
 # changelog
 changelog.md
+
+# Build output and test results
+node_modules/
+TestResults/
+test_output.txt
