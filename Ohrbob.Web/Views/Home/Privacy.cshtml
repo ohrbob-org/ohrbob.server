@@ -7,189 +7,232 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-9">
-            <h1>Privacy Policy / Datenschutzerklärung</h1>
-            <p class="text-muted">
-                Information on the processing of personal data pursuant to Art. 13 GDPR — DE / EN.
-                This hosted instance runs the open-source ohrbob software.
-            </p>
-
-            <div class="row row-cols-1 row-cols-md-2 g-3 my-4">
-                <div class="col">
-                    <div class="border rounded p-3 h-100">
-                        <strong class="d-block mb-1">No tracking / Kein Tracking</strong>
-                        <span class="small text-muted">Only technically necessary cookies. No analytics, no advertising, no profiling. / Nur technisch notwendige Cookies. Keine Analyse, keine Werbung, kein Profiling.</span>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="border rounded p-3 h-100">
-                        <strong class="d-block mb-1">EU hosting / Hosting in der EU</strong>
-                        <span class="small text-muted">Hosted on Google Cloud in europe-west4 (Netherlands). / Gehostet auf Google Cloud in europe-west4 (Niederlande).</span>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="border rounded p-3 h-100">
-                        <strong class="d-block mb-1">Logs deleted after 30 days / Logs nach 30 Tagen gelöscht</strong>
-                        <span class="small text-muted">Server log files are kept for a maximum of 30 days. / Server-Logfiles werden spätestens nach 30 Tagen gelöscht.</span>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="border rounded p-3 h-100">
-                        <strong class="d-block mb-1">Self-hosting / Selbst hosten</strong>
-                        <span class="small text-muted">If you run your own instance, you are the controller for its data. / Wer eine eigene Instanz betreibt, ist dafür selbst verantwortlich.</span>
-                    </div>
+            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
+                <h1 class="mb-0">Privacy Policy / Datenschutzerklärung</h1>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-translate me-2"></i><span id="privacy-language-label">English</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><button type="button" class="dropdown-item" data-privacy-lang="en">English</button></li>
+                        <li><button type="button" class="dropdown-item" data-privacy-lang="de">Deutsch</button></li>
+                    </ul>
                 </div>
             </div>
 
-            <hr />
+            <section id="privacy-de" lang="de" hidden>
+                <p class="text-muted">Informationen zur Verarbeitung personenbezogener Daten gemäß Art. 13 DSGVO. Diese Instanz betreibt die Open-Source-Software ohrbob.</p>
 
-            <h2>Datenschutzerklärung (DE)</h2>
+                <div class="row row-cols-1 row-cols-md-2 g-3 my-4">
+                    <div class="col">
+                        <div class="border rounded p-3 h-100">
+                            <strong class="d-block mb-1">Kein Tracking</strong>
+                            <span class="small text-muted">Nur technisch notwendige Cookies. Keine Analyse, keine Werbung, kein Profiling.</span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-3 h-100">
+                            <strong class="d-block mb-1">Hosting in der EU</strong>
+                            <span class="small text-muted">Gehostet auf Google Cloud in europe-west4 (Niederlande).</span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-3 h-100">
+                            <strong class="d-block mb-1">Logs nach 30 Tagen gelöscht</strong>
+                            <span class="small text-muted">Server-Logfiles werden spätestens nach 30 Tagen gelöscht.</span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-3 h-100">
+                            <strong class="d-block mb-1">Selbst hosten</strong>
+                            <span class="small text-muted">Wer eine eigene Instanz betreibt, ist für deren Datenverarbeitung selbst verantwortlich.</span>
+                        </div>
+                    </div>
+                </div>
 
-            <h3>1. Verantwortlicher</h3>
-            @if (Model.IsConfigured)
-            {
-                <address>
-                    @Model.Name<br />
-                    @Model.Address<br />
-                    E-Mail: <a href="mailto:@Model.Email">@Model.Email</a>
-                </address>
-            }
-            else
-            {
-                <p>Verantwortlich für diese Instanz ist der Betreiber des Dienstes (Kontakt siehe <a asp-controller="Home" asp-action="Legal">Impressum</a>).</p>
-            }
+                <hr />
 
-            <h3>2. Hosting &amp; Server-Logfiles</h3>
-            <p>Diese Instanz läuft auf <strong>Google Cloud</strong> in der Region <strong>europe-west4</strong> (Niederlande). Beim Aufruf der Seiten erfasst der Webserver automatisch:</p>
-            <ul>
-                <li>IP-Adresse</li>
-                <li>Datum und Uhrzeit des Zugriffs</li>
-                <li>Browsertyp und -version, Betriebssystem</li>
-                <li>aufgerufene URL und übertragene Datenmenge</li>
-                <li>ggf. Referrer-URL</li>
-            </ul>
-            <p>Zweck ist der sichere und stabile Betrieb des Dienstes, insbesondere die Erkennung von Missbrauch. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse). Die Logfiles werden spätestens nach <strong>30 Tagen</strong> gelöscht.</p>
+                <h3>1. Verantwortlicher</h3>
+                @if (Model.IsConfigured)
+                {
+                    <address>
+                        @Model.Name<br />
+                        @Model.Address<br />
+                        E-Mail: <a href="mailto:@Model.Email">@Model.Email</a>
+                    </address>
+                }
+                else
+                {
+                    <p>Verantwortlich für diese Instanz ist der Betreiber des Dienstes (Kontakt siehe <a asp-controller="Home" asp-action="Legal">Impressum</a>).</p>
+                }
 
-            <h3>3. Cookies</h3>
-            <p>ohrbob setzt ausschließlich technisch notwendige Cookies. Es gibt <strong>keine Tracking-, Marketing- oder Analyse-Cookies</strong>. Eine Einwilligung ist daher nicht erforderlich (Art. 6 Abs. 1 lit. f DSGVO i. V. m. § 25 Abs. 2 Nr. 2 TDDDG).</p>
-            <ul>
-                <li><strong>Anmelde-Cookie:</strong> hält deine Sitzung aufrecht (Cookie-Authentifizierung, 30 Tage, mit Sliding Expiration).</li>
-                <li><strong>Ohrbob_ActiveProfileId:</strong> merkt sich das zuletzt genutzte Profil (30 Tage, HttpOnly, Secure).</li>
-                <li><strong>ohrbob_theme:</strong> speichert deine Theme-Auswahl (System/Hell/Dunkel) pro Gerät.</li>
-                <li><strong>ohrbob_user_paused:</strong> verhindert automatisches Abspielen, wenn du selbst pausiert hast (1 Jahr).</li>
-            </ul>
-            <p>Beim Login über einen Identitätsanbieter werden zusätzlich kurzlebige Cookies für die Anmelde- und Nonce-Prüfung gesetzt; sie werden nach Abschluss des Logins nicht mehr benötigt.</p>
+                <h3>2. Hosting &amp; Server-Logfiles</h3>
+                <p>Diese Instanz läuft auf <strong>Google Cloud</strong> in der Region <strong>europe-west4</strong> (Niederlande). Beim Aufruf der Seiten erfasst der Webserver automatisch:</p>
+                <ul>
+                    <li>IP-Adresse</li>
+                    <li>Datum und Uhrzeit des Zugriffs</li>
+                    <li>Browsertyp und -version, Betriebssystem</li>
+                    <li>aufgerufene URL und übertragene Datenmenge</li>
+                    <li>ggf. Referrer-URL</li>
+                </ul>
+                <p>Zweck ist der sichere und stabile Betrieb des Dienstes, insbesondere die Erkennung von Missbrauch. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse). Die Logfiles werden spätestens nach <strong>30 Tagen</strong> gelöscht.</p>
 
-            <h3>4. Registrierung &amp; Konto</h3>
-            <p>Für die Nutzung ist ein Konto erforderlich. Die Anmeldung erfolgt über einen Drittanbieter (Google, Nextcloud oder GitHub). Von dort übernehmen wir:</p>
-            <ul>
-                <li>Name und E-Mail-Adresse</li>
-                <li>Profilbild-URL (sofern vorhanden)</li>
-                <li>eine Kennung des Anbieters (Issuer + Nutzer-ID), um dein Konto wiederzuerkennen</li>
-                <li>letzter Anmeldezeitpunkt und Abo-Stufe</li>
-            </ul>
-            <p>Passwörter werden bei ohrbob nicht erhoben oder gespeichert; die Anmeldung erfolgt ausschließlich beim Identitätsanbieter. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung).</p>
+                <h3>3. Cookies</h3>
+                <p>ohrbob setzt ausschließlich technisch notwendige Cookies. Es gibt <strong>keine Tracking-, Marketing- oder Analyse-Cookies</strong>. Eine Einwilligung ist daher nicht erforderlich (Art. 6 Abs. 1 lit. f DSGVO i. V. m. § 25 Abs. 2 Nr. 2 TDDDG).</p>
+                <ul>
+                    <li><strong>Anmelde-Cookie:</strong> hält deine Sitzung aufrecht (Cookie-Authentifizierung, 30 Tage, mit Sliding Expiration).</li>
+                    <li><strong>Ohrbob_ActiveProfileId:</strong> merkt sich das zuletzt genutzte Profil (30 Tage, HttpOnly, Secure).</li>
+                    <li><strong>ohrbob_theme:</strong> speichert deine Theme-Auswahl (System/Hell/Dunkel) pro Gerät.</li>
+                    <li><strong>ohrbob_user_paused:</strong> verhindert automatisches Abspielen, wenn du selbst pausiert hast (1 Jahr).</li>
+                </ul>
+                <p>Beim Login über einen Identitätsanbieter werden zusätzlich kurzlebige Cookies für die Anmelde- und Nonce-Prüfung gesetzt; sie werden nach Abschluss des Logins nicht mehr benötigt.</p>
 
-            <h3>5. Profile, Stationen &amp; Hörfortschritt</h3>
-            <p>Innerhalb deines Kontos speichern wir die von dir erstellten Daten: Profile (Name, zugeordnete Stationen), Stationen und deren Feeds, sowie den Hörfortschritt (zuletzt gehörte Episode, Position in Sekunden, „gehört“-Markierung). Diese Daten werden ausschließlich zur Bereitstellung der Funktionen verarbeitet (Art. 6 Abs. 1 lit. b DSGVO). Konten und Inhalte werden beim Löschen des Kontos über die Kontoeinstellungen entfernt.</p>
+                <h3>4. Registrierung &amp; Konto</h3>
+                <p>Für die Nutzung ist ein Konto erforderlich. Die Anmeldung erfolgt über einen Drittanbieter (Google, Nextcloud oder GitHub). Von dort übernehmen wir:</p>
+                <ul>
+                    <li>Name und E-Mail-Adresse</li>
+                    <li>Profilbild-URL (sofern vorhanden)</li>
+                    <li>eine Kennung des Anbieters (Issuer + Nutzer-ID), um dein Konto wiederzuerkennen</li>
+                    <li>letzter Anmeldezeitpunkt und Abo-Stufe</li>
+                </ul>
+                <p>Passwörter werden bei ohrbob nicht erhoben oder gespeichert; die Anmeldung erfolgt ausschließlich beim Identitätsanbieter. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung).</p>
 
-            <h3>6. PodcastIndex (Suche &amp; Entdecken)</h3>
-            <p>Die Suche und die „Entdecken“-Seite nutzen die offene Podcast-Datenbank <strong>PodcastIndex.org</strong>. Deine Suchbegriffe und deine IP-Adresse werden dabei an PodcastIndex übertragen. Die Audio-Dateien selbst werden direkt von den Servern der jeweiligen Podcast-Anbieter geladen bzw. gestreamt; dabei erhält der jeweilige Host deine IP-Adresse. Auf diese Verarbeitung haben wir keinen Einfluss.</p>
+                <h3>5. Profile, Stationen &amp; Hörfortschritt</h3>
+                <p>Innerhalb deines Kontos speichern wir die von dir erstellten Daten: Profile (Name, zugeordnete Stationen), Stationen und deren Feeds, sowie den Hörfortschritt (zuletzt gehörte Episode, Position in Sekunden, „gehört“-Markierung). Diese Daten werden ausschließlich zur Bereitstellung der Funktionen verarbeitet (Art. 6 Abs. 1 lit. b DSGVO). Konten und Inhalte werden beim Löschen des Kontos über die Kontoeinstellungen entfernt.</p>
 
-            <h3>7. Empfänger &amp; Auftragsverarbeiter</h3>
-            <ul>
-                <li><strong>Google Cloud</strong> (europe-west4, Niederlande) — Hosting der Anwendung und Datenbank.</li>
-                <li><strong>PodcastIndex.org</strong> — Suche und Katalogdaten (siehe Abschnitt 6).</li>
-                <li><strong>Identitätsanbieter</strong> (Google, Nextcloud, GitHub) — ausschließlich für die Anmeldung.</li>
-            </ul>
-            <p>Es findet kein Verkauf von Daten statt. Es werden keine Analyse-, Werbe- oder Profiling-Dienste eingesetzt, und es werden keine Newsletter versendet.</p>
+                <h3>6. PodcastIndex (Suche &amp; Entdecken)</h3>
+                <p>Die Suche und die „Entdecken“-Seite nutzen die offene Podcast-Datenbank <strong>PodcastIndex.org</strong>. Deine Suchbegriffe und deine IP-Adresse werden dabei an PodcastIndex übertragen. Die Audio-Dateien selbst werden direkt von den Servern der jeweiligen Podcast-Anbieter geladen bzw. gestreamt; dabei erhält der jeweilige Host deine IP-Adresse. Auf diese Verarbeitung haben wir keinen Einfluss.</p>
 
-            <h3>8. Deine Rechte</h3>
-            <p>Du hast das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) sowie Widerspruch gegen Verarbeitungen auf Grundlage berechtigter Interessen (Art. 21 DSGVO). Eine erteilte Einwilligung kannst du jederzeit mit Wirkung für die Zukunft widerrufen (Art. 7 Abs. 3).</p>
-            <p>Zur Ausübung genügt eine formlose Nachricht an <a href="mailto:@Model.Email">@Model.Email</a>. Außerdem steht dir ein Beschwerderecht bei einer Aufsichtsbehörde zu (Art. 77 DSGVO), z. B. der Landesbeauftragten für den Datenschutz und für das Recht auf Akteneinsicht Brandenburg.</p>
+                <h3>7. Empfänger &amp; Auftragsverarbeiter</h3>
+                <ul>
+                    <li><strong>Google Cloud</strong> (europe-west4, Niederlande) — Hosting der Anwendung und Datenbank.</li>
+                    <li><strong>PodcastIndex.org</strong> — Suche und Katalogdaten (siehe Abschnitt 6).</li>
+                    <li><strong>Identitätsanbieter</strong> (Google, Nextcloud, GitHub) — ausschließlich für die Anmeldung.</li>
+                </ul>
+                <p>Es findet kein Verkauf von Daten statt. Es werden keine Analyse-, Werbe- oder Profiling-Dienste eingesetzt, und es werden keine Newsletter versendet.</p>
 
-            <h3>9. Datensicherheit</h3>
-            <p>Die Übertragung erfolgt verschlüsselt per TLS/HTTPS. Zugriffe auf Produktivsysteme sind auf autorisierte Personen beschränkt. Zugangsschlüssel zwischen den Diensten werden als geheime Umgebungsvariablen gehalten.</p>
+                <h3>8. Deine Rechte</h3>
+                <p>Du hast das Recht auf Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) sowie Widerspruch gegen Verarbeitungen auf Grundlage berechtigter Interessen (Art. 21 DSGVO). Eine erteilte Einwilligung kannst du jederzeit mit Wirkung für die Zukunft widerrufen (Art. 7 Abs. 3).</p>
+                <p>Zur Ausübung genügt eine formlose Nachricht an <a href="mailto:@Model.Email">@Model.Email</a>. Außerdem steht dir ein Beschwerderecht bei einer Aufsichtsbehörde zu (Art. 77 DSGVO), z. B. der Landesbeauftragten für den Datenschutz und für das Recht auf Akteneinsicht Brandenburg.</p>
 
-            <h3>10. Änderungen</h3>
-            <p>Diese Datenschutzerklärung wird angepasst, wenn sich rechtliche Anforderungen oder Funktionen ändern. Es gilt stets die auf dieser Seite veröffentlichte Fassung.</p>
+                <h3>9. Datensicherheit</h3>
+                <p>Die Übertragung erfolgt verschlüsselt per TLS/HTTPS. Zugriffe auf Produktivsysteme sind auf autorisierte Personen beschränkt. Zugangsschlüssel zwischen den Diensten werden als geheime Umgebungsvariablen gehalten.</p>
 
-            <hr />
+                <h3>10. Änderungen</h3>
+                <p>Diese Datenschutzerklärung wird angepasst, wenn sich rechtliche Anforderungen oder Funktionen ändern. Es gilt stets die auf dieser Seite veröffentlichte Fassung.</p>
 
-            <h2>Privacy Policy (EN)</h2>
+                <hr />
+                <p class="small text-muted">Diese Seite beschreibt die gehostete ohrbob-Instanz. Wer ohrbob selbst betreibt, ist für eigene Datenschutzhinweise und die eigene Datenverarbeitung verantwortlich.</p>
+            </section>
 
-            <h3>1. Controller</h3>
-            @if (Model.IsConfigured)
-            {
-                <address>
-                    @Model.Name<br />
-                    @Model.Address<br />
-                    Email: <a href="mailto:@Model.Email">@Model.Email</a>
-                </address>
-            }
-            else
-            {
-                <p>The operator of this instance is the controller (see the <a asp-controller="Home" asp-action="Legal">imprint</a> for contact details).</p>
-            }
+            <section id="privacy-en" lang="en" hidden>
+                <p class="text-muted">Information on the processing of personal data pursuant to Art. 13 GDPR. This instance runs the open-source ohrbob software.</p>
 
-            <h3>2. Hosting &amp; server log files</h3>
-            <p>This instance runs on <strong>Google Cloud</strong> in the <strong>europe-west4</strong> region (Netherlands). Each time the site is accessed, the web server automatically records:</p>
-            <ul>
-                <li>IP address</li>
-                <li>date and time of access</li>
-                <li>browser type and version, operating system</li>
-                <li>requested URL and amount of data transferred</li>
-                <li>referrer URL, if any</li>
-            </ul>
-            <p>The purpose is the secure and stable operation of the service, in particular the detection of misuse. Legal basis: Art. 6(1)(f) GDPR (legitimate interest). Log files are deleted after <strong>30 days</strong> at the latest.</p>
+                <div class="row row-cols-1 row-cols-md-2 g-3 my-4">
+                    <div class="col">
+                        <div class="border rounded p-3 h-100">
+                            <strong class="d-block mb-1">No tracking</strong>
+                            <span class="small text-muted">Only technically necessary cookies. No analytics, no advertising, no profiling.</span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-3 h-100">
+                            <strong class="d-block mb-1">EU hosting</strong>
+                            <span class="small text-muted">Hosted on Google Cloud in europe-west4 (Netherlands).</span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-3 h-100">
+                            <strong class="d-block mb-1">Logs deleted after 30 days</strong>
+                            <span class="small text-muted">Server log files are kept for a maximum of 30 days.</span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="border rounded p-3 h-100">
+                            <strong class="d-block mb-1">Self-hosting</strong>
+                            <span class="small text-muted">If you run your own instance, you are the controller for its data.</span>
+                        </div>
+                    </div>
+                </div>
 
-            <h3>3. Cookies</h3>
-            <p>ohrbob uses only technically necessary cookies. There are <strong>no tracking, marketing or analytics cookies</strong>. Consent is therefore not required (Art. 6(1)(f) GDPR in conjunction with § 25(2) no. 2 TDDDG).</p>
-            <ul>
-                <li><strong>Authentication cookie:</strong> keeps your session alive (cookie authentication, 30 days, sliding expiration).</li>
-                <li><strong>Ohrbob_ActiveProfileId:</strong> remembers the profile you last used (30 days, HttpOnly, Secure).</li>
-                <li><strong>ohrbob_theme:</strong> stores your theme choice (system/light/dark) per device.</li>
-                <li><strong>ohrbob_user_paused:</strong> prevents automatic playback when you paused deliberately (1 year).</li>
-            </ul>
-            <p>When you sign in through an identity provider, short-lived cookies are additionally set for the sign-in and nonce check; they are no longer needed once login completes.</p>
+                <hr />
 
-            <h3>4. Registration &amp; account</h3>
-            <p>An account is required to use ohrbob. Sign-in happens through a third-party identity provider (Google, Nextcloud or GitHub). From that provider we receive:</p>
-            <ul>
-                <li>your name and email address</li>
-                <li>your profile picture URL, if provided</li>
-                <li>a provider identifier (issuer + user ID) to recognise your account</li>
-                <li>your last sign-in time and subscription tier</li>
-            </ul>
-            <p>ohrbob never collects or stores passwords; authentication takes place solely at the identity provider. Legal basis: Art. 6(1)(b) GDPR (performance of a contract).</p>
+                <h3>1. Controller</h3>
+                @if (Model.IsConfigured)
+                {
+                    <address>
+                        @Model.Name<br />
+                        @Model.Address<br />
+                        Email: <a href="mailto:@Model.Email">@Model.Email</a>
+                    </address>
+                }
+                else
+                {
+                    <p>The operator of this instance is the controller (see the <a asp-controller="Home" asp-action="Legal">imprint</a> for contact details).</p>
+                }
 
-            <h3>5. Profiles, stations &amp; listening state</h3>
-            <p>Within your account we store the data you create: profiles (name, assigned stations), stations and their feeds, and your listening state (last played episode, position in seconds, listened flag). This data is processed solely to provide the features (Art. 6(1)(b) GDPR). Accounts and content are removed when you delete your account in the account settings.</p>
+                <h3>2. Hosting &amp; server log files</h3>
+                <p>This instance runs on <strong>Google Cloud</strong> in the <strong>europe-west4</strong> region (Netherlands). Each time the site is accessed, the web server automatically records:</p>
+                <ul>
+                    <li>IP address</li>
+                    <li>date and time of access</li>
+                    <li>browser type and version, operating system</li>
+                    <li>requested URL and amount of data transferred</li>
+                    <li>referrer URL, if any</li>
+                </ul>
+                <p>The purpose is the secure and stable operation of the service, in particular the detection of misuse. Legal basis: Art. 6(1)(f) GDPR (legitimate interest). Log files are deleted after <strong>30 days</strong> at the latest.</p>
 
-            <h3>6. PodcastIndex (search &amp; discover)</h3>
-            <p>Search and the discover page use the open podcast database <strong>PodcastIndex.org</strong>. Your search terms and IP address are transmitted to PodcastIndex for this purpose. Audio files themselves are loaded or streamed directly from the servers of the respective podcast publishers; those hosts receive your IP address. We have no control over that processing.</p>
+                <h3>3. Cookies</h3>
+                <p>ohrbob uses only technically necessary cookies. There are <strong>no tracking, marketing or analytics cookies</strong>. Consent is therefore not required (Art. 6(1)(f) GDPR in conjunction with § 25(2) no. 2 TDDDG).</p>
+                <ul>
+                    <li><strong>Authentication cookie:</strong> keeps your session alive (cookie authentication, 30 days, sliding expiration).</li>
+                    <li><strong>Ohrbob_ActiveProfileId:</strong> remembers the profile you last used (30 days, HttpOnly, Secure).</li>
+                    <li><strong>ohrbob_theme:</strong> stores your theme choice (system/light/dark) per device.</li>
+                    <li><strong>ohrbob_user_paused:</strong> prevents automatic playback when you paused deliberately (1 year).</li>
+                </ul>
+                <p>When you sign in through an identity provider, short-lived cookies are additionally set for the sign-in and nonce check; they are no longer needed once login completes.</p>
 
-            <h3>7. Recipients &amp; processors</h3>
-            <ul>
-                <li><strong>Google Cloud</strong> (europe-west4, Netherlands) — application and database hosting.</li>
-                <li><strong>PodcastIndex.org</strong> — search and catalogue data (see section 6).</li>
-                <li><strong>Identity providers</strong> (Google, Nextcloud, GitHub) — for sign-in only.</li>
-            </ul>
-            <p>No data is sold. No analytics, advertising or profiling services are used, and no newsletters are sent.</p>
+                <h3>4. Registration &amp; account</h3>
+                <p>An account is required to use ohrbob. Sign-in happens through a third-party identity provider (Google, Nextcloud or GitHub). From that provider we receive:</p>
+                <ul>
+                    <li>your name and email address</li>
+                    <li>your profile picture URL, if provided</li>
+                    <li>a provider identifier (issuer + user ID) to recognise your account</li>
+                    <li>your last sign-in time and subscription tier</li>
+                </ul>
+                <p>ohrbob never collects or stores passwords; authentication takes place solely at the identity provider. Legal basis: Art. 6(1)(b) GDPR (performance of a contract).</p>
 
-            <h3>8. Your rights</h3>
-            <p>You have the right to access (Art. 15), rectification (Art. 16), erasure (Art. 17), restriction of processing (Art. 18), data portability (Art. 20) and to object to processing based on legitimate interest (Art. 21 GDPR). You may withdraw consent at any time with effect for the future (Art. 7(3)).</p>
-            <p>To exercise these rights, an informal message to <a href="mailto:@Model.Email">@Model.Email</a> is sufficient. You also have the right to lodge a complaint with a supervisory authority (Art. 77 GDPR), for example the State Commissioner for Data Protection of Brandenburg, Germany.</p>
+                <h3>5. Profiles, stations &amp; listening state</h3>
+                <p>Within your account we store the data you create: profiles (name, assigned stations), stations and their feeds, and your listening state (last played episode, position in seconds, listened flag). This data is processed solely to provide the features (Art. 6(1)(b) GDPR). Accounts and content are removed when you delete your account in the account settings.</p>
 
-            <h3>9. Data security</h3>
-            <p>All traffic is encrypted via TLS/HTTPS. Access to production systems is restricted to authorised personnel. Credentials shared between the services are kept as secret environment variables.</p>
+                <h3>6. PodcastIndex (search &amp; discover)</h3>
+                <p>Search and the discover page use the open podcast database <strong>PodcastIndex.org</strong>. Your search terms and IP address are transmitted to PodcastIndex for this purpose. Audio files themselves are loaded or streamed directly from the servers of the respective podcast publishers; those hosts receive your IP address. We have no control over that processing.</p>
 
-            <h3>10. Changes</h3>
-            <p>This policy is updated when legal requirements or features change. The version published on this page always applies.</p>
+                <h3>7. Recipients &amp; processors</h3>
+                <ul>
+                    <li><strong>Google Cloud</strong> (europe-west4, Netherlands) — application and database hosting.</li>
+                    <li><strong>PodcastIndex.org</strong> — search and catalogue data (see section 6).</li>
+                    <li><strong>Identity providers</strong> (Google, Nextcloud, GitHub) — for sign-in only.</li>
+                </ul>
+                <p>No data is sold. No analytics, advertising or profiling services are used, and no newsletters are sent.</p>
 
-            <hr />
-            <p class="small text-muted">
-                This page describes the hosted ohrbob instance. If you run ohrbob yourself, you are responsible for your own privacy policy and data processing.
-            </p>
+                <h3>8. Your rights</h3>
+                <p>You have the right to access (Art. 15), rectification (Art. 16), erasure (Art. 17), restriction of processing (Art. 18), data portability (Art. 20) and to object to processing based on legitimate interest (Art. 21 GDPR). You may withdraw consent at any time with effect for the future (Art. 7(3)).</p>
+                <p>To exercise these rights, an informal message to <a href="mailto:@Model.Email">@Model.Email</a> is sufficient. You also have the right to lodge a complaint with a supervisory authority (Art. 77 GDPR), for example the State Commissioner for Data Protection of Brandenburg, Germany.</p>
+
+                <h3>9. Data security</h3>
+                <p>All traffic is encrypted via TLS/HTTPS. Access to production systems is restricted to authorised personnel. Credentials shared between the services are kept as secret environment variables.</p>
+
+                <h3>10. Changes</h3>
+                <p>This policy is updated when legal requirements or features change. The version published on this page always applies.</p>
+
+                <hr />
+                <p class="small text-muted">This page describes the hosted ohrbob instance. If you run ohrbob yourself, you are responsible for your own privacy policy and data processing.</p>
+            </section>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/privacy-language.js" asp-append-version="true"></script>
+}
