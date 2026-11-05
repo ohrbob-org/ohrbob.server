@@ -50,10 +50,10 @@ public class PlaywrightWebApplicationFactory : WebApplicationFactory<Program>
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 { "OhrbobApi:BaseUrl", "http://127.0.0.1:5001/api" },
-                { "OhrbobApi:ApiKey", "***REMOVED***" },
                 { "OhrbobApi:PlayerApiUrl", "http://127.0.0.1:5002" },
                 { "OhrbobApi:PlayerPublicUrl", "http://127.0.0.1:5002" },
-                // PodcastIndex credentials are read from the top-level `.env` (loaded by Program.cs).
+                // OhrbobApi:ApiKey and the PodcastIndex credentials come from the top-level `.env`
+                // (loaded by Program.cs); never hard-code secrets here.
                 { "Oidc:Nextcloud:Authority", "https://localhost" },
                 { "Oidc:Nextcloud:ClientId", "dummy-client-id" },
                 { "Oidc:Nextcloud:ClientSecret", "dummy-client-secret" },
