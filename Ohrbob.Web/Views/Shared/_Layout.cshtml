@@ -62,9 +62,26 @@
             </div>
 
             <!-- Right: Profile or Login -->
-            <div>
+            <div class="d-flex align-items-center gap-2">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
+                    <div class="dropdown">
+                        <button class="btn btn-link text-decoration-none text-body p-1" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="More Information">
+                            <i class="bi bi-three-dots-vertical fs-5"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Features" hx-boost="@(IsHtmxEnabled("Home", "Features") ? "true" : "false")"><i class="bi bi-star me-2"></i> Features</a></li>
+                            <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="About" hx-boost="@(IsHtmxEnabled("Home", "About") ? "true" : "false")"><i class="bi bi-book me-2"></i> Our Story</a></li>
+                            <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="SelfHost" hx-boost="@(IsHtmxEnabled("Home", "SelfHost") ? "true" : "false")"><i class="bi bi-server me-2"></i> Self-Hosting</a></li>
+                            <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Faq" hx-boost="@(IsHtmxEnabled("Home", "Faq") ? "true" : "false")"><i class="bi bi-question-circle me-2"></i> FAQ</a></li>
+                            <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Status" hx-boost="@(IsHtmxEnabled("Home", "Status") ? "true" : "false")"><i class="bi bi-activity me-2"></i> Status</a></li>
+                            @if (LegalOptions.Value.IsConfigured)
+                            {
+                                <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Legal" hx-boost="@(IsHtmxEnabled("Home", "Legal") ? "true" : "false")"><i class="bi bi-shield-check me-2"></i> Legal</a></li>
+                            }
+                            <li><a class="dropdown-item py-2" href="https://github.com/ohrbob-org/ohrbob.server" target="_blank" rel="noopener"><i class="bi bi-github me-2"></i> Source Code</a></li>
+                        </ul>
+                    </div>
                     @await Component.InvokeAsync("ProfileSelector")
                 }
                 else
