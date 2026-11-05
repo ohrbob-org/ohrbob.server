@@ -95,7 +95,11 @@ public class ApiTestApp<T> : WebApplicationFactory<T> where T : class
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-        CleanUpMongoDb(MongoDbContext);
+
+        // Never touch MongoDB from the finalizer: an exception there aborts the test host.
+        if (disposing)
+            CleanUpMongoDb(MongoDbContext);
+
         if (DefaultClient != null)
             DefaultClient.Dispose();
     
