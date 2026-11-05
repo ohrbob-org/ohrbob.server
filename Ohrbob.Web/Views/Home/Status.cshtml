@@ -1,0 +1,27 @@
+@model Ohrbob.Web.Models.AboutViewModel
+@{
+    ViewData["Title"] = "System Status";
+}
+<div class="text-center py-5">
+    <div class="ohrbob-logo justify-content-center mb-2" style="font-size: 2.5rem;">
+        <span class="ohrbob-logo-icon"><img src="~/images/ohrbob-logo.svg" alt="ohrbob" style="height: 1em;" /></span>
+        <span class="ohrbob-logo-text">
+            <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
+        </span>
+    </div>
+    <h1 class="display-5 fw-bold">System Status</h1>
+    <p class="lead text-muted mx-auto" style="max-width: 640px;">
+        Real-time health overview of the Ohrbob infrastructure and ecosystem.
+    </p>
+</div>
+
+<div id="about-status" hx-get="/Home/AboutStatus" hx-target="#about-status" hx-trigger="every 5s" hx-swap="innerHTML" hx-boost="false">
+    @await Html.PartialAsync("_AboutStatus", Model)
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-3 text-center mb-4 mt-4">
+    <div class="col"><i class="bi bi-collection-play fs-3 text-primary"></i><h3 class="h6 mt-2">Stations</h3><p class="small text-muted mb-0">Group feeds with random or chronological strategies.</p></div>
+    <div class="col"><i class="bi bi-people fs-3 text-primary"></i><h3 class="h6 mt-2">Profiles</h3><p class="small text-muted mb-0">Separate listen state per person, per device.</p></div>
+    <div class="col"><i class="bi bi-code-slash fs-3 text-primary"></i><h3 class="h6 mt-2">Open source</h3><p class="small text-muted mb-0">Host it yourself or contribute on GitHub.</p></div>
+</div>
+<p class="text-center small text-muted">Web &rarr; Api &rarr; Player &rarr; MongoDB &middot; Built with ASP.NET Core (.NET 10) &amp; Bootstrap 5</p>

@@ -1,31 +1,45 @@
-@model Ohrbob.Web.Models.AboutViewModel
 @{
     ViewData["Title"] = "About";
 }
-<div class="text-center py-5">
-    <div class="ohrbob-logo justify-content-center mb-2" style="font-size: 2.5rem;">
-        <span class="ohrbob-logo-icon"><img src="~/images/ohrbob-logo.svg" alt="ohrbob" style="height: 1em;" /></span>
-        <span class="ohrbob-logo-text">
-            <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
-        </span>
-    </div>
-    <h1 class="display-5 fw-bold">About ohrbob</h1>
-    <p class="lead text-muted mx-auto" style="max-width: 640px;">
-        A multi-profile podcast station manager that turns your favorite feeds into personal radio stations.
-    </p>
-    <div class="d-flex justify-content-center gap-2 mt-3">
-        <a asp-controller="Home" asp-action="Index" class="btn btn-primary rounded-pill px-4">Start listening</a>
-        <a href="https://github.com/ohrbob-org/" target="_blank" rel="noopener" class="btn btn-outline-dark rounded-pill px-4"><i class="bi bi-github me-2"></i>GitHub</a>
-    </div>
-</div>
 
-<div id="about-status" hx-get="/Home/AboutStatus" hx-target="#about-status" hx-trigger="every 5s" hx-swap="innerHTML" hx-boost="false">
-    @await Html.PartialAsync("_AboutStatus", Model)
-</div>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center mb-5">
+            <div class="ohrbob-logo justify-content-center mb-3" style="font-size: 3rem;">
+                <span class="ohrbob-logo-icon"><img src="~/images/ohrbob-logo.svg" alt="ohrbob" style="height: 1em;" /></span>
+                <span class="ohrbob-logo-text">
+                    <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
+                </span>
+            </div>
+            <h1 class="display-5 fw-bold text-body">The Story Behind Ohrbob</h1>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <p class="lead mb-4">
+                Hi, I'm Kai. I created Ohrbob out of a very personal need: I wanted a way for my daughters to listen to podcasts that was safe, reliable, and completely trustworthy.
+            </p>
+            
+            <p class="mb-4">
+                In today's fast-paced digital world, most podcast platforms are built around keeping you glued to the screen, pushing endless recommendations, and harvesting your data. I didn't want that for my family. I needed a system where I could curate the content, organize it into easily accessible "stations", and let them just press play—knowing exactly what they were listening to.
+            </p>
+            
+            <p class="mb-4">
+                That simple idea grew into Ohrbob. It became a powerful tool to manage feeds, track listening progress across devices, and organize audio exactly the way we wanted.
+            </p>
+            
+            <p class="mb-5">
+                But beyond my own family, I built this to give something back. I firmly believe in the power of open-source software and the amazing community around it. Ohrbob is fully open-source and self-hostable because you shouldn't have to trade your privacy for a great listening experience. You have the right to own your data, run your own server, and enjoy your podcasts on your own terms.
+            </p>
 
-<div class="row row-cols-1 row-cols-md-3 g-3 text-center mb-4">
-    <div class="col"><i class="bi bi-collection-play fs-3 text-primary"></i><h3 class="h6 mt-2">Stations</h3><p class="small text-muted mb-0">Group feeds with random or chronological strategies.</p></div>
-    <div class="col"><i class="bi bi-people fs-3 text-primary"></i><h3 class="h6 mt-2">Profiles</h3><p class="small text-muted mb-0">Separate listen state per person, per device.</p></div>
-    <div class="col"><i class="bi bi-code-slash fs-3 text-primary"></i><h3 class="h6 mt-2">Open source</h3><p class="small text-muted mb-0">Host it yourself or contribute on GitHub.</p></div>
+            <div class="text-center">
+                <p class="text-muted fst-italic">Thank you for being part of this journey.</p>
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary rounded-pill px-4">Start listening</a>
+                    <a href="https://github.com/ohrbob-org/" target="_blank" rel="noopener" class="btn btn-outline-dark rounded-pill px-4"><i class="bi bi-github me-2"></i> GitHub</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-<p class="text-center small text-muted">Web &rarr; Api &rarr; Player &rarr; MongoDB &middot; Built with ASP.NET Core (.NET 10) &amp; Bootstrap 5</p>

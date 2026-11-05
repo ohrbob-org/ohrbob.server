@@ -90,7 +90,31 @@ public class HomeController : Controller
     [AllowAnonymous]
     public IActionResult About()
     {
+        return View();
+    }
+
+    [AllowAnonymous]
+    public IActionResult Status()
+    {
         return View(BuildAboutViewModel());
+    }
+
+    [AllowAnonymous]
+    public IActionResult Features()
+    {
+        return View();
+    }
+
+    [AllowAnonymous]
+    public IActionResult SelfHost()
+    {
+        return View();
+    }
+
+    [AllowAnonymous]
+    public IActionResult Faq()
+    {
+        return View();
     }
 
     [AllowAnonymous]
