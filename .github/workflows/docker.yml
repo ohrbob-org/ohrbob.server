@@ -9,24 +9,22 @@ concurrency:
   group: docker-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  REGISTRY: ghcr.io
-
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
+    env:
+      DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USER }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - image: ohrbob-api
+          - image: ohrbob.api
             dockerfile: Ohrbob.Api/Dockerfile
-          - image: ohrbob-player
+          - image: ohrbob.player
             dockerfile: Ohrbob.Player/Dockerfile
-          - image: ohrbob-web
+          - image: ohrbob.web
             dockerfile: Ohrbob.Web/Dockerfile
     steps:
       - uses: actions/checkout@v4
@@ -41,14 +39,13 @@ jobs:
 
       - uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_PAT }}
 
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}
+          images: ${{ env.DOCKERHUB_USER }}/${{ matrix.image }}
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}
