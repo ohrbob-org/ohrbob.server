@@ -21,4 +21,5 @@ ARG GIT_COMMIT=dev-local
 ARG RELEASE_TAG=beta
 ENV AppVersion__Version=${GIT_COMMIT}
 ENV AppVersion__Tag=${RELEASE_TAG}
+USER $APP_UID
 ENTRYPOINT ["dotnet", "Ohrbob.Player.dll"]

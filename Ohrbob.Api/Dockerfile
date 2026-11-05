@@ -21,4 +21,5 @@ ARG GIT_COMMIT=dev-local
 ARG RELEASE_TAG=beta
 ENV ApiServerConfiguration__Version=${GIT_COMMIT}
 ENV ApiServerConfiguration__Tag=${RELEASE_TAG}
+USER $APP_UID
 ENTRYPOINT ["dotnet", "Ohrbob.Api.dll"]

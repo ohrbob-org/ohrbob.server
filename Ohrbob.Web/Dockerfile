@@ -22,4 +22,5 @@ ARG RELEASE_TAG=beta
 ENV AppVersion__Version=${GIT_COMMIT}
 ENV AppVersion__Tag=${RELEASE_TAG}
 COPY changelog.md .
+USER $APP_UID
 ENTRYPOINT ["dotnet", "Ohrbob.Web.dll"]
