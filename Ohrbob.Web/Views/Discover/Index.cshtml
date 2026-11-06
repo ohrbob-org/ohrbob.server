@@ -12,10 +12,10 @@
             <h2 class="text-center mb-3">Discover Podcasts</h2>
             <div class="input-group input-group-lg">
                 <span class="input-group-text"><i class="bi bi-search"></i></span>
-                <input type="search" 
+                <input type="search"
                        id="discover-search"
-                       class="form-control" 
-                       placeholder="Search podcasts by name, author..." 
+                       class="form-control"
+                       placeholder="Search podcasts by name, author..."
                        name="query"
                        value="@query"
                        hx-get="/Discover/Search"
@@ -52,7 +52,7 @@
             </div>
         </div>
     }
-    
+
     <div id="search-results" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         @if (ViewBag.SearchResults is List<Ohrbob.Web.Models.PodcastSearchResult> searchResults)
         {
@@ -61,6 +61,5 @@
     </div>
 </div>
 
-@section Scripts {
-    <script src="~/js/discover.js" asp-append-version="true"></script>
-}
+@* Loaded with the view content so htmx re-executes it after a boosted navigation (which drops layout sections). *@
+<script src="~/js/discover.js" asp-append-version="true"></script>
