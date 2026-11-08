@@ -50,6 +50,12 @@
                     <i class="bi bi-google me-2"></i> Continue with Google
                 </a>
             }
+            @if (ViewBag.AmazonEnabled == true)
+            {
+                <a asp-controller="Home" asp-action="Login" asp-route-provider="Amazon" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-outline-dark btn-lg rounded-pill login-btn" hx-boost="false">
+                    <i class="bi bi-amazon me-2"></i> Continue with Amazon
+                </a>
+            }
             @if (ViewBag.GitHubEnabled == true)
             {
                 <a asp-controller="Home" asp-action="Login" asp-route-provider="GitHub" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-outline-dark btn-lg rounded-pill login-btn" hx-boost="false">

@@ -2,7 +2,7 @@ namespace Ohrbob.Web.Configuration;
 
 public static class OidcProviderConfig
 {
-    public static readonly string[] All = ["Nextcloud", "Google", "GitHub"];
+    public static readonly string[] All = ["Nextcloud", "Google", "GitHub", "Amazon"];
 
     public static bool IsEnabled(IConfiguration config, string provider)
     {

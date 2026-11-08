@@ -44,6 +44,29 @@ public class HomeControllerLoginTests
         Assert.That(controller.ViewBag.GitHubEnabled, Is.EqualTo(false));
         Assert.That(controller.ViewBag.NextcloudEnabled, Is.EqualTo(false));
         Assert.That(controller.ViewBag.GoogleEnabled, Is.EqualTo(false));
+        Assert.That(controller.ViewBag.AmazonEnabled, Is.EqualTo(false));
+    }
+
+    [Test]
+    public void Login_NoProvider_ReturnsView_AndAmazonEnabled_WhenConfigured()
+    {
+        var controller = BuildController(new Dictionary<string, string?>
+        {
+            ["Oidc:Amazon:Domain"] = "amazon.de",
+            ["Oidc:Amazon:ClientId"] = "id",
+            ["Oidc:Amazon:ClientSecret"] = "secret"
+        });
+        var result = controller.Login(null!) as ViewResult;
+        Assert.That(result, Is.Not.Null);
+        Assert.That(controller.ViewBag.AmazonEnabled, Is.EqualTo(true));
+    }
+
+    [Test]
+    public void Login_AmazonProvider_WhenUnconfigured_ReturnsView_NotChallenge()
+    {
+        var controller = BuildController(new Dictionary<string, string?>());
+        var result = controller.Login("Amazon");
+        Assert.That(result, Is.InstanceOf<ViewResult>());
     }
 
     [Test]
@@ -60,6 +83,7 @@ public class HomeControllerLoginTests
         Assert.That(controller.ViewBag.NextcloudEnabled, Is.EqualTo(true));
         Assert.That(controller.ViewBag.GoogleEnabled, Is.EqualTo(false));
         Assert.That(controller.ViewBag.GitHubEnabled, Is.EqualTo(false));
+        Assert.That(controller.ViewBag.AmazonEnabled, Is.EqualTo(false));
     }
 
     [Test]

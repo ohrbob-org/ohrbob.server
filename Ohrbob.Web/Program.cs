@@ -106,7 +106,7 @@ var authBuilder = builder.Services.AddAuthentication(options =>
 if (OidcProviderConfig.Enabled(builder.Configuration).Length == 0)
 {
     throw new InvalidOperationException(
-        "No login provider configured. Set the credentials for at least one of Oidc__Nextcloud__*, Oidc__Google__* or Oidc__GitHub__* in .env.");
+        "No login provider configured. Set the credentials for at least one of Oidc__Nextcloud__*, Oidc__Google__*, Oidc__GitHub__* or Oidc__Amazon__* in .env.");
 }
 
 void AddOidc(string scheme, string callbackPath, params string[] scopes)
@@ -202,6 +202,64 @@ if (OidcProviderConfig.IsEnabled(builder.Configuration, "GitHub"))
                 // HandleChallengeAsync performs no redirect after this event, so this
                 // Response.Redirect (same as the framework's default handler) is the single,
                 // terminal redirect — no double-redirect risk.
+                context.Response.Redirect(context.RedirectUri);
+                return Task.CompletedTask;
+            }
+        };
+    });
+}
+
+if (OidcProviderConfig.IsEnabled(builder.Configuration, "Amazon"))
+{
+    var amazonSection = builder.Configuration.GetSection("Oidc:Amazon");
+    var domain = (amazonSection["Domain"] ?? "amazon.com").Trim().TrimEnd('/');
+    if (!domain.Contains("://")) domain = "https://" + domain;
+    domain = new Uri(domain).Host;
+    if (!domain.StartsWith("www.")) domain = "www." + domain;
+    var issuer = $"https://{domain}";
+
+    authBuilder.AddOAuth("Amazon", options =>
+    {
+        options.ClientId = amazonSection["ClientId"]!;
+        options.ClientSecret = amazonSection["ClientSecret"]!;
+        options.AuthorizationEndpoint = $"{issuer}/ap/oa";
+        options.TokenEndpoint = "https://api.amazon.com/auth/o2/token";
+        options.UserInformationEndpoint = "https://api.amazon.com/user/profile";
+        options.CallbackPath = "/signin-amazon";
+        options.Scope.Add("profile");
+        options.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "user_id");
+        options.ClaimActions.MapJsonKey(ClaimTypes.Name, "name");
+        options.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+        options.SaveTokens = true;
+        options.CorrelationCookie.SameSite = SameSiteMode.Lax;
+        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.Events = new OAuthEvents
+        {
+            OnCreatingTicket = context =>
+            {
+                if (context.Identity != null && string.IsNullOrEmpty(context.Identity.FindFirst("iss")?.Value))
+                {
+                    context.Identity.AddClaim(new Claim("iss", issuer));
+                }
+                return Task.CompletedTask;
+            },
+            OnTicketReceived = async context =>
+            {
+                context.Properties.IsPersistent = true;
+                await CreateOrGetAccountCore(context.Principal, context.HttpContext, context.Scheme.Name);
+            },
+            OnRemoteFailure = context =>
+            {
+                context.Response.Redirect("/Home/Error");
+                context.HandleResponse();
+                return Task.CompletedTask;
+            },
+            OnRedirectToAuthorizationEndpoint = context =>
+            {
+                if (context.HttpContext.Request.Scheme == "https")
+                {
+                    context.RedirectUri = context.RedirectUri.Replace("http://", "https://");
+                }
                 context.Response.Redirect(context.RedirectUri);
                 return Task.CompletedTask;
             }
