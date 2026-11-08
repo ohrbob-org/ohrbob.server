@@ -1,3 +1,4 @@
+@using Ohrbob.Web.Configuration
 @{
     ViewData["Title"] = "Log in";
 }
@@ -52,9 +53,21 @@
             }
             @if (ViewBag.AmazonEnabled == true)
             {
-                <a asp-controller="Home" asp-action="Login" asp-route-provider="Amazon" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-outline-dark btn-lg rounded-pill login-btn" hx-boost="false">
-                    <i class="bi bi-amazon me-2"></i> Continue with Amazon
-                </a>
+                <div class="dropdown d-grid">
+                    <button class="btn btn-outline-dark btn-lg rounded-pill dropdown-toggle w-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-amazon me-2"></i> Continue with Amazon
+                    </button>
+                    <ul class="dropdown-menu w-100 shadow">
+                        @foreach (var region in OidcProviderConfig.AmazonRegions)
+                        {
+                            <li>
+                                <a class="dropdown-item" asp-controller="Home" asp-action="Login" asp-route-provider="Amazon" asp-route-region="@region.Code" asp-route-returnUrl="@ViewBag.ReturnUrl" hx-boost="false">
+                                    @region.Name <span class="text-muted small">(@region.Domain)</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
             }
             @if (ViewBag.GitHubEnabled == true)
             {

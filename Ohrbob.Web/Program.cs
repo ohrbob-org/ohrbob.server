@@ -212,17 +212,11 @@ if (OidcProviderConfig.IsEnabled(builder.Configuration, "GitHub"))
 if (OidcProviderConfig.IsEnabled(builder.Configuration, "Amazon"))
 {
     var amazonSection = builder.Configuration.GetSection("Oidc:Amazon");
-    var domain = (amazonSection["Domain"] ?? "amazon.com").Trim().TrimEnd('/');
-    if (!domain.Contains("://")) domain = "https://" + domain;
-    domain = new Uri(domain).Host;
-    if (!domain.StartsWith("www.")) domain = "www." + domain;
-    var issuer = $"https://{domain}";
-
     authBuilder.AddOAuth("Amazon", options =>
     {
         options.ClientId = amazonSection["ClientId"]!;
         options.ClientSecret = amazonSection["ClientSecret"]!;
-        options.AuthorizationEndpoint = $"{issuer}/ap/oa";
+        options.AuthorizationEndpoint = "https://www.amazon.com/ap/oa";
         options.TokenEndpoint = "https://api.amazon.com/auth/o2/token";
         options.UserInformationEndpoint = "https://api.amazon.com/user/profile";
         options.CallbackPath = "/signin-amazon";
@@ -239,7 +233,10 @@ if (OidcProviderConfig.IsEnabled(builder.Configuration, "Amazon"))
             {
                 if (context.Identity != null && string.IsNullOrEmpty(context.Identity.FindFirst("iss")?.Value))
                 {
-                    context.Identity.AddClaim(new Claim("iss", issuer));
+                    var domain = context.Properties.Items.TryGetValue("amazon_domain", out var selected) && !string.IsNullOrEmpty(selected)
+                        ? selected
+                        : "amazon.com";
+                    context.Identity.AddClaim(new Claim("iss", $"https://www.{domain}"));
                 }
                 return Task.CompletedTask;
             },
@@ -256,6 +253,11 @@ if (OidcProviderConfig.IsEnabled(builder.Configuration, "Amazon"))
             },
             OnRedirectToAuthorizationEndpoint = context =>
             {
+                if (context.Properties.Items.TryGetValue("amazon_domain", out var domain) && !string.IsNullOrEmpty(domain))
+                {
+                    context.RedirectUri = context.RedirectUri.Replace(
+                        "https://www.amazon.com/", $"https://www.{domain}/", StringComparison.Ordinal);
+                }
                 if (context.HttpContext.Request.Scheme == "https")
                 {
                     context.RedirectUri = context.RedirectUri.Replace("http://", "https://");

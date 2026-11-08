@@ -31,6 +31,7 @@ public class HomeControllerLoginTests
             .AddSingleton<IConfiguration>(config)
             .BuildServiceProvider();
         controller.ControllerContext = new ControllerContext { HttpContext = http };
+        controller.Url = Mock.Of<IUrlHelper>(u => u.IsLocalUrl(It.IsAny<string>()) == true);
         controller.TempData = new TempDataDictionary(http, Mock.Of<ITempDataProvider>());
         return controller;
     }
@@ -52,13 +53,44 @@ public class HomeControllerLoginTests
     {
         var controller = BuildController(new Dictionary<string, string?>
         {
-            ["Oidc:Amazon:Domain"] = "amazon.de",
             ["Oidc:Amazon:ClientId"] = "id",
             ["Oidc:Amazon:ClientSecret"] = "secret"
         });
         var result = controller.Login(null!) as ViewResult;
         Assert.That(result, Is.Not.Null);
         Assert.That(controller.ViewBag.AmazonEnabled, Is.EqualTo(true));
+    }
+
+    [Test]
+    public void Login_AmazonProvider_WithRegion_ChallengesWithRegionDomain()
+    {
+        var controller = BuildController(new Dictionary<string, string?>
+        {
+            ["Oidc:Amazon:ClientId"] = "id",
+            ["Oidc:Amazon:ClientSecret"] = "secret"
+        });
+        var result = controller.Login("Amazon", "/", "de") as ChallengeResult;
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.Properties!.Items["amazon_domain"], Is.EqualTo("amazon.de"));
+    }
+
+    [Test]
+    public void Login_AmazonProvider_WithUnknownRegion_ReturnsView_NotChallenge()
+    {
+        var controller = BuildController(new Dictionary<string, string?>
+        {
+            ["Oidc:Amazon:ClientId"] = "id",
+            ["Oidc:Amazon:ClientSecret"] = "secret"
+        });
+        var result = controller.Login("Amazon", "/", "not-a-marketplace");
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+    }
+
+    [Test]
+    public void AmazonRegions_Contains_TenDistinctMarkets()
+    {
+        Assert.That(OidcProviderConfig.AmazonRegions, Has.Length.EqualTo(10));
+        Assert.That(OidcProviderConfig.AmazonRegions.Select(r => r.Domain), Is.Unique);
     }
 
     [Test]

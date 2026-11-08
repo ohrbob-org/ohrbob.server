@@ -161,7 +161,7 @@ public class HomeController : Controller
     }
 
     [AllowAnonymous]
-    public IActionResult Login(string provider, string? returnUrl = null)
+    public IActionResult Login(string provider, string? returnUrl = null, string? region = null)
     {
         if (User.Identity?.IsAuthenticated == true)
         {
@@ -180,7 +180,17 @@ public class HomeController : Controller
             return View();
         }
         var redirectUri = !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) ? returnUrl : "/";
-        return Challenge(new AuthenticationProperties { RedirectUri = redirectUri, IsPersistent = true }, provider);
+        var properties = new AuthenticationProperties { RedirectUri = redirectUri, IsPersistent = true };
+        if (provider == "Amazon")
+        {
+            var domain = OidcProviderConfig.AmazonDomain(region);
+            if (domain is null)
+            {
+                return View();
+            }
+            properties.Items["amazon_domain"] = domain;
+        }
+        return Challenge(properties, provider);
     }
 
     [AllowAnonymous]

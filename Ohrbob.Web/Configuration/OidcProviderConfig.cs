@@ -4,6 +4,23 @@ public static class OidcProviderConfig
 {
     public static readonly string[] All = ["Nextcloud", "Google", "GitHub", "Amazon"];
 
+    public static readonly (string Code, string Name, string Domain)[] AmazonRegions =
+    [
+        ("us", "United States", "amazon.com"),
+        ("de", "Germany", "amazon.de"),
+        ("uk", "United Kingdom", "amazon.co.uk"),
+        ("jp", "Japan", "amazon.co.jp"),
+        ("ca", "Canada", "amazon.ca"),
+        ("fr", "France", "amazon.fr"),
+        ("it", "Italy", "amazon.it"),
+        ("es", "Spain", "amazon.es"),
+        ("in", "India", "amazon.in"),
+        ("mx", "Mexico", "amazon.com.mx")
+    ];
+
+    public static string? AmazonDomain(string? code) =>
+        AmazonRegions.FirstOrDefault(r => r.Code == code).Domain;
+
     public static bool IsEnabled(IConfiguration config, string provider)
     {
         var section = config.GetSection($"Oidc:{provider}");

@@ -96,7 +96,6 @@ services:
       - Oidc__Nextcloud__ClientSecret=${Oidc__Nextcloud__ClientSecret:-}
       - Oidc__GitHub__ClientId=${Oidc__GitHub__ClientId:-}
       - Oidc__GitHub__ClientSecret=${Oidc__GitHub__ClientSecret:-}
-      - Oidc__Amazon__Domain=${Oidc__Amazon__Domain:-amazon.com}
       - Oidc__Amazon__ClientId=${Oidc__Amazon__ClientId:-}
       - Oidc__Amazon__ClientSecret=${Oidc__Amazon__ClientSecret:-}
       - Legal__Show=${Legal__Show:-false}
