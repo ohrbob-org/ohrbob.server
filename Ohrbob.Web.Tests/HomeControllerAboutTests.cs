@@ -27,12 +27,12 @@ public class HomeControllerAboutTests
     }
 
     [Test]
-    public void About_ReturnsView_WithWebApiAndPlayerVersions()
+    public void Status_ReturnsView_WithWebApiAndPlayerVersions()
     {
         var cache = new BackendVersionCache();
         cache.Update("api-sha", "beta", true, "player-sha", "beta", false, DateTime.UtcNow);
         var controller = new HomeController(_stations.Object, _profiles.Object, _legal, cache, Options.Create(new AppVersionOptions { Version = "web-sha", Tag = "beta" }));
-        var result = (ViewResult)controller.About();
+        var result = (ViewResult)controller.Status();
         var model = (AboutViewModel)result.Model!;
         Assert.That(model.WebVersion, Is.EqualTo("web-sha"));
         Assert.That(model.ApiVersion, Is.EqualTo("api-sha"));
