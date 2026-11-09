@@ -63,7 +63,8 @@ public class PlaywrightWebApplicationFactory : WebApplicationFactory<Program>
                 // The deployed app gets this from the top-level `.env` (env_file), but Program.cs
                 // only loads `{CWD}/.env` without traversing parent directories, so the test host
                 // would otherwise fall back to appsettings.json's `false` and render no terms checkbox.
-                { "Legal:Show", "true" }
+                { "Legal:Show", "true" },
+                { "Legal:Email", "support@example.test" }
             });
         });
 

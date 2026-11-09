@@ -52,12 +52,25 @@ public class AccountBillingTests : PageTest
         await Page.GotoAsync($"{_factory.ServerAddress}/Account");
 
         var tabs = Page.Locator("#accountTabsNav .account-tab-link");
-        await Expect(tabs).ToHaveCountAsync(4);
+        await Expect(tabs).ToHaveCountAsync(5);
         await Expect(tabs.Nth(0)).ToContainTextAsync("Account & Billing");
         await Expect(tabs.Nth(1)).ToContainTextAsync("Appearance");
         await Expect(tabs.Nth(2)).ToContainTextAsync("API Keys");
-        await Expect(tabs.Nth(3)).ToContainTextAsync("Delete Account");
+        await Expect(tabs.Nth(3)).ToContainTextAsync("Report a problem");
+        await Expect(tabs.Nth(4)).ToContainTextAsync("Delete Account");
         await Expect(Page.Locator("#accountTabsContent")).ToBeHiddenAsync();
+    }
+
+    [Test]
+    public async Task ReportProblem_ShowsAccountEmailAndGitHubIssueLinks()
+    {
+        await Page.GotoAsync($"{_factory.ServerAddress}/Account");
+        await Page.ClickAsync("#report-tab");
+
+        await Expect(Page.Locator("#report-pane")).ToBeVisibleAsync();
+        await Expect(Page.Locator("#report-pane")).ToContainTextAsync("Problem with my account or billing");
+        await Expect(Page.Locator("#report-pane a[href^='mailto:support@example.test']")).ToBeVisibleAsync();
+        await Expect(Page.Locator("#report-pane a[href='https://github.com/ohrbob-org/ohrbob.server/issues/']")).ToBeVisibleAsync();
     }
 
     [Test]

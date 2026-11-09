@@ -1,4 +1,5 @@
 @model Ohrbob.Web.Models.ManageAccountViewModel
+@inject Microsoft.Extensions.Options.IOptions<Ohrbob.Web.Configuration.LegalOptions> LegalOptions
 @{
     ViewData["Title"] = "Manage Account";
     string Limit(int v) => v < 0 ? "Unlimited" : v.ToString();
@@ -34,6 +35,14 @@
                 <span class="card-body d-block">
                     <span class="h5 d-block mb-1"><i class="bi bi-key me-2"></i>API Keys</span>
                     <span class="d-block text-muted">Device connections, tokens and QR codes.</span>
+                </span>
+            </button>
+        </div>
+        <div class="col" role="presentation">
+            <button type="button" class="card h-100 w-100 text-start text-body p-0 account-tab-link" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" role="tab" aria-controls="report-pane" aria-selected="false">
+                <span class="card-body d-block">
+                    <span class="h5 d-block mb-1"><i class="bi bi-life-preserver me-2"></i>Report a problem</span>
+                    <span class="d-block text-muted">Billing help, bug reports and feature requests.</span>
                 </span>
             </button>
         </div>
@@ -267,6 +276,41 @@
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="report-pane" role="tabpanel" aria-labelledby="report-tab">
+        @{
+            var supportEmail = LegalOptions.Value.Email;
+            var supportMailto = $"mailto:{supportEmail}?subject={Uri.EscapeDataString("Ohrbob: problem with my account or billing")}";
+        }
+        <h4 class="mb-3">Report a problem</h4>
+        <div class="row row-cols-1 row-cols-md-2 g-3">
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-person-lines-fill me-2"></i>Problem with my account or billing</h5>
+                        <p class="card-text text-muted">Tell us what went wrong and we'll look into it.</p>
+                        @if (!string.IsNullOrWhiteSpace(supportEmail))
+                        {
+                            <a class="btn btn-outline-primary" href="@supportMailto">Email us</a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Contact address is not configured.</span>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-github me-2"></i>Bug or feature request</h5>
+                        <p class="card-text text-muted">Report bugs and suggest features on GitHub.</p>
+                        <a class="btn btn-outline-primary" href="https://github.com/ohrbob-org/ohrbob.server/issues/" target="_blank" rel="noopener noreferrer" hx-boost="false">Open GitHub issues</a>
+                    </div>
                 </div>
             </div>
         </div>
