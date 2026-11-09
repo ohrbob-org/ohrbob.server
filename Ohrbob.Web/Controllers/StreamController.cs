@@ -14,12 +14,15 @@ public class StreamController : Controller
 {
     private readonly ProfilesApiService _profilesService;
     private readonly StationsApiService _stationsService;
+    private readonly AccountApiService _accountsService;
     private readonly StreamOptions _streamOptions;
 
-    public StreamController(ProfilesApiService profilesService, StationsApiService stationsService, IOptions<StreamOptions> streamOptions)
+    public StreamController(ProfilesApiService profilesService, StationsApiService stationsService,
+        AccountApiService accountsService, IOptions<StreamOptions> streamOptions)
     {
         _profilesService = profilesService;
         _stationsService = stationsService;
+        _accountsService = accountsService;
         _streamOptions = streamOptions.Value;
     }
 
@@ -32,10 +35,12 @@ public class StreamController : Controller
 
         var profiles = await _profilesService.GetProfilesByAccountIdAsync(accountId) ?? new List<Profile>();
         var stations = await _stationsService.GetStationsByAccountIdAsync(accountId) ?? new List<StationWithFeedsDto>();
+        var limits = await _accountsService.GetLimitsAsync(accountId);
         var stationNames = stations.ToDictionary(s => s.Station.Id, s => s.Station.Name);
 
         var model = new StreamViewModel
         {
+            StreamEnabled = limits?.StreamEnabled ?? false,
             Profiles = profiles.Select(profile => new StreamProfileGroup
             {
                 ProfileName = profile.Name,

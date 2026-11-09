@@ -4,40 +4,51 @@
 }
 
 <h1>Stream</h1>
-<p class="text-muted">
-    Use these URLs in an internet radio or streaming client. Treat them like passwords: anyone with a URL can listen.
-</p>
-<p class="text-muted">
-    Morebob accounts can stream to up to <strong>3 listeners</strong> at the same time per stream.
-</p>
 
-@if (Model.Profiles.Count == 0)
+@if (!Model.StreamEnabled)
 {
-    <p class="text-muted">No profiles yet.</p>
+    <div class="alert alert-info">
+        Streaming is a <strong>Morebob</strong> feature. Your current plan does not include stream URLs.
+        <a asp-controller="Account" asp-action="Index" class="alert-link">Upgrade your account</a> to start streaming.
+    </div>
 }
-
-@foreach (var profile in Model.Profiles)
+else
 {
-    <h2 class="h4 mt-4">@profile.ProfileName</h2>
+    <p class="text-muted">
+        Use these URLs in an internet radio or streaming client. Treat them like passwords: anyone with a URL can listen.
+    </p>
+    <p class="text-muted">
+        Morebob accounts can stream to up to <strong>3 listeners</strong> at the same time per stream.
+    </p>
 
-    @if (profile.Stations.Count == 0)
+    @if (Model.Profiles.Count == 0)
     {
-        <p class="text-muted">No stations assigned to this profile.</p>
+        <p class="text-muted">No profiles yet.</p>
     }
-    else
+
+    @foreach (var profile in Model.Profiles)
     {
-        <div class="list-group mb-3">
-            @foreach (var station in profile.Stations)
-            {
-                <div class="list-group-item d-flex flex-column flex-md-row align-items-md-center gap-2">
-                    <span class="fw-semibold flex-shrink-0" style="min-width: 12rem;">@station.StationName</span>
-                    <code class="flex-grow-1 text-break">@station.Url</code>
-                    <button type="button" class="btn btn-outline-primary btn-sm flex-shrink-0"
-                            onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">
-                        <i class="bi bi-clipboard me-1"></i> Copy
-                    </button>
-                </div>
-            }
-        </div>
+        <h2 class="h4 mt-4">@profile.ProfileName</h2>
+
+        @if (profile.Stations.Count == 0)
+        {
+            <p class="text-muted">No stations assigned to this profile.</p>
+        }
+        else
+        {
+            <div class="list-group mb-3">
+                @foreach (var station in profile.Stations)
+                {
+                    <div class="list-group-item d-flex flex-column flex-md-row align-items-md-center gap-2">
+                        <span class="fw-semibold flex-shrink-0" style="min-width: 12rem;">@station.StationName</span>
+                        <code class="flex-grow-1 text-break">@station.Url</code>
+                        <button type="button" class="btn btn-outline-primary btn-sm flex-shrink-0"
+                                onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">
+                            <i class="bi bi-clipboard me-1"></i> Copy
+                        </button>
+                    </div>
+                }
+            </div>
+        }
     }
 }
