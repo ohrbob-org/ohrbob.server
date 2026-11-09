@@ -11,7 +11,7 @@
     <tr><th>Stations</th><td>@Model.StationCount / @Limit(Model.Limits.MaxStations)</td></tr>
     <tr><th>Profiles</th><td>@Model.ProfileCount / @Limit(Model.Limits.MaxProfiles)</td></tr>
     <tr><th>Max feeds per station</th><td>@Limit(Model.Limits.MaxFeedsPerStation) (most used: @Model.MaxFeedsPerStationUsed)</td></tr>
-    <tr><th>Streaming</th><td>@(Model.Limits.StreamEnabled ? "On" : "Off")</td></tr>
+    <tr><th>Streaming</th><td>@(Model.Limits.StreamEnabled ? "On (up to 3 simultaneous listeners)" : "Off")</td></tr>
 </table>
 @if (Model.Tier != Ohrbob.Server.Shared.Data.SubscriptionTier.Morebob)
 {
@@ -50,7 +50,7 @@
                     <span class="feature-icon-premium">✓</span>
                     <div>
                         <div class="feature-title-premium">Full Audio Streaming</div>
-                        <div class="feature-desc-premium">Enjoy instant background audio streams without interruption.</div>
+                        <div class="feature-desc-premium">Enjoy instant background audio streams with up to 3 simultaneous listeners.</div>
                     </div>
                 </div>
             </div>
