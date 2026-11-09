@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "Already registered";
+    Layout = "_Layout_Minimal";
+}
+
+<div class="container mt-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0 glass-panel">
+                <div class="card-body p-5">
+                    <i class="bi bi-person-exclamation text-warning mb-4" style="font-size: 4rem;"></i>
+                    <h1 class="display-5 fw-bold mb-3">Already registered</h1>
+                    <p class="lead text-muted mb-4">
+                        You are already registered with another identity provider.
+                        Please sign in with the provider you used the first time.
+                    </p>
+                    <a asp-controller="Home" asp-action="Login" class="btn btn-primary px-4 py-2 rounded-pill" hx-boost="false">
+                        <i class="bi bi-box-arrow-in-right me-2"></i> Back to sign in
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

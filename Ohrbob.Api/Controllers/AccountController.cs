@@ -54,10 +54,15 @@ public class AccountController : ControllerBase
         if (existingAccount != null)
             return Ok(existingAccount);
 
+        // Same email under a different identity provider would create a second account.
+        var email = AccountService.NormalizeEmail(request.Email);
+        if (!string.IsNullOrEmpty(email) && await _accountService.FindByEmailAddress(email) != null)
+            return Conflict("You are already registered with another identity provider.");
+
         // create
         var account = new Account()
         {
-            Email = request.Email,
+            Email = email,
             Name = request.Name,
             ProfilePicture = request.ProfilePicture,
             IdentityProviders = [request.IdentityProvider],

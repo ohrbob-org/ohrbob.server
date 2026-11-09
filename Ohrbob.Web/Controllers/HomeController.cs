@@ -161,6 +161,13 @@ public class HomeController : Controller
     }
 
     [AllowAnonymous]
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public IActionResult AlreadyRegistered()
+    {
+        return View();
+    }
+
+    [AllowAnonymous]
     public IActionResult Login(string provider, string? returnUrl = null, string? region = null)
     {
         if (User.Identity?.IsAuthenticated == true)

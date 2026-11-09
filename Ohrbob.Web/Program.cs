@@ -136,7 +136,11 @@ void AddOidc(string scheme, string callbackPath, params string[] scopes)
             OnTokenValidated = async context =>
             {
                 context.Properties.IsPersistent = true;
-                await CreateOrGetAccountAsync(context);
+                if (!await CreateOrGetAccountAsync(context))
+                {
+                    context.Response.Redirect("/Home/AlreadyRegistered");
+                    context.HandleResponse();
+                }
             },
             OnRedirectToIdentityProvider = context =>
             {
@@ -182,7 +186,11 @@ if (OidcProviderConfig.IsEnabled(builder.Configuration, "GitHub"))
             OnTicketReceived = async context =>
             {
                 context.Properties.IsPersistent = true;
-                await CreateOrGetAccountCore(context.Principal, context.HttpContext, context.Scheme.Name);
+                if (!await CreateOrGetAccountCore(context.Principal, context.HttpContext, context.Scheme.Name))
+                {
+                    context.Response.Redirect("/Home/AlreadyRegistered");
+                    context.HandleResponse();
+                }
             },
             OnRemoteFailure = context =>
             {
@@ -243,7 +251,11 @@ if (OidcProviderConfig.IsEnabled(builder.Configuration, "Amazon"))
             OnTicketReceived = async context =>
             {
                 context.Properties.IsPersistent = true;
-                await CreateOrGetAccountCore(context.Principal, context.HttpContext, context.Scheme.Name);
+                if (!await CreateOrGetAccountCore(context.Principal, context.HttpContext, context.Scheme.Name))
+                {
+                    context.Response.Redirect("/Home/AlreadyRegistered");
+                    context.HandleResponse();
+                }
             },
             OnRemoteFailure = context =>
             {
@@ -323,12 +335,12 @@ app.MapGet("/health", (BackendVersionCache cache, IOptions<AppVersionOptions> v)
 }).AllowAnonymous();
 app.Run();
 
-async Task CreateOrGetAccountAsync(TokenValidatedContext context)
+async Task<bool> CreateOrGetAccountAsync(TokenValidatedContext context)
 {
-    await CreateOrGetAccountCore(context.Principal, context.HttpContext, context.Scheme.Name);
+    return await CreateOrGetAccountCore(context.Principal, context.HttpContext, context.Scheme.Name);
 }
 
-async Task CreateOrGetAccountCore(ClaimsPrincipal? principal, HttpContext httpContext, string schemeName)
+async Task<bool> CreateOrGetAccountCore(ClaimsPrincipal? principal, HttpContext httpContext, string schemeName)
 {
     var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value 
                  ?? principal?.FindFirst("sub")?.Value
@@ -346,7 +358,16 @@ async Task CreateOrGetAccountCore(ClaimsPrincipal? principal, HttpContext httpCo
 
     // Perform post-login tasks (e.g., sync user record, audit logging)
     
-    var account = await accountService.CreateOrUpdateAccountAsync(name, email, picture, issuer, userId);
+    Account? account;
+    try
+    {
+        account = await accountService.CreateOrUpdateAccountAsync(name, email, picture, issuer, userId);
+    }
+    catch (AccountAlreadyRegisteredException)
+    {
+        return false;
+    }
+
     if (principal?.Identity is ClaimsIdentity identity && account != null)
     {
         identity.AddClaim(new Claim(Consts.OhrbobAccountIdClaim, account.Id));
@@ -355,5 +376,7 @@ async Task CreateOrGetAccountCore(ClaimsPrincipal? principal, HttpContext httpCo
             httpContext.Response.Cookies.Append("Ohrbob_ActiveProfileId", account.LastUsedProfileId, new CookieOptions { HttpOnly = true, Secure = true, Expires = DateTimeOffset.UtcNow.AddDays(30) });
         }
     }
+
+    return true;
 }
 public partial class Program { }

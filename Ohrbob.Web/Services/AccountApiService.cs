@@ -8,6 +8,14 @@ using Ohrbob.Web.Configuration;
 
 namespace Ohrbob.Web.Services;
 
+public class AccountAlreadyRegisteredException : Exception
+{
+    public AccountAlreadyRegisteredException()
+        : base("You are already registered with another identity provider.")
+    {
+    }
+}
+
 public class AccountApiService : OhrbobApiService
 {
     public AccountApiService(ILogger<OhrbobApiService> logger, IOptions<OhrbobApiOptions> options, IHttpClientFactory clientFactory) : base(logger, options, clientFactory)
@@ -28,6 +36,8 @@ public class AccountApiService : OhrbobApiService
         }), Encoding.UTF8, "application/json");
         using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
         var response = await client.SendAsync(request);
+        if (response.StatusCode == HttpStatusCode.Conflict)
+            throw new AccountAlreadyRegisteredException();
         response.EnsureSuccessStatusCode();
         var account = await response.Content.ReadFromJsonAsync<Account>();
         return account;

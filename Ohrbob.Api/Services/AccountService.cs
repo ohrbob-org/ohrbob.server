@@ -27,9 +27,11 @@ public class AccountService : MongoDbService<Account>
             ;
     }
 
+    public static string NormalizeEmail(string? email) => (email ?? string.Empty).Trim().ToLowerInvariant();
+
     public async Task<Account?> FindByEmailAddress(string email)
     {
-        var filter = Builders<Account>.Filter.Eq(x => x.Email, email);
+        var filter = Builders<Account>.Filter.Eq(x => x.Email, NormalizeEmail(email));
         filter.ExcludeDeleted();
         var e = await Collection.FindAsync(filter);
         var result = await e.FirstOrDefaultAsync();

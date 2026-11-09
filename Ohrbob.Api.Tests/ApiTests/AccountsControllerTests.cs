@@ -91,6 +91,37 @@ public class AccountsControllerTests
         Assert.That(account.IdentityProviders[0].UserId, Is.EqualTo(CreateAccountRequest.IdentityProvider.UserId));
     }
 
+    [Test]
+    public async Task CreateAccount_WithExistingEmailAndDifferentIdp_ReturnsConflict()
+    {
+        var email = $"dup_{Guid.NewGuid()}@example.com";
+        var first = new CreateAccountRequest
+        {
+            Email = email,
+            Name = "First",
+            IdentityProvider = new IdpUser { Issuer = "https://first.example.com", UserId = Guid.NewGuid().ToString() }
+        };
+        var second = new CreateAccountRequest
+        {
+            Email = email.ToUpperInvariant(),
+            Name = "Second",
+            IdentityProvider = new IdpUser { Issuer = "https://second.example.com", UserId = Guid.NewGuid().ToString() }
+        };
+
+        var firstRequest = new HttpRequestMessage(HttpMethod.Post, "/api/account/create");
+        firstRequest.Headers.Add("X-API-KEY", _testApiKey);
+        firstRequest.Content = JsonContent.Create(first);
+        var firstResponse = await _client.SendAsync(firstRequest);
+        firstResponse.EnsureSuccessStatusCode();
+
+        var secondRequest = new HttpRequestMessage(HttpMethod.Post, "/api/account/create");
+        secondRequest.Headers.Add("X-API-KEY", _testApiKey);
+        secondRequest.Content = JsonContent.Create(second);
+        var secondResponse = await _client.SendAsync(secondRequest);
+
+        Assert.That(secondResponse.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
+    }
+
     private async Task<Account> CreateTestAccountAsync()
     {
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/account/create");
