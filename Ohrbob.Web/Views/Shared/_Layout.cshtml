@@ -8,8 +8,8 @@
     {
         var path = $"/{controller}";
         if (controller == "Home" && action == "Index") path = "/";
-        return HtmxNavOptions.Value.EnabledEndpoints.Any(e => 
-            e.Equals(path, StringComparison.OrdinalIgnoreCase) || 
+        return HtmxNavOptions.Value.EnabledEndpoints.Any(e =>
+            e.Equals(path, StringComparison.OrdinalIgnoreCase) ||
             (path.StartsWith(e, StringComparison.OrdinalIgnoreCase) && e != "/"));
     }
 }
@@ -35,7 +35,7 @@
     <link rel="stylesheet" href="~/Ohrbob.Web.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
-<body hx-boost="true" hx-target="#main-content" class="@(User.Identity?.IsAuthenticated == true ? "with-player" : "")">
+<body hx-boost="true" hx-target="#main-content" class="@(User.Identity?.IsAuthenticated == true ? "with-player" : "") d-flex flex-column min-vh-100">
     <header>
         <div class="floating-nav-pill">
             <!-- Left: Logo -->
@@ -51,7 +51,7 @@
                     </div>
                 </div>
             </a>
-            
+
             <!-- Center: Links (if auth'd) -->
             <div class="floating-nav-pill-center">
                 @if (User.Identity?.IsAuthenticated == true)
@@ -101,7 +101,7 @@
 
     @if (User.Identity?.IsAuthenticated != true)
     {
-        <footer class="border-top footer text-muted py-5 bg-body-tertiary">
+        <footer class="border-top footer text-muted py-5 bg-body-tertiary mt-auto">
             <div class="container">
                 <div class="row gy-4">
                     <div class="col-lg-4 col-md-6">
@@ -116,7 +116,7 @@
                             The multi-platform, open-source podcast sync server and player. Organize your podcasts into stations and keep your listening state consistent everywhere.
                         </p>
                     </div>
-                    
+
                     <div class="col-lg-2 col-md-3 col-6">
                         <h5 class="text-body mb-3">Product</h5>
                         <ul class="list-unstyled small mb-0">
@@ -159,7 +159,7 @@
     {
         @await Component.InvokeAsync("PlayerWidget")
     }
-    
+
     @await Component.InvokeAsync("ChangelogPopup")
 
     <!-- Reusable Confirmation Modal -->
