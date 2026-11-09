@@ -51,6 +51,7 @@ public class StreamControllerTests
         public string? stationName { get; set; }
         public bool? isCompiling { get; set; }
         public bool? isEmpty { get; set; }
+        public bool? streamEnabled { get; set; }
         public TrackInfo? current { get; set; }
         public TrackInfo? next { get; set; }
         public TrackInfo? prev { get; set; }
@@ -64,6 +65,36 @@ public class StreamControllerTests
         public string? streamUri { get; set; }
         public string? link { get; set; }
         public int playheadPositionSeconds { get; set; }
+    }
+
+    [Test]
+    public async Task GetStatus_FreeTier_ReportsStreamDisabled()
+    {
+        var account = new Account { Id = ObjectId.GenerateNewId().ToString(), Tier = SubscriptionTier.Free };
+        var profile = new Profile { AccountId = account.Id, StreamToken = "token-123" };
+
+        await _app.MongoDbContext.GetCollection<Account>("AccountCollection").InsertOneAsync(account);
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+        var status = await (await _client.GetAsync("/stream/status")).Content.ReadFromJsonAsync<StatusResponse>();
+
+        Assert.That(status!.streamEnabled, Is.False);
+    }
+
+    [Test]
+    public async Task GetStatus_MorebobTier_ReportsStreamEnabled()
+    {
+        var account = new Account { Id = ObjectId.GenerateNewId().ToString(), Tier = SubscriptionTier.Morebob };
+        var profile = new Profile { AccountId = account.Id, StreamToken = "token-123" };
+
+        await _app.MongoDbContext.GetCollection<Account>("AccountCollection").InsertOneAsync(account);
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+        var status = await (await _client.GetAsync("/stream/status")).Content.ReadFromJsonAsync<StatusResponse>();
+
+        Assert.That(status!.streamEnabled, Is.True);
     }
 
     [Test]

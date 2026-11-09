@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Ohrbob.Player.Services;
 using Ohrbob.Player.Configuration;
 using Ohrbob.Server.Shared.Data;
@@ -19,12 +20,15 @@ public class StreamController : ControllerBase
     private readonly IMongoCollection<Episode> _episodes;
     private readonly IMongoCollection<Profile> _profiles;
     private readonly IMongoCollection<Feed> _feeds;
+    private readonly IMongoCollection<Account> _accounts;
+    private readonly SubscriptionTiersOptions _tierOptions;
 
     public StreamController(
         PlayerContextService contextService, 
         ListenStateService listenStateService, 
         PlaybackStrategyService playbackStrategy,
-        MongoDbContext dbContext)
+        MongoDbContext dbContext,
+        IOptions<SubscriptionTiersOptions> tierOptions)
     {
         _contextService = contextService;
         _listenStateService = listenStateService;
@@ -33,6 +37,14 @@ public class StreamController : ControllerBase
         _episodes = dbContext.GetCollection<Episode>("EpisodeCollection");
         _profiles = dbContext.GetCollection<Profile>("ProfileCollection");
         _feeds = dbContext.GetCollection<Feed>("FeedCollection");
+        _accounts = dbContext.GetCollection<Account>("AccountCollection");
+        _tierOptions = tierOptions.Value;
+    }
+
+    private async Task<bool> IsStreamEnabledAsync(Profile profile)
+    {
+        var account = await _accounts.Find(a => a.Id == profile.AccountId && a.DeletedAt == null).FirstOrDefaultAsync();
+        return _tierOptions.For(account?.Tier ?? SubscriptionTier.Free).StreamEnabled;
     }
 
     private async Task<Profile?> GetProfile()
@@ -76,6 +88,8 @@ public class StreamController : ControllerBase
         var profile = await GetProfile();
         if (profile == null) return Unauthorized();
 
+        bool streamEnabled = await IsStreamEnabledAsync(profile);
+
         string? activeStationId = profile.LastActiveStationId;
         string? activeEpisodeId = profile.LastActiveEpisodeId;
         
@@ -85,10 +99,10 @@ public class StreamController : ControllerBase
             activeStationId = profile.AllowedStationIds[0];
         }
         
-        if (string.IsNullOrEmpty(activeStationId)) return Ok(new { });
+        if (string.IsNullOrEmpty(activeStationId)) return Ok(new { streamEnabled });
 
         var station = await _stations.Find(s => s.Id == activeStationId && s.DeletedAt == null).FirstOrDefaultAsync();
-        if (station == null) return Ok(new { });
+        if (station == null) return Ok(new { streamEnabled });
 
         Episode? currentEpisode = null;
         if (!string.IsNullOrEmpty(activeEpisodeId))
@@ -124,7 +138,8 @@ public class StreamController : ControllerBase
                 profileName = profile.Name,
                 stationName = station.Name,
                 isCompiling = isCompiling,
-                isEmpty = !isCompiling
+                isEmpty = !isCompiling,
+                streamEnabled
             });
         }
 
@@ -145,6 +160,7 @@ public class StreamController : ControllerBase
             stationId = station.Id,
             profileName = profile.Name,
             stationName = station.Name, 
+            streamEnabled,
             current = new {
                 episodeId = currentEpisode.Id,
                 title = currentEpisode.Title,

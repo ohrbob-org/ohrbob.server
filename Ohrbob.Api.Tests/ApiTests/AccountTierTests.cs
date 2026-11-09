@@ -8,7 +8,7 @@ public class AccountTierTests
     [Test]
     public void TierLimits_For_Morebob_AllowsStream()
     {
-        var options = new Ohrbob.Api.Configuration.SubscriptionTiersOptions();
+        var options = new SubscriptionTiersOptions();
         var morebob = options.For(SubscriptionTier.Morebob);
         Assert.That(morebob.StreamEnabled, Is.True);
         Assert.That(TierLimits.IsUnlimited(morebob.MaxStations), Is.True);

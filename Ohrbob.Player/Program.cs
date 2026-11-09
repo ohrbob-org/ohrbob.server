@@ -9,11 +9,13 @@ using Ohrbob.Player.Health;
 using Ohrbob.Player.Services;
 using MongoDB.Driver;
 using DotNetEnv;
+using Ohrbob.Server.Shared.Data;
 
 Env.NoClobber().Load();
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 builder.Services.Configure<AppVersionOptions>(configuration.GetSection(AppVersionOptions.SectionName));
+builder.Services.Configure<SubscriptionTiersOptions>(configuration.GetSection(SubscriptionTiersOptions.ConfigSection));
 
 // MongoDB Setup
 var mongoDbSettings = configuration.GetSection("MongoDbData").Get<MongoDbSettings>();

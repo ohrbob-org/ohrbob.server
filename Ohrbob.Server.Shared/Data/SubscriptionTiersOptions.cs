@@ -1,6 +1,4 @@
-using Ohrbob.Server.Shared.Data;
-
-namespace Ohrbob.Api.Configuration;
+namespace Ohrbob.Server.Shared.Data;
 
 public class SubscriptionTiersOptions
 {

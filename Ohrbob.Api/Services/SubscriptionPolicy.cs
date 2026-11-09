@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Options;
-using Ohrbob.Api.Configuration;
 using Ohrbob.Server.Shared.Data;
 
 namespace Ohrbob.Api.Services;

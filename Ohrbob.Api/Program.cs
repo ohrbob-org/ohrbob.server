@@ -10,6 +10,7 @@ using Microsoft.OpenApi;
 using Ohrbob.Api.Extensions.Logger;
 using Ohrbob.Api.Migrations;
 using Ohrbob.Api.Services;
+using Ohrbob.Server.Shared.Data;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
