@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
@@ -114,6 +115,37 @@ public class AccountApiService : OhrbobApiService
         var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<Account>();
+    }
+
+    public virtual async Task<string> CreateCheckoutSessionAsync(string accountId, string successUrl, string cancelUrl)
+    {
+        using var request = BuildRequest(HttpMethod.Post, "/stripe/checkout");
+        request.Content = JsonContent.Create(new StripeCheckoutRequest
+        {
+            AccountId = accountId,
+            SuccessUrl = successUrl,
+            CancelUrl = cancelUrl
+        });
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        var session = await response.Content.ReadFromJsonAsync<StripeSessionResponse>();
+        return session?.Url ?? throw new InvalidOperationException("Stripe did not return a checkout URL.");
+    }
+
+    public virtual async Task<string> CreateBillingPortalSessionAsync(string accountId, string returnUrl)
+    {
+        using var request = BuildRequest(HttpMethod.Post, "/stripe/portal");
+        request.Content = JsonContent.Create(new StripePortalRequest
+        {
+            AccountId = accountId,
+            ReturnUrl = returnUrl
+        });
+        using var client = ClientFactory.CreateClient(nameof(OhrbobApiService));
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        var session = await response.Content.ReadFromJsonAsync<StripeSessionResponse>();
+        return session?.Url ?? throw new InvalidOperationException("Stripe did not return a portal URL.");
     }
 
     public virtual async Task<Account?> SetTierAsync(string accountId, SubscriptionTier tier)

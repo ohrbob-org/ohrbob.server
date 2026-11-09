@@ -27,8 +27,13 @@ public class AccountController : Controller
     private string? GetAccountId() => User.FindFirst(Consts.OhrbobAccountIdClaim)?.Value;
 
     [HttpGet]
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? checkout = null)
     {
+        if (checkout == "success")
+            TempData["Notice"] = "Payment received. Morebob activates as soon as Stripe confirms the subscription.";
+        else if (checkout == "cancelled")
+            TempData["Notice"] = "Checkout cancelled.";
+
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();
         var account = await _accounts.GetAccountAsync(accountId);
@@ -136,15 +141,38 @@ public class AccountController : Controller
     {
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();
+
+        var successUrl = $"{Request.Scheme}://{Request.Host}/Account?checkout=success";
+        var cancelUrl = $"{Request.Scheme}://{Request.Host}/Account?checkout=cancelled";
         try
         {
-            await _accounts.SetTierAsync(accountId, SubscriptionTier.Morebob);
-            TempData["Notice"] = "Upgraded to Morebob (beta — billing integration coming soon).";
+            var url = await _accounts.CreateCheckoutSessionAsync(accountId, successUrl, cancelUrl);
+            return Redirect(url);
         }
         catch
         {
-            TempData["Error"] = "Upgrade failed. Please try again.";
+            TempData["Error"] = "Could not start checkout. Please try again.";
+            return RedirectToAction(nameof(Index));
         }
-        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ManageBilling()
+    {
+        var accountId = GetAccountId();
+        if (string.IsNullOrEmpty(accountId)) return Forbid();
+
+        var returnUrl = $"{Request.Scheme}://{Request.Host}/Account";
+        try
+        {
+            var url = await _accounts.CreateBillingPortalSessionAsync(accountId, returnUrl);
+            return Redirect(url);
+        }
+        catch
+        {
+            TempData["Error"] = "Could not open the billing portal. Please try again.";
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

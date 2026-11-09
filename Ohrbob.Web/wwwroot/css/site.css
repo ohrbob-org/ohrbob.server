@@ -724,3 +724,12 @@ html:has(.radio-landing-container) {
     -webkit-mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 24px), transparent);
     mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 24px), transparent);
 }
+
+/* Account tab cards */
+.account-tab-link {
+    transition: border-color .15s ease-in-out;
+}
+.account-tab-link:hover,
+.account-tab-link.active {
+    border-color: var(--bs-primary);
+}

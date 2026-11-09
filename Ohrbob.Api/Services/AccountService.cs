@@ -23,6 +23,10 @@ public class AccountService : MongoDbService<Account>
             .Set(nameof(Account.Tier), entryIn.Tier)
             .Set(nameof(Account.StripeCustomerId), entryIn.StripeCustomerId)
             .Set(nameof(Account.StripeSubscriptionId), entryIn.StripeSubscriptionId)
+            .Set(nameof(Account.StripeSubscriptionStatus), entryIn.StripeSubscriptionStatus)
+            .Set(nameof(Account.StripeCurrentPeriodEnd), entryIn.StripeCurrentPeriodEnd)
+            .Set(nameof(Account.StripeCancelAt), entryIn.StripeCancelAt)
+            .Set(nameof(Account.StripeSubscriptionEndedAt), entryIn.StripeSubscriptionEndedAt)
             .Set(nameof(Account.LastSeenChangelog), entryIn.LastSeenChangelog)
             ;
     }
@@ -36,6 +40,14 @@ public class AccountService : MongoDbService<Account>
         var e = await Collection.FindAsync(filter);
         var result = await e.FirstOrDefaultAsync();
         return result;
+    }
+
+    public async Task<Account?> FindByStripeCustomerIdAsync(string stripeCustomerId)
+    {
+        var filter = Builders<Account>.Filter.Eq(x => x.StripeCustomerId, stripeCustomerId);
+        filter.ExcludeDeleted();
+        var e = await Collection.FindAsync(filter);
+        return await e.FirstOrDefaultAsync();
     }
 
     public async Task<Account?> FindByIdpAsync(IdpUser requestIdentityProvider)

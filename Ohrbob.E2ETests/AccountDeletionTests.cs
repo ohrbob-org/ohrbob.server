@@ -51,6 +51,9 @@ public class AccountDeletionTests : PageTest
         await Page.GotoAsync($"{_factory.ServerAddress}/Account");
         await Expect(Page.Locator("h1")).ToContainTextAsync("Manage Account");
 
+        await Page.ClickAsync("#delete-tab");
+        await Expect(Page.Locator("#delete-pane")).ToBeVisibleAsync();
+
         var deleteLink = Page.Locator("a[href='/Account/Delete']");
         await deleteLink.ScrollIntoViewIfNeededAsync();
         await Expect(deleteLink).ToBeVisibleAsync();

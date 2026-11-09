@@ -86,6 +86,36 @@ public class AccountControllerTests
             It.IsAny<HttpContext>(), It.IsAny<string>(), It.IsAny<AuthenticationProperties?>()), Times.Once);
     }
 
+    [Test]
+    public async Task Upgrade_RedirectsToStripeCheckout()
+    {
+        var accountMock = CreateAccountMock();
+        accountMock.Setup(s => s.CreateCheckoutSessionAsync("a1", It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync("https://checkout.stripe.test/session");
+
+        var controller = CreateController(accountMock.Object);
+
+        var result = await controller.Upgrade() as RedirectResult;
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.Url, Is.EqualTo("https://checkout.stripe.test/session"));
+    }
+
+    [Test]
+    public async Task ManageBilling_RedirectsToStripePortal()
+    {
+        var accountMock = CreateAccountMock();
+        accountMock.Setup(s => s.CreateBillingPortalSessionAsync("a1", It.IsAny<string>()))
+            .ReturnsAsync("https://billing.stripe.test/session");
+
+        var controller = CreateController(accountMock.Object);
+
+        var result = await controller.ManageBilling() as RedirectResult;
+
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.Url, Is.EqualTo("https://billing.stripe.test/session"));
+    }
+
     private static Mock<AccountApiService> CreateAccountMock()
     {
         var loggerMock = new Mock<Microsoft.Extensions.Logging.ILogger<OhrbobApiService>>();

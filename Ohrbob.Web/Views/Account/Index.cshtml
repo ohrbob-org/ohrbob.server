@@ -2,209 +2,285 @@
 @{
     ViewData["Title"] = "Manage Account";
     string Limit(int v) => v < 0 ? "Unlimited" : v.ToString();
+    var cancelAt = Model.Account.StripeCancelAt?.ToLocalTime();
+    var periodEnd = Model.Account.StripeCurrentPeriodEnd?.ToLocalTime();
+    var endedAt = Model.Account.StripeSubscriptionEndedAt?.ToLocalTime();
+    string Date(DateTime? value) => value?.ToString("d MMM yyyy", System.Globalization.CultureInfo.InvariantCulture) ?? "";
 }
 <h1>Manage Account</h1>
 @if (TempData["Notice"] != null) { <div class="alert alert-success">@TempData["Notice"]</div> }
 @if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
-<p><span class="badge @(Model.Tier == Ohrbob.Server.Shared.Data.SubscriptionTier.Morebob ? "bg-success" : "bg-secondary")">@Model.Tier</span></p>
-<table class="table">
-    <tr><th>Stations</th><td>@Model.StationCount / @Limit(Model.Limits.MaxStations)</td></tr>
-    <tr><th>Profiles</th><td>@Model.ProfileCount / @Limit(Model.Limits.MaxProfiles)</td></tr>
-    <tr><th>Max feeds per station</th><td>@Limit(Model.Limits.MaxFeedsPerStation) (most used: @Model.MaxFeedsPerStationUsed)</td></tr>
-    <tr><th>Streaming</th><td>@(Model.Limits.StreamEnabled ? "On (up to 3 simultaneous listeners)" : "Off")</td></tr>
-</table>
-@if (Model.Tier != Ohrbob.Server.Shared.Data.SubscriptionTier.Morebob)
-{
-    <div class="upgrade-card shadow-sm mb-4">
-        <div class="card-content-wrapper">
-            <span class="card-badge">More</span>
-            <h3 class="card-title-premium">morebob</h3>
-            <p class="card-desc-premium">
-                Build your ultimate personalized audio space with zero limits.
-            </p>
-            
-            <!-- Feature Grid (The Claim) -->
-            <div class="feature-grid-premium">
-                <div class="feature-item-premium">
-                    <span class="feature-icon-premium">✓</span>
-                    <div>
-                        <div class="feature-title-premium">Unlimited Stations</div>
-                        <div class="feature-desc-premium">Create as many customized stations as you want (versus 1).</div>
-                    </div>
-                </div>
-                <div class="feature-item-premium">
-                    <span class="feature-icon-premium">✓</span>
-                    <div>
-                        <div class="feature-title-premium">Unlimited Feeds</div>
-                        <div class="feature-desc-premium">Add any number of RSS, podcast, and news sources per station.</div>
-                    </div>
-                </div>
-                <div class="feature-item-premium">
-                    <span class="feature-icon-premium">✓</span>
-                    <div>
-                        <div class="feature-title-premium">Up to 5 Profiles</div>
-                        <div class="feature-desc-premium">Separate by moods or easily share with your family.</div>
-                    </div>
-                </div>
-                <div class="feature-item-premium">
-                    <span class="feature-icon-premium">✓</span>
-                    <div>
-                        <div class="feature-title-premium">Full Audio Streaming</div>
-                        <div class="feature-desc-premium">Enjoy instant background audio streams with up to 3 simultaneous listeners.</div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Upgrade Button Form -->
-            <form asp-action="Upgrade" method="post">
-                @Html.AntiForgeryToken()
-                <button class="btn-upgrade-morebob" type="submit">
-                    <span class="button-text">Upgrade to Morebob</span>
-                    <img src="~/images/ohrbob-logo.svg" alt="Morebob Logo" class="watermark" />
-                    
-                </button>
-            </form>
-
-            <!-- Prominent Coming Soon Alert -->
-            <div class="coming-soon-banner">
-                <span class="banner-icon-premium">💳</span>
-                <div>
-                    <div class="banner-title-premium">Stripe Card Billing Integration Coming Soon!</div>
-                    <div class="banner-desc-premium">We are actively preparing standard Stripe subscription payments.</div>
-                </div>
-            </div>
+<div id="accountTabs">
+    <div class="row row-cols-1 row-cols-md-2 g-3" id="accountTabsNav" role="tablist">
+        <div class="col" role="presentation">
+            <button type="button" class="card h-100 w-100 text-start text-body p-0 account-tab-link active" id="account-tab" data-bs-toggle="tab" data-bs-target="#account-pane" role="tab" aria-controls="account-pane" aria-selected="true">
+                <span class="card-body d-block">
+                    <span class="h5 d-block mb-1"><i class="bi bi-person-circle me-2"></i>Account &amp; Billing</span>
+                    <span class="d-block text-muted">Your plan, limits, renewal date and billing.</span>
+                </span>
+            </button>
+        </div>
+        <div class="col" role="presentation">
+            <button type="button" class="card h-100 w-100 text-start text-body p-0 account-tab-link" id="appearance-tab" data-bs-toggle="tab" data-bs-target="#appearance-pane" role="tab" aria-controls="appearance-pane" aria-selected="false">
+                <span class="card-body d-block">
+                    <span class="h5 d-block mb-1"><i class="bi bi-palette me-2"></i>Appearance</span>
+                    <span class="d-block text-muted">Light, dark or system theme for this device.</span>
+                </span>
+            </button>
+        </div>
+        <div class="col" role="presentation">
+            <button type="button" class="card h-100 w-100 text-start text-body p-0 account-tab-link" id="api-keys-tab" data-bs-toggle="tab" data-bs-target="#api-keys-pane" role="tab" aria-controls="api-keys-pane" aria-selected="false">
+                <span class="card-body d-block">
+                    <span class="h5 d-block mb-1"><i class="bi bi-key me-2"></i>API Keys</span>
+                    <span class="d-block text-muted">Device connections, tokens and QR codes.</span>
+                </span>
+            </button>
+        </div>
+        <div class="col" role="presentation">
+            <button type="button" class="card h-100 w-100 text-start text-body p-0 account-tab-link" id="delete-tab" data-bs-toggle="tab" data-bs-target="#delete-pane" role="tab" aria-controls="delete-pane" aria-selected="false">
+                <span class="card-body d-block">
+                    <span class="h5 d-block mb-1"><i class="bi bi-trash3 me-2"></i>Delete Account</span>
+                    <span class="d-block text-muted">Permanently remove your account and all data.</span>
+                </span>
+            </button>
         </div>
     </div>
-}
-else
-{
-    <p class="text-success">You are on Morebob. Manage billing via Stripe portal (coming soon).</p>
-}
+    <div id="accountTabsContent" class="d-none">
+        <button type="button" class="btn btn-sm btn-outline-secondary mb-3" id="accountTabsBack">
+            <i class="bi bi-arrow-left me-1"></i>Back
+        </button>
+        <div class="tab-content">
+    <div class="tab-pane fade show active" id="account-pane" role="tabpanel" aria-labelledby="account-tab">
+        <h4 class="mb-3">Account details</h4>
+        <table class="table">
+            <tr><th>Name</th><td>@Model.Account.Name</td></tr>
+            <tr><th>Email</th><td>@Model.Account.Email</td></tr>
+            <tr><th>Plan</th><td><span class="badge @(Model.Tier == Ohrbob.Server.Shared.Data.SubscriptionTier.Morebob ? "bg-success" : "bg-secondary")">@Model.Tier</span></td></tr>
+            <tr><th>Stations</th><td>@Model.StationCount / @Limit(Model.Limits.MaxStations)</td></tr>
+            <tr><th>Profiles</th><td>@Model.ProfileCount / @Limit(Model.Limits.MaxProfiles)</td></tr>
+            <tr><th>Max feeds per station</th><td>@Limit(Model.Limits.MaxFeedsPerStation) (most used: @Model.MaxFeedsPerStationUsed)</td></tr>
+            <tr><th>Streaming</th><td>@(Model.Limits.StreamEnabled ? "On (up to 3 simultaneous listeners)" : "Off")</td></tr>
+        </table>
 
-<!-- Appearance / theme settings -->
-@{
-    var themeMode = Context.Request.Cookies["ohrbob_theme"];
-    if (!string.IsNullOrEmpty(themeMode)) { themeMode = Uri.UnescapeDataString(themeMode); }
-    if (themeMode != "light" && themeMode != "dark") { themeMode = "system"; }
-}
-<div class="card mt-4" id="appearanceCard">
-    <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
-        <h4 class="mb-0">Appearance</h4>
-    </div>
-    <div class="card-body">
-        <p class="text-muted mb-3">Choose how ohrbob looks on this device. <strong>System</strong> follows your browser or operating system setting.</p>
-        <div role="group" aria-label="Theme">
-            <input type="radio" class="btn-check" name="theme" id="themeSystem" value="system" autocomplete="off" @(themeMode == "system" ? "checked" : "")>
-            <label class="btn btn-outline-primary" for="themeSystem"><i class="bi bi-circle-half me-1"></i> System</label>
-
-            <input type="radio" class="btn-check" name="theme" id="themeLight" value="light" autocomplete="off" @(themeMode == "light" ? "checked" : "")>
-            <label class="btn btn-outline-primary" for="themeLight"><i class="bi bi-sun me-1"></i> Light</label>
-
-            <input type="radio" class="btn-check" name="theme" id="themeDark" value="dark" autocomplete="off" @(themeMode == "dark" ? "checked" : "")>
-            <label class="btn btn-outline-primary" for="themeDark"><i class="bi bi-moon-stars me-1"></i> Dark</label>
-        </div>
-    </div>
-</div>
-
-@inject Microsoft.Extensions.Options.IOptions<Ohrbob.Web.Configuration.OhrbobApiOptions> ApiOptions
-
-<div class="card mt-4">
-    <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
-        <h4 class="mb-0">Device Connectivity & API Keys</h4>
-    </div>
-    <div class="card-body text-body">
-        <p class="text-muted">Generate API keys to connect external devices and players. Connect via the generated QR code.</p>
-
-        @if (Model.ApiKeys == null || !Model.ApiKeys.Any())
+        @if (Model.Tier != Ohrbob.Server.Shared.Data.SubscriptionTier.Morebob)
         {
-            <div class="text-center py-4 text-muted border rounded mb-3 bg-body-secondary">
-                <i class="bi bi-key-fill" style="font-size: 2rem;"></i>
-                <p class="mt-2 mb-0">No active API keys found. Create one below to connect your devices.</p>
+            @if (Model.Account.StripeSubscriptionStatus == "canceled" && endedAt != null)
+            {
+                <p class="text-muted">Your Morebob subscription ended on @Date(endedAt).</p>
+            }
+            <div class="upgrade-card shadow-sm mb-4">
+                <div class="card-content-wrapper">
+                    <span class="card-badge">More</span>
+                    <h3 class="card-title-premium">morebob</h3>
+                    <p class="card-desc-premium">
+                        Build your ultimate personalized audio space with zero limits.
+                    </p>
+
+                    <!-- Feature Grid (The Claim) -->
+                    <div class="feature-grid-premium">
+                        <div class="feature-item-premium">
+                            <span class="feature-icon-premium">✓</span>
+                            <div>
+                                <div class="feature-title-premium">Unlimited Stations</div>
+                                <div class="feature-desc-premium">Create as many customized stations as you want (versus 1).</div>
+                            </div>
+                        </div>
+                        <div class="feature-item-premium">
+                            <span class="feature-icon-premium">✓</span>
+                            <div>
+                                <div class="feature-title-premium">Unlimited Feeds</div>
+                                <div class="feature-desc-premium">Add any number of RSS, podcast, and news sources per station.</div>
+                            </div>
+                        </div>
+                        <div class="feature-item-premium">
+                            <span class="feature-icon-premium">✓</span>
+                            <div>
+                                <div class="feature-title-premium">Up to 5 Profiles</div>
+                                <div class="feature-desc-premium">Separate by moods or easily share with your family.</div>
+                            </div>
+                        </div>
+                        <div class="feature-item-premium">
+                            <span class="feature-icon-premium">✓</span>
+                            <div>
+                                <div class="feature-title-premium">Full Audio Streaming</div>
+                                <div class="feature-desc-premium">Enjoy instant background audio streams with up to 3 simultaneous listeners.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upgrade Button Form -->
+                    <form asp-action="Upgrade" method="post" hx-boost="false">
+                        @Html.AntiForgeryToken()
+                        <button class="btn-upgrade-morebob" type="submit">
+                            <span class="button-text">Upgrade to Morebob</span>
+                            <img src="~/images/ohrbob-logo.svg" alt="Morebob Logo" class="watermark" />
+
+                        </button>
+                    </form>
+                </div>
             </div>
         }
         else
         {
-            <div class="table-responsive">
-                <table class="table align-middle text-body">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Profile</th>
-                            <th>Token</th>
-                            <th>Connection</th>
-                            <th class="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var key in Model.ApiKeys)
-                        {
-                            var profileName = Model.Profiles.FirstOrDefault(p => p.Id == key.ProfileId)?.Name ?? "All Profiles (Account level)";
-                            var abbrevToken = key.Token.Length > 9 
-                                ? key.Token.Substring(0, 5) + "..." + key.Token.Substring(key.Token.Length - 4) 
-                                : key.Token;
-                            var deepLink = $"ohrbob://connect?server={Uri.EscapeDataString(ApiOptions.Value.FrontendPlayerUrl)}&token={Uri.EscapeDataString(key.Token)}";
-
-                            <tr>
-                                <td><strong>@key.Name</strong></td>
-                                <td><span class="badge bg-body-secondary text-body border">@profileName</span></td>
-                                <td><code>@abbrevToken</code></td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary" type="button" 
-                                            onclick="showConnectionQr('@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(key.Name))', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(deepLink))')">
-                                        <i class="bi bi-qr-code"></i> Show QR
-                                    </button>
-                                </td>
-                                <td class="text-end">
-                                    <form asp-action="RevokeApiKey" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to revoke this API key? This will instantly disconnect any connected devices.');">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@key.Id" />
-                                        <button class="btn btn-sm btn-outline-danger" type="submit">
-                                            <i class="bi bi-trash"></i> Revoke
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+            <p class="text-success">You are on Morebob.</p>
+            <p class="text-muted" id="morebob-thanks">@MorebobThanks.For(Model.Account.Id)</p>
+            @if (cancelAt != null)
+            {
+                <p class="text-warning-emphasis mb-2"><strong>Renewal is off.</strong> Your subscription ends on @Date(cancelAt).</p>
+            }
+            else if (periodEnd != null)
+            {
+                <p class="text-muted mb-2">Renews on @Date(periodEnd).</p>
+            }
+            @if (!string.IsNullOrEmpty(Model.Account.StripeCustomerId))
+            {
+                <form asp-action="ManageBilling" method="post" hx-boost="false" class="mb-4">
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-outline-primary" type="submit">Manage billing</button>
+                </form>
+            }
+            else
+            {
+                <p class="text-muted mb-2">No Stripe subscription is linked to this account.</p>
+                <form asp-action="Upgrade" method="post" hx-boost="false" class="mb-4">
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-outline-primary" type="submit">Set up billing</button>
+                </form>
+            }
         }
+    </div>
 
-        <!-- Create New Key Form -->
-        <div class="border rounded p-3 mt-4 bg-body-secondary text-body">
-            <h5>Generate New API Key</h5>
-            <form asp-action="AddApiKey" method="post" class="row g-3 align-items-end">
-                @Html.AntiForgeryToken()
-                <div class="col-md-5">
-                    <label for="keyName" class="form-label small text-muted">Device or Key Name</label>
-                    <input type="text" class="form-control form-control-sm text-body bg-body" id="keyName" name="name" placeholder="e.g. My Smart Speaker, Living Room Tablet" required />
+    <div class="tab-pane fade" id="appearance-pane" role="tabpanel" aria-labelledby="appearance-tab">
+        @{
+            var themeMode = Context.Request.Cookies["ohrbob_theme"];
+            if (!string.IsNullOrEmpty(themeMode)) { themeMode = Uri.UnescapeDataString(themeMode); }
+            if (themeMode != "light" && themeMode != "dark") { themeMode = "system"; }
+        }
+        <div class="card" id="appearanceCard">
+            <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
+                <h4 class="mb-0">Appearance</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">Choose how ohrbob looks on this device. <strong>System</strong> follows your browser or operating system setting.</p>
+                <div role="group" aria-label="Theme">
+                    <input type="radio" class="btn-check" name="theme" id="themeSystem" value="system" autocomplete="off" @(themeMode == "system" ? "checked" : "")>
+                    <label class="btn btn-outline-primary" for="themeSystem"><i class="bi bi-circle-half me-1"></i> System</label>
+
+                    <input type="radio" class="btn-check" name="theme" id="themeLight" value="light" autocomplete="off" @(themeMode == "light" ? "checked" : "")>
+                    <label class="btn btn-outline-primary" for="themeLight"><i class="bi bi-sun me-1"></i> Light</label>
+
+                    <input type="radio" class="btn-check" name="theme" id="themeDark" value="dark" autocomplete="off" @(themeMode == "dark" ? "checked" : "")>
+                    <label class="btn btn-outline-primary" for="themeDark"><i class="bi bi-moon-stars me-1"></i> Dark</label>
                 </div>
-                <div class="col-md-5">
-                    <label for="profileId" class="form-label small text-muted">Profile Scope</label>
-                    <select class="form-select form-select-sm text-body bg-body" id="profileId" name="profileId">
-                        <option value="">All Profiles (Account level)</option>
-                        @foreach (var p in Model.Profiles)
-                        {
-                            <option value="@p.Id">@p.Name</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-2 text-end">
-                    <button type="submit" class="btn btn-sm btn-primary w-100">
-                        <i class="bi bi-plus-circle"></i> Generate
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="mt-5 pt-4 border-top">
-    <h4 class="text-danger">Delete account</h4>
-    <p class="text-muted mb-3">Permanently delete your account, profiles, stations and listening history.</p>
-    <a asp-action="Delete" class="btn btn-outline-danger">
-        <i class="bi bi-trash3-fill me-1"></i>Delete account
-    </a>
+    <div class="tab-pane fade" id="api-keys-pane" role="tabpanel" aria-labelledby="api-keys-tab">
+        @inject Microsoft.Extensions.Options.IOptions<Ohrbob.Web.Configuration.OhrbobApiOptions> ApiOptions
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
+                <h4 class="mb-0">Device Connectivity &amp; API Keys</h4>
+            </div>
+            <div class="card-body text-body">
+                <p class="text-muted">Generate API keys to connect external devices and players. Connect via the generated QR code.</p>
+
+                @if (Model.ApiKeys == null || !Model.ApiKeys.Any())
+                {
+                    <div class="text-center py-4 text-muted border rounded mb-3 bg-body-secondary">
+                        <i class="bi bi-key-fill" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">No active API keys found. Create one below to connect your devices.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table align-middle text-body">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Profile</th>
+                                    <th>Token</th>
+                                    <th>Connection</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var key in Model.ApiKeys)
+                                {
+                                    var profileName = Model.Profiles.FirstOrDefault(p => p.Id == key.ProfileId)?.Name ?? "All Profiles (Account level)";
+                                    var abbrevToken = key.Token.Length > 9
+                                        ? key.Token.Substring(0, 5) + "..." + key.Token.Substring(key.Token.Length - 4)
+                                        : key.Token;
+                                    var deepLink = $"ohrbob://connect?server={Uri.EscapeDataString(ApiOptions.Value.FrontendPlayerUrl)}&token={Uri.EscapeDataString(key.Token)}";
+
+                                    <tr>
+                                        <td><strong>@key.Name</strong></td>
+                                        <td><span class="badge bg-body-secondary text-body border">@profileName</span></td>
+                                        <td><code>@abbrevToken</code></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" type="button"
+                                                    onclick="showConnectionQr('@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(key.Name))', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(deepLink))')">
+                                                <i class="bi bi-qr-code"></i> Show QR
+                                            </button>
+                                        </td>
+                                        <td class="text-end">
+                                            <form asp-action="RevokeApiKey" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to revoke this API key? This will instantly disconnect any connected devices.');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@key.Id" />
+                                                <button class="btn btn-sm btn-outline-danger" type="submit">
+                                                    <i class="bi bi-trash"></i> Revoke
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+
+                <!-- Create New Key Form -->
+                <div class="border rounded p-3 mt-4 bg-body-secondary text-body">
+                    <h5>Generate New API Key</h5>
+                    <form asp-action="AddApiKey" method="post" class="row g-3 align-items-end">
+                        @Html.AntiForgeryToken()
+                        <div class="col-md-5">
+                            <label for="keyName" class="form-label small text-muted">Device or Key Name</label>
+                            <input type="text" class="form-control form-control-sm text-body bg-body" id="keyName" name="name" placeholder="e.g. My Smart Speaker, Living Room Tablet" required />
+                        </div>
+                        <div class="col-md-5">
+                            <label for="profileId" class="form-label small text-muted">Profile Scope</label>
+                            <select class="form-select form-select-sm text-body bg-body" id="profileId" name="profileId">
+                                <option value="">All Profiles (Account level)</option>
+                                @foreach (var p in Model.Profiles)
+                                {
+                                    <option value="@p.Id">@p.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <button type="submit" class="btn btn-sm btn-primary w-100">
+                                <i class="bi bi-plus-circle"></i> Generate
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="delete-pane" role="tabpanel" aria-labelledby="delete-tab">
+        <h4 class="text-danger">Delete account</h4>
+        <p class="text-muted mb-3">Permanently delete your account, profiles, stations and listening history.</p>
+        <a asp-action="Delete" class="btn btn-outline-danger">
+            <i class="bi bi-trash3-fill me-1"></i>Delete account
+        </a>
+    </div>
+        </div>
+    </div>
 </div>
 
 <!-- QR Code Modal -->
@@ -266,10 +342,10 @@ else
 
         document.getElementById('qrServerUrl').value = serverUrl;
         document.getElementById('qrToken').value = token;
-        
+
         const container = document.getElementById('qrcode-container');
         container.innerHTML = '';
-        
+
         new QRCode(container, {
             text: deepLink,
             width: 200,
