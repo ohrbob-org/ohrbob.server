@@ -43,6 +43,8 @@ public class ProfilesController : Controller
         var accountId = GetAccountId();
         if (string.IsNullOrEmpty(accountId)) return Forbid();
 
+        if (!ProfileColors.IsValid(profile.Color)) ModelState.AddModelError(nameof(profile.Color), "Pick a valid color.");
+
         if (ModelState.IsValid)
         {
             try
@@ -87,6 +89,8 @@ public class ProfilesController : Controller
         var existingProfile = await _profilesService.GetProfileByIdAsync(id);
         if (existingProfile == null || existingProfile.AccountId != accountId)
             return NotFound();
+
+        if (!ProfileColors.IsValid(profile.Color)) ModelState.AddModelError(nameof(profile.Color), "Pick a valid color.");
 
         if (ModelState.IsValid)
         {

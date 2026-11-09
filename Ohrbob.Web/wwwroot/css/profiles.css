@@ -11,19 +11,55 @@
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
-.profile-gradient-0 { background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%); }
-.profile-gradient-1 { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
-.profile-gradient-2 { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
-.profile-gradient-3 { background: linear-gradient(135deg, #fccb90 0%, #d57eeb 100%); }
-.profile-gradient-4 { background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); }
-.profile-gradient-5 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-.profile-gradient-6 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-.profile-gradient-7 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
-.profile-gradient-8 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
-.profile-gradient-9 { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
-.profile-gradient-10 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
-.profile-gradient-11 { background: linear-gradient(135deg, #5ee7df 0%, #b490ca 100%); }
-.profile-gradient-12 { background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%); }
-.profile-gradient-13 { background: linear-gradient(135deg, #ebc0fd 0%, #d9ded8 100%); }
-.profile-gradient-14 { background: linear-gradient(135deg, #96fbc4 0%, #f9f586 100%); }
-.profile-gradient-15 { background: linear-gradient(135deg, #2af598 0%, #009efd 100%); }
+.profile-color-picker {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.profile-color-swatches {
+    display: grid;
+    grid-template-columns: repeat(11, 2rem);
+    gap: .5rem;
+}
+
+.profile-color-swatch {
+    position: relative;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.profile-color-swatch.is-selected {
+    box-shadow: 0 0 0 2px var(--bs-body-bg), 0 0 0 4px var(--bs-body-color);
+}
+
+.profile-color-custom {
+    overflow: hidden;
+    background: conic-gradient(#ef4444, #f59e0b, #22c55e, #0891b2, #3b82f6, #8b5cf6, #ec4899, #ef4444);
+}
+
+.profile-color-custom input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.profile-color-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: .75rem;
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+

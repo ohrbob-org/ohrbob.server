@@ -53,8 +53,11 @@ public class ProfilesController : ControllerBase
             AccountId = accountId,
             Name = request.Name,
             StreamToken = Guid.NewGuid().ToString(),
-            AllowedStationIds = request.AllowedStationIds ?? Array.Empty<string>()
+            AllowedStationIds = request.AllowedStationIds ?? Array.Empty<string>(),
+            Color = request.Color
         };
+        
+        if (!ProfileColors.IsValid(profile.Color)) return BadRequest("Invalid color");
         
         if (_accountService != null && _policy != null)
         {
@@ -74,6 +77,8 @@ public class ProfilesController : ControllerBase
     [HttpPut()]
     public async Task<IActionResult> Update([FromBody] Profile profile)
     {
+        if (!ProfileColors.IsValid(profile.Color)) return BadRequest("Invalid color");
+
         // The profile edit form does not round-trip subscriptions, so an empty list means
         // "unchanged" rather than "remove every subscription".
         if (profile.SubscribedStationIds == null || profile.SubscribedStationIds.Length == 0)

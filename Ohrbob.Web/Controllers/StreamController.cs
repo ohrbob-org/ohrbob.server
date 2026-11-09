@@ -41,6 +41,7 @@ public class StreamController : Controller
         var model = new StreamViewModel
         {
             StreamEnabled = limits?.StreamEnabled ?? false,
+            MaxConcurrentListeners = limits?.MaxConcurrentListeners ?? 0,
             Profiles = profiles.Select(profile => new StreamProfileGroup
             {
                 ProfileName = profile.Name,

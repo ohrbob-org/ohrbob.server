@@ -8,22 +8,22 @@
     {
         var path = $"/{controller}";
         if (controller == "Home" && action == "Index") path = "/";
-        return HtmxNavOptions.Value.EnabledEndpoints.Any(e => 
-            e.Equals(path, StringComparison.OrdinalIgnoreCase) || 
+        return HtmxNavOptions.Value.EnabledEndpoints.Any(e =>
+            e.Equals(path, StringComparison.OrdinalIgnoreCase) ||
             (path.StartsWith(e, StringComparison.OrdinalIgnoreCase) && e != "/"));
     }
 
     var hasActive = Model.ActiveProfile != null && !string.IsNullOrEmpty(Model.ActiveProfile.Id);
     var activeInitial = hasActive && !string.IsNullOrEmpty(Model.ActiveProfile.Name) ? Model.ActiveProfile.Name[0].ToString().ToUpper() : "?";
-    var activeGradient = hasActive ? Math.Abs(Model.ActiveProfile.Id.GetHashCode()) % 16 : 0;
+    var activeColor = Ohrbob.Server.Shared.Data.ProfileColors.Resolve(Model.ActiveProfile);
 }
 
 <div class="nav-item dropdown">
     <button class="nav-link d-flex align-items-center gap-2 btn btn-link border-0 text-decoration-none" id="profileDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="@(hasActive ? Model.ActiveProfile.Name : "No Profile")">
-        <span class="badge rounded-pill @(Model.Tier == Ohrbob.Server.Shared.Data.SubscriptionTier.Morebob ? "bg-success" : "bg-secondary")" title="Subscription tier">@Model.Tier</span>
+        <span class="badge rounded-pill @(Model.Tier == Ohrbob.Server.Shared.Data.SubscriptionTier.Morebob ? "badge-morebob" : "bg-secondary")" title="Subscription tier">@Model.Tier</span>
         @if (hasActive)
         {
-            <div class="profile-gradient-@activeGradient text-white d-flex align-items-center justify-content-center rounded-circle fw-bold shadow-sm" style="width: 32px; height: 32px; font-size: 1rem;">
+            <div class="text-white d-flex align-items-center justify-content-center rounded-circle fw-bold shadow-sm" data-profile-id="@Model.ActiveProfile.Id" style="width: 32px; height: 32px; font-size: 1rem; background-color: @activeColor;">
                 @activeInitial
             </div>
         }
@@ -39,13 +39,13 @@
             @foreach (var profile in Model.AllProfiles.Where(p => p.Id != Model.ActiveProfile.Id))
             {
                 var initial = string.IsNullOrEmpty(profile.Name) ? "?" : profile.Name[0].ToString().ToUpper();
-                var gradient = Math.Abs(profile.Id.GetHashCode()) % 16;
+                var color = Ohrbob.Server.Shared.Data.ProfileColors.Resolve(profile);
                 <li>
                     <form asp-controller="Profiles" asp-action="Select" method="post">
                         <input type="hidden" name="id" value="@profile.Id" />
                         <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
                         <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2">
-                            <div class="profile-gradient-@gradient text-white d-flex align-items-center justify-content-center rounded-circle fw-bold" style="width: 24px; height: 24px; font-size: 0.8rem;">
+                            <div class="text-white d-flex align-items-center justify-content-center rounded-circle fw-bold" data-profile-id="@profile.Id" style="width: 24px; height: 24px; font-size: 0.8rem; background-color: @color;">
                                 @initial
                             </div>
                             @profile.Name
@@ -58,7 +58,6 @@
                 <li><hr class="dropdown-divider"></li>
             }
         }
-        <li><a class="dropdown-item py-2" asp-controller="Stations" asp-action="Index" hx-boost="@(IsHtmxEnabled("Stations", "Index") ? "true" : "false")"><i class="bi bi-broadcast me-2"></i> Stations</a></li>
         <li><a class="dropdown-item py-2" asp-controller="Stream" asp-action="Index" hx-boost="@(IsHtmxEnabled("Stream", "Index") ? "true" : "false")"><i class="bi bi-soundwave me-2"></i> Stream</a></li>
         <li><a class="dropdown-item py-2" asp-controller="Profiles" asp-action="Index" hx-boost="@(IsHtmxEnabled("Profiles", "Index") ? "true" : "false")"><i class="bi bi-people me-2"></i> Profiles</a></li>
         <li><a class="dropdown-item py-2" asp-controller="Account" asp-action="Index" hx-boost="@(IsHtmxEnabled("Account", "Index") ? "true" : "false")"><i class="bi bi-person-gear me-2"></i> Account</a></li>

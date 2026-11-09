@@ -94,6 +94,23 @@ public class ProfilesTests : PageTest
         await Expect(deleteBtn).ToBeDisabledAsync();
     }
 
+    [Test]
+    public async Task Profile_Color_IsSavedAndShownInCardAndNav()
+    {
+        await Page.GotoAsync($"{_factory.ServerAddress}/Profiles");
+
+        await Page.Locator("a:has-text('Edit')").First.ClickAsync();
+        await Page.Locator(".profile-color-swatch[data-color='#3b82f6']").ClickAsync();
+        await Page.Locator("input[type='submit']").ClickAsync();
+
+        await Page.WaitForURLAsync("**/Profiles");
+
+        await Expect(Page.Locator(".profile-avatar").First)
+            .ToHaveCSSAsync("background-color", "rgb(59, 130, 246)");
+        await Expect(Page.Locator("#profileDropdown div.rounded-circle").First)
+            .ToHaveCSSAsync("background-color", "rgb(59, 130, 246)");
+    }
+
     private static async Task SetAccountTierAsync(string accountId, SubscriptionTier tier)
     {
         // Mirrors the direct-Mongo seeding used by CompilingStationTests: the Api is a separate

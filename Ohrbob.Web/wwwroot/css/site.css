@@ -230,6 +230,28 @@ html:has(.radio-landing-container) {
     font-weight: 700;
 }
 
+/* Animated gradient badge for the Morebob tier. */
+.badge-morebob {
+    background: linear-gradient(135deg, #8b5cf6, #ec4899, #f59e0b, #8b5cf6);
+    background-size: 300% 300%;
+    color: #fff;
+    font-weight: 700;
+    border: 0;
+    box-shadow: 0 0 8px rgba(139, 92, 246, .8), 0 0 18px rgba(236, 72, 153, .5);
+    animation: morebob-shift 6s linear infinite, morebob-glow 3s ease-in-out infinite;
+}
+@keyframes morebob-shift {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
+}
+@keyframes morebob-glow {
+    0%, 100% { box-shadow: 0 0 6px rgba(139, 92, 246, .7), 0 0 14px rgba(236, 72, 153, .4); }
+    50% { box-shadow: 0 0 12px rgba(139, 92, 246, .9), 0 0 24px rgba(236, 72, 153, .7); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .badge-morebob { animation: none; }
+}
+
 .landing-footer {
     max-width: 1100px;
     margin: 0 auto;

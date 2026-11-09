@@ -473,6 +473,53 @@ public class ProfilesControllerTests
     }
 
     [Test]
+    public async Task UpdateProfile_PersistsColor()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var controller = new Controllers.ProfilesController(
+            profilesService,
+            scope.ServiceProvider.GetRequiredService<StationsService>());
+
+        var profile = await profilesService.CreateAsync(new Profile
+        {
+            AccountId = Guid.NewGuid().ToString(),
+            Name = "Colored",
+            Color = null
+        });
+
+        profile!.Color = "#3b82f6";
+        var result = await controller.Update(profile);
+
+        Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.OkObjectResult>());
+        var updated = await profilesService.GetAsync(profile.Id);
+        Assert.That(updated!.Color, Is.EqualTo("#3b82f6"));
+    }
+
+    [Test]
+    public async Task UpdateProfile_WithInvalidColor_ShouldReturnBadRequest()
+    {
+        using var scope = _app.Services.CreateScope();
+        var profilesService = scope.ServiceProvider.GetRequiredService<ProfilesService>();
+        var controller = new Controllers.ProfilesController(
+            profilesService,
+            scope.ServiceProvider.GetRequiredService<StationsService>());
+
+        var profile = await profilesService.CreateAsync(new Profile
+        {
+            AccountId = Guid.NewGuid().ToString(),
+            Name = "Invalid Color"
+        });
+
+        profile!.Color = "javascript:alert(1)";
+        var result = await controller.Update(profile);
+
+        Assert.That(result, Is.InstanceOf<Microsoft.AspNetCore.Mvc.BadRequestObjectResult>());
+        var stored = await profilesService.GetAsync(profile.Id);
+        Assert.That(stored!.Color, Is.Null);
+    }
+
+    [Test]
     public async Task AddStation_ShouldAddStationId()
     {
         using var scope = _app.Services.CreateScope();

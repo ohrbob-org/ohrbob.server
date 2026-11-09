@@ -14,7 +14,6 @@
 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
     @foreach (var item in Model)
     {
-        var gradientIndex = Math.Abs(item.Id.GetHashCode()) % 16;
         var initial = string.IsNullOrEmpty(item.Name) ? "?" : item.Name[0].ToString().ToUpper();
         
         var isActive = item.Id == activeProfileId;
@@ -22,7 +21,7 @@
         
         <div class="col">
             <div class="@cardClass">
-                <div class="profile-avatar profile-gradient-@gradientIndex card-img-top">
+                <div class="profile-avatar card-img-top" data-profile-id="@item.Id" style="background-color: @Ohrbob.Server.Shared.Data.ProfileColors.Resolve(item)">
                     @initial
                 </div>
                 <div class="card-body">

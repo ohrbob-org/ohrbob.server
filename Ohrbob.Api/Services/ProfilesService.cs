@@ -18,6 +18,7 @@ public class ProfilesService : MongoDbService<Profile>
             .Set(p => p.StreamToken, entryIn.StreamToken)
             .Set(p => p.AllowedStationIds, entryIn.AllowedStationIds)
             .Set(p => p.SubscribedStationIds, entryIn.SubscribedStationIds)
+            .Set(p => p.Color, entryIn.Color)
             .Set(p => p.LastActiveStationId, entryIn.LastActiveStationId)
             .Set(p => p.LastActiveEpisodeId, entryIn.LastActiveEpisodeId);
     }

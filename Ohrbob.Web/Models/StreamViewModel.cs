@@ -3,6 +3,7 @@ namespace Ohrbob.Web.Models;
 public class StreamViewModel
 {
     public bool StreamEnabled { get; set; }
+    public int MaxConcurrentListeners { get; set; }
     public List<StreamProfileGroup> Profiles { get; set; } = new();
 }
 

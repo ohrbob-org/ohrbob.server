@@ -65,11 +65,11 @@
         <table class="table">
             <tr><th>Name</th><td>@Model.Account.Name</td></tr>
             <tr><th>Email</th><td>@Model.Account.Email</td></tr>
-            <tr><th>Plan</th><td><span class="badge @(Model.Tier == Ohrbob.Server.Shared.Data.SubscriptionTier.Morebob ? "bg-success" : "bg-secondary")">@Model.Tier</span></td></tr>
+            <tr><th>Plan</th><td><span class="badge @(Model.Tier == Ohrbob.Server.Shared.Data.SubscriptionTier.Morebob ? "badge-morebob" : "bg-secondary")">@Model.Tier</span></td></tr>
             <tr><th>Stations</th><td>@Model.StationCount / @Limit(Model.Limits.MaxStations)</td></tr>
             <tr><th>Profiles</th><td>@Model.ProfileCount / @Limit(Model.Limits.MaxProfiles)</td></tr>
             <tr><th>Max feeds per station</th><td>@Limit(Model.Limits.MaxFeedsPerStation) (most used: @Model.MaxFeedsPerStationUsed)</td></tr>
-            <tr><th>Streaming</th><td>@(Model.Limits.StreamEnabled ? "On (up to 3 simultaneous listeners)" : "Off")</td></tr>
+            <tr><th>Streaming</th><td>@(Model.Limits.StreamEnabled ? $"On (up to {Limit(Model.Limits.MaxConcurrentListeners)} simultaneous listeners)" : "Off")</td></tr>
         </table>
 
         @if (Model.Tier != Ohrbob.Server.Shared.Data.SubscriptionTier.Morebob)
