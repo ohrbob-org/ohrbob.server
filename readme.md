@@ -21,25 +21,23 @@ Google Play and iOS coming soon.
 
 <p align="center">
   <!-- License -->
-  <a href="https://github.com/ohrbob-org/ohrbob.server/blob/main/LICENSE">
+  <a style="margin-right: 5px" href="https://github.com/ohrbob-org/ohrbob.server/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/ohrbob-org/ohrbob.server?style=for-the-badge&color=blue" alt="License">
   </a>
-  &nbsp;&nbsp;
+
   <!-- .NET Version / Tech Stack -->
-  <a href="https://dotnet.microsoft.com/">
+  <a style="margin-right: 5px" href="https://dotnet.microsoft.com/">
     <img src="https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=.net&logoColor=white" alt=".NET">
   </a>
-  &nbsp;&nbsp;
+
   <!-- Docker Ready / Self-Hostable -->
-  <a href="https://hub.docker.com/">
+  <a style="margin-right: 5px" href="https://hub.docker.com/">
     <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Ready">
   </a>
-  &nbsp;&nbsp;
   <!-- GitHub Actions Build Status -->
-  <a href="https://github.com/ohrbob-org/ohrbob.server/actions/workflows/docker.yml">
+  <a style="margin-right: 5px" href="https://github.com/ohrbob-org/ohrbob.server/actions/workflows/docker.yml">
   <img src="https://img.shields.io/github/actions/workflow/status/ohrbob-org/ohrbob.server/docker.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=Build" alt="Build Status">
   </a>
-  &nbsp;&nbsp;
   <!-- Latest release tag (the tag the Docker images are published under) -->
   <a href="https://github.com/ohrbob-org/ohrbob.server/tags">
   <img src="https://img.shields.io/github/v/tag/ohrbob-org/ohrbob.server?style=for-the-badge&logo=docker&logoColor=white&label=Latest" alt="Latest Tag">
