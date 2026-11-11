@@ -2,7 +2,49 @@
 
 Ohrbob is a highly scalable, multi-profile podcast station manager and streaming control plane. It allows users to curate their own "radio stations" built from various podcast feeds and stream them across different devices, tracking their listen state.
 
+## Download Clients
+
+
+Google Play and iOS coming soon.
+
+<p align="center">
+
+  <a href="https://www.amazon.de/gp/product/B0HQXV564X/">
+    <img src="https://img.shields.io/badge/Amazon_Appstore-FF9900?style=for-the-badge&logo=amazon&logoColor=black" alt="Amazon Appstore">
+  </a>
+
+</p>
+
+
+
 ## Current status
+
+<p align="center">
+  <!-- License -->
+  <a href="https://github.com/ohrbob-org/ohrbob.server/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/ohrbob-org/ohrbob.server?style=for-the-badge&color=blue" alt="License">
+  </a>
+  &nbsp;&nbsp;
+  <!-- .NET Version / Tech Stack -->
+  <a href="https://dotnet.microsoft.com/">
+    <img src="https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=.net&logoColor=white" alt=".NET">
+  </a>
+  &nbsp;&nbsp;
+  <!-- Docker Ready / Self-Hostable -->
+  <a href="https://hub.docker.com/">
+    <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Ready">
+  </a>
+  &nbsp;&nbsp;
+  <!-- GitHub Actions Build Status -->
+  <a href="https://github.com/ohrbob-org/ohrbob.server/actions/workflows/docker.yml">
+  <img src="https://img.shields.io/github/actions/workflow/status/ohrbob-org/ohrbob.server/docker.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=Build" alt="Build Status">
+  </a>
+  &nbsp;&nbsp;
+  <!-- Latest release tag (the tag the Docker images are published under) -->
+  <a href="https://github.com/ohrbob-org/ohrbob.server/tags">
+  <img src="https://img.shields.io/github/v/tag/ohrbob-org/ohrbob.server?style=for-the-badge&logo=docker&logoColor=white&label=Latest" alt="Latest Tag">
+  </a>
+</p>
 
 Currently the service on https://ohrbob.org is in beta - it is a hobby project, it might be we have to drop the database, but I am trying my (almost) best to keep you going ;-). 
 
@@ -15,28 +57,27 @@ I'm working on bringing cross-platform apps and direct network streaming to the 
 ### 1. Multi-Platform Apps (Avalonia UI)
 Unifying mobile and desktop apps into a single codebase. The client apps live in a separate repository: [ohrbob-org/ohrbob.app](https://github.com/ohrbob-org/ohrbob.app).
 
-* [ ] **Core Setup:** Cross-platform solution (Android, iOS, Windows, macOS, Linux) with shared C# MVVM logic.
-* [ ] **Adaptive UI:** Responsive touch and desktop interfaces with native platform integrations.
-* [ ] **CI/CD:** Automated builds for mobile and desktop binaries.
+* [x] **Core Setup:** Cross-platform solution (Android, iOS, Windows, macOS, Linux) with shared C# MVVM logic.
+* [x] **Adaptive UI:** Responsive touch and desktop interfaces with native platform integrations.
+* [x] **CI:** Automated builds for mobile and desktop binaries.
 
 > **Why Avalonia?** Maximum C# code reuse with near-native performance across all platforms.
 
 ### 2. Streaming to Wi-Fi Radios & Clients
 Broadcasting streams directly to external hardware receivers.
 
-* [ ] **FFmpeg Engine:** Live audio transcoding and direct broadcasting pipeline.
-* [ ] **Scalable Backend:** Infrastructure to handle multi-session FFmpeg streaming.
-* [ ] **Web Control Interface:** Built-in web interface to control and manage radio streams from any browser.
-* [ ] **Device Discovery:** Auto-detect network radios + remote playback control.
+* [x] **FFmpeg Engine:** Live audio transcoding and direct broadcasting pipeline.
+* [x] **Scalable Backend:** Infrastructure to handle multi-session FFmpeg streaming.
+* [x] **Web Control Interface:** Built-in web interface to control and manage radio streams from any browser.
 
 > **Why FFmpeg & Web Interface?** Ensures broad stream compatibility across hardware receivers while allowing convenient playback management from any web browser.
 
 ### 3. Premium Tier (Infrastructure Costs)
 Sustaining cloud compute costs for live transcoding.
 
-* [ ] **Free Tier:** Core app features, local playback, capped feeds & stations.
-* [ ] **Premium Tier:** Unlimited Stations, unlimited Feeds, and hosted FFmpeg live transcoding.
-* [ ] **Self-Hosting:** Complete open-source self-hosting options remain fully available.
+* [x] **Free Tier:** Core app features, local playback, capped feeds & stations.
+* [x] **Premium Tier:** Unlimited Stations, unlimited Feeds, and hosted FFmpeg live transcoding.
+* [x] **Self-Hosting:** Complete open-source self-hosting options remain fully available.
 
 > **Why Premium?** Live FFmpeg transcoding generates ongoing cloud compute costs. This tier keeps the infrastructure self-sustaining while keeping the core open source.
 
