@@ -580,6 +580,94 @@ public class StreamControllerTests
         Assert.That(status.current!.episodeId, Is.EqualTo(otherEpisodeId));
     }
 
+    [Test]
+    public async Task GetUpcomingEpisodes_ReturnsFollowingEpisodesInOrder()
+    {
+        var stationId = ObjectId.GenerateNewId().ToString();
+        var ep1 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 1", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-3) };
+        var ep2 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 2", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-2) };
+        var ep3 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 3", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-1) };
+        var profile = new Profile { AccountId = "test-account", StreamToken = "token-123", AllowedStationIds = new[] { stationId } };
+        var station = CreateOldestFirstStation(stationId);
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(station);
+        await SeedEpisodesAsync(ep1, ep2, ep3);
+
+        using var scope = _app.Services.CreateScope();
+        var strategy = scope.ServiceProvider.GetRequiredService<PlaybackStrategyService>();
+        var upcoming = await strategy.GetUpcomingEpisodesAsync(station, ep1.Id, profile, 10);
+
+        Assert.That(upcoming.Select(e => e.Id), Is.EqualTo(new[] { ep2.Id, ep3.Id }));
+    }
+
+    [Test]
+    public async Task GetUpcomingEpisodes_SkipsListenedAndWrapsToFirstUnplayed()
+    {
+        var stationId = ObjectId.GenerateNewId().ToString();
+        var ep1 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 1", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-3) };
+        var ep2 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 2", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-2) };
+        var ep3 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 3", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-1) };
+        var profile = new Profile { AccountId = "test-account", StreamToken = "token-123", AllowedStationIds = new[] { stationId } };
+        var station = CreateOldestFirstStation(stationId);
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(station);
+        await SeedEpisodesAsync(ep1, ep2, ep3);
+        await _app.MongoDbContext.GetCollection<ListenState>("ListenStateCollection").InsertOneAsync(
+            new ListenState { UserId = profile.Id, StationId = stationId, EpisodeId = ep2.Id, IsListened = true });
+
+        using var scope = _app.Services.CreateScope();
+        var strategy = scope.ServiceProvider.GetRequiredService<PlaybackStrategyService>();
+        var upcoming = await strategy.GetUpcomingEpisodesAsync(station, ep1.Id, profile, 10);
+
+        Assert.That(upcoming.Select(e => e.Id), Is.EqualTo(new[] { ep3.Id }),
+            "listened ep2 is skipped and the first unplayed episode after the end is ep3");
+    }
+
+    [Test]
+    public async Task GetUpcomingEpisodes_EndlessSpinWrapsPastListenedEpisodes()
+    {
+        var stationId = ObjectId.GenerateNewId().ToString();
+        var ep1 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 1", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-2) };
+        var ep2 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 2", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-1) };
+        var profile = new Profile { AccountId = "test-account", StreamToken = "token-123", AllowedStationIds = new[] { stationId } };
+        var station = CreateOldestFirstStation(stationId);
+        station.EndlessSpin = true;
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(station);
+        await SeedEpisodesAsync(ep1, ep2);
+        await _app.MongoDbContext.GetCollection<ListenState>("ListenStateCollection").InsertOneAsync(
+            new ListenState { UserId = profile.Id, StationId = stationId, EpisodeId = ep2.Id, IsListened = true });
+
+        using var scope = _app.Services.CreateScope();
+        var strategy = scope.ServiceProvider.GetRequiredService<PlaybackStrategyService>();
+        var upcoming = await strategy.GetUpcomingEpisodesAsync(station, ep1.Id, profile, 3);
+
+        Assert.That(upcoming.Select(e => e.Id), Is.EqualTo(new[] { ep2.Id, ep1.Id, ep2.Id }));
+    }
+
+    [Test]
+    public async Task GetNextEpisode_EndlessSpinPrefersUnplayedEpisodeAheadOfListened()
+    {
+        var stationId = ObjectId.GenerateNewId().ToString();
+        var ep1 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 1", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-3) };
+        var ep2 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 2", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-2) };
+        var ep3 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 3", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-1) };
+        var profile = new Profile { AccountId = "test-account", StreamToken = "token-123", AllowedStationIds = new[] { stationId } };
+        var station = CreateOldestFirstStation(stationId);
+        station.EndlessSpin = true;
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(station);
+        await SeedEpisodesAsync(ep1, ep2, ep3);
+        await _app.MongoDbContext.GetCollection<ListenState>("ListenStateCollection").InsertOneAsync(
+            new ListenState { UserId = profile.Id, StationId = stationId, EpisodeId = ep2.Id, IsListened = true });
+
+        using var scope = _app.Services.CreateScope();
+        var strategy = scope.ServiceProvider.GetRequiredService<PlaybackStrategyService>();
+        var next = await strategy.GetNextEpisodeAsync(station, ep1.Id, profile);
+
+        Assert.That(next!.Id, Is.EqualTo(ep3.Id), "unplayed ep3 comes before replaying listened ep2");
+    }
+
     private async Task SeedEpisodesAsync(params Episode[] episodes) =>
         await _app.MongoDbContext.GetCollection<Episode>("EpisodeCollection").InsertManyAsync(episodes);
 

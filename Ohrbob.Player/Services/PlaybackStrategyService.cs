@@ -18,9 +18,11 @@ public class PlaybackStrategyService
         _listenStateService = listenStateService;
     }
 
-    public async Task<Episode?> GetNextEpisodeAsync(Station station, string? currentEpisodeId, Profile listener)
+    public async Task<List<Episode>> GetUpcomingEpisodesAsync(
+        Station station, string? currentEpisodeId, Profile listener, int limit)
     {
-        if (station.Feeds == null || station.Feeds.Length == 0) return null;
+        var result = new List<Episode>();
+        if (limit <= 0 || station.Feeds == null || station.Feeds.Length == 0) return result;
 
         var filter = Builders<Episode>.Filter.In(e => e.FeedUrl, station.Feeds);
         var episodes = await _episodes.Find(filter).ToListAsync();
@@ -40,26 +42,40 @@ public class PlaybackStrategyService
         // navigate into episodes the host has not released yet.
         var ordered = PlaybackStrategyHelper.GetOrderedPlaylist(
             allowedEpisodes, station, new HashSet<string>(), currentEpisodeId);
+        if (ordered.Count == 0) return result;
 
-        int startIndex = 0;
-        if (!string.IsNullOrEmpty(currentEpisodeId))
+        var position = string.IsNullOrEmpty(currentEpisodeId)
+            ? -1
+            : ordered.FindIndex(e => e.Id == currentEpisodeId);
+
+        // Each step is one POST /stream/next: the chosen episode becomes the current one.
+        while (result.Count < limit)
         {
-            var currentIndex = ordered.FindIndex(e => e.Id == currentEpisodeId);
-            startIndex = currentIndex >= 0 ? currentIndex + 1 : 0;
+            var index = -1;
+            for (var i = position + 1; i < ordered.Count && index < 0; i++)
+            {
+                if (!listenedSet.Contains(ordered[i].Id)) index = i;
+            }
+
+            // Endless spin: keep walking the full rotation order, wrapping back to the first episode.
+            if (index < 0 && station.EndlessSpin) index = (position + 1) % ordered.Count;
+
+            // Wrap around to the first unplayed episode (end-of-playlist behavior).
+            if (index < 0) index = ordered.FindIndex(e => !listenedSet.Contains(e.Id));
+            if (index < 0) break;
+
+            result.Add(ordered[index]);
+            listenedSet.Add(ordered[index].Id);
+            position = index;
         }
 
-        // Next unplayed episode after the current position.
-        var forward = ordered.Skip(startIndex).FirstOrDefault(e => !listenedSet.Contains(e.Id));
-        if (forward != null) return forward;
+        return result;
+    }
 
-        // Endless spin: keep walking the full rotation order, wrapping back to the first episode.
-        if (station.EndlessSpin)
-        {
-            return ordered.Skip(startIndex).FirstOrDefault() ?? ordered.FirstOrDefault();
-        }
-
-        // Wrap around to the first unplayed episode (end-of-playlist behavior).
-        return ordered.FirstOrDefault(e => !listenedSet.Contains(e.Id));
+    public async Task<Episode?> GetNextEpisodeAsync(Station station, string? currentEpisodeId, Profile listener)
+    {
+        var upcoming = await GetUpcomingEpisodesAsync(station, currentEpisodeId, listener, 1);
+        return upcoming.FirstOrDefault();
     }
 
     public async Task<Episode?> GetPreviousEpisodeAsync(Station station, string? currentEpisodeId, Profile listener)
