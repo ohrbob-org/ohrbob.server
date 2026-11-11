@@ -20,11 +20,15 @@ Google Play and iOS coming soon.
 ## Current status
 
 <p align="center">
-  <a href="https://github.com/ohrbob-org/ohrbob.server/blob/main/LICENSE"><img src="https://img.shields.io/github/license/ohrbob-org/ohrbob.server?style=for-the-badge&color=blue" alt="License"></a>
-  <a style="margin-left:8px" href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=.net&logoColor=white" alt=".NET"></a>
-  <a style="margin-left:8px" href="https://hub.docker.com/u/kaiwegner?page=1&search=ohrbob"><img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Ready"></a>
-  <a style="margin-left:8px" href="https://github.com/ohrbob-org/ohrbob.server/actions/workflows/docker.yml"><img src="https://img.shields.io/github/actions/workflow/status/ohrbob-org/ohrbob.server/docker.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=Build" alt="Build Status"></a>
-  <a style="margin-left:8px" href="https://github.com/ohrbob-org/ohrbob.server/tags"><img src="https://img.shields.io/github/v/tag/ohrbob-org/ohrbob.server?style=for-the-badge&logo=docker&logoColor=white&label=Latest" alt="Latest Tag"></a>
+<a href="https://github.com/ohrbob-org/ohrbob.server/blob/main/LICENSE"><img src="https://img.shields.io/github/license/ohrbob-org/ohrbob.server?style=for-the-badge&color=blue" alt="License"></a>
+&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=.net&logoColor=white" alt=".NET"></a>
+&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="https://hub.docker.com/u/kaiwegner?page=1&search=ohrbob"><img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Ready"></a>
+&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="https://github.com/ohrbob-org/ohrbob.server/actions/workflows/docker.yml"><img src="https://img.shields.io/github/actions/workflow/status/ohrbob-org/ohrbob.server/docker.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=Build" alt="Build Status"></a>
+&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="https://github.com/ohrbob-org/ohrbob.server/tags"><img src="https://img.shields.io/github/v/tag/ohrbob-org/ohrbob.server?style=for-the-badge&logo=docker&logoColor=white&label=Latest" alt="Latest Tag"></a>
 </p>
 
 Currently the service on https://ohrbob.org is in beta - it is a hobby project, it might be we have to drop the database, but I am trying my (almost) best to keep you going ;-). 
