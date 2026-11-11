@@ -90,42 +90,10 @@ public class StreamController : ControllerBase
 
         bool streamEnabled = await IsStreamEnabledAsync(profile);
 
-        string? activeStationId = profile.LastActiveStationId;
-        string? activeEpisodeId = profile.LastActiveEpisodeId;
-        
-        // Fallback if no history
-        if (string.IsNullOrEmpty(activeStationId) && profile.AllowedStationIds?.Length > 0)
-        {
-            activeStationId = profile.AllowedStationIds[0];
-        }
-        
-        if (string.IsNullOrEmpty(activeStationId)) return Ok(new { streamEnabled });
-
-        var station = await _stations.Find(s => s.Id == activeStationId && s.DeletedAt == null).FirstOrDefaultAsync();
+        var station = await GetActiveStationAsync(profile);
         if (station == null) return Ok(new { streamEnabled });
 
-        Episode? currentEpisode = null;
-        if (!string.IsNullOrEmpty(activeEpisodeId))
-        {
-             currentEpisode = await _episodes.Find(e => e.Id == activeEpisodeId).FirstOrDefaultAsync();
-             // Ignore stale episodes that do not belong to the active station (e.g. left over from a deleted station)
-             if (currentEpisode != null && !station.Feeds.Contains(currentEpisode.FeedUrl))
-             {
-                 currentEpisode = null;
-             }
-        }
-        
-        if (currentEpisode != null &&
-            !await _playbackStrategy.IsEpisodePlayableAsync(station, currentEpisode, profile))
-        {
-            currentEpisode = null;
-        }
-
-        if (currentEpisode == null)
-        {
-             currentEpisode = await _playbackStrategy.GetNextEpisodeAsync(station, null, profile);
-             if (currentEpisode != null) activeEpisodeId = currentEpisode.Id;
-        }
+        var currentEpisode = await ResolveCurrentEpisodeAsync(station, profile);
 
         if (currentEpisode == null)
         {
@@ -190,6 +158,71 @@ public class StreamController : ControllerBase
                 link = string.IsNullOrWhiteSpace(prevEpisode.AudioUrl) ? null : prevEpisode.AudioUrl
             }
         });
+    }
+
+    [HttpGet("playlist")]
+    public async Task<IActionResult> GetPlaylist([FromQuery] int limit = 50)
+    {
+        var profile = await GetProfile();
+        if (profile == null) return Unauthorized();
+
+        var station = await GetActiveStationAsync(profile);
+        if (station == null)
+            return Ok(new { stationId = (string?)null, hostPaceEnabled = false, isAging = false, episodes = Array.Empty<object>() });
+
+        var current = await ResolveCurrentEpisodeAsync(station, profile);
+        var take = Math.Clamp(limit, 1, 100);
+        var upcoming = current == null
+            ? new List<Episode>()
+            : await _playbackStrategy.GetUpcomingEpisodesAsync(station, current.Id, profile, Math.Max(0, take - 1));
+
+        var feeds = await _feeds.Find(f => station.Feeds.Contains(f.Url)).ToListAsync();
+        string Artist(Episode ep) =>
+            feeds.FirstOrDefault(f => f.Url == ep.FeedUrl || f.Id == ep.FeedId)?.Title ?? station.Name;
+
+        var episodes = new List<object>();
+        if (current != null)
+            episodes.Add(Track(current, true, Artist(current)));
+        episodes.AddRange(upcoming.Select(e => Track(e, false, Artist(e))));
+
+        return Ok(new { stationId = station.Id, hostPaceEnabled = station.HostPaceEnabled, isAging = station.IsAging, episodes });
+
+        object Track(Episode ep, bool isCurrent, string artist) => new
+        {
+            episodeId = ep.Id,
+            title = ep.Title,
+            description = ep.PlainDescription,
+            artist,
+            coverUrl = string.IsNullOrWhiteSpace(ep.ImageUrl) ? null : ep.ImageUrl,
+            streamUri = ep.AudioUrl,
+            publishedAt = ep.PublishedAt,
+            isCurrent
+        };
+    }
+
+    private async Task<Station?> GetActiveStationAsync(Profile profile)
+    {
+        var activeStationId = profile.LastActiveStationId;
+        if (string.IsNullOrEmpty(activeStationId) && profile.AllowedStationIds?.Length > 0)
+            activeStationId = profile.AllowedStationIds[0];
+        if (string.IsNullOrEmpty(activeStationId)) return null;
+        return await _stations.Find(s => s.Id == activeStationId && s.DeletedAt == null).FirstOrDefaultAsync();
+    }
+
+    private async Task<Episode?> ResolveCurrentEpisodeAsync(Station station, Profile profile)
+    {
+        Episode? currentEpisode = null;
+        if (!string.IsNullOrEmpty(profile.LastActiveEpisodeId))
+        {
+            currentEpisode = await _episodes.Find(e => e.Id == profile.LastActiveEpisodeId).FirstOrDefaultAsync();
+            // Ignore stale episodes that do not belong to the active station (e.g. left over from a deleted station)
+            if (currentEpisode != null && !station.Feeds.Contains(currentEpisode.FeedUrl))
+                currentEpisode = null;
+        }
+        if (currentEpisode != null &&
+            !await _playbackStrategy.IsEpisodePlayableAsync(station, currentEpisode, profile))
+            currentEpisode = null;
+        return currentEpisode ?? await _playbackStrategy.GetNextEpisodeAsync(station, null, profile);
     }
 
     [HttpPost("status")]
