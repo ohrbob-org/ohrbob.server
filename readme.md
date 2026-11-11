@@ -1,6 +1,13 @@
 # Ohrbob
 
-Ohrbob is a highly scalable, multi-profile podcast station manager and streaming control plane. It allows users to curate their own "radio stations" built from various podcast feeds and stream them across different devices, tracking their listen state.
+<img src="Ohrbob.Web/wwwroot/images/apple-touch-icon.png" align="left" />
+Ohrbob is a highly scalable, multi-profile podcast station manager and streaming control plane complete with a broad client landscape. 
+
+Ohrbob allows users to curate their own "radio stations" built from various podcast feeds and stream them across different devices, tracking their listen state.
+
+Ohrbob can be self hosted and is completely open source. 
+
+<br clear="left"/>
 
 ## Download Clients
 
