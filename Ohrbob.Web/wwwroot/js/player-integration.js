@@ -65,11 +65,27 @@
         const setAutoPlayExpected = (value) => { audio._ohrbobAutoPlayExpected = Boolean(value); };
         const isAutoPlayExpected = () => Boolean(audio._ohrbobAutoPlayExpected);
 
+        // Display-only sanitizer: decode entities and strip tags until neither reveals new
+        // markup, so feed-provided HTML never reaches the widget markup.
+        const stripHtml = (value) => {
+            let text = value == null ? '' : String(value);
+            for (let pass = 0; pass < 5; pass++) {
+                const next = (new DOMParser().parseFromString(text, 'text/html').body.textContent || '').trim();
+                if (next === text) break;
+                text = next;
+            }
+            return text;
+        };
+
+        const sanitizeEpisode = (ep) => ep
+            ? { ...ep, title: stripHtml(ep.title), artist: stripHtml(ep.artist) }
+            : ep;
+
         const toCard = (ep) => {
             if (!ep) return null;
             return {
-                track: ep.title || 'Track',
-                artist: ep.artist || '',
+                track: stripHtml(ep.title) || 'Track',
+                artist: stripHtml(ep.artist) || '',
                 cover: ep.coverUrl || null
             };
         };
@@ -113,10 +129,11 @@
             }
 
             const current = state.current || {};
+            const stationName = stripHtml(state.stationName) || 'Ohrbob';
             navigator.mediaSession.metadata = new MediaMetadata({
-                title: current.title || 'Track Name',
-                artist: state.stationName || 'Ohrbob',
-                album: state.stationName || 'Ohrbob',
+                title: stripHtml(current.title) || 'Track Name',
+                artist: stationName,
+                album: stationName,
                 artwork: current.coverUrl ? [
                     { src: current.coverUrl, sizes: '96x96' },
                     { src: current.coverUrl, sizes: '128x128' },
@@ -285,9 +302,9 @@
                 updateMediaSessionMetadata(state);
             } else {
                 // Normal state (prev/next come from the server)
-                currentEpisodeData = state.current || {};
-                nextEpisodeData = state.next;
-                prevEpisodeData = state.prev || null;
+                currentEpisodeData = sanitizeEpisode(state.current || {});
+                nextEpisodeData = sanitizeEpisode(state.next);
+                prevEpisodeData = sanitizeEpisode(state.prev || null);
 
                 widget.setAttribute('station', state.stationName || 'Unknown Station');
                 widget.setAttribute('track', currentEpisodeData.title || '');
@@ -497,6 +514,7 @@
         // Persists the selection server-side so /stream/next stays consistent.
         const playEpisodeDirect = async (episode) => {
             if (!episode || !episode.streamUri || !activeStationId) return;
+            episode = sanitizeEpisode(episode);
             navigating = true;
             try
             {

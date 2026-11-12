@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Text.RegularExpressions;
 
@@ -26,5 +27,27 @@ public static class HtmlText
         // text instead of being mistaken for a real tag, then decode the HTML entities.
         var withoutTags = TagRegex.Replace(html, string.Empty);
         return WebUtility.HtmlDecode(withoutTags).Trim();
+    }
+
+    /// <summary>
+    /// Strips all HTML for display: <see cref="ToPlainText"/> repeated until decoding no
+    /// longer reveals new markup, so entity-escaped tags (e.g. <c>&amp;lt;a&amp;gt;</c>)
+    /// are removed as well.
+    /// </summary>
+    public static string ToDisplayText(string html)
+    {
+        if (string.IsNullOrEmpty(html))
+            return string.Empty;
+
+        var current = html;
+        for (var pass = 0; pass < 5; pass++)
+        {
+            var next = ToPlainText(current);
+            if (string.Equals(next, current, StringComparison.Ordinal))
+                break;
+            current = next;
+        }
+
+        return current.Trim();
     }
 }

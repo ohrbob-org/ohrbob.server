@@ -122,22 +122,54 @@ public class EpisodePlayheadTests : PageTest
         await ExpectPlayheadAsync(episodeId, 42);
     }
 
-    private async Task<string> WaitForFirstEpisodeAsync()
+    [Test]
+    public async Task Edit_Playlist_StripsHtmlFromEpisodeTitleAndDescription()
+    {
+        var slug = $"html-{Guid.NewGuid():N}";
+        await TestCasts.ConfigureAsync(new TestCastPodcast(slug, "HTML Feed", new[]
+        {
+            new TestCastEpisode(
+                "Episode <b>Bold</b>",
+                $"{slug}-1.mp3",
+                "<p>Hello <a href=\"https://example.com\">world</a></p>")
+        }));
+
+        var station = (await _stations.CreateStationAsync(_accountId, new Station
+        {
+            AccountId = _accountId,
+            Name = "HTML Station",
+            Feeds = new[] { TestCasts.FeedUrl(slug) }
+        }))!;
+
+        var episodeId = await WaitForFirstEpisodeAsync(station);
+
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{station.Id}");
+        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 15000 });
+
+        var row = Page.Locator($".resolved-item[data-episode-id='{episodeId}']");
+        await Expect(row).ToBeVisibleAsync(new() { Timeout = 15000 });
+        await Expect(row.Locator("strong")).ToHaveTextAsync("Episode Bold");
+        await Expect(row.Locator("p")).ToHaveTextAsync("Hello world");
+    }
+
+    private Task<string> WaitForFirstEpisodeAsync() => WaitForFirstEpisodeAsync(_station);
+
+    private async Task<string> WaitForFirstEpisodeAsync(Station station)
     {
         var deadline = DateTime.UtcNow.AddSeconds(60);
         while (DateTime.UtcNow < deadline)
         {
-            var details = await _stations.GetStationDetailsByIdAsync(_station.Id);
+            var details = await _stations.GetStationDetailsByIdAsync(station.Id);
             if (details?.Feeds?.Sum(f => f.EpisodeCount) > 0)
             {
-                var playlist = await _stations.GetStationPlaylistAsync(_station.Id, _profileId);
+                var playlist = await _stations.GetStationPlaylistAsync(station.Id, _profileId);
                 var episode = playlist?.FirstOrDefault();
                 if (episode != null) return episode.Episode.Id;
             }
             await Task.Delay(500);
         }
 
-        Assert.Fail($"Feed episodes were not parsed within the timeout (station {_station.Id}).");
+        Assert.Fail($"Feed episodes were not parsed within the timeout (station {station.Id}).");
         return string.Empty;
     }
 

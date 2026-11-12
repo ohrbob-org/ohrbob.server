@@ -333,6 +333,21 @@ public class PlaybackOrderTests : PageTest
         Assert.That(await IsWidgetPlayingAsync(), Is.False);
     }
 
+    [Test]
+    public async Task Widget_StripsHtmlFromEpisodeTitle()
+    {
+        var slug = Slug("html-title");
+        await TestCasts.ConfigureAsync(new TestCastPodcast(slug, "HTML Feed", new[]
+        {
+            new TestCastEpisode("Episode <b>Bold</b>", $"{slug}-1.mp3")
+        }));
+
+        await CreateStationAsync("HTML Title Station", new[] { TestCasts.FeedUrl(slug) }, minimumEpisodes: 1);
+        await PlayStationAndWaitAsync("HTML Title Station");
+
+        await ExpectWidgetTrackAsync("Episode Bold");
+    }
+
     // ---------------------------------------------------------------------------------------
     // Helpers
     // ---------------------------------------------------------------------------------------

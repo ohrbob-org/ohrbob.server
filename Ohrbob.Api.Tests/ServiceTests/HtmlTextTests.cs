@@ -41,6 +41,29 @@ public class HtmlTextTests
             Is.EqualTo("Rücktritt & größte"));
     }
 
+    [Test]
+    public void ToDisplayText_StripsTagsAndDecodesEntities()
+    {
+        Assert.That(HtmlText.ToDisplayText("<p>R&#252;cktritt &amp; gr&#246;&#223;te</p>"),
+            Is.EqualTo("Rücktritt & größte"));
+    }
+
+    [Test]
+    public void ToDisplayText_StripsMarkupRevealedByEntityDecoding()
+    {
+        Assert.That(HtmlText.ToDisplayText("&lt;a href=&quot;https://example.com&quot;&gt;My Show&lt;/a&gt;"),
+            Is.EqualTo("My Show"));
+        Assert.That(HtmlText.ToDisplayText("&amp;lt;b&amp;gt;Nested&amp;lt;/b&amp;gt;"),
+            Is.EqualTo("Nested"));
+    }
+
+    [TestCase(null)]
+    [TestCase("")]
+    public void ToDisplayText_ReturnsEmptyForMissingInput(string? input)
+    {
+        Assert.That(HtmlText.ToDisplayText(input!), Is.EqualTo(string.Empty));
+    }
+
     [TestCase(null)]
     [TestCase("")]
     public void ToPlainText_ReturnsEmptyForMissingInput(string? input)
