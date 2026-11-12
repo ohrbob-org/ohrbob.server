@@ -1,6 +1,7 @@
 using MongoDB.Driver;
 using Ohrbob.Api.Configuration;
 using Ohrbob.Server.Shared.Data;
+using Ohrbob.Server.Shared.Text;
 using CodeHollow.FeedReader;
 using Feed = Ohrbob.Server.Shared.Data.Feed;
 
@@ -46,7 +47,7 @@ public class FeedsService : MongoDbService<Feed>
             return new Feed
             {
                 Url = url,
-                Title = parsedFeed.Title ?? string.Empty,
+                Title = HtmlText.ToPlainText(parsedFeed.Title ?? string.Empty),
                 Description = parsedFeed.Description ?? string.Empty,
                 ImageUrl = parsedFeed.ImageUrl ?? string.Empty,
                 Category = FeedMetadataParser.ParseCategory(parsedFeed.OriginalDocument as string)

@@ -1,5 +1,6 @@
 using CodeHollow.FeedReader;
 using Ohrbob.Server.Shared.Data;
+using Ohrbob.Server.Shared.Text;
 
 namespace Ohrbob.Api.Services;
 
@@ -86,7 +87,7 @@ public class FeedUpdateWorker : BackgroundService
                 var parsedFeed = await FeedReader.ReadAsync(feed.Url);
                 
                 // Update Feed Metadata
-                feed.Title = parsedFeed.Title ?? feed.Title;
+                feed.Title = HtmlText.ToPlainText(parsedFeed.Title ?? feed.Title);
                 feed.Description = parsedFeed.Description ?? feed.Description;
                 feed.ImageUrl = parsedFeed.ImageUrl ?? feed.ImageUrl;
                 feed.Category = FeedMetadataParser.ParseCategory(parsedFeed.OriginalDocument as string);

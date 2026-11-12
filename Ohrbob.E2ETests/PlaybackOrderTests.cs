@@ -291,6 +291,48 @@ public class PlaybackOrderTests : PageTest
             "Changing a feed's span must not stop playback");
     }
 
+    [Test]
+    public async Task RemotePlayhead_IsReflectedWhileThisWidgetIsPaused()
+    {
+        var slug = Slug("remote-sync");
+        await TestCasts.ConfigureAsync(new TestCastPodcast(slug, "Remote Feed", new[]
+        {
+            new TestCastEpisode("Episode B", $"{slug}-b.mp3"),
+            new TestCastEpisode("Episode A", $"{slug}-a.mp3"),
+        }));
+
+        var station = await CreateStationAsync("Remote Sync Station", new[] { TestCasts.FeedUrl(slug) }, minimumEpisodes: 2);
+
+        // Activate the station server-side without starting playback in this browser.
+        await PostPlayerAsync($"/stream/play-station/{station.Id}");
+
+        // Never auto-play here: this browser stands in for a paused desktop view while the
+        // mobile app drives the session through the Player API.
+        await Context.AddCookiesAsync(new[]
+        {
+            new Cookie { Name = "ohrbob_user_paused", Value = "1", Url = _factory.ServerAddress }
+        });
+
+        await Page.GotoAsync(_factory.ServerAddress);
+        await ExpectWidgetTrackAsync("Episode A");
+        Assert.That(await IsWidgetPlayingAsync(), Is.False);
+
+        var status = await GetPlayerStatusAsync();
+        var currentId = status!.Value.GetProperty("current").GetProperty("episodeId").GetString();
+        var nextId = status.Value.GetProperty("next").GetProperty("episodeId").GetString();
+
+        // Mobile reports progress on the current episode -> the paused widget follows.
+        await PostPlayerStatusAsync(currentId!, station.Id, 120);
+        await Page.WaitForFunctionAsync(
+            "() => document.querySelector('#ohrbob-player').currentTime === 120",
+            null, new() { Timeout = 20000 });
+
+        // Mobile moves on -> the widget shows the new episode, still without playing.
+        await PostPlayerStatusAsync(nextId!, station.Id, 0);
+        await ExpectWidgetTrackAsync("Episode B", timeoutMs: 20000);
+        Assert.That(await IsWidgetPlayingAsync(), Is.False);
+    }
+
     // ---------------------------------------------------------------------------------------
     // Helpers
     // ---------------------------------------------------------------------------------------
@@ -476,14 +518,29 @@ public class PlaybackOrderTests : PageTest
             : null;
         Assert.That(episodeId, Is.Not.Null.And.Not.Empty, "Could not resolve the currently playing episode id.");
 
+        await PostPlayerStatusAsync(episodeId!, stationId, 0);
+    }
+
+    private async Task PostPlayerStatusAsync(string episodeId, string stationId, int positionSeconds)
+    {
         var profile = await GetProfileAsync();
         using var client = new HttpClient { BaseAddress = new Uri(PlayerApiUrl()) };
         using var request = new HttpRequestMessage(HttpMethod.Post, "/stream/status")
         {
             Content = new StringContent(
-                JsonSerializer.Serialize(new { episodeId, stationId, positionSeconds = 0 }),
+                JsonSerializer.Serialize(new { episodeId, stationId, positionSeconds }),
                 Encoding.UTF8, "application/json")
         };
+        request.Headers.Add("X-Stream-Token", profile.StreamToken);
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+    }
+
+    private async Task PostPlayerAsync(string path)
+    {
+        var profile = await GetProfileAsync();
+        using var client = new HttpClient { BaseAddress = new Uri(PlayerApiUrl()) };
+        using var request = new HttpRequestMessage(HttpMethod.Post, path);
         request.Headers.Add("X-Stream-Token", profile.StreamToken);
         var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();

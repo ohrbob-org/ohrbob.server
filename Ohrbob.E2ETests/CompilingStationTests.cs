@@ -224,6 +224,37 @@ public class CompilingStationTests : PageTest
     }
 
     [Test]
+    public async Task Discover_ShowsPlaceholder_WhenPodcastHasNoCoverArt()
+    {
+        var feed = new Feed
+        {
+            Id = Guid.NewGuid().ToString(),
+            Url = $"https://example.com/e2e-no-cover-{Guid.NewGuid()}.xml",
+            Title = "E2E No Cover Show",
+            Category = "Comedy",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var client = new MongoClient("mongodb://localhost:27019");
+        var feedsCollection = client.GetDatabase("OhrbobData").GetCollection<Feed>("FeedCollection");
+        await feedsCollection.InsertOneAsync(feed);
+
+        try
+        {
+            await Page.GotoAsync($"{_factory.ServerAddress}/Discover");
+
+            var card = Page.Locator(".discover-lane .card", new PageLocatorOptions { HasTextString = "E2E No Cover Show" }).First;
+            await Expect(card).ToBeVisibleAsync();
+            await Expect(card.Locator(".podcast-cover-placeholder")).ToBeVisibleAsync();
+            await Expect(card.Locator("img.card-img-top")).ToHaveCountAsync(0);
+        }
+        finally
+        {
+            await feedsCollection.DeleteOneAsync(f => f.Id == feed.Id);
+        }
+    }
+
+    [Test]
     public async Task Discover_QueryParameter_PrefillsSearch_AndCategoryButtonsSearch()
     {
         await Page.GotoAsync($"{_factory.ServerAddress}/Discover?q=maus");

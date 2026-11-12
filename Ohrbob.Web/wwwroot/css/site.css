@@ -364,6 +364,26 @@ html:has(.radio-landing-container) {
     }
 }
 
+/* Narrow phones: drop secondary chrome so the primary navigation always fits. */
+@media (max-width: 575.98px) {
+    .floating-nav-pill {
+        gap: .75rem;
+        padding: .75rem 1rem;
+    }
+    .floating-nav-pill-center {
+        gap: 1rem;
+    }
+    .floating-nav-pill .badge {
+        display: none; /* subscription tier stays visible in Account */
+    }
+}
+
+@media (max-width: 479.98px) {
+    .floating-nav-pill .ohrbob-logo-text {
+        display: none; /* keep the brand icon, save the wordmark width */
+    }
+}
+
 .btn-upgrade-morebob {
     background-color: #fc5d00;
     border: none;

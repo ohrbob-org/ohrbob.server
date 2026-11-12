@@ -45,6 +45,32 @@ public class NavigationTests : PageTest
         TestAuthHandler.TestAccountId = string.Empty;
     }
 
+    [TestCase(320)]
+    [TestCase(360)]
+    [TestCase(390)]
+    [TestCase(480)]
+    [TestCase(575)]
+    public async Task Navbar_FitsOnNarrowSmartphone(int width)
+    {
+        await Page.SetViewportSizeAsync(width, 800);
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        var pill = Page.Locator(".floating-nav-pill");
+        await Expect(pill).ToBeVisibleAsync();
+
+        var overflow = await Page.EvaluateAsync<bool>(@"() => {
+            const pill = document.querySelector('.floating-nav-pill');
+            const bounds = pill.getBoundingClientRect();
+            if (pill.scrollWidth > pill.clientWidth + 1) return true;
+            return Array.from(pill.querySelectorAll('a, button')).some(el => {
+                const r = el.getBoundingClientRect();
+                return r.left < bounds.left - 1 || r.right > bounds.right + 1;
+            });
+        }");
+
+        Assert.That(overflow, Is.False, "The navigation bar must not overflow on narrow smartphone viewports.");
+    }
+
     [Test]
     public async Task NavigateToEditAndBack_ProfileDropdownStillWorks()
     {

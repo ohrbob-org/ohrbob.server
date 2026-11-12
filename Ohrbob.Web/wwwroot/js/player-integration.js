@@ -52,6 +52,7 @@
         let currentEpisodeData = null;
         let nextEpisodeData = null;
         let prevEpisodeData = null;
+        let lastRemotePlayheadKey = null;
         let lastConnectionErrorTime = 0;
         let activeStationId = null;
         let navigating = false;
@@ -224,6 +225,7 @@
                 currentEpisodeData = null;
                 nextEpisodeData = null;
                 prevEpisodeData = null;
+                lastRemotePlayheadKey = null;
                 widget.setAttribute('station', 'My Station');
                 widget.setAttribute('track', 'Track Name');
                 widget.setAttribute('artist', 'Artist');
@@ -257,6 +259,7 @@
             if (state.isCompiling || state.isEmpty) {
                 currentEpisodeData = null;
                 nextEpisodeData = null;
+                lastRemotePlayheadKey = null;
 
                 widget.setAttribute('station', state.stationName || 'Unknown Station');
                 widget.setAttribute('track', state.isCompiling ? 'Compiling Station...' : 'No Episodes Available');
@@ -297,6 +300,16 @@
                 // Link icon -> station editing view
                 applyStationLink(state.stationId);
                 applyEpisodeCards();
+
+                // Keep a paused widget in step with playback on another device (e.g. the
+                // mobile app): reflect the server's playhead without starting local audio.
+                const remotePlayhead = currentEpisodeData.playheadPositionSeconds;
+                const remotePlayheadKey = `${currentEpisodeData.episodeId}:${remotePlayhead}`;
+                if (audio.paused && Number.isFinite(remotePlayhead) && remotePlayheadKey !== lastRemotePlayheadKey) {
+                    lastRemotePlayheadKey = remotePlayheadKey;
+                    audio.currentTime = remotePlayhead;
+                    widget.currentTime = remotePlayhead;
+                }
 
                 // Enable buttons
                 const btnPlay = widget.querySelector('.js-play');
@@ -713,14 +726,16 @@
                 if (!navigating) {
                     await syncState();
                 }
-            } else if (!currentEpisodeData) {
-                await syncState();
-            } else {
-                // Playback was expected but the media element is not playing (e.g. the browser
-                // silently refused a background auto-advance): re-assert it when possible.
-                await resumePlaybackIfInterrupted();
+                return;
             }
-        }, 10000);
+
+            // Not playing here: refresh from the server so playback running on another
+            // device (e.g. the mobile app via the Player API) stays visible and up to date.
+            if (!navigating) {
+                await syncState();
+            }
+            await resumePlaybackIfInterrupted();
+        }, 5000);
 
         // Recover playback as soon as the page is visible/focused again. Registered once; the
         // wrapper always calls the latest instance's handler (initPlayer runs on every nav).

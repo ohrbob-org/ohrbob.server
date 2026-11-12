@@ -105,6 +105,7 @@ builder.Services.AddSingleton<IMigration, Migration_0_0_11_RepairStationShareCod
 builder.Services.AddSingleton<IMigration, Migration_0_0_12_HostPaceDefaults>();
 builder.Services.AddSingleton<IMigration, Migration_0_0_13_NormalizeAccountEmails>();
 builder.Services.AddSingleton<IMigration, Migration_0_0_14_StripeCustomerIndex>();
+builder.Services.AddSingleton<IMigration, Migration_0_0_15_PlainFeedTitles>();
 builder.Services.AddSingleton<DatabaseMigrator>();
 builder.Services.AddHostedService<FeedUpdateWorker>();
 
