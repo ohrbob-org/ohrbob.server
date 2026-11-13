@@ -518,6 +518,40 @@ window.initMoveFeed = function (sourceStationId) {
     window.addEventListener('popstate', syncActiveNav);
 })();
 
+// Thin bar at the top of the screen while htmx requests are in flight.
+// shortcut: only htmx requests (boosted nav, hx-get/post). The hand-written
+// fetch calls in this file do not drive it; upgrade if those need feedback too.
+(function () {
+    var bar = document.getElementById('htmx-progress');
+    if (!bar) return;
+    var pending = 0;
+    var fadeTimer, resetTimer;
+
+    function start() {
+        pending++;
+        clearTimeout(fadeTimer);
+        clearTimeout(resetTimer);
+        bar.classList.remove('is-done');
+        bar.classList.add('is-loading');
+    }
+
+    function finish() {
+        pending = Math.max(0, pending - 1);
+        if (pending > 0) return;
+        // A short beat so instant (cached) responses still show a visible blip.
+        fadeTimer = setTimeout(function () {
+            bar.classList.remove('is-loading');
+            bar.classList.add('is-done');
+            resetTimer = setTimeout(function () { bar.classList.remove('is-done'); }, 350);
+        }, 100);
+    }
+
+    document.body.addEventListener('htmx:beforeRequest', start);
+    ['htmx:afterRequest', 'htmx:sendError', 'htmx:timeout'].forEach(function (name) {
+        document.body.addEventListener(name, finish);
+    });
+})();
+
 // htmx scrolls the boosted target (#main-content) into view after each swap, which
 // jumps the page down past the sticky header on every nav click. Keep the position.
 if (window.htmx && window.htmx.config) {

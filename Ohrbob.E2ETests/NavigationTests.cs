@@ -268,6 +268,48 @@ public class NavigationTests : PageTest
     }
 
     [Test]
+    public async Task LoadingBar_ShowsWhileAnHtmxRequestIsInFlight()
+    {
+        await Page.SetViewportSizeAsync(1280, 900);
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        var bar = Page.Locator("#htmx-progress");
+        await Expect(bar).ToHaveCSSAsync("opacity", "0");
+
+        // Slow the boosted navigation down so the indicator is observable.
+        await Page.RouteAsync("**/Discover", async route =>
+        {
+            await Task.Delay(1000);
+            await route.ContinueAsync();
+        });
+
+        await Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Discover" }).ClickAsync();
+        await Expect(bar).ToHaveClassAsync(new System.Text.RegularExpressions.Regex(@"\bis-loading\b"));
+        await Expect(bar).ToHaveCSSAsync("opacity", "1");
+
+        await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/Discover"));
+        await Expect(bar).Not.ToHaveClassAsync(new System.Text.RegularExpressions.Regex(@"\bis-loading\b"),
+            new() { Timeout = 5000 });
+    }
+
+    [Test]
+    public async Task ShortPage_HasNoPageScrollbarOnDesktop()
+    {
+        await Page.SetViewportSizeAsync(1440, 900);
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        var m = await Page.EvaluateAsync<int[]>(@"() => [
+            Math.round(document.getElementById('main-content').getBoundingClientRect().bottom),
+            document.documentElement.scrollHeight,
+            window.innerHeight
+        ]");
+
+        Assert.That(m[0], Is.LessThan(m[2]), "Precondition: the page content fits the viewport");
+        Assert.That(m[1], Is.LessThanOrEqualTo(m[2]),
+            "A page that fits the viewport must not scroll just to reveal space reserved for the player");
+    }
+
+    [Test]
     public async Task ActiveNav_HighlightsTheCurrentSectionAcrossBoostedNavigation()
     {
         await Page.SetViewportSizeAsync(1280, 900);

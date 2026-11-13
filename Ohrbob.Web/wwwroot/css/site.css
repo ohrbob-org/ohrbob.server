@@ -26,7 +26,9 @@ body {
 }
 
 body.with-player {
-    margin-bottom: 120px;
+    /* Reserve room for the fixed player inside the body box, so a page that
+       fits the viewport does not get a scrollbar for empty space only. */
+    padding-bottom: 120px;
 }
 body.with-player .footer {
     /* Lift the footer above the player */
@@ -36,7 +38,7 @@ body.with-player .footer {
 @media (max-width: 767.98px) {
     body.with-player {
         /* On mobile the player is slightly shorter, but 140px total is safe */
-        margin-bottom: 140px;
+        padding-bottom: 140px;
     }
     body.with-player .footer {
         bottom: 80px !important;
@@ -1066,6 +1068,29 @@ html:has(.radio-landing-container) {
 /* Account tab cards */
 .account-tab-link {
     transition: border-color .15s ease-in-out;
+}
+
+/* Thin progress bar for htmx requests (see site.js) */
+#htmx-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    opacity: 0;
+    z-index: 2000;
+    pointer-events: none;
+    background-color: var(--bs-primary, #fc5d00);
+    transition: width .2s ease, opacity .3s ease;
+}
+#htmx-progress.is-loading {
+    width: 80%;
+    opacity: 1;
+    transition: width 3s cubic-bezier(.1, .7, .3, 1), opacity .1s ease;
+}
+#htmx-progress.is-done {
+    width: 100%;
+    opacity: 0;
 }
 .account-tab-link:hover,
 .account-tab-link.active {
