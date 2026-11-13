@@ -690,6 +690,47 @@ html:has(.radio-landing-container) {
 }
 .card-station-body { cursor: pointer; }
 
+/* Delayed auto-play prompt: bottom-right, above the fixed player bar. */
+.ohrbob-auto-start {
+    position: fixed;
+    right: 16px;
+    bottom: 112px;
+    z-index: 1090;
+    display: none;
+    width: min(320px, calc(100vw - 32px));
+    padding: 14px 16px;
+    overflow: hidden;
+    border-radius: 14px;
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    border: 1px solid var(--bs-border-color);
+    box-shadow: 0 12px 34px rgba(0, 25, 87, 0.25);
+}
+.ohrbob-auto-start.show { display: block; }
+.ohrbob-auto-start-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(var(--bs-primary-rgb), 0.15);
+}
+.ohrbob-auto-start-bar-fill {
+    display: block;
+    height: 100%;
+    width: 100%;
+    background: var(--bs-primary);
+}
+.ohrbob-auto-start.show .ohrbob-auto-start-bar-fill {
+    animation: ohrbob-autostart-countdown var(--ohrbob-auto-start-duration, 5s) linear forwards;
+}
+@keyframes ohrbob-autostart-countdown {
+    from { width: 100%; }
+    to { width: 0; }
+}
+.ohrbob-auto-start-text { margin: 0 0 10px; font-weight: 600; }
+.ohrbob-auto-start-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
 /* Selected station: paint the ring on top instead of swapping the 1px border for
    a 3px one, which shifted the card's content. */
 .card-station.is-active {
