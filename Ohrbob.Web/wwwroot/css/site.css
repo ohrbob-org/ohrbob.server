@@ -619,6 +619,17 @@ html:has(.radio-landing-container) {
     color: rgba(255, 255, 255, 0.55);
 }
 
+/* The feed actions menu must escape the row: the theme clips the row for its rounded
+   corners. */
+.list-group-item.card-station-feed { overflow: visible; }
+/* Keep an open menu above the sticky editor header (the menu flips up near the top). */
+.card-station-feed:has(.dropdown-menu.show) { z-index: 1055; }
+/* No hover lift: a transformed row becomes the containing block for the fixed-position
+   feed menu, which makes the open menu jump when the pointer leaves the row. */
+.card-station-feed:hover { transform: none; }
+.card-station-feed-cover { border-top-left-radius: 15px; border-bottom-left-radius: 15px; }
+.card-station-feed-watermark { right: 0; bottom: 0; }
+
 /* The card fallbacks paint a gradient; give them a solid base too so the white
    initial stays a dark surface (gradients are ignored by contrast checks/tools). */
 .card-station-cover-empty,

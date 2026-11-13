@@ -78,7 +78,7 @@ public class ListenEmptyBadgeTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
         var card = StationCard("Badge Station");
         await card.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 20000 });
-        await Expect(card.Locator("small.text-muted")).ToContainTextAsync("1 podcasts");
+        await Expect(card.Locator(".card-station-count")).ToContainTextAsync("1 podcast");
         await Expect(card.Locator(".badge.bg-danger")).Not.ToBeVisibleAsync();
 
         // Complete every episode for the active profile.
@@ -94,7 +94,7 @@ public class ListenEmptyBadgeTests : PageTest
         await Page.ReloadAsync();
         var cardAfter = StationCard("Badge Station");
         await cardAfter.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 20000 });
-        await Expect(cardAfter.Locator("small.text-muted")).ToContainTextAsync("1 podcasts");
+        await Expect(cardAfter.Locator(".card-station-count")).ToContainTextAsync("1 podcast");
         var badge = cardAfter.Locator(".badge.bg-danger");
         await Expect(badge).ToBeVisibleAsync(new() { Timeout = 15000 });
         await Expect(badge).ToHaveTextAsync(new Regex("Empty"));
@@ -132,5 +132,5 @@ public class ListenEmptyBadgeTests : PageTest
     }
 
     private ILocator StationCard(string name) =>
-        Page.Locator(".card", new PageLocatorOptions { HasTextString = name }).First;
+        Page.Locator(".card-station", new PageLocatorOptions { HasTextString = name }).First;
 }

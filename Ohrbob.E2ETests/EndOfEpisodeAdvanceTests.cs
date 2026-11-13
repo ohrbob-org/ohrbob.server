@@ -176,7 +176,7 @@ public class EndOfEpisodeAdvanceTests : PageTest
     private async Task PlayStationAndWaitAsync(string stationName)
     {
         await Page.GotoAsync(_factory.ServerAddress);
-        var card = Page.Locator(".card", new PageLocatorOptions { HasTextString = stationName }).First;
+        var card = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = stationName }).First;
         await card.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 20000 });
         await card.ClickAsync();
 

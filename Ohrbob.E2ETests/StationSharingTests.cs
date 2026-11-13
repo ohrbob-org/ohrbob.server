@@ -104,7 +104,7 @@ public class StationSharingTests : PageTest
         await Page.ClickAsync("#subscribeProfileModal button[type='submit']");
 
         await Page.WaitForURLAsync($"{_factory.ServerAddress}/", new() { Timeout = 15000 });
-        var card = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Friend Station" }).First;
+        var card = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Friend Station" }).First;
         await Expect(card).ToBeVisibleAsync(new() { Timeout = 15000 });
         await Expect(card.Locator(".badge", new() { HasTextString = "Subscribed" })).ToBeVisibleAsync();
         await Expect(card.Locator("a[href*='/Stations/Edit/']")).ToHaveCountAsync(0);
@@ -117,7 +117,7 @@ public class StationSharingTests : PageTest
         await card.Locator("button[title='Unsubscribe']").ClickAsync();
         await Expect(Page.Locator("#confirmationModal")).ToBeVisibleAsync();
         await Page.ClickAsync("#confirmationModalConfirmBtn");
-        await Expect(Page.Locator(".card", new PageLocatorOptions { HasTextString = "Friend Station" })).ToHaveCountAsync(0, new() { Timeout = 15000 });
+        await Expect(Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Friend Station" })).ToHaveCountAsync(0, new() { Timeout = 15000 });
     }
 
     [Test]
@@ -165,7 +165,7 @@ public class StationSharingTests : PageTest
 
         TestAuthHandler.TestAccountId = subscriberAccountId;
         await Page.GotoAsync($"{_factory.ServerAddress}/");
-        var card = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Host Paced" }).First;
+        var card = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Host Paced" }).First;
         await Expect(card).ToBeVisibleAsync(new() { Timeout = 15000 });
         await Expect(card.Locator(".badge:has-text('Host Pace')")).ToBeVisibleAsync();
 
@@ -175,13 +175,13 @@ public class StationSharingTests : PageTest
         // Completing the only released episode makes the station empty for the subscriber.
         await stations.MarkEpisodeCompletedAsync(station.Id, first.Id, subscriberProfileId);
         await Page.ReloadAsync();
-        var emptyCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Host Paced" }).First;
+        var emptyCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Host Paced" }).First;
         await Expect(emptyCard.Locator(".badge.bg-danger")).ToBeVisibleAsync(new() { Timeout = 15000 });
 
         // The host releases the next episode and the subscriber receives it.
         await stations.MarkEpisodeCompletedAsync(station.Id, second.Id, _ownerProfileId);
         await Page.ReloadAsync();
-        var releasedCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Host Paced" }).First;
+        var releasedCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Host Paced" }).First;
         await Expect(releasedCard.Locator(".badge.bg-danger")).Not.ToBeVisibleAsync(new() { Timeout = 15000 });
         await releasedCard.ClickAsync();
         await Expect(Page.Locator("#ohrbob-player")).ToHaveAttributeAsync("track", second.Title, new() { Timeout = 15000 });
@@ -243,7 +243,7 @@ public class StationSharingTests : PageTest
 
         TestAuthHandler.TestAccountId = subscriberAccountId;
         await Page.GotoAsync($"{_factory.ServerAddress}/");
-        var card = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Private Later" }).First;
+        var card = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Private Later" }).First;
         await Expect(card).ToBeVisibleAsync(new() { Timeout = 15000 });
         await Expect(card.Locator("a[href*='/Stations/Edit/']")).ToHaveCountAsync(0);
 

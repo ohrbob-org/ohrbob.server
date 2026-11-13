@@ -165,14 +165,14 @@ public class CompilingStationTests : PageTest
         await Page.WaitForURLAsync("**/Stations");
         await Page.GotoAsync(_factory.ServerAddress);
 
-        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Fresh Station" }).First;
+        var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Fresh Station" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
 
         // Click the station card to switch to it
         await stationCard.ClickAsync();
 
         // Wait for the player to update and show compiling metadata
-        var trackTitle = Page.Locator("#ohrbob-player .track-title");
+        var trackTitle = Page.Locator("#ohrbob-player .expanded-title");
         await Expect(trackTitle).ToHaveTextAsync("Compiling Station...", new() { Timeout = 10000 });
 
         // Verify the play button is disabled
@@ -209,7 +209,7 @@ public class CompilingStationTests : PageTest
 
             var comedyLane = Page.Locator(".discover-lane", new PageLocatorOptions { HasTextString = "Comedy" }).First;
             await Expect(comedyLane).ToBeVisibleAsync();
-            await Expect(comedyLane.Locator(".card", new LocatorLocatorOptions { HasTextString = "E2E Comedy Show" })).ToBeVisibleAsync();
+            await Expect(comedyLane.Locator(".card-feed", new LocatorLocatorOptions { HasTextString = "E2E Comedy Show" })).ToBeVisibleAsync();
 
             await Page.FillAsync("#discover-search", "maus");
             await Expect(lanes).Not.ToBeVisibleAsync();
@@ -243,10 +243,10 @@ public class CompilingStationTests : PageTest
         {
             await Page.GotoAsync($"{_factory.ServerAddress}/Discover");
 
-            var card = Page.Locator(".discover-lane .card", new PageLocatorOptions { HasTextString = "E2E No Cover Show" }).First;
+            var card = Page.Locator(".discover-lane .card-feed", new PageLocatorOptions { HasTextString = "E2E No Cover Show" }).First;
             await Expect(card).ToBeVisibleAsync();
-            await Expect(card.Locator(".podcast-cover-placeholder")).ToBeVisibleAsync();
-            await Expect(card.Locator("img.card-img-top")).ToHaveCountAsync(0);
+            await Expect(card.Locator(".card-feed-cover-empty")).ToBeVisibleAsync();
+            await Expect(card.Locator("img.card-feed-cover")).ToHaveCountAsync(0);
         }
         finally
         {

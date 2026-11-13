@@ -386,7 +386,14 @@ window.initFeedMenus = function () {
     // overflow clipping (the feed card and #rotationContainer both clip).
     if (typeof bootstrap === 'undefined' || !bootstrap.Dropdown) return;
     document.querySelectorAll('#rotationContainer .feed-actions-menu').forEach(function (el) {
-        bootstrap.Dropdown.getOrCreateInstance(el, { popperConfig: { strategy: 'fixed' } });
+        bootstrap.Dropdown.getOrCreateInstance(el, {
+            popperConfig: {
+                strategy: 'fixed',
+                // Always open downwards: flipping up puts the menu under the sticky
+                // editor header, where it cannot be clicked.
+                modifiers: [{ name: 'flip', enabled: false }]
+            }
+        });
     });
 };
 
