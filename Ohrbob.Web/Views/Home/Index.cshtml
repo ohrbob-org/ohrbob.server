@@ -21,7 +21,7 @@
                 var stationInitial = (dto.Station.Name.Length > 0 ? dto.Station.Name[0].ToString() : "?").ToUpper();
 
                 var isActive = ViewBag.ActiveStationId == dto.Station.Id;
-                var cardClass = isActive ? "border-primary border-3 shadow" : "";
+                var cardClass = isActive ? "is-active" : "";
                 var subscribedIds = ViewBag.SubscribedStationIds as HashSet<string> ?? new HashSet<string>();
                 var isSubscribed = subscribedIds.Contains(dto.Station.Id);
 
@@ -49,7 +49,9 @@
                             }
                             <span class="card-station-badge" aria-hidden="true"><i class="bi bi-broadcast"></i></span>
                             <span class="card-station-count">@feedCount @(feedCount == 1 ? "podcast" : "podcasts")</span>
-                            <button type="button" class="card-station-play" aria-label="Play @dto.Station.Name"></button>
+                            <button type="button" class="card-station-play" aria-label="Play @dto.Station.Name">
+                                <i class="bi bi-play-fill" aria-hidden="true"></i>
+                            </button>
                         </div>
                         <div class="card-station-body">
                             <i class="bi bi-soundwave card-station-watermark" aria-hidden="true"></i>

@@ -342,13 +342,7 @@
             }
 
             document.querySelectorAll(".active-station-card").forEach(c => {
-                if (c.getAttribute('data-station-id') === state.stationId) {
-                    c.classList.remove("shadow-sm");
-                    c.classList.add("border-primary", "border-3", "shadow");
-                } else {
-                    c.classList.remove("border-primary", "border-3", "shadow");
-                    c.classList.add("shadow-sm");
-                }
+                c.classList.toggle("is-active", c.getAttribute('data-station-id') === state.stationId);
             });
 
             document.body.dispatchEvent(new CustomEvent('ohrbob:statechange', { detail: { state } }));

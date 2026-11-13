@@ -313,7 +313,7 @@ public class AudioPlaybackTests : PageTest
         
         // Assert that the station card has the active highlight class
         var cardContainer = Page.Locator(".active-station-card").First;
-        await Expect(cardContainer).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("border-primary"));
+        await Expect(cardContainer).ToHaveClassAsync(new System.Text.RegularExpressions.Regex(@"\bis-active\b"));
 
         // Pause playback to release server resources
         await playBtn.ClickAsync();
