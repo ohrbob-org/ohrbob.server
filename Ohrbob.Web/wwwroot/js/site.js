@@ -497,3 +497,23 @@ window.initMoveFeed = function (sourceStationId) {
         });
     });
 };
+
+// Highlight Discover / Listen in the main nav for the current section. The nav
+// lives outside #main-content, so it must follow htmx swaps and history restores.
+(function () {
+    function syncActiveNav() {
+        var path = window.location.pathname.toLowerCase();
+        document.querySelectorAll('.floating-nav-pill-center a').forEach(function (link) {
+            var href = new URL(link.href, window.location.origin).pathname.toLowerCase();
+            var active = href === '/' ? path === '/' : (path === href || path.indexOf(href + '/') === 0);
+            link.classList.toggle('active', active);
+            if (active) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', syncActiveNav);
+    document.addEventListener('htmx:afterSettle', syncActiveNav);
+    document.addEventListener('htmx:historyRestore', syncActiveNav);
+    window.addEventListener('popstate', syncActiveNav);
+})();

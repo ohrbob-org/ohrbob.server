@@ -183,4 +183,32 @@ public class NavigationTests : PageTest
         await Expect(Page.Locator("text=About")).ToBeVisibleAsync();
         await Expect(Page.Locator("text=GitHub")).ToBeVisibleAsync();
     }
+
+    [Test]
+    public async Task ActiveNav_HighlightsTheCurrentSectionAcrossBoostedNavigation()
+    {
+        await Page.SetViewportSizeAsync(1280, 900);
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        var listen = Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Listen" });
+        var discover = Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Discover" });
+        var active = new System.Text.RegularExpressions.Regex(@"\bactive\b");
+
+        await Expect(listen).ToHaveClassAsync(active);
+        await Expect(listen).ToHaveAttributeAsync("aria-current", "page");
+        await Expect(discover).Not.ToHaveClassAsync(active);
+
+        // The header is outside #main-content, so the highlight must follow the
+        // htmx-boosted navigation instead of relying on a new page render.
+        await discover.ClickAsync();
+        await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/Discover"));
+        await Expect(discover).ToHaveClassAsync(active);
+        await Expect(discover).ToHaveAttributeAsync("aria-current", "page");
+        await Expect(listen).Not.ToHaveClassAsync(active);
+
+        // Browser back restores the Listen highlight.
+        await Page.GoBackAsync();
+        await Expect(listen).ToHaveClassAsync(active);
+        await Expect(discover).Not.ToHaveClassAsync(active);
+    }
 }
