@@ -783,6 +783,93 @@ html:has(.radio-landing-container) {
     max-width: 220px;
 }
 
+/* Discover cards: show the description over a blurred cover. */
+.podcast-card {
+    overflow: hidden;
+    cursor: pointer;
+}
+.podcast-details-toggle {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+}
+.podcast-cover-media {
+    display: block;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-bottom: 1px solid var(--bs-border-color);
+    background: var(--bs-secondary-bg);
+}
+.podcast-cover-media > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: filter .2s ease, transform .2s ease;
+}
+.podcast-cover-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: var(--bs-secondary-bg);
+    transition: filter .2s ease, transform .2s ease;
+}
+.podcast-details-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: flex-end;
+    padding: 1rem;
+    background: linear-gradient(to top, rgba(10, 12, 20, .92), rgba(10, 12, 20, .55) 60%, rgba(10, 12, 20, .2));
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .2s ease, visibility .2s ease;
+}
+.podcast-details-text {
+    display: block;
+    max-height: 100%;
+    overflow-y: auto;
+    color: #fff;
+    font-size: .85rem;
+    line-height: 1.35;
+    white-space: pre-line;
+}
+.podcast-card.is-open .podcast-details-overlay {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+@media (hover: hover) {
+    .podcast-card:hover .podcast-details-overlay {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+}
+.podcast-card.is-open .podcast-cover-media > img,
+.podcast-card.is-open .podcast-cover-media > .podcast-cover-placeholder {
+    filter: blur(6px);
+    transform: scale(1.05);
+}
+@media (hover: hover) {
+    .podcast-card:hover .podcast-cover-media > img,
+    .podcast-card:hover .podcast-cover-media > .podcast-cover-placeholder {
+        filter: blur(6px);
+        transform: scale(1.05);
+    }
+}
+
 /* Fade the category lane out at both edges */
 .category-roster-track {
     -webkit-mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 24px), transparent);

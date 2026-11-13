@@ -1,21 +1,38 @@
 @using Ohrbob.Server.Shared.Requests
+@using Ohrbob.Server.Shared.Text
 @model Ohrbob.Web.Models.PodcastSearchResult
 @{
     var stations = ViewBag.Stations as List<StationWithFeedsDto> ?? new List<StationWithFeedsDto>();
     var safeId = Guid.NewGuid().ToString("N");
     var hasStations = stations.Any();
+    var description = HtmlText.ToDisplayText(Model.Description);
+    if (string.IsNullOrWhiteSpace(description))
+    {
+        description = "No description available.";
+    }
 }
 <div class="col">
-    <div class="card-feed h-100">
-        <div class="card-feed-art">
-            @if (!string.IsNullOrEmpty(Model.Image))
-            {
-                <img src="@Model.Image" class="card-feed-cover" alt="">
-            }
-            else
-            {
-                <div class="card-feed-cover card-feed-cover-empty" role="img" aria-label="No cover art">@((Model.Title.Length > 0 ? Model.Title[0].ToString() : "?").ToUpper())</div>
-            }
+    <div class="card-feed h-100 podcast-card">
+        <div class="card-feed-art podcast-card-cover">
+            <button type="button"
+                    class="podcast-details-toggle"
+                    aria-expanded="false"
+                    aria-controls="podcast-details-@safeId"
+                    aria-label="Show details for @Model.Title">
+                <span class="podcast-cover-media">
+                    @if (!string.IsNullOrEmpty(Model.Image))
+                    {
+                        <img src="@Model.Image" class="podcast-card-cover-img" alt="Cover">
+                    }
+                    else
+                    {
+                        <div class="card-feed-cover card-feed-cover-empty" role="img" aria-label="No cover art">@((Model.Title.Length > 0 ? Model.Title[0].ToString() : "?").ToUpper())</div>
+                    }
+                </span>
+                <span class="podcast-details-overlay" id="podcast-details-@safeId">
+                    <span class="podcast-details-text">@description</span>
+                </span>
+            </button>
             <span class="card-feed-badge" aria-hidden="true"><i class="bi bi-rss"></i></span>
             <button class="card-feed-add"
                     type="button"

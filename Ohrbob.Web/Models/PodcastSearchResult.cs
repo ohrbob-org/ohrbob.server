@@ -15,6 +15,9 @@ public class PodcastSearchResult
 
     [JsonPropertyName("image")]
     public string Image { get; set; } = string.Empty;
+
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = string.Empty;
 }
 
 public class PodcastIndexSearchResponse

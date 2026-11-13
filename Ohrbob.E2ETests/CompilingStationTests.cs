@@ -255,6 +255,55 @@ public class CompilingStationTests : PageTest
     }
 
     [Test]
+    public async Task Discover_Card_TogglesDescriptionOverlay()
+    {
+        var feed = new Feed
+        {
+            Id = Guid.NewGuid().ToString(),
+            Url = $"https://example.com/e2e-details-{Guid.NewGuid()}.xml",
+            Title = "E2E Details Show",
+            Category = "Comedy",
+            Description = "<p>An <b>insightful</b> show.</p>",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var client = new MongoClient("mongodb://localhost:27019");
+        var feedsCollection = client.GetDatabase("OhrbobData").GetCollection<Feed>("FeedCollection");
+        await feedsCollection.InsertOneAsync(feed);
+
+        try
+        {
+            await Page.GotoAsync($"{_factory.ServerAddress}/Discover");
+
+            var card = Page.Locator(".discover-lane .podcast-card", new PageLocatorOptions { HasTextString = "E2E Details Show" }).First;
+            var overlay = card.Locator(".podcast-details-overlay");
+            var toggle = card.Locator(".podcast-details-toggle");
+
+            await Expect(card).ToBeVisibleAsync();
+            await Expect(overlay).ToHaveTextAsync("An insightful show.");
+            await Expect(overlay).ToBeHiddenAsync();
+
+            await card.HoverAsync();
+            await Expect(overlay).ToBeVisibleAsync();
+            await Page.Mouse.MoveAsync(0, 0);
+            await Expect(overlay).ToBeHiddenAsync();
+
+            await toggle.ClickAsync();
+            await Expect(card).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("\\bis-open\\b"));
+            await Expect(toggle).ToHaveAttributeAsync("aria-expanded", "true");
+            await Expect(overlay).ToBeVisibleAsync();
+
+            await toggle.ClickAsync();
+            await Expect(card).Not.ToHaveClassAsync(new System.Text.RegularExpressions.Regex("\\bis-open\\b"));
+            await Expect(toggle).ToHaveAttributeAsync("aria-expanded", "false");
+        }
+        finally
+        {
+            await feedsCollection.DeleteOneAsync(f => f.Id == feed.Id);
+        }
+    }
+
+    [Test]
     public async Task Discover_QueryParameter_PrefillsSearch_AndCategoryButtonsSearch()
     {
         await Page.GotoAsync($"{_factory.ServerAddress}/Discover?q=maus");
