@@ -98,6 +98,42 @@ public class StationPlaylistTests : PageTest
             episodeCount, new() { Timeout = 15000 });
     }
 
+    [Test]
+    public async Task Edit_HidesPaneHeadingsWhenTheTabsAreVisible()
+    {
+        var slug = $"tabs-{Guid.NewGuid():N}";
+        await TestCasts.ConfigureAsync(new TestCastPodcast(slug, "Tabs Feed", new[]
+        {
+            new TestCastEpisode("Episode One", $"{slug}-1.mp3"),
+        }));
+
+        var stations = _factory.Services.GetRequiredService<StationsApiService>();
+        var station = await stations.CreateStationAsync(_accountId, new Station
+        {
+            AccountId = _accountId,
+            Name = "Tabs Station",
+            Feeds = new[] { TestCasts.FeedUrl(slug) }
+        });
+        var profiles = _factory.Services.GetRequiredService<ProfilesApiService>();
+        var profileId = (await profiles.GetProfilesByAccountIdAsync(_accountId))![0].Id;
+        await profiles.AddStationToProfileAsync(profileId, station!.Id);
+        await WaitForEpisodesAsync(station.Id, 1);
+
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{station.Id}");
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 15000 });
+
+        // Mobile: the tabs name the panes, so their headings are hidden.
+        await Expect(Page.Locator("#stationTabs")).ToBeVisibleAsync();
+        await Expect(Page.Locator("#rotation h3")).ToBeHiddenAsync();
+        await Expect(Page.Locator("#resolved h4")).ToBeHiddenAsync();
+
+        // Desktop: tabs are hidden, the pane headings are back.
+        await Page.SetViewportSizeAsync(1280, 900);
+        await Expect(Page.Locator("#stationTabs")).ToBeHiddenAsync();
+        await Expect(Page.Locator("#rotation h3")).ToBeVisibleAsync();
+        await Expect(Page.Locator("#resolved h4")).ToBeVisibleAsync();
+    }
+
     private async Task WaitForEpisodesAsync(string stationId, int minimum)
     {
         var stations = _factory.Services.GetRequiredService<StationsApiService>();
