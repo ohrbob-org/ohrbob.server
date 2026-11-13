@@ -103,6 +103,7 @@ header {
     gap: 2rem;
 }
 .floating-nav-pill-center a {
+    position: relative;
     text-decoration: none;
     color: #444;
     font-weight: 700;
@@ -110,6 +111,19 @@ header {
 }
 .floating-nav-pill-center a:hover {
     color: var(--bs-primary);
+}
+.floating-nav-pill-center a.active {
+    color: var(--bs-primary);
+}
+.floating-nav-pill-center a.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--bs-primary);
 }
 
 /* Layout Utilities */
@@ -589,6 +603,7 @@ html:has(.radio-landing-container) {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 [data-bs-theme=dark] .floating-nav-pill-center a { color: var(--bs-body-color); }
+[data-bs-theme=dark] .floating-nav-pill-center a.active { color: var(--bs-primary); }
 
 /* Glass panels. */
 [data-bs-theme=dark] .glass-panel {

@@ -1,4 +1,5 @@
 using Microsoft.Playwright;
+using MongoDB.Driver;
 using Microsoft.Playwright.NUnit;
 using NUnit.Framework;
 using Ohrbob.E2ETests.Infrastructure;
@@ -182,5 +183,115 @@ public class NavigationTests : PageTest
         // Check for menu items
         await Expect(Page.Locator("text=About")).ToBeVisibleAsync();
         await Expect(Page.Locator("text=GitHub")).ToBeVisibleAsync();
+    }
+
+    [Test]
+    public async Task BoostedNavigation_DoesNotScrollThePageDown()
+    {
+        if (!await TestCasts.IsAvailableAsync())
+        {
+            Assert.Ignore($"podcast-testcasts is not reachable at {TestCasts.ConfigureBaseUrl}.");
+        }
+
+        var slug = $"navscroll-{Guid.NewGuid():N}";
+        await TestCasts.ConfigureAsync(
+            new TestCastPodcast(slug, "Nav Scroll A", new[] { new TestCastEpisode("E1", $"{slug}-1.mp3") }),
+            new TestCastPodcast($"{slug}-b", "Nav Scroll B", new[] { new TestCastEpisode("E2", $"{slug}-b-1.mp3") }));
+
+        var stations = _factory.Services.GetRequiredService<Ohrbob.Web.Services.StationsApiService>();
+        var profiles = _factory.Services.GetRequiredService<Ohrbob.Web.Services.ProfilesApiService>();
+        var profileId = (await profiles.GetProfilesByAccountIdAsync(_testAccountId))![0].Id;
+        foreach (var (name, feed) in new[] { ("Nav Scroll A", slug), ("Nav Scroll B", $"{slug}-b") })
+        {
+            var station = await stations.CreateStationAsync(_testAccountId, new Ohrbob.Server.Shared.Data.Station
+            {
+                AccountId = _testAccountId,
+                Name = name,
+                Feeds = new[] { TestCasts.FeedUrl(feed) }
+            });
+            await profiles.AddStationToProfileAsync(profileId, station!.Id);
+        }
+
+        // A Discover card so that page is scrollable too.
+        var comedyFeed = new Ohrbob.Server.Shared.Data.Feed
+        {
+            Id = Guid.NewGuid().ToString(),
+            Url = $"https://example.com/nav-scroll-{Guid.NewGuid()}.xml",
+            Title = "Nav Scroll Show",
+            Category = "Comedy",
+            Description = "Scroll test.",
+            CreatedAt = DateTime.UtcNow
+        };
+        var mongo = new MongoDB.Driver.MongoClient("mongodb://localhost:27019");
+        var feeds = mongo.GetDatabase("OhrbobData").GetCollection<Ohrbob.Server.Shared.Data.Feed>("FeedCollection");
+        await feeds.InsertOneAsync(comedyFeed);
+        try
+        {
+            // A short viewport makes both pages scrollable.
+            await Page.SetViewportSizeAsync(1280, 300);
+            await Page.GotoAsync(_factory.ServerAddress);
+            await Expect(Page.Locator(".card-station").First).ToBeVisibleAsync(new() { Timeout = 15000 });
+
+            var discoverLink = Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Discover" });
+            var listenLink = Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Listen" });
+
+            // Listen -> Discover while scrolled down: the new page starts at the top.
+            Assert.That(await Page.EvaluateAsync<int>("() => document.documentElement.scrollHeight"),
+                Is.GreaterThan(await Page.EvaluateAsync<int>("() => window.innerHeight")),
+                "Listen must be scrollable for this test");
+            await Page.EvaluateAsync("() => window.scrollTo(0, 80)");
+            Assert.That(await Page.EvaluateAsync<int>("() => window.scrollY"), Is.GreaterThan(0));
+            await discoverLink.ClickAsync();
+            await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/Discover"));
+            await Expect(Page.Locator(".discover-lane .card-feed").First).ToBeVisibleAsync(new() { Timeout = 15000 });
+            await Page.WaitForTimeoutAsync(300);
+            Assert.That(await Page.EvaluateAsync<int>("() => window.scrollY"), Is.EqualTo(0),
+                "Switching to Discover must start at the top");
+
+            // Discover -> Listen while scrolled down: same.
+            Assert.That(await Page.EvaluateAsync<int>("() => document.documentElement.scrollHeight"),
+                Is.GreaterThan(await Page.EvaluateAsync<int>("() => window.innerHeight")),
+                "Discover must be scrollable for this test");
+            await Page.EvaluateAsync("() => window.scrollTo(0, 80)");
+            Assert.That(await Page.EvaluateAsync<int>("() => window.scrollY"), Is.GreaterThan(0));
+            await listenLink.ClickAsync();
+            await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/$"));
+            await Expect(Page.Locator(".card-station").First).ToBeVisibleAsync(new() { Timeout = 15000 });
+            await Page.WaitForTimeoutAsync(300);
+            Assert.That(await Page.EvaluateAsync<int>("() => window.scrollY"), Is.EqualTo(0),
+                "Switching to Listen must start at the top");
+        }
+        finally
+        {
+            await feeds.DeleteOneAsync(f => f.Id == comedyFeed.Id);
+        }
+    }
+
+    [Test]
+    public async Task ActiveNav_HighlightsTheCurrentSectionAcrossBoostedNavigation()
+    {
+        await Page.SetViewportSizeAsync(1280, 900);
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        var listen = Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Listen" });
+        var discover = Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Discover" });
+        var active = new System.Text.RegularExpressions.Regex(@"\bactive\b");
+
+        await Expect(listen).ToHaveClassAsync(active);
+        await Expect(listen).ToHaveAttributeAsync("aria-current", "page");
+        await Expect(discover).Not.ToHaveClassAsync(active);
+
+        // The header is outside #main-content, so the highlight must follow the
+        // htmx-boosted navigation instead of relying on a new page render.
+        await discover.ClickAsync();
+        await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/Discover"));
+        await Expect(discover).ToHaveClassAsync(active);
+        await Expect(discover).ToHaveAttributeAsync("aria-current", "page");
+        await Expect(listen).Not.ToHaveClassAsync(active);
+
+        // Browser back restores the Listen highlight.
+        await Page.GoBackAsync();
+        await Expect(listen).ToHaveClassAsync(active);
+        await Expect(discover).Not.ToHaveClassAsync(active);
     }
 }

@@ -497,3 +497,46 @@ window.initMoveFeed = function (sourceStationId) {
         });
     });
 };
+
+// Highlight Discover / Listen in the main nav for the current section. The nav
+// lives outside #main-content, so it must follow htmx swaps and history restores.
+(function () {
+    function syncActiveNav() {
+        var path = window.location.pathname.toLowerCase();
+        document.querySelectorAll('.floating-nav-pill-center a').forEach(function (link) {
+            var href = new URL(link.href, window.location.origin).pathname.toLowerCase();
+            var active = href === '/' ? path === '/' : (path === href || path.indexOf(href + '/') === 0);
+            link.classList.toggle('active', active);
+            if (active) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', syncActiveNav);
+    document.addEventListener('htmx:afterSettle', syncActiveNav);
+    document.addEventListener('htmx:historyRestore', syncActiveNav);
+    window.addEventListener('popstate', syncActiveNav);
+})();
+
+// htmx scrolls the boosted target (#main-content) into view after each swap, which
+// jumps the page down past the sticky header on every nav click. Keep the position.
+if (window.htmx && window.htmx.config) {
+    window.htmx.config.scrollIntoViewOnBoost = false;
+}
+
+// A boosted navigation to a different page starts at the top, so switching
+// Discover <-> Listen never lands mid-page. Back/forward keep the browser's
+// restored scroll position (htmx:historyRestore / popstate do not reset it).
+(function () {
+    var path = window.location.pathname;
+
+    function resetScrollOnNavigation() {
+        if (window.location.pathname === path) return;
+        path = window.location.pathname;
+        window.scrollTo(0, 0);
+    }
+
+    document.addEventListener('htmx:pushedIntoHistory', resetScrollOnNavigation);
+    document.addEventListener('htmx:historyRestore', function () { path = window.location.pathname; });
+    window.addEventListener('popstate', function () { path = window.location.pathname; });
+})();

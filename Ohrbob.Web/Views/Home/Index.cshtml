@@ -7,7 +7,8 @@
 
 @if (User.Identity?.IsAuthenticated == true)
 {
-    <h2 class="mb-4">Listen</h2>
+    @* The nav highlight carries the title visually; keep it for screen readers. *@
+    <h2 class="visually-hidden">Listen</h2>
     
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
         @if (Model != null)
