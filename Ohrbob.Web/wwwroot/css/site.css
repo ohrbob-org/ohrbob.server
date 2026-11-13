@@ -630,6 +630,10 @@ html:has(.radio-landing-container) {
 .card-station-feed-cover { border-top-left-radius: 15px; border-bottom-left-radius: 15px; }
 .card-station-feed-watermark { right: 0; bottom: 0; }
 
+/* The lane scrolls horizontally; the vertical padding keeps the card shadows
+   inside the scrollport instead of clipping them. */
+.discover-lane-track { padding-top: 6px; padding-bottom: 26px; }
+
 /* Station covers stay small squares. The theme stretches them to fill the strip,
    so a station with one feed showed one full-width cover instead of a thumbnail. */
 .card-station-art { justify-content: flex-start; }
