@@ -125,7 +125,7 @@ public class NavigationTests : PageTest
         }");
 
         // Click the gear icon
-        await stationCard.Locator("a[href^='/Stations/Edit/']").ClickAsync();
+        await stationCard.Locator("a[title='Manage Station']").ClickAsync();
         await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
 
         // Navigate back using browser back

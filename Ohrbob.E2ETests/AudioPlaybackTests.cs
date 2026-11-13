@@ -167,11 +167,11 @@ public class AudioPlaybackTests : PageTest
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
         // The expected target: the station's edit view, as linked by the card's edit gear
-        var editHref = await stationCard.Locator("a[href^='/Stations/Edit/']").GetAttributeAsync("href");
+        var editHref = await stationCard.Locator("a[title='Manage Station']").GetAttributeAsync("href");
         Assert.That(editHref, Is.Not.Null.And.Not.Empty);
 
         // Activate the station so the player shows its metadata
-        await stationCard.ClickAsync();
+        await stationCard.Locator(".card-station-play").ClickAsync();
         await Expect(Page.Locator("#ohrbob-player .expanded-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
 
         // The widget's station link must point to the station edit view as a full absolute URL
@@ -217,7 +217,7 @@ public class AudioPlaybackTests : PageTest
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
         // Start playback via the station card (explicit user action)
-        await stationCard.ClickAsync();
+        await stationCard.Locator(".card-station-play").ClickAsync();
         var playBtn = Page.Locator("#ohrbob-player .js-play");
         await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 45000 }); // pause icon = playing
 
@@ -291,7 +291,7 @@ public class AudioPlaybackTests : PageTest
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
         // Click the station card to switch to it
-        await stationCard.ClickAsync();
+        await stationCard.Locator(".card-station-play").ClickAsync();
 
         // Wait for the player to load the episode metadata (meaning it's not the placeholder "Track Name" anymore)
         await Expect(Page.Locator("#ohrbob-player .expanded-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
@@ -313,7 +313,7 @@ public class AudioPlaybackTests : PageTest
         
         // Assert that the station card has the active highlight class
         var cardContainer = Page.Locator(".active-station-card").First;
-        await Expect(cardContainer).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("border-primary"));
+        await Expect(cardContainer).ToHaveClassAsync(new System.Text.RegularExpressions.Regex(@"\bis-active\b"));
 
         // Pause playback to release server resources
         await playBtn.ClickAsync();
@@ -351,7 +351,7 @@ public class AudioPlaybackTests : PageTest
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
         // Play the station first
-        await stationCard.ClickAsync();
+        await stationCard.Locator(".card-station-play").ClickAsync();
         
         // Wait for the player to load the episode metadata (meaning it's not the placeholder "Track Name" anymore)
         await Expect(Page.Locator("#ohrbob-player .expanded-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
@@ -375,7 +375,7 @@ public class AudioPlaybackTests : PageTest
         }
 
         // Click the gear icon by explicitly targeting the `a[href]` inside the card
-        await stationCard.Locator("a[href^='/Stations/Edit/']").ClickAsync();
+        await stationCard.Locator("a[title='Manage Station']").ClickAsync();
 
         // Wait for edit page
         await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
@@ -426,7 +426,7 @@ public class AudioPlaybackTests : PageTest
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
         // Play the station first
-        await stationCard.ClickAsync();
+        await stationCard.Locator(".card-station-play").ClickAsync();
         
         // Wait for the player to load the episode metadata (meaning it's not the placeholder "Track Name" anymore)
         await Expect(Page.Locator("#ohrbob-player .expanded-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
@@ -504,7 +504,7 @@ public class AudioPlaybackTests : PageTest
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
-        await stationCard.ClickAsync();
+        await stationCard.Locator(".card-station-play").ClickAsync();
         
         await Expect(Page.Locator("#ohrbob-player .expanded-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
         

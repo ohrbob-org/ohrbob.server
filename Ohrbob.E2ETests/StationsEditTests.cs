@@ -99,7 +99,7 @@ public class StationsEditTests : PageTest
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
         
         // Click the edit gear icon
-        await stationCard.Locator("a[href^='/Stations/Edit/']").ClickAsync();
+        await stationCard.Locator("a[title='Manage Station']").ClickAsync();
         
         // Wait for Edit Station page
         await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
@@ -181,7 +181,7 @@ public class StationsEditTests : PageTest
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
         
         // Click the edit gear icon
-        await stationCard.Locator("a[href^='/Stations/Edit/']").ClickAsync();
+        await stationCard.Locator("a[title='Manage Station']").ClickAsync();
         
         // Wait for Edit Station page
         await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
@@ -256,7 +256,7 @@ public class StationsEditTests : PageTest
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
         
         // Click the edit gear icon
-        await stationCard.Locator("a[href^='/Stations/Edit/']").ClickAsync();
+        await stationCard.Locator("a[title='Manage Station']").ClickAsync();
         
         // Wait for Edit Station page
         await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
@@ -332,7 +332,7 @@ public class StationsEditTests : PageTest
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
         
         // Click the edit gear icon
-        await stationCard.Locator("a[href^='/Stations/Edit/']").ClickAsync();
+        await stationCard.Locator("a[title='Manage Station']").ClickAsync();
         
         // Wait for Edit Station page
         await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
