@@ -185,6 +185,47 @@ public class NavigationTests : PageTest
     }
 
     [Test]
+    public async Task BoostedNavigation_DoesNotScrollThePageDown()
+    {
+        if (!await TestCasts.IsAvailableAsync())
+        {
+            Assert.Ignore($"podcast-testcasts is not reachable at {TestCasts.ConfigureBaseUrl}.");
+        }
+
+        var slug = $"navscroll-{Guid.NewGuid():N}";
+        await TestCasts.ConfigureAsync(
+            new TestCastPodcast(slug, "Nav Scroll A", new[] { new TestCastEpisode("E1", $"{slug}-1.mp3") }),
+            new TestCastPodcast($"{slug}-b", "Nav Scroll B", new[] { new TestCastEpisode("E2", $"{slug}-b-1.mp3") }));
+
+        var stations = _factory.Services.GetRequiredService<Ohrbob.Web.Services.StationsApiService>();
+        var profiles = _factory.Services.GetRequiredService<Ohrbob.Web.Services.ProfilesApiService>();
+        var profileId = (await profiles.GetProfilesByAccountIdAsync(_testAccountId))![0].Id;
+        foreach (var (name, feed) in new[] { ("Nav Scroll A", slug), ("Nav Scroll B", $"{slug}-b") })
+        {
+            var station = await stations.CreateStationAsync(_testAccountId, new Ohrbob.Server.Shared.Data.Station
+            {
+                AccountId = _testAccountId,
+                Name = name,
+                Feeds = new[] { TestCasts.FeedUrl(feed) }
+            });
+            await profiles.AddStationToProfileAsync(profileId, station!.Id);
+        }
+
+        // A short viewport makes the Listen page scrollable, which is when htmx's
+        // boosted-target scroll used to push the page down past the sticky header.
+        await Page.SetViewportSizeAsync(1280, 300);
+        await Page.GotoAsync(_factory.ServerAddress);
+        await Expect(Page.Locator(".card-station").First).ToBeVisibleAsync(new() { Timeout = 15000 });
+        Assert.That(await Page.EvaluateAsync<int>("() => window.scrollY"), Is.EqualTo(0));
+
+        await Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Discover" }).ClickAsync();
+        await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/Discover"));
+        await Page.WaitForTimeoutAsync(300);
+        Assert.That(await Page.EvaluateAsync<int>("() => window.scrollY"), Is.EqualTo(0),
+            "Boosted navigation must not scroll the page down under the sticky header");
+    }
+
+    [Test]
     public async Task ActiveNav_HighlightsTheCurrentSectionAcrossBoostedNavigation()
     {
         await Page.SetViewportSizeAsync(1280, 900);

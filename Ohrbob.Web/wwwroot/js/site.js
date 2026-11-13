@@ -517,3 +517,9 @@ window.initMoveFeed = function (sourceStationId) {
     document.addEventListener('htmx:historyRestore', syncActiveNav);
     window.addEventListener('popstate', syncActiveNav);
 })();
+
+// htmx scrolls the boosted target (#main-content) into view after each swap, which
+// jumps the page down past the sticky header on every nav click. Keep the position.
+if (window.htmx && window.htmx.config) {
+    window.htmx.config.scrollIntoViewOnBoost = false;
+}
