@@ -100,7 +100,7 @@ public class EpisodeDescriptionTests : PageTest
         await WaitForEpisodesAsync(station!.Id, 1);
 
         await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{station.Id}");
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 15000 });
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 15000 });
 
         // The upcoming playlist (and its episode descriptions) lives on the "Resolved" tab.
         await Page.ClickAsync("#resolved-tab");

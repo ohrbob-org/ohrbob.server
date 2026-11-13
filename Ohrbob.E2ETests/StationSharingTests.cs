@@ -48,7 +48,7 @@ public class StationSharingTests : PageTest
         var station = await CreateStationAsync(_ownerAccountId, _ownerProfileId, "Shared Station", isPublic: false);
 
         await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{station.Id}");
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station");
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync();
         await Expect(Page.Locator("#shareVisibilitySelect")).ToHaveValueAsync("private");
 
         // The inline visibility dropdown persists immediately.

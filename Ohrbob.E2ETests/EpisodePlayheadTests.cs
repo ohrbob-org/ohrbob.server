@@ -102,7 +102,7 @@ public class EpisodePlayheadTests : PageTest
         await _stations.SetEpisodePlayheadAsync(_station.Id, episodeId, _profileId, 120);
 
         await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{_station.Id}");
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 15000 });
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 15000 });
 
         var row = Page.Locator($".resolved-item[data-episode-id='{episodeId}']");
         await Expect(row).ToBeVisibleAsync(new() { Timeout = 15000 });
@@ -144,7 +144,7 @@ public class EpisodePlayheadTests : PageTest
         var episodeId = await WaitForFirstEpisodeAsync(station);
 
         await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{station.Id}");
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 15000 });
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 15000 });
 
         var row = Page.Locator($".resolved-item[data-episode-id='{episodeId}']");
         await Expect(row).ToBeVisibleAsync(new() { Timeout = 15000 });

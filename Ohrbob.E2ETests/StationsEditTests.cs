@@ -102,7 +102,7 @@ public class StationsEditTests : PageTest
         await stationCard.Locator("a[title='Manage Station']").ClickAsync();
         
         // Wait for Edit Station page
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 10000 });
         
         // Click the Resolved tab to see the playlist
         await Page.ClickAsync("#resolved-tab");
@@ -184,7 +184,7 @@ public class StationsEditTests : PageTest
         await stationCard.Locator("a[title='Manage Station']").ClickAsync();
         
         // Wait for Edit Station page
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 10000 });
         
         // Click Feeds tab
         await Page.ClickAsync("#rotation-tab");
@@ -259,7 +259,7 @@ public class StationsEditTests : PageTest
         await stationCard.Locator("a[title='Manage Station']").ClickAsync();
         
         // Wait for Edit Station page
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 10000 });
         
         // Click the rename (pen) button
         await Page.ClickAsync("#renameStationBtn");
@@ -335,7 +335,7 @@ public class StationsEditTests : PageTest
         await stationCard.Locator("a[title='Manage Station']").ClickAsync();
         
         // Wait for Edit Station page
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 10000 });
         
         // Open the station settings modal
         await Page.ClickAsync("#renameStationBtn");
@@ -391,7 +391,7 @@ public class StationsEditTests : PageTest
         });
 
         await Page.GotoAsync($"{url}/Stations/Edit/{stationA!.Id}");
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 10000 });
 
         // Set Span = 7 on the source feed and persist it
         var spanInput = Page.Locator("#rotationContainer .rotation-item .episodes-input").First;
@@ -468,7 +468,7 @@ public class StationsEditTests : PageTest
         });
 
         await Page.GotoAsync($"{url}/Stations/Edit/{onlyStation!.Id}");
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 10000 });
 
         var row = Page.Locator("#rotationContainer .rotation-item").First;
         await Expect(row).ToBeVisibleAsync(new() { Timeout = 10000 });
@@ -502,7 +502,7 @@ public class StationsEditTests : PageTest
         });
 
         await Page.GotoAsync($"{url}/Stations/Edit/{station!.Id}");
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 10000 });
 
         // Move feed1 into a brand-new station
         var row1 = Page.Locator($"#rotationContainer .rotation-item[data-url=\"{feed1}\"]");
@@ -558,7 +558,7 @@ public class StationsEditTests : PageTest
         try
         {
             await Page.GotoAsync($"{url}/Stations/Edit/{station!.Id}");
-            await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+            await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 10000 });
             await Expect(Page.Locator("#rotationContainer .rotation-item")).ToHaveCountAsync(1, new() { Timeout = 10000 });
 
             await ClickStationMoreMenuItemAsync("#importOpmlBtn");
@@ -598,7 +598,7 @@ public class StationsEditTests : PageTest
         try
         {
             await Page.GotoAsync($"{url}/Stations/Edit/{station!.Id}");
-            await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+            await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 10000 });
 
             await ClickStationMoreMenuItemAsync("#importOpmlBtn");
             await Expect(Page.Locator("#importOpmlModal")).ToBeVisibleAsync();
@@ -630,7 +630,7 @@ public class StationsEditTests : PageTest
         });
 
         await Page.GotoAsync($"{url}/Stations/Edit/{station!.Id}");
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 10000 });
 
         // Discover stays a standalone primary action.
         await Expect(Page.Locator("a.btn[href='/Discover']")).ToBeVisibleAsync();
@@ -674,7 +674,7 @@ public class StationsEditTests : PageTest
         });
 
         await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{station!.Id}");
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 10000 });
 
         await Page.ClickAsync("#renameStationBtn");
         await Expect(Page.Locator("#endlessSpinInput")).Not.ToBeCheckedAsync();

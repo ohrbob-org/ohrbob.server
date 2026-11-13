@@ -9,8 +9,7 @@
 <div id="dockable-header">
     <h1 class="d-flex align-items-center justify-content-between mb-1">
         <span class="d-flex align-items-center">
-            <span>Edit Station - </span>
-            <span id="stationNameDisplay" class="ms-1">@Model.Station.Name</span>
+            <span id="stationNameDisplay">@Model.Station.Name</span>
             @if (Model.Station.HostPaceEnabled)
             {
                 <span class="badge bg-info text-white ms-2 fs-6" title="Only episodes the host has completed are available">Host Pace</span>
