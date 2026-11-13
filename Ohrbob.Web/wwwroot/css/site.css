@@ -840,7 +840,8 @@ html:has(.radio-landing-container) {
     inset: 0;
     display: flex;
     align-items: flex-end;
-    padding: 1rem;
+    /* No right padding: the text scrolls at the card edge, not inset by a gutter. */
+    padding: 1rem 0 1rem 1rem;
     background: linear-gradient(to top, rgba(10, 12, 20, .92), rgba(10, 12, 20, .55) 60%, rgba(10, 12, 20, .2));
     opacity: 0;
     visibility: hidden;
@@ -855,6 +856,7 @@ html:has(.radio-landing-container) {
     font-size: .85rem;
     line-height: 1.35;
     white-space: pre-line;
+    padding-right: 1rem;
     /* Thin grey bar, invisible track. */
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
