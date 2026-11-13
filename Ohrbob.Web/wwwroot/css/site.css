@@ -644,6 +644,26 @@ html:has(.radio-landing-container) {
 .card-station-cover-empty,
 .card-feed-cover-empty { background-color: #544ff4; }
 
+/* Editor scroll areas: thin grey bar, invisible track. */
+#rotationContainer,
+#resolvedList {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(128, 128, 128, 0.5) transparent;
+}
+#rotationContainer::-webkit-scrollbar,
+#resolvedList::-webkit-scrollbar { width: 6px; }
+#rotationContainer::-webkit-scrollbar-track,
+#resolvedList::-webkit-scrollbar-track { background: transparent; }
+#rotationContainer::-webkit-scrollbar-thumb,
+#resolvedList::-webkit-scrollbar-thumb {
+    background: rgba(128, 128, 128, 0.5);
+    border-radius: 3px;
+}
+#rotationContainer::-webkit-scrollbar-thumb:hover,
+#resolvedList::-webkit-scrollbar-thumb:hover { background: rgba(128, 128, 128, 0.75); }
+#rotationContainer::-webkit-scrollbar-button,
+#resolvedList::-webkit-scrollbar-button { display: none; }
+
 /* The playlist is a fixed-height flex column and the cards clip their content, so
    without this they shrink to fit instead of scrolling. */
 #resolvedList > .card-episode { flex-shrink: 0; }
