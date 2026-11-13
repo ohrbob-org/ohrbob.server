@@ -144,29 +144,29 @@
 
                         <!-- Row 2: Playback order, span input, actions menu (Middle) -->
                         <div class="card-station-feed-controls">
-                            <div class="card-station-feed-controls-left">
-                                <!-- 3-State Sliding Playback Order Toggle Control -->
-                                <div class="playback-order-toggle-container">
-                                    <div class="playback-order-toggle" id="sliderTrack-@currentFeedIndex" role="slider"
-                                         aria-label="Playback order" aria-valuemin="0" aria-valuemax="2" aria-valuenow="@activeValue">
-                                        <span class="slider-thumb-container" aria-hidden="true">
-                                            <i class="bi @(activeValue == 1 ? "bi-sort-down" : (activeValue == 2 ? "bi-shuffle" : "bi-sort-up"))"></i>
-                                        </span>
-                                        <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 1)" class="playback-node-btn" title="Backwards: Newest to Oldest" data-bs-toggle="tooltip">
-                                            <i class="bi bi-sort-down"></i>
-                                        </button>
-                                        <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 2)" class="playback-node-btn" title="Random" data-bs-toggle="tooltip">
-                                            <i class="bi bi-shuffle"></i>
-                                        </button>
-                                        <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 0)" class="playback-node-btn" title="Forwards: Oldest to Newest" data-bs-toggle="tooltip">
-                                            <i class="bi bi-sort-up"></i>
-                                        </button>
-                                    </div>
-
-                                    <!-- Hidden value input -->
-                                    <input type="hidden" class="playback-order-value" value="@activeValue" />
+                            <!-- 3-State Sliding Playback Order Toggle Control -->
+                            <div class="playback-order-toggle-container">
+                                <div class="playback-order-toggle" id="sliderTrack-@currentFeedIndex" role="slider"
+                                     aria-label="Playback order" aria-valuemin="0" aria-valuemax="2" aria-valuenow="@activeValue">
+                                    <span class="slider-thumb-container" aria-hidden="true">
+                                        <i class="bi @(activeValue == 1 ? "bi-sort-down" : (activeValue == 2 ? "bi-shuffle" : "bi-sort-up"))"></i>
+                                    </span>
+                                    <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 1)" class="playback-node-btn" title="Backwards: Newest to Oldest" data-bs-toggle="tooltip">
+                                        <i class="bi bi-sort-down"></i>
+                                    </button>
+                                    <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 2)" class="playback-node-btn" title="Random" data-bs-toggle="tooltip">
+                                        <i class="bi bi-shuffle"></i>
+                                    </button>
+                                    <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 0)" class="playback-node-btn" title="Forwards: Oldest to Newest" data-bs-toggle="tooltip">
+                                        <i class="bi bi-sort-up"></i>
+                                    </button>
                                 </div>
 
+                                <!-- Hidden value input -->
+                                <input type="hidden" class="playback-order-value" value="@activeValue" />
+                            </div>
+
+                            <div class="card-station-feed-controls-right">
                                 <!-- Span input group -->
                                 <label class="card-station-feed-span">
                                     <span>
@@ -175,18 +175,18 @@
                                     </span>
                                     <input type="number" class="form-control form-control-sm episodes-input" min="1" max="99" value="@(feedSchedule.EpisodesToPlay < 1 ? 1 : feedSchedule.EpisodesToPlay)" />
                                 </label>
-                            </div>
 
-                            <!-- Three-dot feed actions menu -->
-                            <div class="dropdown">
-                                <button type="button" class="btn btn-link card-station-feed-menu feed-actions-menu" data-bs-toggle="dropdown" aria-expanded="false" title="Feed options">
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><button type="button" class="dropdown-item move-feed"><i class="bi bi-arrow-left-right me-2"></i>Move to another station</button></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><button type="button" class="dropdown-item text-danger remove-feed"><i class="bi bi-trash3-fill me-2"></i>Delete feed</button></li>
-                                </ul>
+                                <!-- Three-dot feed actions menu -->
+                                <div class="dropdown">
+                                    <button type="button" class="btn btn-link card-station-feed-menu feed-actions-menu" data-bs-toggle="dropdown" aria-expanded="false" title="Feed options">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><button type="button" class="dropdown-item move-feed"><i class="bi bi-arrow-left-right me-2"></i>Move to another station</button></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><button type="button" class="dropdown-item text-danger remove-feed"><i class="bi bi-trash3-fill me-2"></i>Delete feed</button></li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
 
