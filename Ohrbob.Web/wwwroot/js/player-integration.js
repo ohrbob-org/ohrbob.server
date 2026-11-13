@@ -33,6 +33,15 @@
         };
         const isUserPaused = () => document.cookie.split('; ').some(c => c === `${PAUSE_COOKIE}=1`);
 
+        // Playback is session-local: a session only auto-plays the episode it started
+        // itself. Other open sessions show the shared station/episode/playhead, but stay
+        // paused until the user presses play there. sessionStorage is per tab, so a reload
+        // of the playing tab keeps resuming while a new tab stays quiet.
+        const SESSION_PLAYBACK_KEY = 'ohrbob_session_playback';
+        const markSessionPlayback = () => { try { sessionStorage.setItem(SESSION_PLAYBACK_KEY, '1'); } catch (e) { /* storage unavailable */ } };
+        const clearSessionPlayback = () => { try { sessionStorage.removeItem(SESSION_PLAYBACK_KEY); } catch (e) { /* storage unavailable */ } };
+        const sessionWantsPlayback = () => { try { return sessionStorage.getItem(SESSION_PLAYBACK_KEY) === '1'; } catch (e) { return false; } };
+
         const headers = {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -171,6 +180,7 @@
 
             navigator.mediaSession.setActionHandler('play', () => {
                 clearUserPaused();
+                markSessionPlayback();
                 setAutoPlayExpected(true);
                 const playPromise = audio.play();
                 if (playPromise !== undefined) {
@@ -182,6 +192,7 @@
             });
 
             navigator.mediaSession.setActionHandler('pause', () => {
+                clearSessionPlayback();
                 setUserPaused();
                 setAutoPlayExpected(false);
                 audio.pause();
@@ -379,8 +390,9 @@
                 audio.load(); 
                 audio.currentTime = currentEpisodeData.playheadPositionSeconds || 0;
                 
-                if (isUserPaused()) {
-                    // User asked to pause: load metadata but never auto-continue playback
+                if (isUserPaused() || !sessionWantsPlayback()) {
+                    // Either the user paused, or this session did not start this playback
+                    // (another session did): load the episode and playhead, but stay paused.
                     setAutoPlayExpected(false);
                     widget.isPlaying = false;
                     updatePlayButton();
@@ -401,7 +413,24 @@
             } else {
                 // If it is already loaded, ensure widget.isPlaying reflects audio state!
                 widget.isPlaying = !audio.paused;
-                if (!audio.paused) setAutoPlayExpected(true);
+                if (!audio.paused) {
+                    setAutoPlayExpected(true);
+                } else if (sessionWantsPlayback() && !isUserPaused()) {
+                    // An earlier sync may have loaded the episode while another session was
+                    // playing. This session's own play action must still start it.
+                    setAutoPlayExpected(true);
+                    const playPromise = audio.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            widget.isPlaying = true;
+                            updatePlayButton();
+                        }).catch(() => {
+                            setAutoPlayExpected(false);
+                            widget.isPlaying = false;
+                            updatePlayButton();
+                        });
+                    }
+                }
                 updatePlayButton();
             }
         };
@@ -513,6 +542,7 @@
             try
             {
                 clearUserPaused(); // explicit user action: play this episode
+                markSessionPlayback();
                 currentEpisodeData = episode;
                 widget.setAttribute('track', episode.title || '');
                 widget.setAttribute('artist', episode.artist || '');
@@ -550,6 +580,7 @@
             if (!stationId || !episodeId) return;
             const position = Number(positionSeconds) || 0;
             clearUserPaused(); // explicit user action: play this episode
+            markSessionPlayback();
             await apiCall('/stream/status', 'POST', { episodeId, stationId, positionSeconds: position });
 
             const sameTrack = currentEpisodeData && currentEpisodeData.episodeId === episodeId &&
@@ -580,6 +611,7 @@
             try
             {
                 clearUserPaused(); // explicit user action
+                markSessionPlayback();
                 await apiCall('/stream/next', 'POST');
                 await syncState();
             }
@@ -600,6 +632,7 @@
             try
             {
                 clearUserPaused(); // explicit user action
+                markSessionPlayback();
                 await apiCall('/stream/prev', 'POST');
                 await syncState();
             }
@@ -615,6 +648,7 @@
             widget._ohrbobListenersBound = true;
             widget.addEventListener('play', () => {
                 clearUserPaused(); // explicit user action: resets to auto-play
+                markSessionPlayback();
                 setAutoPlayExpected(true);
                 if (!currentEpisodeData || !currentEpisodeData.streamUri) {
                     widget.isPlaying = false;
@@ -638,6 +672,7 @@
             });
             
             widget.addEventListener('pause', () => {
+                clearSessionPlayback();
                 setUserPaused(); // user asked to pause: never auto-continue until they play again
                 setAutoPlayExpected(false);
                 audio.pause();
@@ -695,6 +730,7 @@
 
             widget.playStation = async (stationId) => {
                 clearUserPaused(); // explicit user action: play this station
+                markSessionPlayback();
                 await apiCall(`/stream/play-station/${stationId}`, 'POST');
                 await syncState();
             };

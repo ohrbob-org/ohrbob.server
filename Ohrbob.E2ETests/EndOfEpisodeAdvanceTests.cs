@@ -181,10 +181,16 @@ public class EndOfEpisodeAdvanceTests : PageTest
         await card.Locator(".card-station-play").ClickAsync();
 
         var playBtn = Page.Locator("#ohrbob-player .js-play");
-        if (await playBtn.Locator("rect").CountAsync() == 0)
+        await Expect(Page.Locator("#ohrbob-player")).Not.ToHaveAttributeAsync("track", "Track Name",
+            new() { Timeout = 30000 });
+        // The card's play action starts playback asynchronously; give it a moment before
+        // falling back to the play button (clicking it would toggle a starting playback off).
+        try
         {
-            await Expect(Page.Locator("#ohrbob-player")).Not.ToHaveAttributeAsync("track", "Track Name",
-                new() { Timeout = 30000 });
+            await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 5000 });
+        }
+        catch (PlaywrightException)
+        {
             await playBtn.ClickAsync();
         }
         await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 30000 });
