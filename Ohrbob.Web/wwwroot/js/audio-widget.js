@@ -256,11 +256,6 @@ class AudioWidget extends HTMLElement {
             <div class="audio-bar">
                 <div class="audio-meta">
                     ${coverHtml}
-                    <div class="audio-info">
-                        <span class="station-name"><span class="station-dot"></span>${station}${stationLinkHtml}</span>
-                        <strong class="track-title">${track}</strong>
-                        <small class="track-description">${artist}</small>
-                    </div>
                 </div>
                 <div class="audio-controls">
                     <button type="button" class="btn btn-glass rounded-circle btn-icon js-back" aria-label="Previous episode">${ICONS.back}</button>

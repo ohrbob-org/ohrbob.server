@@ -116,7 +116,8 @@ public class RecommendationService
                 {
                     Title = feed.Title,
                     Url = feed.Url,
-                    Image = feed.ImageUrl
+                    Image = feed.ImageUrl,
+                    Description = feed.Description
                 });
             }
 

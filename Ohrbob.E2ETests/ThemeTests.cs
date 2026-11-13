@@ -205,6 +205,46 @@ public class ThemeTests : PageTest
             "theme.js must run synchronously (not defer/async)");
     }
 
+    /// <summary>Listen and the station editor must render the theme's card components,
+    /// not generic Bootstrap cards, so the three content levels stay distinguishable.</summary>
+    [Test]
+    public async Task Cards_UseSharedThemeComponents()
+    {
+        if (!await TestCasts.IsAvailableAsync())
+        {
+            Assert.Ignore($"podcast-testcasts is not reachable at {TestCasts.ConfigureBaseUrl}.");
+        }
+
+        // The editor's tab pills only render below the lg breakpoint.
+        await Page.SetViewportSizeAsync(375, 812);
+
+        var slug = $"{Guid.NewGuid():N}";
+        await TestCasts.ConfigureAsync(new TestCastPodcast(slug, "Card Feed", new[]
+        {
+            new TestCastEpisode("Card Episode", $"{slug}-1.mp3"),
+        }));
+
+        var stations = _factory.Services.GetRequiredService<StationsApiService>();
+        var station = await stations.CreateStationAsync(_accountId, new Station
+        {
+            AccountId = _accountId,
+            Name = "Card Station",
+            Feeds = new[] { TestCasts.FeedUrl(slug) }
+        });
+        var profiles = _factory.Services.GetRequiredService<ProfilesApiService>();
+        await profiles.AddStationToProfileAsync(_profileId, station!.Id);
+        await WaitForEpisodesAsync(station.Id, 1);
+
+        await Page.GotoAsync(_factory.ServerAddress);
+        await Expect(Page.Locator(".card-station", new() { HasTextString = "Card Station" }))
+            .ToBeVisibleAsync(new() { Timeout = 15000 });
+
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{station.Id}");
+        await Page.ClickAsync("#resolved-tab");
+        await Expect(Page.Locator("#resolvedList .card-episode.resolved-item"))
+            .ToHaveCountAsync(1, new() { Timeout = 15000 });
+    }
+
     private async Task AssertNoContrastIssuesAsync(string path)
     {
         await Page.GotoAsync(_factory.ServerAddress + path);

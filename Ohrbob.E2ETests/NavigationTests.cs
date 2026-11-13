@@ -100,7 +100,7 @@ public class NavigationTests : PageTest
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
 
-        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Nav Test Station" }).First;
+        var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Nav Test Station" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
 
         // Ensure the dropdown works initially

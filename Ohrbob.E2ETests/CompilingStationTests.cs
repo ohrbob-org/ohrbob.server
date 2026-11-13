@@ -165,14 +165,14 @@ public class CompilingStationTests : PageTest
         await Page.WaitForURLAsync("**/Stations");
         await Page.GotoAsync(_factory.ServerAddress);
 
-        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Fresh Station" }).First;
+        var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Fresh Station" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
 
         // Click the station card to switch to it
         await stationCard.ClickAsync();
 
         // Wait for the player to update and show compiling metadata
-        var trackTitle = Page.Locator("#ohrbob-player .track-title");
+        var trackTitle = Page.Locator("#ohrbob-player .expanded-title");
         await Expect(trackTitle).ToHaveTextAsync("Compiling Station...", new() { Timeout = 10000 });
 
         // Verify the play button is disabled
@@ -209,7 +209,7 @@ public class CompilingStationTests : PageTest
 
             var comedyLane = Page.Locator(".discover-lane", new PageLocatorOptions { HasTextString = "Comedy" }).First;
             await Expect(comedyLane).ToBeVisibleAsync();
-            await Expect(comedyLane.Locator(".card", new LocatorLocatorOptions { HasTextString = "E2E Comedy Show" })).ToBeVisibleAsync();
+            await Expect(comedyLane.Locator(".card-feed", new LocatorLocatorOptions { HasTextString = "E2E Comedy Show" })).ToBeVisibleAsync();
 
             await Page.FillAsync("#discover-search", "maus");
             await Expect(lanes).Not.ToBeVisibleAsync();
@@ -243,10 +243,59 @@ public class CompilingStationTests : PageTest
         {
             await Page.GotoAsync($"{_factory.ServerAddress}/Discover");
 
-            var card = Page.Locator(".discover-lane .card", new PageLocatorOptions { HasTextString = "E2E No Cover Show" }).First;
+            var card = Page.Locator(".discover-lane .card-feed", new PageLocatorOptions { HasTextString = "E2E No Cover Show" }).First;
             await Expect(card).ToBeVisibleAsync();
-            await Expect(card.Locator(".podcast-cover-placeholder")).ToBeVisibleAsync();
-            await Expect(card.Locator("img.card-img-top")).ToHaveCountAsync(0);
+            await Expect(card.Locator(".card-feed-cover-empty")).ToBeVisibleAsync();
+            await Expect(card.Locator("img.card-feed-cover")).ToHaveCountAsync(0);
+        }
+        finally
+        {
+            await feedsCollection.DeleteOneAsync(f => f.Id == feed.Id);
+        }
+    }
+
+    [Test]
+    public async Task Discover_Card_TogglesDescriptionOverlay()
+    {
+        var feed = new Feed
+        {
+            Id = Guid.NewGuid().ToString(),
+            Url = $"https://example.com/e2e-details-{Guid.NewGuid()}.xml",
+            Title = "E2E Details Show",
+            Category = "Comedy",
+            Description = "<p>An <b>insightful</b> show.</p>",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var client = new MongoClient("mongodb://localhost:27019");
+        var feedsCollection = client.GetDatabase("OhrbobData").GetCollection<Feed>("FeedCollection");
+        await feedsCollection.InsertOneAsync(feed);
+
+        try
+        {
+            await Page.GotoAsync($"{_factory.ServerAddress}/Discover");
+
+            var card = Page.Locator(".discover-lane .podcast-card", new PageLocatorOptions { HasTextString = "E2E Details Show" }).First;
+            var overlay = card.Locator(".podcast-details-overlay");
+            var toggle = card.Locator(".podcast-details-toggle");
+
+            await Expect(card).ToBeVisibleAsync();
+            await Expect(overlay).ToHaveTextAsync("An insightful show.");
+            await Expect(overlay).ToBeHiddenAsync();
+
+            await card.HoverAsync();
+            await Expect(overlay).ToBeVisibleAsync();
+            await Page.Mouse.MoveAsync(0, 0);
+            await Expect(overlay).ToBeHiddenAsync();
+
+            await toggle.ClickAsync();
+            await Expect(card).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("\\bis-open\\b"));
+            await Expect(toggle).ToHaveAttributeAsync("aria-expanded", "true");
+            await Expect(overlay).ToBeVisibleAsync();
+
+            await toggle.ClickAsync();
+            await Expect(card).Not.ToHaveClassAsync(new System.Text.RegularExpressions.Regex("\\bis-open\\b"));
+            await Expect(toggle).ToHaveAttributeAsync("aria-expanded", "false");
         }
         finally
         {

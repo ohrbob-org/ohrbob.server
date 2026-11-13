@@ -30,7 +30,7 @@
         {
             <section class="discover-lane mb-4" aria-label="@lane.Category recommendations">
                 <h5 class="mb-2">@lane.Category</h5>
-                <div class="discover-lane-track d-flex flex-nowrap gap-3 overflow-auto pb-2">
+                <div class="discover-lane-track d-flex flex-nowrap gap-3 overflow-auto">
                     @foreach (var podcast in lane.Podcasts)
                     {
                         @await Html.PartialAsync("_PodcastCard", podcast)

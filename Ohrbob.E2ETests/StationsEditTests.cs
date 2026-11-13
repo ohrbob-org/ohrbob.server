@@ -92,7 +92,7 @@ public class StationsEditTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
 
         // Wait for station to appear on dashboard
-        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Test Edit Station" }).First;
+        var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Test Edit Station" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
         
         // Wait for feeds to sync (not showing "0 podcasts")
@@ -166,7 +166,7 @@ public class StationsEditTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
 
         // Wait for station to appear on dashboard
-        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Test Feed Station" }).First;
+        var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Test Feed Station" }).First;
         try 
         {
             await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
@@ -252,7 +252,7 @@ public class StationsEditTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
 
         // Wait for station to appear on dashboard
-        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Original Station Name" }).First;
+        var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Original Station Name" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
         
         // Click the edit gear icon
@@ -328,7 +328,7 @@ public class StationsEditTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
 
         // Wait for station to appear on dashboard
-        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Station To Delete" }).First;
+        var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Station To Delete" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
         
         // Click the edit gear icon
@@ -357,7 +357,7 @@ public class StationsEditTests : PageTest
         await Expect(Page.Locator("h1")).ToContainTextAsync("My Stations", new() { Timeout = 10000 });
         
         // The deleted station should no longer be listed
-        await Expect(Page.Locator(".card", new PageLocatorOptions { HasTextString = "Station To Delete" })).ToHaveCountAsync(0);
+        await Expect(Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Station To Delete" })).ToHaveCountAsync(0);
     }
 
     [Test]

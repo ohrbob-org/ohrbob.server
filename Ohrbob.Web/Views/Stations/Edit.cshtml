@@ -103,7 +103,8 @@
         height: calc(100vh - 380px);
         min-height: 300px;
         overflow-y: auto;
-        padding-right: 5px;
+        /* Room for the card shadows inside the scrollport (blur is up to 30px). */
+        padding: 16px 20px 28px;
         position: relative;
     }
 }
@@ -121,75 +122,75 @@
             if (feedData != null)
             {
                 var currentFeedIndex = feedScheduleIndex++;
-                <div class="list-group-item rotation-item border rounded mb-2 d-flex align-items-stretch" draggable="true" data-url="@feedSchedule.Url" style="cursor: grab; border-left: 4px solid @(string.IsNullOrEmpty(feedSchedule.Color) ? "#ccc" : feedSchedule.Color) !important; background-color: @(string.IsNullOrEmpty(feedSchedule.Color) ? "var(--bs-body-bg)" : feedSchedule.Color + "26") !important; padding: 0; overflow: visible; height: 90px; max-height: 90px;">
-                    <img src="@feedData.ImageUrl" style="width: 90px; height: 90px; object-fit: cover; flex-shrink: 0; border-top-left-radius: .375rem; border-bottom-left-radius: .375rem;" />
-                    <div class="d-flex flex-column justify-content-between flex-grow-1 py-2 px-3" style="min-height: 90px; max-height: 90px; overflow: hidden;">
+                var activeValue = (int)feedSchedule.SortOrder;
+                var feedAccent = string.IsNullOrEmpty(feedSchedule.Color) ? "#ff9a00" : feedSchedule.Color;
+                <div class="list-group-item rotation-item card-station-feed mb-2" draggable="true" data-url="@feedSchedule.Url" style="--station-feed-accent: @feedAccent;">
+                    <i class="bi bi-soundwave card-station-feed-watermark" aria-hidden="true"></i>
+                    @if (!string.IsNullOrEmpty(feedData.ImageUrl))
+                    {
+                        <img src="@feedData.ImageUrl" class="card-station-feed-cover" alt="" />
+                    }
+                    else
+                    {
+                        <div class="card-station-feed-cover d-flex align-items-center justify-content-center fw-bold" aria-hidden="true">@((feedData.Title.Length > 0 ? feedData.Title[0].ToString() : "?").ToUpper())</div>
+                    }
+                    <div class="card-station-feed-body">
                         <!-- Row 1: Feed Title (Top) -->
-                        <div class="d-flex align-items-center">
-                            <strong class="text-body text-truncate" style="font-size: 1rem; max-width: 320px;" title="@feedData.Title">@feedData.Title</strong>
+                        <div class="card-station-feed-title-row">
+                            <span class="card-station-feed-dot" aria-hidden="true"></span>
+                            <strong class="card-station-feed-title" title="@feedData.Title">@feedData.Title</strong>
                         </div>
 
-                        <!-- Row 2: Playback order, span input, trash icon (Middle) -->
-                        <div class="d-flex align-items-center justify-content-between" style="line-height: 1;">
-                             <div class="d-flex align-items-center" style="gap: 5px;">
+                        <!-- Row 2: Playback order, span input, actions menu (Middle) -->
+                        <div class="card-station-feed-controls">
+                            <div class="card-station-feed-controls-left">
                                 <!-- 3-State Sliding Playback Order Toggle Control -->
-                                @{
-                                    var activeValue = (int)feedSchedule.SortOrder;
-                                    var thumbLeft = activeValue == 1 ? "3px" : (activeValue == 2 ? "50%" : "calc(100% - 3px)");
-                                    var thumbTransform = activeValue == 1 ? "translateX(0)" : (activeValue == 2 ? "translateX(-50%)" : "translateX(-100%)");
-                                }
-                                <div class="playback-order-toggle-container d-inline-flex flex-column align-items-center" style="width: 100px;">
-                                     <div class="position-relative bg-body-secondary border rounded-pill d-flex align-items-center justify-content-between user-select-none"
-                                          style="width: 100%; height: 26px; padding: 2px; cursor: pointer;"
-                                          id="sliderTrack-@currentFeedIndex" role="slider" aria-valuemin="0" aria-valuemax="2" aria-valuenow="@activeValue">
-                                          
-                                          <div class="slider-thumb-container bg-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm"
-                                               style="position: absolute; top: 2px; left: @thumbLeft; width: 20px; height: 20px; border: 1px solid rgba(255, 255, 255, 0.3); pointer-events: none; z-index: 20; transform: @thumbTransform; transition: left 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
-                                               <i class="bi @(activeValue == 1 ? "bi-sort-down" : (activeValue == 2 ? "bi-shuffle" : "bi-sort-up")) text-white" style="font-size: 0.75rem;"></i>
-                                          </div>
+                                <div class="playback-order-toggle-container">
+                                    <div class="playback-order-toggle" id="sliderTrack-@currentFeedIndex" role="slider"
+                                         aria-label="Playback order" aria-valuemin="0" aria-valuemax="2" aria-valuenow="@activeValue">
+                                        <span class="slider-thumb-container" aria-hidden="true">
+                                            <i class="bi @(activeValue == 1 ? "bi-sort-down" : (activeValue == 2 ? "bi-shuffle" : "bi-sort-up"))"></i>
+                                        </span>
+                                        <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 1)" class="playback-node-btn" title="Backwards: Newest to Oldest" data-bs-toggle="tooltip">
+                                            <i class="bi bi-sort-down"></i>
+                                        </button>
+                                        <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 2)" class="playback-node-btn" title="Random" data-bs-toggle="tooltip">
+                                            <i class="bi bi-shuffle"></i>
+                                        </button>
+                                        <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 0)" class="playback-node-btn" title="Forwards: Oldest to Newest" data-bs-toggle="tooltip">
+                                            <i class="bi bi-sort-up"></i>
+                                        </button>
+                                    </div>
 
-                                          <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 1)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d;" title="Backwards: Newest to Oldest" data-bs-toggle="tooltip">
-                                              <i class="bi bi-sort-down" style="position: absolute; left: 1px; top: 0; width: 20px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;"></i>
-                                          </button>
-                                          <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 2)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d; display: flex; align-items: center; justify-content: center;" title="Random" data-bs-toggle="tooltip">
-                                              <i class="bi bi-shuffle" style="font-size: 0.75rem;"></i>
-                                          </button>
-                                          <button type="button" onclick="window.setPlaybackOrder('@currentFeedIndex', 0)" class="playback-node-btn position-relative" style="z-index: 10; width: 33.333%; height: 100%; border: none; background: none; color: #6c757d;" title="Forwards: Oldest to Newest" data-bs-toggle="tooltip">
-                                              <i class="bi bi-sort-up" style="position: absolute; right: 1px; top: 0; width: 20px; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;"></i>
-                                          </button>
-                                     </div>
+                                    <!-- Hidden value input -->
+                                    <input type="hidden" class="playback-order-value" value="@activeValue" />
+                                </div>
 
-                                     <!-- Hidden value input -->
-                                     <input type="hidden" class="playback-order-value" value="@activeValue" />
-                                 </div>
+                                <!-- Span input group -->
+                                <label class="card-station-feed-span">
+                                    <span>
+                                        Span
+                                        <i class="bi bi-question-circle" data-bs-toggle="tooltip" data-bs-placement="top" title="How many unplayed episodes this feed contributes on its turn before rotating to the next."></i>:
+                                    </span>
+                                    <input type="number" class="form-control form-control-sm episodes-input" min="1" max="99" value="@(feedSchedule.EpisodesToPlay < 1 ? 1 : feedSchedule.EpisodesToPlay)" />
+                                </label>
+                            </div>
 
-                                 <!-- Span input group -->
-                                 <div class="d-flex align-items-center" style="width: 80px; flex-shrink: 0;">
-                                     <span class="small text-muted me-1" style="font-size: 11px; white-space: nowrap;">
-                                         Span
-                                         <i class="bi bi-question-circle ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="How many unplayed episodes this feed contributes on its turn before rotating to the next." style="cursor: help; font-size: 0.85rem;"></i>:
-                                     </span>
-                                     <input type="number" class="form-control form-control-sm episodes-input" min="1" max="99" value="@(feedSchedule.EpisodesToPlay < 1 ? 1 : feedSchedule.EpisodesToPlay)" style="width: 40px; height: 24px; padding: 2px;" />
-                                 </div>
-                             </div>
+                            <!-- Three-dot feed actions menu -->
+                            <div class="dropdown">
+                                <button type="button" class="btn btn-link card-station-feed-menu feed-actions-menu" data-bs-toggle="dropdown" aria-expanded="false" title="Feed options">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><button type="button" class="dropdown-item move-feed"><i class="bi bi-arrow-left-right me-2"></i>Move to another station</button></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><button type="button" class="dropdown-item text-danger remove-feed"><i class="bi bi-trash3-fill me-2"></i>Delete feed</button></li>
+                                </ul>
+                            </div>
+                        </div>
 
-                             <!-- Three-dot feed actions menu -->
-                             <div class="dropdown">
-                                 <button type="button" class="btn btn-link text-secondary p-0 feed-actions-menu" data-bs-toggle="dropdown" aria-expanded="false" title="Feed options" style="font-size: 1.25rem; line-height: 1;">
-                                     <i class="bi bi-three-dots-vertical"></i>
-                                 </button>
-                                 <ul class="dropdown-menu dropdown-menu-end">
-                                     <li><button type="button" class="dropdown-item move-feed"><i class="bi bi-arrow-left-right me-2"></i>Move to another station</button></li>
-                                     <li><hr class="dropdown-divider"></li>
-                                     <li><button type="button" class="dropdown-item text-danger remove-feed"><i class="bi bi-trash3-fill me-2"></i>Delete feed</button></li>
-                                 </ul>
-                             </div>
-                         </div>
-
-                         <!-- Row 3: Feed Details (Bottom) -->
-                         <div class="text-muted" style="font-size: 10px; line-height: 1; margin-top: 1px;">
-                             Episodes: @feedData.EpisodeCount | Last Updated: @feedData.LastUpdated
-                         </div>
+                        <!-- Row 3: Feed Details (Bottom) -->
+                        <div class="card-station-feed-meta">Episodes: @feedData.EpisodeCount | Last Updated: @feedData.LastUpdated</div>
                     </div>
                 </div>
             }
@@ -250,55 +251,47 @@
             <ul class="list-group" id="resolvedList">
                 @foreach (var item in playlist)
                 {
-                    var activeClass = item.IsActive ? "border-primary border-3" : "";
                     var feedColor = Model.Station.Schedule.Feeds.FirstOrDefault(f => f.Url == item.Episode.FeedUrl)?.Color ?? "#ccc";
-                    <li class="list-group-item d-flex justify-content-between align-items-center resolved-item mb-2 rounded shadow-sm @activeClass" 
-                        data-episode-id="@item.Episode.Id" 
+                    var episodeTitle = HtmlText.ToDisplayText(item.Episode.Title);
+                    <li class="card-episode resolved-item mb-2 @(item.IsActive ? "is-playing" : "") @(item.IsCompleted ? "is-played" : "")"
+                        data-episode-id="@item.Episode.Id"
                         data-feed-color="@(feedColor)"
-                        style="border-left: 4px solid @(feedColor) !important; background-color: @(feedColor + "15") !important; padding: 12px 16px;">
-                        
-                        <div class="d-flex align-items-center min-w-0 justify-content-between" style="width:100%;gap: 16px;">
-                            <!-- Cover Art (Left) -->
-                            <div class="position-relative flex-shrink-0" style="width: 70px; height: 70px;">
-                                <img src="@(string.IsNullOrEmpty(item.Episode.ImageUrl) ? "/images/cover-placeholder.png" : item.Episode.ImageUrl)" 
-                                     alt="Cover" 
-                                     class="w-100 h-100 rounded object-fit-cover shadow-sm" />
-                                     
-                                <!-- Big Checkmark Overlay (Displayed if IsCompleted) -->
-                                <div class="completed-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-body bg-opacity-75 rounded @(item.IsCompleted ? "" : "d-none")" style="transition: opacity 0.2s;">
-                                    <i class="bi bi-check-lg text-primary" style="font-size: 2rem;"></i>
+                        style="@(item.IsCompleted ? "" : $"--card-episode-accent: {feedColor};")">
+
+                        <!-- Feed badge (left) -->
+                        <span class="card-episode-badge" aria-hidden="true"><i class="bi bi-mic"></i></span>
+
+                        <!-- Metadata (Middle) -->
+                        <div class="card-episode-body">
+                            <div class="card-episode-kicker">
+                                <i class="bi bi-mic" aria-hidden="true"></i> Episode
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-primary ms-1">Playing</span>
+                                }
+                            </div>
+                            <h3 class="card-episode-title" title="@episodeTitle"><strong>@episodeTitle</strong></h3>
+                            <p class="card-episode-meta episode-description">@HtmlText.ToDisplayText(item.Episode.PlainDescription)</p>
+                            <div class="d-flex align-items-center flex-wrap" style="gap: 6px;">
+                                <small class="card-episode-meta">
+                                    Position: <span class="episode-position">@(item.PositionSeconds)</span>s / Published: @(item.Episode.PublishedAt?.ToString("g"))
+                                </small>
+                                <div class="d-inline-flex align-items-center" style="gap: 2px;">
+                                    <button type="button" class="btn btn-link p-0 px-1 reset-playhead-btn" title="Reset playhead to 0" style="font-size: 0.75rem; line-height: 1;" data-station-id="@Model.Station.Id" data-episode-id="@item.Episode.Id" data-position="@item.PositionSeconds">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-link p-0 px-1 set-playhead-btn" title="Set playhead position" style="font-size: 0.75rem; line-height: 1;" data-station-id="@Model.Station.Id" data-episode-id="@item.Episode.Id" data-position="@item.PositionSeconds">
+                                        <i class="bi bi-sliders"></i>
+                                    </button>
                                 </div>
                             </div>
-                            
-                            <!-- Metadata (Middle) -->
-                            <div class="flex-grow-1 min-w-0 text-body" style="overflow: hidden;">
-                                <div class="d-flex align-items-center min-w-0 w-100" style="gap: 8px;">
-                                    <strong class="text-truncate" style="font-size: 1rem; line-height: 1.2; flex-grow: 1;">@HtmlText.ToDisplayText(item.Episode.Title)</strong>
-                                    @if(item.IsActive) {
-                                        <span class="badge bg-primary flex-shrink-0">Playing</span>
-                                    }
-                                </div>
-                                <p class="text-muted mb-1 mt-1 w-100 d-block" style="font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; height:1rem; max-width: 100%;">@HtmlText.ToDisplayText(item.Episode.PlainDescription)</p>
-                                <div class="d-flex align-items-center flex-wrap" style="gap: 6px;">
-                                    <small class="text-secondary" style="font-size: 0.75rem;">
-                                        Position: <span class="episode-position">@(item.PositionSeconds)</span>s / Published: @(item.Episode.PublishedAt?.ToString("g"))
-                                    </small>
-                                    <div class="d-inline-flex align-items-center" style="gap: 2px;">
-                                        <button type="button" class="btn btn-link text-secondary p-0 px-1 continue-episode-btn" title="Continue playing from @(item.PositionSeconds)s" style="font-size: 0.75rem; line-height: 1;" data-station-id="@Model.Station.Id" data-episode-id="@item.Episode.Id" data-position="@item.PositionSeconds">
-                                            <i class="bi bi-play-fill"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-link text-secondary p-0 px-1 reset-playhead-btn" title="Reset playhead to 0" style="font-size: 0.75rem; line-height: 1;" data-station-id="@Model.Station.Id" data-episode-id="@item.Episode.Id" data-position="@item.PositionSeconds">
-                                            <i class="bi bi-arrow-counterclockwise"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-link text-secondary p-0 px-1 set-playhead-btn" title="Set playhead position" style="font-size: 0.75rem; line-height: 1;" data-station-id="@Model.Station.Id" data-episode-id="@item.Episode.Id" data-position="@item.PositionSeconds">
-                                            <i class="bi bi-sliders"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                             <!-- Action Controls (Right) -->
-                            <div class="d-flex flex-column align-items-end justify-content-center ms-3 flex-shrink-0" style="gap: 8px; width: 60px;">
+                        </div>
+
+                        <!-- Play + Action Controls (Right) -->
+                        <div class="d-flex flex-column align-items-end justify-content-center flex-shrink-0" style="gap: 6px;">
+                            <button type="button" class="card-episode-play continue-episode-btn" title="Continue playing from @(item.PositionSeconds)s" aria-label="Play @episodeTitle from @(item.PositionSeconds) seconds" data-station-id="@Model.Station.Id" data-episode-id="@item.Episode.Id" data-position="@item.PositionSeconds">
+                                <i class="bi bi-play-fill" aria-hidden="true"></i>
+                            </button>
                                 <div class="button-container d-flex flex-column gap-1 w-100">
                                     @if (item.IsCompleted)
                                     {
@@ -326,11 +319,8 @@
                                             </span>
                                         </button>
                                     }
-                                </div>
                             </div>
                         </div>
-                        
-                       
                     </li>
                 }
                 @if (!playlist.Any())
@@ -403,7 +393,7 @@
 </div>
 
 <!-- Confirm Remove Feed Modal -->
-<div class="modal fade" id="confirmRemoveFeedModal" tabindex="-1" aria-labelledby="confirmRemoveFeedModalLabel" aria-hidden="true">
+<div class="modal" id="confirmRemoveFeedModal" tabindex="-1" aria-labelledby="confirmRemoveFeedModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -624,7 +614,7 @@
             function scrollToActiveEpisode() {
                 const container = document.getElementById('resolvedList');
                 if (!container) return;
-                const activeItem = container.querySelector('.resolved-item.border-primary');
+                const activeItem = container.querySelector('.resolved-item.is-playing');
                 if (activeItem) {
                     if (window.innerWidth < 992) {
                         // On mobile: scroll the whole window so activeItem is near top (below layout header and sticky tabs card)
@@ -747,8 +737,7 @@
                 const removeBtn = e.target.closest('.remove-feed');
                 if (removeBtn) {
                     itemToRemove = removeBtn.closest('.rotation-item');
-                    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmRemoveFeedModal'));
-                    modal.show();
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmRemoveFeedModal')).show();
                 }
             });
 
@@ -872,7 +861,9 @@
             
             function setEpisodeCompletedState(li, isCompleted) {
                 if (!li) return;
-                
+
+                li.classList.toggle('is-played', isCompleted);
+
                 // Show/hide overlay
                 const overlay = li.querySelector('.completed-overlay');
                 if (overlay) {

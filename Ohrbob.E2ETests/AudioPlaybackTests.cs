@@ -162,7 +162,7 @@ public class AudioPlaybackTests : PageTest
 
         // Go to Home (Dashboard) and wait for the feed to be parsed
         await Page.GotoAsync(_factory.ServerAddress);
-        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Link Target Station" }).First;
+        var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Link Target Station" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
@@ -172,7 +172,7 @@ public class AudioPlaybackTests : PageTest
 
         // Activate the station so the player shows its metadata
         await stationCard.ClickAsync();
-        await Expect(Page.Locator("#ohrbob-player .track-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
+        await Expect(Page.Locator("#ohrbob-player .expanded-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
 
         // The widget's station link must point to the station edit view as a full absolute URL
         // (built by Razor on the server, not concatenated in JavaScript)
@@ -212,7 +212,7 @@ public class AudioPlaybackTests : PageTest
 
         // Go to Home (Dashboard) and wait for the feed to be parsed
         await Page.GotoAsync(_factory.ServerAddress);
-        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Pause State Station" }).First;
+        var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Pause State Station" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
@@ -231,7 +231,7 @@ public class AudioPlaybackTests : PageTest
 
         // Reload the page -> playback must NOT automatically continue
         await Page.ReloadAsync();
-        await Expect(Page.Locator("#ohrbob-player .track-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
+        await Expect(Page.Locator("#ohrbob-player .expanded-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
         await Page.WaitForTimeoutAsync(1500); // give any (unwanted) autoplay a chance to happen
         var isPlayingAfterReload = await Page.EvaluateAsync<bool>("() => document.querySelector('#ohrbob-player').isPlaying");
         Assert.That(isPlayingAfterReload, Is.False, "Playback must not auto-continue after the user paused");
@@ -248,7 +248,7 @@ public class AudioPlaybackTests : PageTest
 
         // Reload once more -> auto-play is restored
         await Page.ReloadAsync();
-        await Expect(Page.Locator("#ohrbob-player .track-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
+        await Expect(Page.Locator("#ohrbob-player .expanded-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
         var playBtnFinal = Page.Locator("#ohrbob-player .js-play");
         await Expect(playBtnFinal.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 15000 });
     }
@@ -284,7 +284,7 @@ public class AudioPlaybackTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
 
         // Wait for the station to appear and process
-        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Test E2E Station" }).First;
+        var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Test E2E Station" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
 
         // Poll until feed is parsed (worker finishes). Check if "feeds" count updates (or podcasts)
@@ -294,7 +294,7 @@ public class AudioPlaybackTests : PageTest
         await stationCard.ClickAsync();
 
         // Wait for the player to load the episode metadata (meaning it's not the placeholder "Track Name" anymore)
-        await Expect(Page.Locator("#ohrbob-player .track-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
+        await Expect(Page.Locator("#ohrbob-player .expanded-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
 
         // If the player is not already playing (which it should be after clicking the card, but let's be safe), click play
         var playBtn = Page.Locator("#ohrbob-player .js-play");
@@ -346,7 +346,7 @@ public class AudioPlaybackTests : PageTest
         // Go to Home (Dashboard)
         await Page.GotoAsync(_factory.ServerAddress);
 
-        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Test E2E Station" }).First;
+        var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Test E2E Station" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
@@ -354,7 +354,7 @@ public class AudioPlaybackTests : PageTest
         await stationCard.ClickAsync();
         
         // Wait for the player to load the episode metadata (meaning it's not the placeholder "Track Name" anymore)
-        await Expect(Page.Locator("#ohrbob-player .track-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
+        await Expect(Page.Locator("#ohrbob-player .expanded-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
         
         var playBtn = Page.Locator("#ohrbob-player .js-play");
         var rectCount = await playBtn.Locator("rect").CountAsync();
@@ -421,7 +421,7 @@ public class AudioPlaybackTests : PageTest
         // Go to Home (Dashboard)
         await Page.GotoAsync(_factory.ServerAddress);
 
-        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = "Test E2E Station" }).First;
+        var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Test E2E Station" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
@@ -429,7 +429,7 @@ public class AudioPlaybackTests : PageTest
         await stationCard.ClickAsync();
         
         // Wait for the player to load the episode metadata (meaning it's not the placeholder "Track Name" anymore)
-        await Expect(Page.Locator("#ohrbob-player .track-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
+        await Expect(Page.Locator("#ohrbob-player .expanded-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
         
         var playBtn = Page.Locator("#ohrbob-player .js-play");
         var rectCount = await playBtn.Locator("rect").CountAsync();
@@ -500,13 +500,13 @@ public class AudioPlaybackTests : PageTest
         
         await Page.GotoAsync(_factory.ServerAddress);
 
-        var stationCard = Page.Locator(".card", new PageLocatorOptions { HasTextString = stationName }).First;
+        var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = stationName }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
         await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
         await stationCard.ClickAsync();
         
-        await Expect(Page.Locator("#ohrbob-player .track-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
+        await Expect(Page.Locator("#ohrbob-player .expanded-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
         
         var playBtn = Page.Locator("#ohrbob-player .js-play");
         var rectCount = await playBtn.Locator("rect").CountAsync();

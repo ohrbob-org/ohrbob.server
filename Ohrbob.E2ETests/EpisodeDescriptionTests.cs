@@ -105,7 +105,7 @@ public class EpisodeDescriptionTests : PageTest
         // The upcoming playlist (and its episode descriptions) lives on the "Resolved" tab.
         await Page.ClickAsync("#resolved-tab");
 
-        var description = Page.Locator(".resolved-item p.text-muted").First;
+        var description = Page.Locator(".resolved-item .episode-description").First;
         await Expect(description).ToContainTextAsync("Rücktritt von Bärbel & größte", new() { Timeout = 15000 });
 
         // And the raw entities must not leak into the rendered text.

@@ -89,7 +89,7 @@ public class OnboardingTests : PageTest
         await Expect(profileDropdown).ToHaveAttributeAsync("title", "My E2E Profile");
 
         // Assert Station is displayed
-        var stationCard = Page.Locator(".card-title");
+        var stationCard = Page.Locator(".card-station-title");
         await Expect(stationCard).ToContainTextAsync("History");
     }
 

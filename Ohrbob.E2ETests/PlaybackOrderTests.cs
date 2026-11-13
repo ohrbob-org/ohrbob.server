@@ -388,7 +388,7 @@ public class PlaybackOrderTests : PageTest
     }
 
     private ILocator StationCard(string name) =>
-        Page.Locator(".card", new PageLocatorOptions { HasTextString = name }).First;
+        Page.Locator(".card-station", new PageLocatorOptions { HasTextString = name }).First;
 
     private async Task PlayStationAndWaitAsync(string stationName)
     {
