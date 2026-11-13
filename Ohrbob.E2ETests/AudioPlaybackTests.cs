@@ -378,7 +378,7 @@ public class AudioPlaybackTests : PageTest
         await stationCard.Locator("a[href^='/Stations/Edit/']").ClickAsync();
 
         // Wait for edit page
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 10000 });
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 10000 });
 
         // Navigate back
         await Page.GoBackAsync();

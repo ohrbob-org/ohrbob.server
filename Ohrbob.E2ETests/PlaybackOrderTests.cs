@@ -414,7 +414,7 @@ public class PlaybackOrderTests : PageTest
         // Clicking the gear performs an htmx-boosted swap of #main-content, so the
         // audio widget (outside #main-content) keeps playing.
         await StationCard(stationName).Locator("a[href^='/Stations/Edit/']").ClickAsync();
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 15000 });
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 15000 });
     }
 
     private async Task SetFeedSortOrderAsync(int feedIndex, FeedSortOrder order)

@@ -91,7 +91,7 @@ public class StationPlaylistTests : PageTest
         await WaitForEpisodesAsync(station!.Id, episodeCount);
 
         await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{station.Id}");
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Edit Station", new() { Timeout = 15000 });
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 15000 });
 
         await Page.ClickAsync("#resolved-tab");
         await Expect(Page.Locator("#resolvedList .resolved-item")).ToHaveCountAsync(
