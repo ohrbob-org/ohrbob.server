@@ -649,6 +649,14 @@ html:has(.radio-landing-container) {
    inside the scrollport instead of clipping them. */
 .discover-lane-track { padding: 10px 28px 36px; }
 
+/* The feed row grows with its controls, so the cover must fill that height instead of
+   staying 96px tall and leaving a gap below. */
+.card-station-feed-cover {
+    height: auto;
+    min-height: 96px;
+    align-self: stretch;
+}
+
 /* Feed controls: the actions menu stays next to the span input, also on narrow cards. */
 .card-station-feed-controls-right {
     display: flex;
