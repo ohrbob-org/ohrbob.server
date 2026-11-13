@@ -38,9 +38,94 @@
         // paused until the user presses play there. sessionStorage is per tab, so a reload
         // of the playing tab keeps resuming while a new tab stays quiet.
         const SESSION_PLAYBACK_KEY = 'ohrbob_session_playback';
-        const markSessionPlayback = () => { try { sessionStorage.setItem(SESSION_PLAYBACK_KEY, '1'); } catch (e) { /* storage unavailable */ } };
+        const markSessionPlayback = () => { cancelAutoStart(); try { sessionStorage.setItem(SESSION_PLAYBACK_KEY, '1'); } catch (e) { /* storage unavailable */ } };
         const clearSessionPlayback = () => { try { sessionStorage.removeItem(SESSION_PLAYBACK_KEY); } catch (e) { /* storage unavailable */ } };
         const sessionWantsPlayback = () => { try { return sessionStorage.getItem(SESSION_PLAYBACK_KEY) === '1'; } catch (e) { return false; } };
+
+        // Delayed auto-play: automatic starts (page load, sync, recovery) run a short
+        // countdown first so the user can stop them and pause globally. Explicit play
+        // actions start immediately.
+        const AUTO_START_SECONDS = 5;
+        let autoStartState = null;
+
+        const autoStartOverlay = () => {
+            let el = document.getElementById('ohrbob-auto-start');
+            if (el) return el;
+
+            el = document.createElement('div');
+            el.id = 'ohrbob-auto-start';
+            el.className = 'ohrbob-auto-start';
+            el.setAttribute('role', 'status');
+            el.innerHTML =
+                '<p class="ohrbob-auto-start-text">Playback starts in <strong class="ohrbob-auto-start-count">' +
+                AUTO_START_SECONDS + '</strong>s</p>' +
+                '<div class="ohrbob-auto-start-actions">' +
+                '<button type="button" class="btn btn-primary btn-sm js-auto-start-play">Play now</button>' +
+                '<button type="button" class="btn btn-outline-secondary btn-sm js-auto-start-pause">Pause</button>' +
+                '</div>';
+            document.body.appendChild(el);
+
+            // The overlay outlives this initPlayer() closure, so its buttons call the
+            // control function that the newest init assigns.
+            el.querySelector('.js-auto-start-play').addEventListener('click', () => window._ohrbobAutoStartControl?.('play'));
+            el.querySelector('.js-auto-start-pause').addEventListener('click', () => window._ohrbobAutoStartControl?.('pause'));
+
+            return el;
+        };
+
+        const hideAutoStart = () => {
+            const el = document.getElementById('ohrbob-auto-start');
+            if (el) el.classList.remove('show');
+        };
+
+        const cancelAutoStart = () => {
+            if (autoStartState) {
+                clearInterval(autoStartState.interval);
+                clearTimeout(autoStartState.timer);
+                autoStartState = null;
+            }
+            hideAutoStart();
+        };
+
+        window._ohrbobAutoStartControl = (action) => {
+            if (action === 'play') {
+                const pending = autoStartState && autoStartState.start;
+                cancelAutoStart();
+                if (pending) pending();
+            } else if (action === 'pause') {
+                cancelAutoStart();
+                setUserPaused();
+                clearSessionPlayback();
+                setAutoPlayExpected(false);
+                audio.pause();
+                widget.isPlaying = false;
+                updatePlayButton();
+            }
+        };
+
+        const scheduleAutoStart = (start) => {
+            // A running countdown already covers the next automatic start.
+            if (autoStartState) return;
+
+            const el = autoStartOverlay();
+            const count = el.querySelector('.ohrbob-auto-start-count');
+            let secondsLeft = AUTO_START_SECONDS;
+            count.textContent = String(secondsLeft);
+            el.classList.add('show');
+
+            const interval = setInterval(() => {
+                secondsLeft -= 1;
+                if (secondsLeft > 0) count.textContent = String(secondsLeft);
+            }, 1000);
+
+            const timer = setTimeout(() => {
+                const pending = autoStartState && autoStartState.start;
+                cancelAutoStart();
+                if (pending) pending();
+            }, AUTO_START_SECONDS * 1000);
+
+            autoStartState = { timer, interval, start };
+        };
 
         const headers = {
             'Authorization': `Bearer ${token}`,
@@ -214,7 +299,7 @@
                     await window._ohrbobGoToNext();
                 } else {
                     await apiCall('/stream/next', 'POST');
-                    syncState();
+                    syncState(false);
                 }
             });
 
@@ -377,7 +462,34 @@
             updatePlayButton();
         });
 
-        const setupAudio = () => {
+        const startLoadedEpisode = () => {
+            setAutoPlayExpected(true);
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    widget.isPlaying = true;
+                    updatePlayButton();
+                }).catch(() => {
+                    setAutoPlayExpected(false);
+                    widget.isPlaying = false;
+                    updatePlayButton();
+                });
+            } else {
+                widget.isPlaying = true;
+                updatePlayButton();
+            }
+        };
+
+        const startPlayback = (autoStart) => {
+            if (autoStart) {
+                scheduleAutoStart(startLoadedEpisode);
+            } else {
+                cancelAutoStart();
+                startLoadedEpisode();
+            }
+        };
+
+        const setupAudio = ({ autoStart = true } = {}) => {
             if (!currentEpisodeData || !currentEpisodeData.streamUri) {
                 return;
             }
@@ -399,48 +511,27 @@
                     return;
                 }
                 
-                setAutoPlayExpected(true);
-                const playPromise = audio.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        widget.isPlaying = true;
-                        updatePlayButton();
-                    }).catch(e => {
-                        widget.isPlaying = false;
-                        updatePlayButton();
-                    });
-                }
+                startPlayback(autoStart);
             } else {
                 // If it is already loaded, ensure widget.isPlaying reflects audio state!
                 widget.isPlaying = !audio.paused;
                 if (!audio.paused) {
                     setAutoPlayExpected(true);
-                } else if (sessionWantsPlayback() && !isUserPaused()) {
+                } else if (sessionWantsPlayback() && !isUserPaused() && !isAutoPlayExpected()) {
                     // An earlier sync may have loaded the episode while another session was
                     // playing. This session's own play action must still start it.
-                    setAutoPlayExpected(true);
-                    const playPromise = audio.play();
-                    if (playPromise !== undefined) {
-                        playPromise.then(() => {
-                            widget.isPlaying = true;
-                            updatePlayButton();
-                        }).catch(() => {
-                            setAutoPlayExpected(false);
-                            widget.isPlaying = false;
-                            updatePlayButton();
-                        });
-                    }
+                    startPlayback(autoStart);
                 }
                 updatePlayButton();
             }
         };
 
-        const syncState = async () => {
+        const syncState = async (autoStart = true) => {
             const state = await apiCall('/stream/status');
             if (state) {
                 applyStateToWidget(state);
                 if (state.current) {
-                    setupAudio();
+                    setupAudio({ autoStart });
                 }
             }
         };
@@ -588,7 +679,7 @@
                 audio.src && audio.src !== window.location.href;
 
             // syncState loads/starts a different episode; an already loaded one is only refreshed.
-            await syncState();
+            await syncState(false);
             if (!sameTrack) return;
 
             audio.currentTime = position;
@@ -613,7 +704,7 @@
                 clearUserPaused(); // explicit user action
                 markSessionPlayback();
                 await apiCall('/stream/next', 'POST');
-                await syncState();
+                await syncState(false);
             }
             finally
             {
@@ -634,7 +725,7 @@
                 clearUserPaused(); // explicit user action
                 markSessionPlayback();
                 await apiCall('/stream/prev', 'POST');
-                await syncState();
+                await syncState(false);
             }
             finally
             {
@@ -657,7 +748,7 @@
                 }
 
                 if (window._ohrbobCurrentLoadedUri !== currentEpisodeData.streamUri || !audio.src || audio.src === window.location.href) {
-                    setupAudio();
+                    setupAudio({ autoStart: false });
                 } else {
                     const playPromise = audio.play();
                     if (playPromise !== undefined) {
