@@ -169,7 +169,7 @@ public class CompilingStationTests : PageTest
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
 
         // Click the station card to switch to it
-        await stationCard.ClickAsync();
+        await stationCard.Locator(".card-station-play").ClickAsync();
 
         // Wait for the player to update and show compiling metadata
         var trackTitle = Page.Locator("#ohrbob-player .expanded-title");

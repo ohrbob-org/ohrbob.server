@@ -397,7 +397,7 @@ public class PlaybackOrderTests : PageTest
         await card.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 20000 });
 
         // Start playback from the station card (explicit user action).
-        await card.ClickAsync();
+        await card.Locator(".card-station-play").ClickAsync();
 
         var playBtn = Page.Locator("#ohrbob-player .js-play");
         if (await playBtn.Locator("rect").CountAsync() == 0)
@@ -413,7 +413,7 @@ public class PlaybackOrderTests : PageTest
     {
         // Clicking the gear performs an htmx-boosted swap of #main-content, so the
         // audio widget (outside #main-content) keeps playing.
-        await StationCard(stationName).Locator("a[href^='/Stations/Edit/']").ClickAsync();
+        await StationCard(stationName).Locator("a[title='Manage Station']").ClickAsync();
         await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 15000 });
     }
 
