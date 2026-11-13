@@ -6,29 +6,32 @@
     var hasStations = stations.Any();
 }
 <div class="col">
-    <div class="card h-100 shadow-sm position-relative">
-        <div class="position-relative">
+    <div class="card-feed h-100">
+        <div class="card-feed-art">
             @if (!string.IsNullOrEmpty(Model.Image))
             {
-                <img src="@Model.Image" class="card-img-top" alt="Cover" style="aspect-ratio: 1; object-fit: cover; border-bottom: 1px solid var(--bs-border-color);">
+                <img src="@Model.Image" class="card-feed-cover" alt="">
             }
             else
             {
-                <div class="card-img-top d-flex align-items-center justify-content-center bg-secondary-subtle podcast-cover-placeholder" role="img" aria-label="No cover art" style="aspect-ratio: 1; border-bottom: 1px solid var(--bs-border-color);">
-                    <i class="bi bi-soundwave text-muted" style="font-size: 4rem;"></i>
-                </div>
+                <div class="card-feed-cover card-feed-cover-empty" role="img" aria-label="No cover art">@((Model.Title.Length > 0 ? Model.Title[0].ToString() : "?").ToUpper())</div>
             }
-            <button class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center shadow-lg"
+            <span class="card-feed-badge" aria-hidden="true"><i class="bi bi-rss"></i></span>
+            <button class="card-feed-add"
                     type="button"
-                    style="position: absolute; right: 15px; bottom: -25px; width: 50px; height: 50px; z-index: 10;"
                     data-bs-toggle="modal"
-                    data-bs-target="#add-to-station-modal-@safeId">
-                <i class="bi bi-plus-lg" style="font-size: 1.5rem; color: white;"></i>
+                    data-bs-target="#add-to-station-modal-@safeId"
+                    aria-label="Add @Model.Title to a station"
+                    title="Add this podcast to a station">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>
             </button>
         </div>
-        <div class="card-body d-flex flex-column" style="padding-top: 30px;">
-            <h5 class="card-title text-truncate" title="@Model.Title">@Model.Title</h5>
-            <p class="card-text text-muted small text-truncate mb-0" title="@Model.Author">@Model.Author</p>
+        <div class="card-feed-body">
+            <h3 class="card-feed-title" title="@Model.Title">@Model.Title</h3>
+            @if (!string.IsNullOrWhiteSpace(Model.Author))
+            {
+                <p class="card-feed-author" title="@Model.Author">@Model.Author</p>
+            }
         </div>
     </div>
 

@@ -15,73 +15,70 @@
             @foreach (var dto in Model)
             {
                 var feedCount = dto.Feeds?.Count ?? 0;
-                string gridClass = "collage-grid-1";
-                if (feedCount > 1 && feedCount <= 4) gridClass = "collage-grid-2";
-                else if (feedCount > 4 && feedCount <= 9) gridClass = "collage-grid-3";
-                else if (feedCount > 9) gridClass = "collage-grid-4";
-                
-                var displayFeeds = dto.Feeds?.Take(16).ToList() ?? new List<FeedStatsDto>();
-                
+                var displayFeeds = dto.Feeds?.Take(4).ToList() ?? new List<FeedStatsDto>();
+                var totalEpisodes = dto.Feeds?.Sum(f => f.EpisodeCount) ?? 0;
+                var stationInitial = (dto.Station.Name.Length > 0 ? dto.Station.Name[0].ToString() : "?").ToUpper();
+
                 var isActive = ViewBag.ActiveStationId == dto.Station.Id;
-                var cardClass = isActive ? "border-primary border-3 shadow" : "shadow-sm";
+                var cardClass = isActive ? "border-primary border-3 shadow" : "";
                 var subscribedIds = ViewBag.SubscribedStationIds as HashSet<string> ?? new HashSet<string>();
                 var isSubscribed = subscribedIds.Contains(dto.Station.Id);
 
                 <div class="col">
-                    <div class="card h-100 @cardClass active-station-card" data-station-id="@dto.Station.Id" style="cursor: pointer;" onclick="if (!event.target.closest('a, button, form')) document.querySelector('#ohrbob-player').playStation('@dto.Station.Id')">
-                        <div class="collage-container @gridClass card-img-top">
+                    <div class="card-station @(feedCount == 0 ? "is-empty" : "") @cardClass active-station-card" data-station-id="@dto.Station.Id" style="cursor: pointer;" onclick="if (!event.target.closest('a, button, form')) document.querySelector('#ohrbob-player').playStation('@dto.Station.Id')">
+                        <div class="card-station-art">
                             @if (!displayFeeds.Any())
                             {
-                                <div class="collage-fallback">?</div>
+                                <div class="card-station-cover card-station-cover-empty" aria-hidden="true">@stationInitial</div>
                             }
                             else
                             {
                                 foreach (var feed in displayFeeds)
                                 {
+                                    var feedInitial = (feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper();
                                     if (!string.IsNullOrEmpty(feed.ImageUrl))
                                     {
-                                        <img src="@feed.ImageUrl" class="collage-item" alt="@feed.Title" onerror="this.outerHTML='<div class=\'collage-fallback\'>@((feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper())</div>'" />
+                                        <img src="@feed.ImageUrl" class="card-station-cover" alt="" onerror="this.outerHTML='<div class=\'card-station-cover card-station-cover-empty\'>@feedInitial</div>'" />
                                     }
                                     else
                                     {
-                                        <div class="collage-fallback">@((feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper())</div>
+                                        <div class="card-station-cover card-station-cover-empty">@feedInitial</div>
                                     }
                                 }
                             }
+                            <span class="card-station-badge" aria-hidden="true"><i class="bi bi-broadcast"></i></span>
+                            <span class="card-station-count">@feedCount @(feedCount == 1 ? "podcast" : "podcasts")</span>
                         </div>
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <h5 class="card-title text-truncate mb-0" title="@dto.Station.Name">@dto.Station.Name</h5>
+                        <div class="card-station-body">
+                            <i class="bi bi-soundwave card-station-watermark" aria-hidden="true"></i>
+                            <div class="d-flex align-items-start gap-2">
+                                <h3 class="card-station-title flex-grow-1" title="@dto.Station.Name">@dto.Station.Name</h3>
                                 @if (isSubscribed)
                                 {
-                                    <div class="d-flex align-items-center ms-2">
-                                        <span class="badge bg-info text-white">Subscribed</span>
-                                        <form asp-controller="Stations" asp-action="Unsubscribe" asp-route-id="@dto.Station.Id"
-                                              method="post" hx-target="#main-content" hx-swap="innerHTML" class="ms-2 mb-0">
-                                            <button type="button" class="btn btn-link p-0 text-secondary" title="Unsubscribe"
-                                                    onclick="window.showConfirmationModal('Unsubscribe from this station?', () => this.closest('form').requestSubmit());">
-                                                <i class="bi bi-x-circle"></i>
-                                            </button>
-                                        </form>
-                                    </div>
+                                    <form asp-controller="Stations" asp-action="Unsubscribe" asp-route-id="@dto.Station.Id"
+                                          method="post" hx-target="#main-content" hx-swap="innerHTML" class="mb-0">
+                                        <button type="button" class="btn btn-link p-0 text-white-50" title="Unsubscribe"
+                                                onclick="window.showConfirmationModal('Unsubscribe from this station?', () => this.closest('form').requestSubmit());">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </form>
                                 }
                                 else
                                 {
-                                    <a asp-controller="Stations" asp-action="Edit" asp-route-id="@dto.Station.Id" class="text-secondary ms-2"  title="Manage Station">
+                                    <a asp-controller="Stations" asp-action="Edit" asp-route-id="@dto.Station.Id" class="text-white-50" title="Manage Station">
                                         <i class="bi bi-gear"></i>
                                     </a>
                                 }
                             </div>
-                            <div class="d-flex justify-content-between align-items-center mt-2 mb-0">
-                                <p class="card-text mb-0 d-flex align-items-center gap-2">
-                                    <small class="text-muted">@feedCount podcasts</small>
-                                    @if (dto.Station.HostPaceEnabled)
-                                    {
-                                        <span class="badge bg-info text-white" title="Only episodes the host has completed are available">Host Pace</span>
-                                    }
-                                </p>
-                                @{
-                                    var totalEpisodes = dto.Feeds?.Sum(f => f.EpisodeCount) ?? 0;
+                            <p class="card-station-meta d-flex align-items-center flex-wrap gap-2">
+                                <span><strong>@totalEpisodes</strong> episodes</span>
+                                @if (isSubscribed)
+                                {
+                                    <span class="badge bg-info text-white">Subscribed</span>
+                                }
+                                @if (dto.Station.HostPaceEnabled)
+                                {
+                                    <span class="badge bg-info text-white" title="Only episodes the host has completed are available">Host Pace</span>
                                 }
                                 @if (dto.IsUpdating)
                                 {
@@ -95,7 +92,7 @@
                                         Empty
                                     </span>
                                 }
-                            </div>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -104,7 +101,7 @@
 
         <!-- Big friendly plus symbol inside a grey circle -->
         <div class="col d-flex align-items-center justify-content-center">
-            <a asp-controller="Discover" asp-action="Index" class="text-decoration-none d-flex align-items-center justify-content-center w-100 h-100" title="Discover Stations" style="min-height: 250px;">
+            <a asp-controller="Discover" asp-action="Index" class="text-decoration-none d-flex align-items-center justify-content-center w-100 h-100" title="Discover Stations" style="min-height: 140px;">
                 <div class="discover-plus-circle d-flex align-items-center justify-content-center rounded-circle shadow-sm">
                     <i class="bi bi-plus-lg"></i>
                 </div>

@@ -619,6 +619,30 @@ html:has(.radio-landing-container) {
     color: rgba(255, 255, 255, 0.55);
 }
 
+/* The card fallbacks paint a gradient; give them a solid base too so the white
+   initial stays a dark surface (gradients are ignored by contrast checks/tools). */
+.card-station-cover-empty,
+.card-feed-cover-empty { background-color: #544ff4; }
+
+/* Episode cards sit on a fixed paper surface in both themes, so their text and
+   actions keep the light-theme ink instead of the dark-theme (light) colours. */
+.card-episode,
+.card-episode .card-episode-title { color: #001957; }
+.card-episode .btn-link { color: rgba(0, 25, 87, 0.5); }
+.card-episode .btn-link:hover,
+.card-episode .btn-link:focus { color: rgba(0, 25, 87, 0.85); }
+.card-episode .btn-outline-success { color: #146c43; border-color: #198754; }
+.card-episode .btn-outline-warning { color: #997404; border-color: #ffc107; }
+.card-episode .btn-outline-danger { color: #b02a37; border-color: #dc3545; }
+.card-episode .btn-outline-secondary { color: #565e64; border-color: #6c757d; }
+.card-episode .episode-description {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
 /* Landing page screenshot placeholders. */
 [data-bs-theme=dark] .screenshot-card { color: var(--bs-secondary-color); }
 
@@ -632,9 +656,7 @@ html:has(.radio-landing-container) {
    Audio widget (theme.css renders it light-on-white; re-colour for dark).
    --------------------------------------------------------------------------- */
 [data-bs-theme=dark] .audio-widget::before { background: #1b2130; opacity: 1; }
-[data-bs-theme=dark] .audio-widget .audio-meta .audio-info .track-title,
 [data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-info .expanded-title { color: #f1f3f5; }
-[data-bs-theme=dark] .audio-widget .audio-meta .audio-info .track-description,
 [data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-info .expanded-artist,
 [data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-header .expanded-header-title { color: rgba(255, 255, 255, 0.65); }
 [data-bs-theme=dark] .audio-widget .audio-progress-group .time-elapsed,
