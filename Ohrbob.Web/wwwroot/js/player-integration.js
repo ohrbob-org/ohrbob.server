@@ -114,6 +114,12 @@
             // A running countdown already covers the next automatic start.
             if (autoStartState) return;
 
+            // Kick off the media request now: the countdown doubles as a buffer window.
+            if (audio.src && audio.readyState === 0) {
+                audio.preload = 'auto';
+                audio.load();
+            }
+
             const el = autoStartOverlay();
             const count = el.querySelector('.ohrbob-auto-start-count');
             let secondsLeft = AUTO_START_SECONDS;
@@ -144,6 +150,9 @@
             window._ohrbobAudio._managed = true;
         }
         let audio = window._ohrbobAudio;
+        // Preload while the auto-play countdown runs so slow remote sources do not
+        // leave the user waiting after the timer hits zero.
+        audio.preload = 'auto';
         
         // Remove old event listeners
         audio.onended = null;
@@ -524,7 +533,7 @@
                 widget.isPlaying = !audio.paused;
                 if (!audio.paused) {
                     setAutoPlayExpected(true);
-                } else if (sessionWantsPlayback() && !isUserPaused() && !isAutoPlayExpected()) {
+                } else if (sessionWantsPlayback() && !isUserPaused() && !isAutoPlayExpected() && !autoStartState) {
                     // An earlier sync may have loaded the episode while another session was
                     // playing. This session's own play action must still start it.
                     startPlayback(autoStart);

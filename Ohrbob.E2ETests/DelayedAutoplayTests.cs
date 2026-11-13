@@ -104,6 +104,12 @@ public class DelayedAutoplayTests : PageTest
         var widthAfter = await fill.EvaluateAsync<double>("el => el.getBoundingClientRect().width");
         Assert.That(widthAfter, Is.LessThan(widthBefore), "The countdown bar must shrink");
 
+        // Nothing starts while the prompt is counting down (the periodic sync must not
+        // bypass the timer).
+        await Page.WaitForTimeoutAsync(3000);
+        Assert.That(await PlayCallsAsync(), Is.EqualTo(0), "Playback must not start before the countdown ends");
+        await Expect(overlay).ToBeVisibleAsync();
+
         await Page.WaitForFunctionAsync("() => window.__playCalls > 0", null, new() { Timeout = 12000 });
         await Expect(overlay).ToBeHiddenAsync();
     }
