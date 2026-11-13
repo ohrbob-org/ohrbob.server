@@ -1,4 +1,5 @@
 using Microsoft.Playwright;
+using MongoDB.Driver;
 using Microsoft.Playwright.NUnit;
 using NUnit.Framework;
 using Ohrbob.E2ETests.Infrastructure;
@@ -211,18 +212,59 @@ public class NavigationTests : PageTest
             await profiles.AddStationToProfileAsync(profileId, station!.Id);
         }
 
-        // A short viewport makes the Listen page scrollable, which is when htmx's
-        // boosted-target scroll used to push the page down past the sticky header.
-        await Page.SetViewportSizeAsync(1280, 300);
-        await Page.GotoAsync(_factory.ServerAddress);
-        await Expect(Page.Locator(".card-station").First).ToBeVisibleAsync(new() { Timeout = 15000 });
-        Assert.That(await Page.EvaluateAsync<int>("() => window.scrollY"), Is.EqualTo(0));
+        // A Discover card so that page is scrollable too.
+        var comedyFeed = new Ohrbob.Server.Shared.Data.Feed
+        {
+            Id = Guid.NewGuid().ToString(),
+            Url = $"https://example.com/nav-scroll-{Guid.NewGuid()}.xml",
+            Title = "Nav Scroll Show",
+            Category = "Comedy",
+            Description = "Scroll test.",
+            CreatedAt = DateTime.UtcNow
+        };
+        var mongo = new MongoDB.Driver.MongoClient("mongodb://localhost:27019");
+        var feeds = mongo.GetDatabase("OhrbobData").GetCollection<Ohrbob.Server.Shared.Data.Feed>("FeedCollection");
+        await feeds.InsertOneAsync(comedyFeed);
+        try
+        {
+            // A short viewport makes both pages scrollable.
+            await Page.SetViewportSizeAsync(1280, 300);
+            await Page.GotoAsync(_factory.ServerAddress);
+            await Expect(Page.Locator(".card-station").First).ToBeVisibleAsync(new() { Timeout = 15000 });
 
-        await Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Discover" }).ClickAsync();
-        await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/Discover"));
-        await Page.WaitForTimeoutAsync(300);
-        Assert.That(await Page.EvaluateAsync<int>("() => window.scrollY"), Is.EqualTo(0),
-            "Boosted navigation must not scroll the page down under the sticky header");
+            var discoverLink = Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Discover" });
+            var listenLink = Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Listen" });
+
+            // Listen -> Discover while scrolled down: the new page starts at the top.
+            Assert.That(await Page.EvaluateAsync<int>("() => document.documentElement.scrollHeight"),
+                Is.GreaterThan(await Page.EvaluateAsync<int>("() => window.innerHeight")),
+                "Listen must be scrollable for this test");
+            await Page.EvaluateAsync("() => window.scrollTo(0, 80)");
+            Assert.That(await Page.EvaluateAsync<int>("() => window.scrollY"), Is.GreaterThan(0));
+            await discoverLink.ClickAsync();
+            await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/Discover"));
+            await Expect(Page.Locator(".discover-lane .card-feed").First).ToBeVisibleAsync(new() { Timeout = 15000 });
+            await Page.WaitForTimeoutAsync(300);
+            Assert.That(await Page.EvaluateAsync<int>("() => window.scrollY"), Is.EqualTo(0),
+                "Switching to Discover must start at the top");
+
+            // Discover -> Listen while scrolled down: same.
+            Assert.That(await Page.EvaluateAsync<int>("() => document.documentElement.scrollHeight"),
+                Is.GreaterThan(await Page.EvaluateAsync<int>("() => window.innerHeight")),
+                "Discover must be scrollable for this test");
+            await Page.EvaluateAsync("() => window.scrollTo(0, 80)");
+            Assert.That(await Page.EvaluateAsync<int>("() => window.scrollY"), Is.GreaterThan(0));
+            await listenLink.ClickAsync();
+            await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/$"));
+            await Expect(Page.Locator(".card-station").First).ToBeVisibleAsync(new() { Timeout = 15000 });
+            await Page.WaitForTimeoutAsync(300);
+            Assert.That(await Page.EvaluateAsync<int>("() => window.scrollY"), Is.EqualTo(0),
+                "Switching to Listen must start at the top");
+        }
+        finally
+        {
+            await feeds.DeleteOneAsync(f => f.Id == comedyFeed.Id);
+        }
     }
 
     [Test]

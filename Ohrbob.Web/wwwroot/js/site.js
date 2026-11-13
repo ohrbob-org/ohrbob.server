@@ -523,3 +523,20 @@ window.initMoveFeed = function (sourceStationId) {
 if (window.htmx && window.htmx.config) {
     window.htmx.config.scrollIntoViewOnBoost = false;
 }
+
+// A boosted navigation to a different page starts at the top, so switching
+// Discover <-> Listen never lands mid-page. Back/forward keep the browser's
+// restored scroll position (htmx:historyRestore / popstate do not reset it).
+(function () {
+    var path = window.location.pathname;
+
+    function resetScrollOnNavigation() {
+        if (window.location.pathname === path) return;
+        path = window.location.pathname;
+        window.scrollTo(0, 0);
+    }
+
+    document.addEventListener('htmx:pushedIntoHistory', resetScrollOnNavigation);
+    document.addEventListener('htmx:historyRestore', function () { path = window.location.pathname; });
+    window.addEventListener('popstate', function () { path = window.location.pathname; });
+})();
