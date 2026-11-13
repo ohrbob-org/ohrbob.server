@@ -22,10 +22,10 @@
 
     <ul class="nav pill-nav d-lg-none" id="stationTabs" role="tablist" style="margin-bottom: 0;">
       <li class="nav-item">
-        <a class="nav-link active" id="rotation-tab" data-bs-toggle="tab" href="#rotation" role="tab">Rotation & Feeds</a>
+        <a class="nav-link active" id="rotation-tab" data-bs-toggle="tab" href="#rotation" role="tab">Feeds</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="resolved-tab" data-bs-toggle="tab" href="#resolved" role="tab">Resolved Episodes</a>
+        <a class="nav-link" id="resolved-tab" data-bs-toggle="tab" href="#resolved" role="tab">Episodes</a>
       </li>
     </ul>
 </div>
@@ -73,12 +73,12 @@
 }
 .pill-nav .nav-link {
     border-radius: 50px;
-    color: #495057;
-    font-weight: 500;
+    color: var(--bs-secondary-color);
+    font-weight: 600;
 }
 .pill-nav .nav-link.active {
-    background: #cce5ff;
-    color: #004085;
+    background: var(--bs-primary);
+    color: #fff;
 }
 .rotation-item {
     flex-shrink: 0;
@@ -114,7 +114,7 @@
 
 <div class="tab-content row" id="stationTabsContent">
   <div class="tab-pane fade show active col-12 col-lg-6" id="rotation" role="tabpanel">
-    <h3>Rotation & Feeds</h3>
+    <h3>Feeds</h3>
     <div class="list-group py-3" id="rotationContainer" style="max-width: 100%;">
         @{ var feedScheduleIndex = 0; }
         @foreach(var feedSchedule in Model.Station.Schedule.Feeds)
