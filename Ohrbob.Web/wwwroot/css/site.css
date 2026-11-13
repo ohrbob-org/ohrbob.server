@@ -647,7 +647,7 @@ html:has(.radio-landing-container) {
 
 /* The lane scrolls horizontally; the vertical padding keeps the card shadows
    inside the scrollport instead of clipping them. */
-.discover-lane-track { padding: 6px 20px 26px; }
+.discover-lane-track { padding: 10px 28px 36px; }
 
 /* Station covers stay small squares. The theme stretches them to fill the strip,
    so a station with one feed showed one full-width cover instead of a thumbnail. */
