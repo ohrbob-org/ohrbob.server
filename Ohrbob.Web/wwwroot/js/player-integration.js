@@ -3,6 +3,9 @@
     function initPlayer() {
         let widget = document.getElementById('ohrbob-player');
         if (!widget) return;
+
+        // A navigation re-inits the player; drop any countdown from the previous page.
+        if (typeof window._ohrbobAutoStartCleanup === 'function') window._ohrbobAutoStartCleanup();
         
         const apiUrl = widget.getAttribute('data-player-api-url');
         const token = widget.getAttribute('data-stream-token');
@@ -56,7 +59,9 @@
             el.id = 'ohrbob-auto-start';
             el.className = 'ohrbob-auto-start';
             el.setAttribute('role', 'status');
+            el.style.setProperty('--ohrbob-auto-start-duration', AUTO_START_SECONDS + 's');
             el.innerHTML =
+                '<span class="ohrbob-auto-start-bar" aria-hidden="true"><span class="ohrbob-auto-start-bar-fill"></span></span>' +
                 '<p class="ohrbob-auto-start-text">Playback starts in <strong class="ohrbob-auto-start-count">' +
                 AUTO_START_SECONDS + '</strong>s</p>' +
                 '<div class="ohrbob-auto-start-actions">' +
@@ -86,6 +91,8 @@
             }
             hideAutoStart();
         };
+
+        window._ohrbobAutoStartCleanup = () => cancelAutoStart();
 
         window._ohrbobAutoStartControl = (action) => {
             if (action === 'play') {
@@ -489,7 +496,7 @@
             }
         };
 
-        const setupAudio = ({ autoStart = true } = {}) => {
+        const setupAudio = ({ autoStart = false } = {}) => {
             if (!currentEpisodeData || !currentEpisodeData.streamUri) {
                 return;
             }
@@ -526,7 +533,7 @@
             }
         };
 
-        const syncState = async (autoStart = true) => {
+        const syncState = async (autoStart = false) => {
             const state = await apiCall('/stream/status');
             if (state) {
                 applyStateToWidget(state);
@@ -853,7 +860,9 @@
         }, 500);
 
         setupMediaSessionActionHandlers();
-        syncState();
+        // Only the initial page load starts playback with a countdown; later automatic
+        // syncs, recovery and compiles start immediately.
+        syncState(true);
         
         window._ohrbobSyncInterval = setInterval(async () => {
             if (widget.isPlaying && currentEpisodeData && activeStationId) {

@@ -83,6 +83,7 @@ public class DelayedAutoplayTests : PageTest
         await Expect(overlay).ToBeHiddenAsync();
         await Page.WaitForTimeoutAsync(6000);
         Assert.That(await PlayCallsAsync(), Is.EqualTo(0), "Global pause must stop the auto-play");
+        await Expect(overlay).ToBeHiddenAsync();
         Assert.That(await Page.EvaluateAsync<string>("() => document.cookie"), Does.Contain("ohrbob_user_paused=1"));
     }
 
@@ -94,6 +95,14 @@ public class DelayedAutoplayTests : PageTest
         await Page.ReloadAsync();
         var overlay = Page.Locator("#ohrbob-auto-start.show");
         await Expect(overlay).ToBeVisibleAsync(new() { Timeout = 20000 });
+
+        // The timer bar shrinks while the countdown runs.
+        var fill = overlay.Locator(".ohrbob-auto-start-bar-fill");
+        await Expect(fill).ToHaveCountAsync(1);
+        var widthBefore = await fill.EvaluateAsync<double>("el => el.getBoundingClientRect().width");
+        await Page.WaitForTimeoutAsync(1200);
+        var widthAfter = await fill.EvaluateAsync<double>("el => el.getBoundingClientRect().width");
+        Assert.That(widthAfter, Is.LessThan(widthBefore), "The countdown bar must shrink");
 
         await Page.WaitForFunctionAsync("() => window.__playCalls > 0", null, new() { Timeout = 12000 });
         await Expect(overlay).ToBeHiddenAsync();
