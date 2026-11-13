@@ -855,6 +855,22 @@ html:has(.radio-landing-container) {
     font-size: .85rem;
     line-height: 1.35;
     white-space: pre-line;
+    /* Thin grey bar, invisible track. */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+}
+.podcast-details-text::-webkit-scrollbar {
+    width: 6px;
+}
+.podcast-details-text::-webkit-scrollbar-track {
+    background: transparent;
+}
+.podcast-details-text::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 3px;
+}
+.podcast-details-text::-webkit-scrollbar-button {
+    display: none;
 }
 .podcast-card.is-open .podcast-details-overlay {
     opacity: 1;
