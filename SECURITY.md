@@ -6,7 +6,7 @@ Ohrbob is in beta. Only the latest tagged release and the current `main` branch 
 
 | Version | Supported |
 | ------- | --------- |
-| 0.2.x (latest) | ✅ |
+| latest | ✅ |
 | older | ❌ |
 
 ## Reporting a vulnerability
