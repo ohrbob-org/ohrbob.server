@@ -178,7 +178,7 @@ public class EndOfEpisodeAdvanceTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
         var card = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = stationName }).First;
         await card.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 20000 });
-        await card.ClickAsync();
+        await card.Locator(".card-station-play").ClickAsync();
 
         var playBtn = Page.Locator("#ohrbob-player .js-play");
         if (await playBtn.Locator("rect").CountAsync() == 0)

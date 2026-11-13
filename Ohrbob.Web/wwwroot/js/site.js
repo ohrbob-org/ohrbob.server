@@ -540,3 +540,21 @@ if (window.htmx && window.htmx.config) {
     document.addEventListener('htmx:historyRestore', function () { path = window.location.pathname; });
     window.addEventListener('popstate', function () { path = window.location.pathname; });
 })();
+
+// Listen station cards: the artwork starts playback, the body opens the editor.
+document.addEventListener('click', function (e) {
+    var play = e.target.closest('.card-station-play');
+    if (play) {
+        var card = play.closest('.card-station');
+        var widget = document.getElementById('ohrbob-player');
+        if (card && widget && typeof widget.playStation === 'function') {
+            widget.playStation(card.getAttribute('data-station-id'));
+        }
+        return;
+    }
+
+    if (e.target.closest('a, button, form, input, select, textarea, label')) return;
+    var body = e.target.closest('.card-station-body');
+    var link = body && body.querySelector('.card-station-title a');
+    if (link) link.click();
+});

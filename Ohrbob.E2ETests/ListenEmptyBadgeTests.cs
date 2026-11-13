@@ -100,6 +100,31 @@ public class ListenEmptyBadgeTests : PageTest
         await Expect(badge).ToHaveTextAsync(new Regex("Empty"));
     }
 
+    [Test]
+    public async Task CardArtPlaysTheStation_AndTheBodyOpensTheEditor()
+    {
+        var slug = $"{Guid.NewGuid():N}";
+        await TestCasts.ConfigureAsync(new TestCastPodcast(slug, "Split Feed", new[]
+        {
+            new TestCastEpisode("Split Episode", $"{slug}-1.mp3"),
+        }));
+
+        var station = await CreateStationAsync("Split Card Station", new[] { TestCasts.FeedUrl(slug) }, minimumEpisodes: 1);
+
+        await Page.GotoAsync(_factory.ServerAddress);
+        var card = StationCard("Split Card Station");
+        await Expect(card).ToBeVisibleAsync(new() { Timeout = 20000 });
+
+        // The artwork starts the station's playback.
+        await card.Locator(".card-station-play").ClickAsync();
+        await Expect(Page.Locator("#ohrbob-player")).ToHaveAttributeAsync(
+            "data-active-station-id", station.Id, new() { Timeout = 20000 });
+
+        // The lower section opens the station editor.
+        await card.Locator(".card-station-body").ClickAsync();
+        await Expect(Page).ToHaveURLAsync(new Regex($"/Stations/Edit/{station.Id}"), new() { Timeout = 20000 });
+    }
+
     private async Task<Station> CreateStationAsync(string name, string[] feedUrls, int minimumEpisodes)
     {
         var stations = _factory.Services.GetRequiredService<StationsApiService>();

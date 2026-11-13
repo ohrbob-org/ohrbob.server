@@ -110,7 +110,7 @@ public class StationSharingTests : PageTest
         await Expect(card.Locator("a[href*='/Stations/Edit/']")).ToHaveCountAsync(0);
         Assert.That(secondProfile.Id, Is.Not.EqualTo(activeProfileId), "A non-active profile should have been chosen");
 
-        await card.ClickAsync();
+        await card.Locator(".card-station-play").ClickAsync();
         await Expect(Page.Locator($"#ohrbob-player[data-active-station-id='{station.Id}']"))
             .ToBeVisibleAsync(new() { Timeout = 15000 });
 
@@ -169,7 +169,7 @@ public class StationSharingTests : PageTest
         await Expect(card).ToBeVisibleAsync(new() { Timeout = 15000 });
         await Expect(card.Locator(".badge:has-text('Host Pace')")).ToBeVisibleAsync();
 
-        await card.ClickAsync();
+        await card.Locator(".card-station-play").ClickAsync();
         await Expect(Page.Locator("#ohrbob-player")).ToHaveAttributeAsync("track", first.Title, new() { Timeout = 15000 });
 
         // Completing the only released episode makes the station empty for the subscriber.
@@ -183,7 +183,7 @@ public class StationSharingTests : PageTest
         await Page.ReloadAsync();
         var releasedCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Host Paced" }).First;
         await Expect(releasedCard.Locator(".badge.bg-danger")).Not.ToBeVisibleAsync(new() { Timeout = 15000 });
-        await releasedCard.ClickAsync();
+        await releasedCard.Locator(".card-station-play").ClickAsync();
         await Expect(Page.Locator("#ohrbob-player")).ToHaveAttributeAsync("track", second.Title, new() { Timeout = 15000 });
     }
 
@@ -247,7 +247,7 @@ public class StationSharingTests : PageTest
         await Expect(card).ToBeVisibleAsync(new() { Timeout = 15000 });
         await Expect(card.Locator("a[href*='/Stations/Edit/']")).ToHaveCountAsync(0);
 
-        await card.ClickAsync();
+        await card.Locator(".card-station-play").ClickAsync();
         await Expect(Page.Locator($"#ohrbob-player[data-active-station-id='{station.Id}']"))
             .ToBeVisibleAsync(new() { Timeout = 15000 });
     }

@@ -26,7 +26,7 @@
                 var isSubscribed = subscribedIds.Contains(dto.Station.Id);
 
                 <div class="col">
-                    <div class="card-station @(feedCount == 0 ? "is-empty" : "") @cardClass active-station-card" data-station-id="@dto.Station.Id" style="cursor: pointer;" onclick="if (!event.target.closest('a, button, form')) document.querySelector('#ohrbob-player').playStation('@dto.Station.Id')">
+                    <div class="card-station @(feedCount == 0 ? "is-empty" : "") @cardClass active-station-card" data-station-id="@dto.Station.Id">
                         <div class="card-station-art">
                             @if (!displayFeeds.Any())
                             {
@@ -49,11 +49,22 @@
                             }
                             <span class="card-station-badge" aria-hidden="true"><i class="bi bi-broadcast"></i></span>
                             <span class="card-station-count">@feedCount @(feedCount == 1 ? "podcast" : "podcasts")</span>
+                            <button type="button" class="card-station-play" aria-label="Play @dto.Station.Name"></button>
                         </div>
                         <div class="card-station-body">
                             <i class="bi bi-soundwave card-station-watermark" aria-hidden="true"></i>
                             <div class="d-flex align-items-start gap-2">
-                                <h3 class="card-station-title flex-grow-1" title="@dto.Station.Name">@dto.Station.Name</h3>
+                                <h3 class="card-station-title flex-grow-1" title="@dto.Station.Name">
+                                    @* Only stations you can manage link to the editor; subscribed ones cannot. *@
+                                    @if (isSubscribed)
+                                    {
+                                        @dto.Station.Name
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="Stations" asp-action="Edit" asp-route-id="@dto.Station.Id">@dto.Station.Name</a>
+                                    }
+                                </h3>
                                 @if (isSubscribed)
                                 {
                                     <form asp-controller="Stations" asp-action="Unsubscribe" asp-route-id="@dto.Station.Id"
