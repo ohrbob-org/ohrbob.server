@@ -635,6 +635,10 @@ html:has(.radio-landing-container) {
 .card-station-cover-empty,
 .card-feed-cover-empty { background-color: #544ff4; }
 
+/* The playlist is a fixed-height flex column and the cards clip their content, so
+   without this they shrink to fit instead of scrolling. */
+#resolvedList > .card-episode { flex-shrink: 0; }
+
 /* Episode cards sit on a fixed paper surface in both themes, so their text and
    actions keep the light-theme ink instead of the dark-theme (light) colours. */
 .card-episode,
