@@ -795,8 +795,8 @@ html:has(.radio-landing-container) {
    without this they shrink to fit instead of scrolling. */
 #resolvedList > .card-episode { flex-shrink: 0; }
 
-/* Episode cards sit on a fixed paper surface in both themes, so their text and
-   actions keep the light-theme ink instead of the dark-theme (light) colours. */
+/* Episode cards keep the light-theme ink on the light paper surface (the theme
+   hard-codes it), so override the dark-theme (light) text colours here. */
 .card-episode,
 .card-episode .card-episode-title { color: #001957; }
 .card-episode .btn-link { color: rgba(0, 25, 87, 0.5); }
@@ -806,6 +806,56 @@ html:has(.radio-landing-container) {
 .card-episode .btn-outline-warning { color: #997404; border-color: #ffc107; }
 .card-episode .btn-outline-danger { color: #b02a37; border-color: #dc3545; }
 .card-episode .btn-outline-secondary { color: #565e64; border-color: #6c757d; }
+
+/* Dark mode: the paper surface would glare, so the episode cards become dark
+   yellow (Bootstrap's dark warning surface) with warm, readable ink. */
+[data-bs-theme=dark] .card-episode {
+    background-color: #332400;
+    border-color: rgba(253, 178, 0, 0.28);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+[data-bs-theme=dark] .card-episode,
+[data-bs-theme=dark] .card-episode .card-episode-title { color: #f3eadb; }
+[data-bs-theme=dark] .card-episode:not(.is-played):hover {
+    box-shadow: 0 9px 24px rgba(0, 0, 0, 0.45);
+}
+[data-bs-theme=dark] .card-episode .card-episode-badge {
+    background-color: rgba(253, 178, 0, 0.16);
+    color: #fed166;
+}
+[data-bs-theme=dark] .card-episode .card-episode-kicker { color: #fed166; }
+[data-bs-theme=dark] .card-episode .card-episode-meta { color: rgba(243, 234, 219, 0.62); }
+[data-bs-theme=dark] .card-episode .btn-link { color: rgba(243, 234, 219, 0.55); }
+[data-bs-theme=dark] .card-episode .btn-link:hover,
+[data-bs-theme=dark] .card-episode .btn-link:focus { color: rgba(243, 234, 219, 0.9); }
+[data-bs-theme=dark] .card-episode .btn-outline-success { color: var(--bs-success-text-emphasis); border-color: var(--bs-success-text-emphasis); }
+[data-bs-theme=dark] .card-episode .btn-outline-warning { color: var(--bs-warning-text-emphasis); border-color: var(--bs-warning-text-emphasis); }
+[data-bs-theme=dark] .card-episode .btn-outline-danger { color: var(--bs-danger-text-emphasis); border-color: var(--bs-danger-text-emphasis); }
+[data-bs-theme=dark] .card-episode .btn-outline-secondary { color: var(--bs-secondary-text-emphasis); border-color: var(--bs-secondary-text-emphasis); }
+
+/* Playing: one step brighter so it still reads as the highlighted row. */
+[data-bs-theme=dark] .card-episode.is-playing {
+    background-color: #403000;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+
+/* Played rows fall back to a neutral dark surface like the rest of the list. */
+[data-bs-theme=dark] .card-episode.is-played {
+    background-color: #26292e;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+[data-bs-theme=dark] .card-episode.is-played,
+[data-bs-theme=dark] .card-episode.is-played .card-episode-title { color: rgba(243, 234, 219, 0.8); }
+[data-bs-theme=dark] .card-episode.is-played .card-episode-meta { color: rgba(243, 234, 219, 0.45); }
+[data-bs-theme=dark] .card-episode.is-played .card-episode-badge {
+    background-color: rgba(255, 255, 255, 0.07);
+    color: rgba(255, 255, 255, 0.45);
+}
+[data-bs-theme=dark] .card-episode.is-played .card-episode-kicker { color: rgba(255, 255, 255, 0.4); }
+[data-bs-theme=dark] .card-episode.is-played .card-episode-play {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.4);
+}
 .card-episode .episode-description {
     display: -webkit-box;
     -webkit-line-clamp: 2;
