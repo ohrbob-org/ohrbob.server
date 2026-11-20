@@ -800,6 +800,35 @@ public class StationsControllerTests
     }
 
     [Test]
+    public async Task GetStationDetails_ExposesFeedIdAndScheduleForTheEditor()
+    {
+        var accountId = Guid.NewGuid().ToString();
+        var feedUrl = "https://test.schedule.feed/url";
+        var stationsService = _app.Services.GetRequiredService<Ohrbob.Api.Services.StationsService>();
+        var feedsService = _app.Services.GetRequiredService<Ohrbob.Api.Services.FeedsService>();
+        var nextUpdateAt = new DateTime(2026, 11, 24, 6, 1, 0, DateTimeKind.Utc);
+
+        var feed = await feedsService.CreateAsync(new Feed
+        {
+            Url = feedUrl, Title = "Scheduled Show", NextUpdateAt = nextUpdateAt
+        });
+        var station = await stationsService.CreateAsync(new Station
+        {
+            Name = "Scheduled Station", AccountId = accountId, Feeds = new[] { feedUrl }
+        });
+
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/stations/{station!.Id}/details");
+        request.Headers.Add("X-API-KEY", _testApiKey);
+
+        var response = await _client.SendAsync(request);
+        var dto = await response.Content.ReadFromJsonAsync<StationWithFeedsDto>();
+
+        var feedStats = dto!.Feeds.Single();
+        Assert.That(feedStats.Id, Is.EqualTo(feed!.Id));
+        Assert.That(feedStats.NextUpdateAt, Is.EqualTo(nextUpdateAt));
+    }
+
+    [Test]
     public async Task GetDetails_HostPacedSubscriber_OnlyCountsHostCompletedEpisodes()
     {
         var ownerAccountId = Guid.NewGuid().ToString();

@@ -77,8 +77,10 @@ public class StationsController : ControllerBase
                     var stats = new FeedStatsDto { Url = url };
                     if (feed != null)
                     {
+                        stats.Id = feed.Id;
                         stats.Title = feed.Title;
                         stats.LastUpdated = feed.LastUpdated;
+                        stats.NextUpdateAt = feed.NextUpdateAt;
                         stats.ImageUrl = feed.ImageUrl;
                     
                         
@@ -157,8 +159,10 @@ public class StationsController : ControllerBase
 
                 if (feed != null)
                 {
+                    stats.Id = feed.Id;
                     stats.Title = feed.Title;
                     stats.LastUpdated = feed.LastUpdated;
+                    stats.NextUpdateAt = feed.NextUpdateAt;
                     stats.ImageUrl = feed.ImageUrl;
                     stats.EpisodeCount = await _episodesService.CountByFeedIdAsync(feed.Id);
                 }

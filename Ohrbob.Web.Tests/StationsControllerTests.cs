@@ -14,6 +14,7 @@ public class StationsControllerTests
 {
     private Mock<StationsApiService> _stationsServiceMock;
     private Mock<ProfilesApiService> _profilesServiceMock;
+    private Mock<FeedsApiService> _feedsServiceMock;
     private StationsController _controller;
     private const string TestAccountId = "test-account-id";
 
@@ -30,8 +31,9 @@ public class StationsControllerTests
         
         _stationsServiceMock = new Mock<StationsApiService>(loggerMock.Object, optionsMock, clientFactoryMock.Object);
         _profilesServiceMock = new Mock<ProfilesApiService>(loggerMock.Object, optionsMock, clientFactoryMock.Object);
+        _feedsServiceMock = new Mock<FeedsApiService>(loggerMock.Object, optionsMock, clientFactoryMock.Object);
         
-        _controller = new StationsController(_stationsServiceMock.Object, _profilesServiceMock.Object);
+        _controller = new StationsController(_stationsServiceMock.Object, _profilesServiceMock.Object, _feedsServiceMock.Object);
 
         // Setup mock user context with the Consts.OhrbobAccountIdClaim
         var claims = new List<Claim>
@@ -532,6 +534,78 @@ public class StationsControllerTests
         Assert.That(((StatusCodeResult)result).StatusCode, Is.EqualTo(204));
         _stationsServiceMock.Verify(s => s.UpdateStationAsync(It.Is<Station>(st =>
             st.Id == "tgt" && st.Schedule.Feeds.Any(f => f.Url == url))), Times.Once);
+    }
+
+    [Test]
+    public async Task RefreshFeed_RefreshesTheFeedAndShowsASuccessToast()
+    {
+        _stationsServiceMock.Setup(s => s.GetStationDetailsByIdAsync("st-1"))
+            .ReturnsAsync(new StationWithFeedsDto
+            {
+                Station = new Station { Id = "st-1", AccountId = TestAccountId },
+                Feeds = new List<FeedStatsDto> { new FeedStatsDto { Id = "feed-1", Url = "https://example.com/feed.xml" } }
+            });
+        _feedsServiceMock.Setup(s => s.RefreshFeedAsync("feed-1"))
+            .ReturnsAsync(new FeedRefreshApiResult(
+                new FeedRefreshResultDto { Id = "feed-1", Title = "My Show", EpisodeCount = 12 }, null));
+
+        var result = await _controller.RefreshFeed("st-1", "feed-1");
+
+        Assert.That(((StatusCodeResult)result).StatusCode, Is.EqualTo(204));
+        var trigger = _controller.Response.Headers["HX-Trigger"].ToString();
+        Assert.That(trigger, Does.Contain("showToast"));
+        Assert.That(trigger, Does.Contain("My Show"));
+        Assert.That(trigger, Does.Contain("12"));
+    }
+
+    [Test]
+    public async Task RefreshFeed_WhenTheFeedCannotBeRead_ShowsAnErrorToast()
+    {
+        _stationsServiceMock.Setup(s => s.GetStationDetailsByIdAsync("st-1"))
+            .ReturnsAsync(new StationWithFeedsDto
+            {
+                Station = new Station { Id = "st-1", AccountId = TestAccountId },
+                Feeds = new List<FeedStatsDto> { new FeedStatsDto { Id = "feed-1", Url = "https://example.com/feed.xml" } }
+            });
+        _feedsServiceMock.Setup(s => s.RefreshFeedAsync("feed-1"))
+            .ReturnsAsync(new FeedRefreshApiResult(null, "The feed is unreachable."));
+
+        var result = await _controller.RefreshFeed("st-1", "feed-1");
+
+        Assert.That(((ObjectResult)result).StatusCode, Is.EqualTo(502));
+        var trigger = _controller.Response.Headers["HX-Trigger"].ToString();
+        Assert.That(trigger, Does.Contain("showToast"));
+        Assert.That(trigger, Does.Contain("unreachable"));
+    }
+
+    [Test]
+    public async Task RefreshFeed_RejectsAFeedThatIsNotPartOfTheStation()
+    {
+        _stationsServiceMock.Setup(s => s.GetStationDetailsByIdAsync("st-1"))
+            .ReturnsAsync(new StationWithFeedsDto
+            {
+                Station = new Station { Id = "st-1", AccountId = TestAccountId },
+                Feeds = new List<FeedStatsDto> { new FeedStatsDto { Id = "feed-1" } }
+            });
+
+        var result = await _controller.RefreshFeed("st-1", "someone-elses-feed");
+
+        Assert.That(((ObjectResult)result).StatusCode, Is.EqualTo(422));
+        _feedsServiceMock.Verify(s => s.RefreshFeedAsync(It.IsAny<string>()), Times.Never);
+    }
+
+    [Test]
+    public async Task RefreshFeed_AnotherAccountsStation_ReturnsNotFound()
+    {
+        _stationsServiceMock.Setup(s => s.GetStationDetailsByIdAsync("st-1"))
+            .ReturnsAsync(new StationWithFeedsDto
+            {
+                Station = new Station { Id = "st-1", AccountId = "someone-else" }
+            });
+
+        var result = await _controller.RefreshFeed("st-1", "feed-1");
+
+        Assert.That(result, Is.TypeOf<NotFoundResult>());
     }
 
     [TearDown]
