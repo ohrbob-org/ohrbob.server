@@ -245,6 +245,68 @@ public class ThemeTests : PageTest
             .ToHaveCountAsync(1, new() { Timeout = 15000 });
     }
 
+    /// <summary>The station editor's episode cards carry the light theme's paper surface in
+    /// theme.css. In dark mode they must not glare, so they get a dark yellow surface.</summary>
+    [Test]
+    public async Task Theme_Dark_EpisodeCardsUseDarkYellowSurface()
+    {
+        if (!await TestCasts.IsAvailableAsync())
+        {
+            Assert.Ignore($"podcast-testcasts is not reachable at {TestCasts.ConfigureBaseUrl}.");
+        }
+
+        var slug = $"{Guid.NewGuid():N}";
+        await TestCasts.ConfigureAsync(new TestCastPodcast(slug, "Dark Card Feed", new[]
+        {
+            new TestCastEpisode("Dark Card Episode", $"{slug}-1.mp3"),
+        }));
+
+        var stations = _factory.Services.GetRequiredService<StationsApiService>();
+        var station = await stations.CreateStationAsync(_accountId, new Station
+        {
+            AccountId = _accountId,
+            Name = "Dark Card Station",
+            Feeds = new[] { TestCasts.FeedUrl(slug) }
+        });
+        var profiles = _factory.Services.GetRequiredService<ProfilesApiService>();
+        await profiles.AddStationToProfileAsync(_profileId, station!.Id);
+        await WaitForEpisodesAsync(station.Id, 1);
+
+        await Context.AddCookiesAsync(new[]
+        {
+            new Cookie { Name = "ohrbob_theme", Value = "dark", Url = _factory.ServerAddress }
+        });
+        await Page.SetViewportSizeAsync(1280, 900);
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{station.Id}");
+
+        var card = Page.Locator("#resolvedList .card-episode.resolved-item").First;
+        await Expect(card).ToBeVisibleAsync(new() { Timeout = 15000 });
+
+        // The editor re-renders the playlist in place (feed refresh), which detaches the
+        // card for a moment; a detached element has an empty computed style, so retry.
+        var computed = string.Empty;
+        var deadline = DateTime.UtcNow.AddSeconds(10);
+        while (DateTime.UtcNow < deadline)
+        {
+            computed = await Page.EvaluateAsync<string>(
+                "() => { const el = document.querySelector('#resolvedList .card-episode.resolved-item'); " +
+                "return el ? getComputedStyle(el).backgroundColor : ''; }");
+            if (computed.StartsWith("rgb", StringComparison.Ordinal)) break;
+            await Page.WaitForTimeoutAsync(200);
+        }
+        var rgb = System.Text.RegularExpressions.Regex.Matches(computed, @"[\d.]+")
+            .Select(m => (int)double.Parse(m.Value, System.Globalization.CultureInfo.InvariantCulture))
+            .Take(3)
+            .ToArray();
+        Assert.That(rgb, Has.Length.EqualTo(3), $"Unexpected computed background-color '{computed}'");
+
+        var luma = (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255;
+        Assert.That(luma, Is.LessThan(0.25),
+            $"The dark-theme episode card surface must not be light (was '{computed}')");
+        Assert.That(rgb[0], Is.GreaterThan(rgb[1]), "The dark surface must be yellow (red above green)");
+        Assert.That(rgb[1], Is.GreaterThan(rgb[2]), "The dark surface must be yellow (green above blue)");
+    }
+
     private async Task AssertNoContrastIssuesAsync(string path)
     {
         await Page.GotoAsync(_factory.ServerAddress + path);
