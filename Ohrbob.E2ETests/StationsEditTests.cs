@@ -186,7 +186,7 @@ public class StationsEditTests : PageTest
         // Wait for Edit Station page
         await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 10000 });
         
-        // Click Feeds tab
+        // Click Podcasts tab
         await Page.ClickAsync("#rotation-tab");
         
         // Ensure there is 1 feed card initially
@@ -211,6 +211,58 @@ public class StationsEditTests : PageTest
         
         // Check if there is 1 feed card
         await Expect(feedCards).ToHaveCountAsync(1, new() { Timeout = 10000 });
+    }
+
+    [Test]
+    public async Task Podcasts_Tab_Is_Renamed_And_Each_Feed_Can_Be_Refreshed()
+    {
+        // Ensure a profile exists and is the active one.
+        var profileService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.ProfilesApiService>();
+        var profiles = await profileService.GetProfilesByAccountIdAsync(_testAccountId);
+        var profile = profiles?.FirstOrDefault()
+            ?? await profileService.CreateProfileAsync(_testAccountId, new Profile { Name = "Main Profile" });
+
+        var feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../example_feeds.txt");
+        if (!File.Exists(feedPath))
+            feedPath = Path.Combine(Directory.GetCurrentDirectory(), "../../../../../example_feeds.txt");
+        var feeds = await File.ReadAllLinesAsync(feedPath);
+        var firstFeed = feeds.First(l => !string.IsNullOrWhiteSpace(l));
+
+        // Create the station through the same API the UI uses, so this test focuses on
+        // the editor (the current dashboard has no "Stations" menu entry to click through).
+        var stationsService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.StationsApiService>();
+        var station = await stationsService.CreateStationAsync(_testAccountId, new Station
+        {
+            AccountId = _testAccountId,
+            Name = "Test Refresh Station",
+            Feeds = new[] { firstFeed }
+        });
+        Assert.That(station, Is.Not.Null);
+        await profileService.AddStationToProfileAsync(profile!.Id, station!.Id);
+
+        Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
+        Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
+
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{station.Id}");
+        await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 15000 });
+
+        // The section is called "Podcasts" now (mobile tab label).
+        await Expect(Page.Locator("#rotation-tab")).ToHaveTextAsync("Podcasts");
+        await Page.ClickAsync("#rotation-tab");
+
+        var feedCard = Page.Locator(".rotation-item").First;
+        await Expect(feedCard).ToBeVisibleAsync(new() { Timeout = 30000 });
+
+        // Refresh lives in the feed's three-dot menu.
+        await feedCard.Locator(".feed-actions-menu").ClickAsync();
+        var refreshItem = Page.Locator(".refresh-feed").First;
+        await Expect(refreshItem).ToBeVisibleAsync();
+        await refreshItem.ClickAsync();
+
+        // A success toast confirms the refresh, and the card survives the re-render.
+        await Expect(Page.Locator("#toast-body-text")).ToContainTextAsync("Refreshed", new() { Timeout = 90000 });
+        await Expect(Page.Locator(".rotation-item")).ToHaveCountAsync(1);
+        await Expect(Page.Locator(".rotation-item .card-station-feed-title")).ToBeVisibleAsync();
     }
 
     [Test]

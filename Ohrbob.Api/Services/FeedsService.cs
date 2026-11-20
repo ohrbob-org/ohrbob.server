@@ -2,55 +2,64 @@ using MongoDB.Driver;
 using Ohrbob.Api.Configuration;
 using Ohrbob.Server.Shared.Data;
 using Ohrbob.Server.Shared.Text;
-using CodeHollow.FeedReader;
-using Feed = Ohrbob.Server.Shared.Data.Feed;
+using OhrbobFeed = Ohrbob.Server.Shared.Data.Feed;
 
 namespace Ohrbob.Api.Services;
 
-public class FeedsService : MongoDbService<Feed>
+public class FeedsService : MongoDbService<OhrbobFeed>
 {
-    public FeedsService(MongoDbContext dbContext, ILogger<MongoDbService<Feed>> logger) : base(dbContext, logger)
+    private readonly IFeedReader _feedReader;
+
+    public FeedsService(
+        MongoDbContext dbContext,
+        ILogger<MongoDbService<OhrbobFeed>> logger,
+        IFeedReader feedReader) : base(dbContext, logger)
     {
+        _feedReader = feedReader;
     }
 
-    public override UpdateDefinition<Feed> GetUpdateDefinition(Feed entryIn)
+    public override UpdateDefinition<OhrbobFeed> GetUpdateDefinition(OhrbobFeed entryIn)
     {
-        return Builders<Feed>.Update
+        return Builders<OhrbobFeed>.Update
             .Set(f => f.Url, entryIn.Url)
             .Set(f => f.Title, entryIn.Title)
             .Set(f => f.Description, entryIn.Description)
             .Set(f => f.ImageUrl, entryIn.ImageUrl)
             .Set(f => f.Category, entryIn.Category)
             .Set(f => f.Keywords, entryIn.Keywords)
-            .Set(f => f.LastUpdated, entryIn.LastUpdated);
+            .Set(f => f.LastUpdated, entryIn.LastUpdated)
+            .Set(f => f.UpdateFrequencyRrule, entryIn.UpdateFrequencyRrule)
+            .Set(f => f.NextUpdateAt, entryIn.NextUpdateAt);
     }
 
-    public async Task<List<Feed>> GetAllAsync()
+    public async Task<List<OhrbobFeed>> GetAllAsync()
     {
-        var filter = Builders<Feed>.Filter.Empty;
+        var filter = Builders<OhrbobFeed>.Filter.Empty;
         return await Collection.Find(filter).ToListAsync();
     }
 
-    public async Task<Feed?> FindByUrlAsync(string url)
+    public async Task<OhrbobFeed?> FindByUrlAsync(string url)
     {
-        var filter = Builders<Feed>.Filter.Eq(f => f.Url, url);
+        var filter = Builders<OhrbobFeed>.Filter.Eq(f => f.Url, url);
         return await Collection.Find(filter).FirstOrDefaultAsync();
     }
 
-    public async Task<Feed?> ValidateAndParseFeedAsync(string url)
+    public async Task<OhrbobFeed?> ValidateAndParseFeedAsync(string url)
     {
         try
         {
-            var parsedFeed = await FeedReader.ReadAsync(url);
-            if (parsedFeed == null) return null;
+            var parsed = await _feedReader.ReadAsync(url);
+            if (parsed == null) return null;
 
-            return new Feed
+            return new OhrbobFeed
             {
                 Url = url,
-                Title = HtmlText.ToPlainText(parsedFeed.Title ?? string.Empty),
-                Description = parsedFeed.Description ?? string.Empty,
-                ImageUrl = parsedFeed.ImageUrl ?? string.Empty,
-                Category = FeedMetadataParser.ParseCategory(parsedFeed.OriginalDocument as string)
+                Title = HtmlText.ToPlainText(parsed.Title ?? string.Empty),
+                Description = parsed.Description ?? string.Empty,
+                ImageUrl = parsed.ImageUrl ?? string.Empty,
+                Category = FeedMetadataParser.ParseCategory(parsed.Xml),
+                Keywords = FeedMetadataParser.ParseKeywords(parsed.Xml) ?? Array.Empty<string>(),
+                UpdateFrequencyRrule = FeedMetadataParser.ParseUpdateFrequencyRrule(parsed.Xml)
             };
         }
         catch

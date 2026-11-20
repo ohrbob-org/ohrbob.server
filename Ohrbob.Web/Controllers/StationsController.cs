@@ -20,11 +20,13 @@ public class StationsController : Controller
 {
     private readonly StationsApiService _stationsService;
     private readonly ProfilesApiService _profilesService;
+    private readonly FeedsApiService _feedsService;
 
-    public StationsController(StationsApiService stationsService, ProfilesApiService profilesService)
+    public StationsController(StationsApiService stationsService, ProfilesApiService profilesService, FeedsApiService feedsService)
     {
         _stationsService = stationsService;
         _profilesService = profilesService;
+        _feedsService = feedsService;
     }
 
     private string? GetAccountId() => User.FindFirst(Consts.OhrbobAccountIdClaim)?.Value;
@@ -523,6 +525,30 @@ public class StationsController : Controller
 
         if (parts.Count == 0) return "No feeds were imported.";
         return string.Join(", ", parts) + ".";
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RefreshFeed(string id, string feedId)
+    {
+        var accountId = GetAccountId();
+        if (string.IsNullOrEmpty(accountId)) return Forbid();
+
+        var station = await _stationsService.GetStationDetailsByIdAsync(id);
+        if (station == null || station.Station.AccountId != accountId)
+            return NotFound();
+
+        // Only feeds that actually belong to this station may be refreshed through it.
+        var feed = station.Feeds.FirstOrDefault(f => f.Id == feedId);
+        if (feed == null)
+            return ToastError("That podcast is not part of this station.", 422);
+
+        var result = await _feedsService.RefreshFeedAsync(feedId);
+        if (result.Feed == null)
+            // A failed refresh still updates the schedule server-side, so pull the card again.
+            return ToastError(result.Error ?? "The podcast could not be refreshed.", 502);
+
+        return ToastSuccess($"Refreshed '{result.Feed.Title}' — {result.Feed.EpisodeCount} episodes.");
     }
 
     private IActionResult ToastSuccess(string message)

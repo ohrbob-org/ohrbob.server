@@ -95,6 +95,9 @@ builder.Services.AddSingleton<ApiKeysService>();
 builder.Services.AddSingleton<EpisodesService>();
 builder.Services.AddSingleton<ListenStateService>();
 builder.Services.AddSingleton<FeedsService>();
+builder.Services.AddSingleton<IFeedReader, CodeHollowFeedReader>();
+builder.Services.AddSingleton<FeedUpdateService>();
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<SubscriptionPolicy>();
 builder.Services.AddSingleton(StripeOptions.FromConfiguration(configuration));
 builder.Services.AddSingleton<IStripeService, StripeService>();
@@ -106,6 +109,7 @@ builder.Services.AddSingleton<IMigration, Migration_0_0_12_HostPaceDefaults>();
 builder.Services.AddSingleton<IMigration, Migration_0_0_13_NormalizeAccountEmails>();
 builder.Services.AddSingleton<IMigration, Migration_0_0_14_StripeCustomerIndex>();
 builder.Services.AddSingleton<IMigration, Migration_0_0_15_PlainFeedTitles>();
+builder.Services.AddSingleton<IMigration, Migration_0_0_16_FeedRefreshSchedules>();
 builder.Services.AddSingleton<DatabaseMigrator>();
 builder.Services.AddHostedService<FeedUpdateWorker>();
 

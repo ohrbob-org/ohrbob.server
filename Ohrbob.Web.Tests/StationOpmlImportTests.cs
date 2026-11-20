@@ -52,8 +52,9 @@ public class StationOpmlImportTests
 
         _stationsServiceMock = new Mock<StationsApiService>(loggerMock.Object, optionsMock, clientFactoryMock.Object);
         _profilesServiceMock = new Mock<ProfilesApiService>(loggerMock.Object, optionsMock, clientFactoryMock.Object);
+        var feedsServiceMock = new Mock<FeedsApiService>(loggerMock.Object, optionsMock, clientFactoryMock.Object);
 
-        var controller = new StationsController(_stationsServiceMock.Object, _profilesServiceMock.Object);
+        var controller = new StationsController(_stationsServiceMock.Object, _profilesServiceMock.Object, feedsServiceMock.Object);
 
         var claims = new List<Claim>();
         if (accountId != null)

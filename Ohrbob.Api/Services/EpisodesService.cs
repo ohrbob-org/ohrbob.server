@@ -45,4 +45,10 @@ public class EpisodesService : MongoDbService<Episode>
         var filter = Builders<Episode>.Filter.In(e => e.FeedUrl, feedUrls);
         return await Collection.Find(filter).ToListAsync();
     }
+
+    public async Task<List<Episode>> FindByFeedIdAsync(string feedId)
+    {
+        var filter = Builders<Episode>.Filter.Eq(e => e.FeedId, feedId);
+        return await Collection.Find(filter).ToListAsync();
+    }
 }
