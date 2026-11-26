@@ -344,4 +344,51 @@ public class MetroDiscoverTests : PageTest
             "the page itself never scrolls sideways");
         Assert.That(m[2], Is.EqualTo("auto"), "lanes scroll inside their shelf");
     }
+
+    [Test]
+    public async Task Discover_FocusRingStaysInsideTheLaneShelf()
+    {
+        await Page.GotoAsync($"{_factory.ServerAddress}/Discover");
+        await Expect(SeededCard).ToBeVisibleAsync(new() { Timeout = 15000 });
+
+        var m = await Page.EvaluateAsync<string[]>(@"(title) => {
+            const card = Array.from(document.querySelectorAll('.discover-lane .card-feed'))
+                .find(c => c.textContent.includes(title));
+            const track = card.closest('.discover-lane-track');
+
+            const ring = (el) => {
+                const s = getComputedStyle(el);
+                const width = parseFloat(s.outlineWidth);
+                const offset = parseFloat(s.outlineOffset);
+                const r = el.getBoundingClientRect();
+                const t = track.getBoundingClientRect();
+                return {
+                    width: s.outlineWidth,
+                    style: s.outlineStyle,
+                    color: s.outlineColor,
+                    inside: r.left - offset - width >= t.left - 1 &&
+                            r.top - offset - width >= t.top - 1 &&
+                            r.right + offset + width <= t.right + 1 &&
+                            r.bottom + offset + width <= t.bottom + 1
+                };
+            };
+
+            card.querySelector('.podcast-details-toggle').focus();
+            const first = ring(card);
+
+            track.scrollLeft = track.scrollWidth;
+            const lastCard = track.lastElementChild.querySelector('.card-feed');
+            lastCard.querySelector('.podcast-details-toggle').focus();
+            const last = ring(lastCard);
+
+            return [first.width, first.style, first.color,
+                    String(first.inside), String(last.inside)];
+        }", _seededFeed.Title);
+
+        Assert.That(m[0], Is.EqualTo("2px"), "the focused card draws a 2 px ring");
+        Assert.That(m[1], Is.EqualTo("solid"));
+        Assert.That(m[2], Does.Match("rgb\\(252, 93, 0\\)"), "the focus ring is Metro orange");
+        Assert.That(m[3], Is.EqualTo("true"), "the first card's ring is not clipped by the shelf");
+        Assert.That(m[4], Is.EqualTo("true"), "the last card's ring is not clipped by the shelf");
+    }
 }
