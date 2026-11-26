@@ -49,6 +49,8 @@ public class StreamControllerTests
     {
         public string? stationId { get; set; }
         public string? stationName { get; set; }
+        public string? profileName { get; set; }
+        public string? profileColor { get; set; }
         public bool? isCompiling { get; set; }
         public bool? isEmpty { get; set; }
         public bool? streamEnabled { get; set; }
@@ -148,6 +150,41 @@ public class StreamControllerTests
         Assert.That(status.current.link, Is.EqualTo("https://audio/1"));
         Assert.That(status.next.artist, Is.EqualTo("Feed Title"));
         Assert.That(status.next.link, Is.EqualTo("https://audio/2"));
+    }
+
+    [Test]
+    public async Task GetStatus_ExposesProfileNameAndColour()
+    {
+        var stationId = ObjectId.GenerateNewId().ToString();
+        var episodeId = ObjectId.GenerateNewId().ToString();
+        var profile = new Profile
+        {
+            AccountId = "test-account",
+            StreamToken = "token-123",
+            Name = "Kai",
+            Color = "#3b82f6",
+            LastActiveStationId = stationId,
+            LastActiveEpisodeId = episodeId,
+        };
+
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(CreateOldestFirstStation(stationId));
+        await SeedEpisodesAsync(new Episode
+        {
+            Id = episodeId,
+            Title = "Ep 1",
+            FeedUrl = "https://feed.url",
+            PublishedAt = DateTime.UtcNow.AddDays(-1),
+            AudioUrl = "https://audio/1",
+        });
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+        var response = await _client.GetAsync("/stream/status");
+        response.EnsureSuccessStatusCode();
+
+        var status = await response.Content.ReadFromJsonAsync<StatusResponse>();
+        Assert.That(status!.profileName, Is.EqualTo("Kai"));
+        Assert.That(status.profileColor, Is.EqualTo("#3b82f6"));
     }
 
     [Test]

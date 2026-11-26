@@ -105,6 +105,7 @@ public class StreamController : ControllerBase
             {
                 stationId = station.Id,
                 profileName = profile.Name,
+                profileColor = ProfileColors.Resolve(profile),
                 stationName = station.Name,
                 isCompiling = isCompiling,
                 isEmpty = !isCompiling,
@@ -128,6 +129,7 @@ public class StreamController : ControllerBase
         { 
             stationId = station.Id,
             profileName = profile.Name,
+            profileColor = ProfileColors.Resolve(profile),
             stationName = station.Name, 
             streamEnabled,
             current = new {
