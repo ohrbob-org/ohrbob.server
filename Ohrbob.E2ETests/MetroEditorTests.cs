@@ -248,6 +248,34 @@ public class MetroEditorTests : PageTest
     }
 
     [Test]
+    public async Task EditorModalChromeIsScopedAndFocusIsVisible()
+    {
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{_stationId}");
+        await Expect(Page.Locator("#renameStationModal")).ToHaveCountAsync(1, new() { Timeout = 15000 });
+
+        var styles = await Page.EvaluateAsync<string[]>(@"() => {
+            const editorTitle = getComputedStyle(document.querySelector('#renameStationModal .modal-title'));
+            const globalTitle = getComputedStyle(document.querySelector('#confirmationModal .modal-title'));
+            const editorBody = getComputedStyle(document.querySelector('#renameStationModal .modal-body'));
+            const globalBody = getComputedStyle(document.querySelector('#confirmationModalBody'));
+            const field = document.getElementById('shareStationUrl');
+            field.focus();
+            const focused = getComputedStyle(field);
+            return [editorTitle.fontFamily, editorTitle.fontSize, globalTitle.fontSize,
+                    editorBody.fontSize, globalBody.fontSize,
+                    focused.outlineWidth, focused.outlineStyle, focused.outlineColor];
+        }");
+        Assert.That(styles[0], Does.Contain("Sulphur"), "editor modal titles use the display face");
+        Assert.That(styles[1], Is.EqualTo("24px"), "editor modal title size");
+        Assert.That(styles[2], Is.EqualTo("17.5px"), "global modal title keeps its size");
+        Assert.That(styles[3], Is.EqualTo("13px"), "editor modal body size");
+        Assert.That(styles[4], Is.EqualTo("14px"), "global modal body keeps its size");
+        Assert.That(styles[5], Is.EqualTo("2px"), "share field focus ring width");
+        Assert.That(styles[6], Is.EqualTo("solid"), "share field focus ring is drawn");
+        Assert.That(styles[7], Does.Match("rgb\\(252, 93, 0\\)"), "share field focus ring is orange");
+    }
+
+    [Test]
     public async Task EditorFitsANarrowViewport()
     {
         await Page.SetViewportSizeAsync(375, 812);

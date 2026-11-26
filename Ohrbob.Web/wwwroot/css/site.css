@@ -1685,7 +1685,11 @@ body.metro-night .app-footer {
 
 .editor-sharebar__field:focus {
     border-bottom-color: var(--metro-orange);
-    outline: none;
+}
+
+.editor-sharebar__field:focus-visible {
+    outline: 2px solid var(--metro-orange);
+    outline-offset: 2px;
 }
 
 .editor-sharebar__select {
@@ -1708,7 +1712,7 @@ body.metro-night .app-footer {
 }
 
 /* Editor modals: square canvas shell with the orange accent bar. */
-.modal-title {
+.editor-modal .modal-title {
     font-family: var(--metro-display);
     font-size: 1.5rem;
     font-weight: 700;
@@ -1716,7 +1720,7 @@ body.metro-night .app-footer {
     line-height: 1.1;
 }
 
-.modal-body {
+.editor-modal .modal-body {
     font-size: 0.8125rem;
 }
 
