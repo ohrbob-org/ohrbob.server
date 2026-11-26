@@ -62,6 +62,40 @@ public class LandingPageTests : PageTest
     }
 
     [Test]
+    public async Task LandingPage_UsesDarkMetroPoster()
+    {
+        _factory.CreateClient();
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        await Expect(Page.Locator("body.metro-night")).ToHaveCountAsync(1);
+        await Expect(Page.Locator(".landing-hero .landing-title#landing-title")).ToBeVisibleAsync();
+
+        var m = await Page.EvaluateAsync<double[]>(@"() => {
+            const body = getComputedStyle(document.body);
+            const shot = document.querySelector('.screenshot-card');
+            const title = getComputedStyle(document.querySelector('.landing-title'));
+            const m = body.backgroundColor.match(/[\d.]+/g).slice(0, 3).map(Number);
+            return [ (0.2126*m[0] + 0.7152*m[1] + 0.0722*m[2]) / 255,
+                     parseFloat(shot ? getComputedStyle(shot).borderRadius : '0'),
+                     parseFloat(title.fontSize) ];
+        }");
+        Assert.That(m[0], Is.LessThan(0.25), "landing background must be dark");
+        Assert.That(m[1], Is.EqualTo(0), "screenshots must be square");
+        Assert.That(m[2], Is.GreaterThan(56), "hero title must be display-sized");
+    }
+
+    [Test]
+    public async Task LandingPage_LongHeroFitsNarrowPhones()
+    {
+        _factory.CreateClient();
+        await Page.SetViewportSizeAsync(320, 800);
+        await Page.GotoAsync(_factory.ServerAddress);
+        var overflow = await Page.EvaluateAsync<bool>(
+            @"() => { const el = document.querySelector('.landing-title'); return el.scrollWidth > el.clientWidth + 1; }");
+        Assert.That(overflow, Is.False, "the hero headline must wrap, not scroll sideways");
+    }
+
+    [Test]
     public async Task LandingPage_ComparesFreeAndMorebobTiers()
     {
         _factory.CreateClient(); // Start the server

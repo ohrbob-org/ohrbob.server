@@ -507,3 +507,397 @@ body.metro-night .app-footer {
         display: none;
     }
 }
+
+/* --------------------------------------------------------------------------
+   Landing — the anonymous poster (always dark, full-bleed)
+   -------------------------------------------------------------------------- */
+
+/* Escape the .metro-page gutters so the poster can run edge to edge. */
+.full-width-escape.landing-page {
+    position: relative;
+    margin: -26px -44px -32px;
+    overflow: hidden;
+    background-color: var(--metro-canvas);
+    background-image: linear-gradient(165deg, var(--metro-navy) 0%, var(--metro-canvas) 70%);
+    color: var(--metro-night-text);
+}
+
+.landing-hero {
+    position: relative;
+    padding: clamp(56px, 10vw, 128px) clamp(20px, 6vw, 72px) clamp(48px, 8vw, 96px);
+}
+
+.landing-decor {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.landing-hero > :not(.landing-decor) {
+    position: relative;
+    z-index: 1;
+}
+
+.landing-square {
+    position: absolute;
+    display: block;
+}
+
+.landing-square--violet {
+    top: 10%;
+    right: 6%;
+    width: clamp(120px, 22vw, 260px);
+    aspect-ratio: 1;
+    background: var(--metro-violet);
+    opacity: 0.18;
+}
+
+.landing-square--yellow {
+    top: 54%;
+    right: 24%;
+    width: clamp(64px, 10vw, 132px);
+    aspect-ratio: 1;
+    background: var(--metro-yellow);
+    opacity: 0.14;
+}
+
+.landing-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    margin-bottom: 18px;
+}
+
+.landing-bar {
+    display: block;
+    height: 8px;
+}
+
+.landing-bar--orange {
+    width: 42px;
+    background: var(--metro-orange);
+}
+
+.landing-bar--violet {
+    width: 18px;
+    background: var(--metro-violet);
+}
+
+.landing-bar--yellow {
+    width: 10px;
+    background: var(--metro-yellow);
+}
+
+.landing-kicker {
+    margin: 0;
+    color: var(--metro-night-accent);
+}
+
+.landing-title {
+    max-width: 15ch;
+    margin: 18px 0 0;
+    color: var(--metro-night-text);
+    font-family: var(--metro-display);
+    font-size: clamp(3.5rem, 9vw, 7.5rem);
+    font-weight: 700;
+    line-height: 0.86;
+    letter-spacing: -0.03em;
+    overflow-wrap: break-word;
+}
+
+.landing-lead {
+    max-width: 56ch;
+    margin: 22px 0 0;
+    color: var(--metro-night-text);
+    font-size: clamp(0.875rem, 1.1vw, 1rem);
+    line-height: 1.6;
+    opacity: 0.72;
+}
+
+.landing-cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px 28px;
+    margin-top: 32px;
+}
+
+.landing-cta-primary {
+    padding: 14px 22px;
+    font-size: 0.8125rem;
+}
+
+.landing-ghost-link {
+    color: var(--metro-night-text);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 6px;
+}
+
+.landing-ghost-link:hover,
+.landing-ghost-link:focus {
+    color: var(--metro-orange-soft);
+}
+
+/* Feature rows: hairline rules, alternating text and screenshots. */
+.radio-landing-container {
+    padding: 0 clamp(20px, 6vw, 72px);
+}
+
+.radio-step {
+    padding: clamp(40px, 6vw, 72px) 0;
+    border-top: 1px solid var(--metro-night-border);
+}
+
+.step-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: clamp(28px, 5vw, 72px);
+    align-items: center;
+}
+
+.radio-step.step-left .step-text-box {
+    order: 1;
+}
+
+.radio-step.step-left .step-card-box {
+    order: 2;
+}
+
+.radio-step.step-right .step-text-box {
+    order: 2;
+}
+
+.radio-step.step-right .step-card-box {
+    order: 1;
+}
+
+.step-text-box {
+    min-width: 0;
+}
+
+.step-index {
+    display: block;
+    color: var(--metro-muted);
+    font-family: var(--metro-display);
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.step-title {
+    margin: 8px 0 14px;
+    color: var(--metro-night-text);
+    font-family: var(--metro-display);
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+}
+
+.step-body {
+    max-width: 54ch;
+    color: var(--metro-night-muted);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.step-body p {
+    margin: 0 0 12px;
+}
+
+.step-body p:last-child {
+    margin-bottom: 0;
+}
+
+.step-body a {
+    color: var(--metro-orange-soft);
+}
+
+.step-badge {
+    margin: 18px 0 0;
+}
+
+.landing-tier-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    background: var(--metro-yellow);
+    color: var(--metro-navy);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.step-card-box {
+    min-width: 0;
+}
+
+.screenshot-card {
+    overflow: hidden;
+    border: 1px solid var(--metro-night-border);
+    border-radius: 0;
+    background: var(--metro-canvas);
+    box-shadow: none;
+}
+
+.screenshot-card::before {
+    content: "";
+    display: block;
+    width: 46px;
+    height: 5px;
+    margin: 14px 14px 12px;
+    background: var(--metro-orange);
+}
+
+.screenshot-card img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-top: 1px solid var(--metro-night-border);
+}
+
+/* Tiers: one flat hairline table, morebob marked by an orange rule. */
+.landing-tiers,
+.landing-closing {
+    padding: clamp(48px, 7vw, 88px) clamp(20px, 6vw, 72px);
+    border-top: 1px solid var(--metro-night-border);
+}
+
+.landing-section-title {
+    margin: 8px 0 12px;
+    color: var(--metro-night-text);
+    font-family: var(--metro-display);
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+}
+
+.landing-section-lead {
+    max-width: 60ch;
+    margin: 0 0 28px;
+    color: var(--metro-night-muted);
+    font-size: 0.9375rem;
+    line-height: 1.55;
+}
+
+.landing-tier-card {
+    overflow-x: auto;
+    border: 1px solid var(--metro-night-border);
+    background: color-mix(in srgb, var(--metro-night-text) 4%, transparent);
+}
+
+.landing-tier-table caption {
+    color: var(--metro-night-muted);
+}
+
+.landing-tier-table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--metro-night-muted);
+    --bs-table-border-color: var(--metro-night-border);
+    --bs-table-hover-bg: transparent;
+    width: 100%;
+    min-width: 520px;
+    margin: 0;
+    border-collapse: collapse;
+    color: var(--metro-night-muted);
+}
+
+.landing-tier-table > :not(caption) > * > * {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--metro-night-border);
+    background-color: transparent;
+}
+
+.landing-tier-table > thead > tr > th {
+    color: var(--metro-night-muted);
+    font-family: var(--metro-body);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.landing-tier-table > tbody > tr > th {
+    color: var(--metro-night-text);
+    font-weight: 600;
+}
+
+.landing-tier-table > tbody > tr:last-child > * {
+    border-bottom: 0;
+}
+
+.landing-tier-table > thead > tr > th:nth-child(3),
+.landing-tier-table > tbody > tr > td:nth-child(3) {
+    border-left: 4px solid var(--metro-orange);
+}
+
+.landing-tier-table strong {
+    color: var(--metro-night-text);
+}
+
+.landing-tier-table .landing-check {
+    color: var(--metro-orange);
+    font-size: 1rem;
+}
+
+.landing-tier-table .landing-check--both {
+    color: color-mix(in srgb, var(--metro-violet) 55%, var(--metro-night-text));
+}
+
+.landing-dash {
+    color: var(--metro-night-muted);
+}
+
+/* Closing: oversized wordmark and the last call to action. */
+.landing-wordmark {
+    margin: 0 0 16px;
+    color: var(--metro-night-text);
+    font-family: var(--metro-display);
+    font-size: clamp(4rem, 18vw, 118px);
+    font-weight: 700;
+    line-height: 0.8;
+    letter-spacing: -0.04em;
+}
+
+@media (max-width: 899.98px) {
+    .step-content {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .radio-step.step-left .step-text-box,
+    .radio-step.step-right .step-text-box {
+        order: 1;
+    }
+
+    .radio-step.step-left .step-card-box,
+    .radio-step.step-right .step-card-box {
+        order: 2;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .full-width-escape.landing-page {
+        margin: -20px -16px -28px;
+    }
+
+    .landing-cta {
+        gap: 16px 24px;
+    }
+
+    .landing-tier-table > :not(caption) > * > * {
+        padding: 12px 12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .landing-ghost-link {
+        transition: none;
+    }
+}
