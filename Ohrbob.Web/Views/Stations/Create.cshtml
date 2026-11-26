@@ -4,77 +4,48 @@
     ViewData["Title"] = "Create Station";
 }
 
-<h1>Create Station</h1>
-
-<h4>Station</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create" hx-boost="false">
-            <div class="form-group mb-3">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" asp-for="IsPublic">
-                    <label class="form-check-label" asp-for="IsPublic">
-                        Public Station
-                    </label>
-                </div>
-            </div>
-
-            <div class="form-group mb-3">
-                <label class="control-label">Feeds</label>
-                <div id="feedsContainer">
-                    <div class="input-group mb-2 feed-item">
-                        <input type="url" name="Feeds" class="form-control" placeholder="https://..." required />
-                        <button type="button" class="btn btn-outline-danger remove-feed">Remove</button>
-                    </div>
-                </div>
-                <button type="button" id="addFeedBtn" class="btn btn-sm btn-outline-secondary mt-1">Add Feed</button>
-            </div>
-            
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-            </div>
-        </form>
+<div class="page-head">
+    <div class="page-head__text">
+        <p class="metro-kicker">stations</p>
+        <h1 class="metro-title metro-title--compact">new station</h1>
     </div>
 </div>
 
-<script>
-    (function() {
-        const container = document.getElementById('feedsContainer');
-        const addBtn = document.getElementById('addFeedBtn');
+<form asp-action="Create" hx-boost="false" class="form-narrow">
+    <div class="form-group">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
 
-        if (addBtn && container) {
-            addBtn.addEventListener('click', function () {
-                const div = document.createElement('div');
-                div.className = 'input-group mb-2 feed-item';
-                div.innerHTML = `
-                    <input type="url" name="Feeds" class="form-control" placeholder="https://..." required />
-                    <button type="button" class="btn btn-outline-danger remove-feed">Remove</button>
-                `;
-                container.appendChild(div);
-            });
+    <div class="form-group">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" asp-for="IsPublic">
+            <label class="form-check-label" asp-for="IsPublic">
+                Public Station
+            </label>
+        </div>
+    </div>
 
-            container.addEventListener('click', function (e) {
-                if (e.target && e.target.classList.contains('remove-feed')) {
-                    const items = container.querySelectorAll('.feed-item');
-                    if (items.length > 1) {
-                        e.target.closest('.feed-item').remove();
-                    } else {
-                        // Just clear it if it's the last one
-                        e.target.previousElementSibling.value = '';
-                    }
-                }
-            });
-        }
-    })();
-</script>
+    <fieldset class="feed-fieldset">
+        <legend class="form-label">Feeds</legend>
+        <div id="feedsContainer">
+            <div class="feed-item">
+                <input type="url" name="Feeds" class="form-control" placeholder="https://..." required aria-label="Feed URL" />
+                <button type="button" class="btn btn-ghost remove-feed">Remove</button>
+            </div>
+        </div>
+        <button type="button" id="addFeedBtn" class="btn btn-ghost form-add-feed">Add Feed</button>
+    </fieldset>
+
+    <div class="form-actions">
+        <input type="submit" value="Create" class="btn btn-primary" />
+        <a asp-action="Index" class="btn btn-ghost">Back to List</a>
+    </div>
+</form>
+
+@* Loaded with the view content so htmx re-executes it after a boosted navigation. *@
+<script src="~/js/station-create.js" asp-append-version="true"></script>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

@@ -7,10 +7,19 @@
 
 @if (User.Identity?.IsAuthenticated == true)
 {
-    @* The nav highlight carries the title visually; keep it for screen readers. *@
-    <h2 class="visually-hidden">Listen</h2>
-    
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+    var subscribedIds = ViewBag.SubscribedStationIds as HashSet<string> ?? new HashSet<string>();
+
+    <div class="page-head">
+        <div class="page-head__text">
+            <p class="metro-kicker">your stations</p>
+            <h1 class="metro-title metro-title--compact">stations</h1>
+        </div>
+        <a asp-controller="Stations" asp-action="Create" class="page-head__action">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> new station
+        </a>
+    </div>
+
+    <div class="station-grid">
         @if (Model != null)
         {
             @foreach (var dto in Model)
@@ -22,105 +31,97 @@
 
                 var isActive = ViewBag.ActiveStationId == dto.Station.Id;
                 var cardClass = isActive ? "is-active" : "";
-                var subscribedIds = ViewBag.SubscribedStationIds as HashSet<string> ?? new HashSet<string>();
                 var isSubscribed = subscribedIds.Contains(dto.Station.Id);
 
-                <div class="col">
-                    <div class="card-station @(feedCount == 0 ? "is-empty" : "") @cardClass active-station-card" data-station-id="@dto.Station.Id">
-                        <div class="card-station-art">
-                            @if (!displayFeeds.Any())
+                <div class="card-station card-station--listen @(feedCount == 0 ? "is-empty" : "") @cardClass active-station-card" data-station-id="@dto.Station.Id">
+                    <div class="card-station-art">
+                        @if (!displayFeeds.Any())
+                        {
+                            <div class="card-station-cover card-station-cover-empty" aria-hidden="true">@stationInitial</div>
+                        }
+                        else
+                        {
+                            foreach (var feed in displayFeeds)
                             {
-                                <div class="card-station-cover card-station-cover-empty" aria-hidden="true">@stationInitial</div>
-                            }
-                            else
-                            {
-                                foreach (var feed in displayFeeds)
+                                var feedInitial = (feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper();
+                                if (!string.IsNullOrEmpty(feed.ImageUrl))
                                 {
-                                    var feedInitial = (feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper();
-                                    if (!string.IsNullOrEmpty(feed.ImageUrl))
-                                    {
-                                        <img src="@feed.ImageUrl" class="card-station-cover" alt="" onerror="this.outerHTML='<div class=\'card-station-cover card-station-cover-empty\'>@feedInitial</div>'" />
-                                    }
-                                    else
-                                    {
-                                        <div class="card-station-cover card-station-cover-empty">@feedInitial</div>
-                                    }
-                                }
-                            }
-                            <span class="card-station-badge" aria-hidden="true"><i class="bi bi-broadcast"></i></span>
-                            <span class="card-station-count">@feedCount @(feedCount == 1 ? "podcast" : "podcasts")</span>
-                            <button type="button" class="card-station-play" aria-label="Play @dto.Station.Name">
-                                <i class="bi bi-play-fill" aria-hidden="true"></i>
-                            </button>
-                        </div>
-                        <div class="card-station-body">
-                            <i class="bi bi-soundwave card-station-watermark" aria-hidden="true"></i>
-                            <div class="d-flex align-items-start gap-2">
-                                <h3 class="card-station-title flex-grow-1" title="@dto.Station.Name">
-                                    @* Only stations you can manage link to the editor; subscribed ones cannot. *@
-                                    @if (isSubscribed)
-                                    {
-                                        @dto.Station.Name
-                                    }
-                                    else
-                                    {
-                                        <a asp-controller="Stations" asp-action="Edit" asp-route-id="@dto.Station.Id">@dto.Station.Name</a>
-                                    }
-                                </h3>
-                                @if (isSubscribed)
-                                {
-                                    <form asp-controller="Stations" asp-action="Unsubscribe" asp-route-id="@dto.Station.Id"
-                                          method="post" hx-target="#main-content" hx-swap="innerHTML" class="mb-0">
-                                        <button type="button" class="btn btn-link p-0 text-white-50" title="Unsubscribe"
-                                                onclick="window.showConfirmationModal('Unsubscribe from this station?', () => this.closest('form').requestSubmit());">
-                                            <i class="bi bi-x-circle"></i>
-                                        </button>
-                                    </form>
+                                    <img src="@feed.ImageUrl" class="card-station-cover" alt="" onerror="this.outerHTML='<div class=\'card-station-cover card-station-cover-empty\'>@feedInitial</div>'" />
                                 }
                                 else
                                 {
-                                    <a asp-controller="Stations" asp-action="Edit" asp-route-id="@dto.Station.Id" class="text-white-50" title="Manage Station">
-                                        <i class="bi bi-gear"></i>
-                                    </a>
+                                    <div class="card-station-cover card-station-cover-empty">@feedInitial</div>
                                 }
-                            </div>
-                            <p class="card-station-meta d-flex align-items-center flex-wrap gap-2">
-                                <span><strong>@totalEpisodes</strong> episodes</span>
+                            }
+                        }
+                    </div>
+
+                    <button type="button" class="card-station-play" aria-label="Play @dto.Station.Name">
+                        <i class="bi bi-play-fill" aria-hidden="true"></i>
+                    </button>
+
+                    <div class="card-station-body">
+                        <div class="card-station-title-row">
+                            <h2 class="card-station-title" title="@dto.Station.Name">
+                                @* Only stations you can manage link to the editor; subscribed ones cannot. *@
                                 @if (isSubscribed)
                                 {
-                                    <span class="badge bg-info text-white">Subscribed</span>
+                                    @dto.Station.Name
                                 }
-                                @if (dto.Station.HostPaceEnabled)
+                                else
                                 {
-                                    <span class="badge bg-info text-white" title="Only episodes the host has completed are available">Host Pace</span>
+                                    <a asp-controller="Stations" asp-action="Edit" asp-route-id="@dto.Station.Id">@dto.Station.Name</a>
                                 }
-                                @if (dto.IsUpdating)
-                                {
-                                    <span class="badge bg-warning text-dark" title="We are fetching the latest episodes for your station.">
-                                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true" style="width: 0.7rem; height: 0.7rem; border-width: 0.15em;"></span>Compiling...
-                                    </span>
-                                }
-                                else if (!dto.Station.EndlessSpin && (dto.UnplayedEpisodeCount is 0 || (dto.UnplayedEpisodeCount is null && totalEpisodes == 0)))
-                                {
-                                    <span class="badge bg-danger" title="There are no episodes left to play in this station: it either has no episodes yet, or you have already completed every episode.">
-                                        Empty
-                                    </span>
-                                }
-                            </p>
+                            </h2>
+                            @if (isSubscribed)
+                            {
+                                <form asp-controller="Stations" asp-action="Unsubscribe" asp-route-id="@dto.Station.Id"
+                                      method="post" hx-target="#main-content" hx-swap="innerHTML" class="card-station-action-form">
+                                    <button type="button" class="card-station-action" title="Unsubscribe"
+                                            onclick="window.showConfirmationModal('Unsubscribe from this station?', () => this.closest('form').requestSubmit());">
+                                        <i class="bi bi-x-circle" aria-hidden="true"></i>
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <a asp-controller="Stations" asp-action="Edit" asp-route-id="@dto.Station.Id" class="card-station-action" title="Manage Station">
+                                    <i class="bi bi-gear" aria-hidden="true"></i>
+                                </a>
+                            }
                         </div>
+                        <p class="card-station-meta">
+                            <span class="card-station-count">@feedCount @(feedCount == 1 ? "podcast" : "podcasts")</span>
+                            @if (isSubscribed)
+                            {
+                                <span class="status-label is-subscribed">Subscribed</span>
+                            }
+                            @if (dto.Station.HostPaceEnabled)
+                            {
+                                <span class="status-label is-pacing" title="Only episodes the host has completed are available">Host Pace</span>
+                            }
+                            @if (dto.IsUpdating)
+                            {
+                                <span class="status-label is-compiling" title="We are fetching the latest episodes for your station.">
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Compiling...
+                                </span>
+                            }
+                            else if (!dto.Station.EndlessSpin && (dto.UnplayedEpisodeCount is 0 || (dto.UnplayedEpisodeCount is null && totalEpisodes == 0)))
+                            {
+                                <span class="status-label is-empty" title="There are no episodes left to play in this station: it either has no episodes yet, or you have already completed every episode.">
+                                    Empty
+                                </span>
+                            }
+                        </p>
                     </div>
                 </div>
             }
         }
 
-        <!-- Big friendly plus symbol inside a grey circle -->
-        <div class="col d-flex align-items-center justify-content-center">
-            <a asp-controller="Discover" asp-action="Index" class="text-decoration-none d-flex align-items-center justify-content-center w-100 h-100" title="Discover Stations" style="min-height: 140px;">
-                <div class="discover-plus-circle d-flex align-items-center justify-content-center rounded-circle shadow-sm">
-                    <i class="bi bi-plus-lg"></i>
-                </div>
-            </a>
-        </div>
+        <a asp-controller="Discover" asp-action="Index" class="station-add" title="Discover Stations">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            <span class="station-add__label">discover</span>
+        </a>
     </div>
 }
 else

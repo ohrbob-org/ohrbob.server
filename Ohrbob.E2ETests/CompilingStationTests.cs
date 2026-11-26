@@ -152,9 +152,8 @@ public class CompilingStationTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
 
         // Create a new station with a nonexistent fresh feed URL
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
         await Page.FillAsync("input[name='Name']", "Fresh Station");
         await Page.FillAsync("input[name='Feeds']", "https://example.com/compiling-test-feed.xml");
         
@@ -330,9 +329,8 @@ public class CompilingStationTests : PageTest
         // Create 2 stations first (which is the Free tier limit)
         for (int i = 1; i <= 2; i++)
         {
-            await Page.ClickAsync("#profileDropdown");
-            await Page.ClickAsync("text=\"Stations\"");
-            await Page.ClickAsync("text=Create New Station");
+            await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+            await Page.ClickAsync("text=new station");
             await Page.FillAsync("input[name='Name']", $"Station {i}");
             await Page.FillAsync("input[name='Feeds']", "https://example.com/compiling-test-feed.xml");
             var submitBtn = Page.Locator("input[type='submit']");
@@ -416,9 +414,8 @@ public class CompilingStationTests : PageTest
         Assert.That(feedUrl, Is.Not.Null.And.Not.Empty);
 
         // Go to Stations and create 1 station "Duplicate Station" with that dynamic feed URL
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
         await Page.FillAsync("input[name='Name']", "Duplicate Station");
         await Page.FillAsync("input[name='Feeds']", feedUrl);
         var submitBtn = Page.Locator("input[type='submit']");

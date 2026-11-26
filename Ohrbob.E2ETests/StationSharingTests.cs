@@ -106,7 +106,7 @@ public class StationSharingTests : PageTest
         await Page.WaitForURLAsync($"{_factory.ServerAddress}/", new() { Timeout = 15000 });
         var card = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Friend Station" }).First;
         await Expect(card).ToBeVisibleAsync(new() { Timeout = 15000 });
-        await Expect(card.Locator(".badge", new() { HasTextString = "Subscribed" })).ToBeVisibleAsync();
+        await Expect(card.Locator(".status-label.is-subscribed")).ToBeVisibleAsync();
         await Expect(card.Locator("a[href*='/Stations/Edit/']")).ToHaveCountAsync(0);
         Assert.That(secondProfile.Id, Is.Not.EqualTo(activeProfileId), "A non-active profile should have been chosen");
 
@@ -167,7 +167,7 @@ public class StationSharingTests : PageTest
         await Page.GotoAsync($"{_factory.ServerAddress}/");
         var card = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Host Paced" }).First;
         await Expect(card).ToBeVisibleAsync(new() { Timeout = 15000 });
-        await Expect(card.Locator(".badge:has-text('Host Pace')")).ToBeVisibleAsync();
+        await Expect(card.Locator(".status-label.is-pacing")).ToBeVisibleAsync();
 
         await card.Locator(".card-station-play").ClickAsync();
         await Expect(Page.Locator("#ohrbob-player")).ToHaveAttributeAsync("track", first.Title, new() { Timeout = 15000 });
@@ -176,13 +176,13 @@ public class StationSharingTests : PageTest
         await stations.MarkEpisodeCompletedAsync(station.Id, first.Id, subscriberProfileId);
         await Page.ReloadAsync();
         var emptyCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Host Paced" }).First;
-        await Expect(emptyCard.Locator(".badge.bg-danger")).ToBeVisibleAsync(new() { Timeout = 15000 });
+        await Expect(emptyCard.Locator(".status-label.is-empty")).ToBeVisibleAsync(new() { Timeout = 15000 });
 
         // The host releases the next episode and the subscriber receives it.
         await stations.MarkEpisodeCompletedAsync(station.Id, second.Id, _ownerProfileId);
         await Page.ReloadAsync();
         var releasedCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Host Paced" }).First;
-        await Expect(releasedCard.Locator(".badge.bg-danger")).Not.ToBeVisibleAsync(new() { Timeout = 15000 });
+        await Expect(releasedCard.Locator(".status-label.is-empty")).Not.ToBeVisibleAsync(new() { Timeout = 15000 });
         await releasedCard.Locator(".card-station-play").ClickAsync();
         await Expect(Page.Locator("#ohrbob-player")).ToHaveAttributeAsync("track", second.Title, new() { Timeout = 15000 });
     }

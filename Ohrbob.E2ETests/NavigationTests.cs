@@ -93,7 +93,7 @@ public class NavigationTests : PageTest
         // open the management page directly; the dropdown behaviour itself is
         // asserted further down on the editor page.
         await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.ClickAsync("text=new station");
         await Page.FillAsync("input[name='Name']", "Nav Test Station");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
         await Page.ClickAsync("input[type='submit']");
@@ -134,7 +134,7 @@ public class NavigationTests : PageTest
         await Page.GoBackAsync();
         
         // Wait for dashboard to reload
-        await Expect(Page.Locator("h2")).ToContainTextAsync("Listen", new() { Timeout = 10000 });
+        await Expect(Page.Locator(".page-head .metro-title")).ToContainTextAsync("stations", new() { Timeout = 10000 });
         await Task.Delay(1000); // Give the browser a moment to settle after popstate
 
         // Try to click dropdown again

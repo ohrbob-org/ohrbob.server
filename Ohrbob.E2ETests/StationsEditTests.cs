@@ -77,9 +77,8 @@ public class StationsEditTests : PageTest
         var firstFeed = feeds.First(l => !string.IsNullOrWhiteSpace(l));
 
         // Go to Stations and Create
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
         
         await Page.FillAsync("input[name='Name']", "Test Edit Station");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
@@ -96,7 +95,7 @@ public class StationsEditTests : PageTest
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
         
         // Wait for feeds to sync (not showing "0 podcasts")
-        await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
+        await Expect(stationCard.Locator(".card-station-count")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
         
         // Click the edit gear icon
         await stationCard.Locator("a[title='Manage Station']").ClickAsync();
@@ -151,9 +150,8 @@ public class StationsEditTests : PageTest
         var secondFeed = feeds.Skip(1).First(l => !string.IsNullOrWhiteSpace(l));
 
         // Go to Stations and Create
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
         
         await Page.FillAsync("input[name='Name']", "Test Feed Station");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
@@ -178,7 +176,7 @@ public class StationsEditTests : PageTest
         }
         
         // Wait for feeds to sync (not showing "0 podcasts")
-        await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
+        await Expect(stationCard.Locator(".card-station-count")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
         
         // Click the edit gear icon
         await stationCard.Locator("a[title='Manage Station']").ClickAsync();
@@ -289,9 +287,8 @@ public class StationsEditTests : PageTest
         var firstFeed = feeds.First(l => !string.IsNullOrWhiteSpace(l));
 
         // Go to Stations and Create
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
         
         await Page.FillAsync("input[name='Name']", "Original Station Name");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
@@ -365,9 +362,8 @@ public class StationsEditTests : PageTest
         var firstFeed = feeds.First(l => !string.IsNullOrWhiteSpace(l));
 
         // Go to Stations and Create
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
         
         await Page.FillAsync("input[name='Name']", "Station To Delete");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
@@ -406,7 +402,7 @@ public class StationsEditTests : PageTest
         
         // Should be taken back to the stations list
         await Page.WaitForURLAsync("**/Stations", new() { Timeout = 15000 });
-        await Expect(Page.Locator("h1")).ToContainTextAsync("My Stations", new() { Timeout = 10000 });
+        await Expect(Page.Locator(".page-head .metro-title")).ToContainTextAsync("stations", new() { Timeout = 10000 });
         
         // The deleted station should no longer be listed
         await Expect(Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Station To Delete" })).ToHaveCountAsync(0);

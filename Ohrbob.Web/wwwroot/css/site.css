@@ -146,7 +146,8 @@ body.with-player {
     gap: 2px;
     width: 100%;
     aspect-ratio: 1 / 1;
-    background-color: #f8f9fa;
+    border: 1px solid var(--metro-hairline);
+    background-color: var(--metro-hairline);
     overflow: hidden;
 }
 .collage-grid-1 { grid-template-columns: 1fr; grid-template-rows: 1fr; }
@@ -166,11 +167,25 @@ body.with-player {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #6c757d;
-    color: white;
+    background-color: var(--metro-violet);
+    color: var(--metro-on-accent);
     font-weight: bold;
     text-transform: uppercase;
     font-size: clamp(1rem, 2vw, 2rem);
+}
+
+/* Station pickers (profiles, share) only gain a border colour on hover. */
+.btn-check + label .collage-container {
+    transition: border-color var(--metro-transition);
+}
+
+.btn-check + label:hover .collage-container,
+.btn-check:focus-visible + label .collage-container {
+    border-color: var(--metro-violet);
+}
+
+.btn-check:checked + label .collage-container {
+    border-color: var(--metro-orange);
 }
 
 .station-check-overlay {
@@ -178,49 +193,20 @@ body.with-player {
     top: 10px;
     right: 10px;
     font-size: 2rem;
-    color: #0d6efd;
-    background-color: white;
+    color: var(--metro-orange);
+    background-color: var(--metro-tile);
     border-radius: 50%;
     line-height: 1;
     opacity: 0;
     transition: opacity 0.2s ease-in-out;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: none;
     z-index: 10;
 }
 
 .btn-check:checked + label .station-check-overlay {
     opacity: 1;
 }
-
-.btn-check:checked + label .card {
-    border: 2px solid #0d6efd !important;
-}
 .cursor-pointer { cursor: pointer; }
-
-.discover-plus-circle {
-    width: 120px;
-    height: 120px;
-    background-color: #dee2e6; /* Soft grey circle */
-    transition: all 0.2s ease-in-out;
-    cursor: pointer;
-}
-
-.discover-plus-circle i {
-    font-size: 3.5rem;
-    color: #6c757d; /* Medium grey icon color */
-    transition: all 0.2s ease-in-out;
-}
-
-/* Hover effects for a big friendly feel */
-.discover-plus-circle:hover {
-    background-color: #6c757d; /* Darker grey background on hover */
-    transform: scale(1.08); /* Gently pops out */
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-}
-
-.discover-plus-circle:hover i {
-    color: #ffffff; /* White plus symbol on hover */
-}
 
 /* --------------------------------------------------------------------------
    Shell — flat Metro app bar, footer, profile menu, toasts
@@ -918,5 +904,378 @@ body.metro-night .app-footer {
 @media (prefers-reduced-motion: reduce) {
     .landing-ghost-link {
         transition: none;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Stations — Listen grid, management index and the create form
+   -------------------------------------------------------------------------- */
+
+.page-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px 24px;
+    padding: 32px 0 14px;
+    border-bottom: 1px solid var(--metro-hairline);
+    margin-bottom: 18px;
+}
+
+.page-head__text {
+    min-width: 0;
+}
+
+.page-head .metro-kicker {
+    margin: 0;
+}
+
+.page-head .metro-title {
+    margin: 6px 0 0;
+}
+
+.page-head__action {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: 0;
+    background: var(--metro-orange);
+    color: var(--metro-on-accent);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: background-color var(--metro-transition), color var(--metro-transition);
+}
+
+.page-head__action:hover,
+.page-head__action:focus {
+    background: var(--metro-ink);
+    color: var(--metro-canvas);
+}
+
+.station-grid {
+    gap: 8px;
+}
+
+/* The tile overlays the whole card, so the count/badges share one meta line. */
+.card-station--listen .card-station-body {
+    padding-right: 64px;
+}
+
+.card-station-title-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.card-station-title-row .card-station-title {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.card-station-action-form {
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+.card-station-action {
+    display: inline-grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--metro-muted);
+    font-size: 16px;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color var(--metro-transition);
+}
+
+.card-station-action:hover,
+.card-station-action:focus {
+    color: var(--metro-orange);
+}
+
+.card-station-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    margin: 8px 0 0;
+}
+
+.card-station-count {
+    display: inline-block;
+    color: var(--metro-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+.status-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--metro-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+.status-label.is-empty,
+.status-label.is-danger {
+    color: var(--bs-danger);
+}
+
+.status-label.is-pacing,
+.status-label.is-subscribed {
+    color: var(--metro-violet);
+}
+
+.status-label.is-compiling {
+    padding: 1px 4px;
+    background: var(--metro-yellow);
+    color: var(--metro-navy);
+}
+
+.status-label .spinner-border {
+    width: 8px;
+    height: 8px;
+    border-width: 1.5px;
+}
+
+.card-station-play {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: var(--metro-orange);
+    color: var(--metro-on-accent);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--metro-transition), background-color var(--metro-transition);
+}
+
+.card-station:hover .card-station-play,
+.card-station:focus-within .card-station-play,
+.card-station-play:focus-visible {
+    opacity: 1;
+}
+
+.card-station-play:hover {
+    background: var(--metro-orange-soft);
+    color: var(--metro-navy);
+}
+
+@media (hover: none) {
+    .card-station-play {
+        opacity: 1;
+    }
+}
+
+.card-station.is-active {
+    box-shadow: inset 0 0 0 2px var(--metro-orange);
+}
+
+.station-add {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 184px;
+    border: 1px solid var(--metro-hairline);
+    background: transparent;
+    color: var(--metro-muted);
+    text-decoration: none;
+    transition: background-color var(--metro-transition), border-color var(--metro-transition), color var(--metro-transition);
+}
+
+.station-add .bi {
+    font-size: 34px;
+    line-height: 1;
+}
+
+.station-add__label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.station-add:hover,
+.station-add:focus {
+    border-color: var(--metro-orange);
+    background: var(--metro-orange);
+    color: var(--metro-on-accent);
+}
+
+/* Management index: the same tile with a hairline action footer. */
+.card-station--manage .card-station-art {
+    opacity: 0.55;
+}
+
+.card-station--manage .card-station-body {
+    min-height: 150px;
+}
+
+.card-station-footer {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 14px;
+    border-top: 1px solid var(--metro-hairline);
+    background: var(--metro-tile);
+}
+
+.card-station-footer__form {
+    margin: 0;
+}
+
+.card-station-footer__link {
+    display: inline-block;
+    padding: 4px 0;
+    border: 0;
+    background: transparent;
+    color: var(--metro-ink);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color var(--metro-transition);
+}
+
+.card-station-footer__link:hover,
+.card-station-footer__link:focus {
+    color: var(--metro-orange);
+}
+
+.card-station-footer__link.is-danger {
+    color: var(--bs-danger);
+}
+
+/* Create form */
+.form-narrow {
+    max-width: 560px;
+    padding-top: 24px;
+}
+
+.form-narrow .form-group {
+    margin-bottom: 22px;
+}
+
+.feed-fieldset {
+    margin: 0 0 22px;
+    padding: 0;
+    border: 0;
+}
+
+.feed-fieldset .form-label {
+    display: block;
+}
+
+.form-narrow .form-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-narrow .form-check-input {
+    margin: 0;
+    border-radius: 0;
+}
+
+.form-narrow .form-check-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.feed-item {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.feed-item .form-control {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.feed-item .btn {
+    flex: 0 0 auto;
+}
+
+.form-add-feed {
+    margin-top: 4px;
+}
+
+.feed-item .remove-feed,
+.form-add-feed {
+    border: 1px solid var(--metro-hairline);
+    background: transparent;
+    color: var(--metro-ink);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.feed-item .remove-feed {
+    display: inline-flex;
+    align-self: stretch;
+    align-items: center;
+}
+
+.feed-item .remove-feed:hover,
+.form-add-feed:hover {
+    border-color: var(--metro-orange);
+    color: var(--metro-orange);
+}
+
+.form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+@media (max-width: 575.98px) {
+    .page-head {
+        padding-top: 24px;
+    }
+
+    .page-head__action {
+        padding: 9px 12px;
     }
 }

@@ -53,7 +53,7 @@ public class DiscoverSearchNavigationTests : PageTest
     {
         await Page.GotoAsync(_factory.ServerAddress);
 
-        await Page.ClickAsync(".discover-plus-circle");
+        await Page.ClickAsync(".station-add");
         var input = Page.Locator("#discover-search");
         await Expect(input).ToBeVisibleAsync(new() { Timeout = 10000 });
 
@@ -70,7 +70,7 @@ public class DiscoverSearchNavigationTests : PageTest
 
         // Browser back/forward restores the view from htmx history; search must work there too.
         await Page.GoBackAsync();
-        await Expect(Page.Locator("h2")).ToContainTextAsync("Listen", new() { Timeout = 10000 });
+        await Expect(Page.Locator(".page-head .metro-title")).ToContainTextAsync("stations", new() { Timeout = 10000 });
         await Page.GoForwardAsync();
 
         var restoredInput = Page.Locator("#discover-search");

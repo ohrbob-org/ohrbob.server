@@ -4,75 +4,76 @@
     ViewData["Title"] = "My Stations";
 }
 
-<h1>My Stations</h1>
+<div class="page-head">
+    <div class="page-head__text">
+        <p class="metro-kicker">your stations</p>
+        <h1 class="metro-title metro-title--compact">stations</h1>
+    </div>
+    <a asp-action="Create" class="page-head__action">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i> new station
+    </a>
+</div>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Create New Station</a>
-</p>
-
-<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+<div class="station-grid">
     @foreach (var dto in Model)
     {
         var feedCount = dto.Feeds?.Count ?? 0;
+        var totalEpisodes = dto.Feeds?.Sum(f => f.EpisodeCount) ?? 0;
         string gridClass = "collage-grid-1";
         if (feedCount > 1 && feedCount <= 4) gridClass = "collage-grid-2";
         else if (feedCount > 4 && feedCount <= 9) gridClass = "collage-grid-3";
         else if (feedCount > 9) gridClass = "collage-grid-4";
-        
+
         var displayFeeds = dto.Feeds?.Take(16).ToList() ?? new List<Ohrbob.Server.Shared.Requests.FeedStatsDto>();
 
-        <div class="col">
-            <div class="card h-100 shadow-sm">
-                <div class="collage-container @gridClass card-img-top">
-                    @if (!displayFeeds.Any())
+        <div class="card-station card-station--manage">
+            <div class="card-station-art collage-container @gridClass">
+                @if (!displayFeeds.Any())
+                {
+                    <div class="collage-fallback">?</div>
+                }
+                else
+                {
+                    foreach (var feed in displayFeeds)
                     {
-                        <div class="collage-fallback">?</div>
+                        var feedInitial = (feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper();
+                        if (!string.IsNullOrEmpty(feed.ImageUrl))
+                        {
+                            <img src="@feed.ImageUrl" class="collage-item" alt="@feed.Title" onerror="this.outerHTML='<div class=\'collage-fallback\'>@feedInitial</div>'" />
+                        }
+                        else
+                        {
+                            <div class="collage-fallback">@feedInitial</div>
+                        }
                     }
-                    else
+                }
+            </div>
+
+            <div class="card-station-body">
+                <h2 class="card-station-title" title="@dto.Station.Name">
+                    <a asp-action="Edit" asp-route-id="@dto.Station.Id">@dto.Station.Name</a>
+                </h2>
+                <p class="card-station-meta">
+                    <span class="card-station-count">@feedCount @(feedCount == 1 ? "feed" : "feeds")</span>
+                    <span class="status-label">@(dto.Station.IsPublic ? "Public" : "Private")</span>
+                    @if (dto.IsUpdating)
                     {
-                        foreach (var feed in displayFeeds)
-                        {
-                            if (!string.IsNullOrEmpty(feed.ImageUrl))
-                            {
-                                <img src="@feed.ImageUrl" class="collage-item" alt="@feed.Title" onerror="this.outerHTML='<div class=\'collage-fallback\'>@((feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper())</div>'" />
-                            }
-                            else
-                            {
-                                <div class="collage-fallback">@((feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper())</div>
-                            }
-                        }
-                    }
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title d-flex align-items-center">
-                        @dto.Station.Name
-                        @{
-                            var totalEpisodes = dto.Feeds?.Sum(f => f.EpisodeCount) ?? 0;
-                        }
-                        @if (dto.IsUpdating)
-                        {
-                            <div class="spinner-border spinner-border-sm text-primary ms-2" role="status" title="Updating feeds...">
-                                <span class="visually-hidden">Updating...</span>
-                            </div>
-                        }
-                        else if (totalEpisodes == 0)
-                        {
-                            <span class="badge bg-danger ms-2" title="No episodes found">Empty</span>
-                        }
-                    </h5>
-                    <p class="card-text">
-                        <span class="badge @(dto.Station.IsPublic ? "bg-success" : "bg-secondary")">
-                            @(dto.Station.IsPublic ? "Public" : "Private")
+                        <span class="status-label is-compiling" title="Updating feeds...">
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Compiling...
                         </span>
-                        <small class="text-muted ms-2">@feedCount feeds</small>
-                    </p>
-                </div>
-                <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between">
-                    <a asp-action="Edit" asp-route-id="@dto.Station.Id" class="btn btn-outline-primary btn-sm">Edit</a>
-                    <form asp-action="Delete" asp-route-id="@dto.Station.Id" method="post" hx-target="#main-content" hx-swap="innerHTML" id="delete-station-form-@dto.Station.Id">
-                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="window.showConfirmationModal('Delete this station?', () => { window.checkDeletePlayingStation('@dto.Station.Id'); document.getElementById('delete-station-form-@dto.Station.Id').requestSubmit(); });">Delete</button>
-                    </form>
-                </div>
+                    }
+                    else if (totalEpisodes == 0)
+                    {
+                        <span class="status-label is-empty" title="No episodes found">Empty</span>
+                    }
+                </p>
+            </div>
+
+            <div class="card-station-footer">
+                <a asp-action="Edit" asp-route-id="@dto.Station.Id" class="card-station-footer__link">Edit</a>
+                <form asp-action="Delete" asp-route-id="@dto.Station.Id" method="post" hx-target="#main-content" hx-swap="innerHTML" id="delete-station-form-@dto.Station.Id" class="card-station-footer__form">
+                    <button type="button" class="card-station-footer__link is-danger" onclick="window.showConfirmationModal('Delete this station?', () => { window.checkDeletePlayingStation('@dto.Station.Id'); document.getElementById('delete-station-form-@dto.Station.Id').requestSubmit(); });">Delete</button>
+                </form>
             </div>
         </div>
     }

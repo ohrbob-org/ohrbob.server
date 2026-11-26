@@ -79,7 +79,7 @@ public class ListenEmptyBadgeTests : PageTest
         var card = StationCard("Badge Station");
         await card.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 20000 });
         await Expect(card.Locator(".card-station-count")).ToContainTextAsync("1 podcast");
-        await Expect(card.Locator(".badge.bg-danger")).Not.ToBeVisibleAsync();
+        await Expect(card.Locator(".status-label.is-empty")).Not.ToBeVisibleAsync();
 
         // Complete every episode for the active profile.
         var stationsApi = _factory.Services.GetRequiredService<StationsApiService>();
@@ -95,7 +95,7 @@ public class ListenEmptyBadgeTests : PageTest
         var cardAfter = StationCard("Badge Station");
         await cardAfter.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 20000 });
         await Expect(cardAfter.Locator(".card-station-count")).ToContainTextAsync("1 podcast");
-        var badge = cardAfter.Locator(".badge.bg-danger");
+        var badge = cardAfter.Locator(".status-label.is-empty");
         await Expect(badge).ToBeVisibleAsync(new() { Timeout = 15000 });
         await Expect(badge).ToHaveTextAsync(new Regex("Empty"));
     }
