@@ -31,8 +31,8 @@ public class LandingPageTests : PageTest
         var url = _factory.ServerAddress;
         await Page.GotoAsync(url);
 
-        // Check for new floating nav
-        await Expect(Page.Locator(".floating-nav-pill")).ToBeVisibleAsync();
+        // Check for the flat Metro app bar
+        await Expect(Page.Locator(".app-header")).ToBeVisibleAsync();
         
         // Check for landing layout
         await Expect(Page.Locator(".radio-landing-container")).ToBeVisibleAsync();

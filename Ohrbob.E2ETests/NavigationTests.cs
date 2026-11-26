@@ -56,14 +56,15 @@ public class NavigationTests : PageTest
         await Page.SetViewportSizeAsync(width, 800);
         await Page.GotoAsync(_factory.ServerAddress);
 
-        var pill = Page.Locator(".floating-nav-pill");
-        await Expect(pill).ToBeVisibleAsync();
+        var header = Page.Locator(".app-header");
+        await Expect(header).ToBeVisibleAsync();
 
         var overflow = await Page.EvaluateAsync<bool>(@"() => {
-            const pill = document.querySelector('.floating-nav-pill');
-            const bounds = pill.getBoundingClientRect();
-            if (pill.scrollWidth > pill.clientWidth + 1) return true;
-            return Array.from(pill.querySelectorAll('a, button')).some(el => {
+            const header = document.querySelector('.app-header');
+            const bounds = header.getBoundingClientRect();
+            if (header.scrollWidth > header.clientWidth + 1) return true;
+            return Array.from(header.querySelectorAll('a, button')).some(el => {
+                if (getComputedStyle(el).display === 'none') return false;
                 const r = el.getBoundingClientRect();
                 return r.left < bounds.left - 1 || r.right > bounds.right + 1;
             });
@@ -88,9 +89,10 @@ public class NavigationTests : PageTest
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
         
-        // Create station
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
+        // Create station. The profile menu no longer carries a Stations entry, so
+        // open the management page directly; the dropdown behaviour itself is
+        // asserted further down on the editor page.
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
         await Page.ClickAsync("text=Create New Station");
         await Page.FillAsync("input[name='Name']", "Nav Test Station");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
@@ -232,8 +234,8 @@ public class NavigationTests : PageTest
             await Page.GotoAsync(_factory.ServerAddress);
             await Expect(Page.Locator(".card-station").First).ToBeVisibleAsync(new() { Timeout = 15000 });
 
-            var discoverLink = Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Discover" });
-            var listenLink = Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Listen" });
+            var discoverLink = Page.Locator(".app-nav-link", new() { HasTextString = "Discover" });
+            var listenLink = Page.Locator(".app-nav-link", new() { HasTextString = "Listen" });
 
             // Listen -> Discover while scrolled down: the new page starts at the top.
             Assert.That(await Page.EvaluateAsync<int>("() => document.documentElement.scrollHeight"),
@@ -283,7 +285,7 @@ public class NavigationTests : PageTest
             await route.ContinueAsync();
         });
 
-        await Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Discover" }).ClickAsync();
+        await Page.Locator(".app-nav-link", new() { HasTextString = "Discover" }).ClickAsync();
         await Expect(bar).ToHaveClassAsync(new System.Text.RegularExpressions.Regex(@"\bis-loading\b"));
         await Expect(bar).ToHaveCSSAsync("opacity", "1");
 
@@ -315,8 +317,8 @@ public class NavigationTests : PageTest
         await Page.SetViewportSizeAsync(1280, 900);
         await Page.GotoAsync(_factory.ServerAddress);
 
-        var listen = Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Listen" });
-        var discover = Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Discover" });
+        var listen = Page.Locator(".app-nav-link", new() { HasTextString = "Listen" });
+        var discover = Page.Locator(".app-nav-link", new() { HasTextString = "Discover" });
         var active = new System.Text.RegularExpressions.Regex(@"\bactive\b");
 
         await Expect(listen).ToHaveClassAsync(active);

@@ -16,16 +16,25 @@
     var hasActive = Model.ActiveProfile != null && !string.IsNullOrEmpty(Model.ActiveProfile.Id);
     var activeInitial = hasActive && !string.IsNullOrEmpty(Model.ActiveProfile.Name) ? Model.ActiveProfile.Name[0].ToString().ToUpper() : "?";
     var activeColor = Ohrbob.Server.Shared.Data.ProfileColors.Resolve(Model.ActiveProfile);
+
+    // Dark profile colours carry white initials, light ones need navy text.
+    string AvatarInk(string color)
+    {
+        if (string.IsNullOrEmpty(color) || color.Length < 7) return "var(--metro-on-accent)";
+        var r = Convert.ToInt32(color.Substring(1, 2), 16);
+        var g = Convert.ToInt32(color.Substring(3, 2), 16);
+        var b = Convert.ToInt32(color.Substring(5, 2), 16);
+        var luma = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255.0;
+        return luma > 0.55 ? "var(--metro-navy)" : "var(--metro-on-accent)";
+    }
 }
 
 <div class="nav-item dropdown">
-    <button class="nav-link d-flex align-items-center gap-2 btn btn-link border-0 text-decoration-none" id="profileDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="@(hasActive ? Model.ActiveProfile.Name : "No Profile")">
-        <span class="badge rounded-pill @(Model.Tier == Ohrbob.Server.Shared.Data.SubscriptionTier.Morebob ? "badge-morebob" : "bg-secondary")" title="Subscription tier">@Model.Tier</span>
+    <button class="btn btn-ghost border-0 d-flex align-items-center gap-2 p-1" id="profileDropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="@(hasActive ? Model.ActiveProfile.Name : "No Profile")">
+        <span class="badge app-profile-tier @(Model.Tier == Ohrbob.Server.Shared.Data.SubscriptionTier.Morebob ? "is-morebob" : "")" title="Subscription tier">@Model.Tier</span>
         @if (hasActive)
         {
-            <div class="text-white d-flex align-items-center justify-content-center rounded-circle fw-bold shadow-sm" data-profile-id="@Model.ActiveProfile.Id" style="width: 32px; height: 32px; font-size: 1rem; background-color: @activeColor;">
-                @activeInitial
-            </div>
+            <span class="profile-avatar" data-profile-id="@Model.ActiveProfile.Id" style="--metro-avatar: @activeColor; color: @AvatarInk(activeColor);">@activeInitial</span>
         }
         else
         {
@@ -33,7 +42,7 @@
             <span class="d-none d-sm-inline">No Profile</span>
         }
     </button>
-    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="profileDropdown">
+    <ul class="dropdown-menu dropdown-menu-end profile-menu" aria-labelledby="profileDropdown">
         @if (Model.AllProfiles.Any())
         {
             @foreach (var profile in Model.AllProfiles.Where(p => p.Id != Model.ActiveProfile.Id))
@@ -45,9 +54,7 @@
                         <input type="hidden" name="id" value="@profile.Id" />
                         <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
                         <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2">
-                            <div class="text-white d-flex align-items-center justify-content-center rounded-circle fw-bold" data-profile-id="@profile.Id" style="width: 24px; height: 24px; font-size: 0.8rem; background-color: @color;">
-                                @initial
-                            </div>
+                            <span class="profile-avatar" data-profile-id="@profile.Id" style="--metro-avatar: @color; color: @AvatarInk(color);">@initial</span>
                             @profile.Name
                         </button>
                     </form>
@@ -69,6 +76,6 @@
         <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="About" hx-boost="@(IsHtmxEnabled("Home", "About") ? "true" : "false")"><i class="bi bi-info-circle me-2"></i> About</a></li>
         <li><a class="dropdown-item py-2" href="https://github.com/ohrbob-org/" target="_blank" rel="noopener"><i class="bi bi-github me-2"></i> GitHub</a></li>
         <li><hr class="dropdown-divider"></li>
-        <li hx-boost="false"><a class="dropdown-item py-2 text-danger" asp-controller="Home" asp-action="Logout"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
+        <li hx-boost="false"><a class="dropdown-item is-danger py-2" asp-controller="Home" asp-action="Logout"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
     </ul>
 </div>

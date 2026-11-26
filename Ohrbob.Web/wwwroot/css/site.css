@@ -1,28 +1,29 @@
+/* ==========================================================================
+   Ohrbob.Web — the single web layer.
+   Shared tokens and components come from theme.css; this file only holds
+   web-specific shell, page and layout rules. No border radius, no shadows.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+
 html {
-  font-size: 14px;
+    font-size: 14px;
+    position: relative;
+    min-height: 100%;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-h1,h2,h3,h4,h5,h6{
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica Neue, Noto Sans, Liberation Sans, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+    html {
+        font-size: 16px;
+    }
 }
 
 body {
-  margin-bottom: 0;
+    margin: 0;
+    background: var(--metro-canvas);
+    color: var(--metro-ink);
 }
 
 body.with-player {
@@ -30,1094 +31,16 @@ body.with-player {
        fits the viewport does not get a scrollbar for empty space only. */
     padding-bottom: 120px;
 }
-body.with-player .footer {
-    /* Lift the footer above the player */
-    bottom: 100px !important;
-}
 
 @media (max-width: 767.98px) {
     body.with-player {
-        /* On mobile the player is slightly shorter, but 140px total is safe */
         padding-bottom: 140px;
     }
-    body.with-player .footer {
-        bottom: 80px !important;
-    }
 }
 
-
-header {
-    position: sticky;
-    top: 1em;
-    z-index: 1050;
-}
-
-.landing-footer {
-    background: var(--bs-tertiary-bg);
-}
-
-
-
-    header .nav-item.dropdown {
-    list-style: none;
-}
-
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
-}
-/* Floating Navigation */
-.nav-logo-img {
-    height: 32px;
-}
-.station-list-container {
-    margin-left:1rem;
-}
-
-.floating-nav-pill {
-    /* position: sticky handled by header */
-    margin: 0 auto 2rem auto;
-    width: 90%;
-    max-width: 1000px;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 50px;
-    
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    z-index: 1050;
-    border: 1px solid rgba(0,0,0,0.05);
-
-    padding-left:1rem;
-    padding-right:1rem;
-    padding-top: .75rem;
-    padding-bottom: .75rem;
-}
-.floating-nav-pill-center {
-    display: flex;
-    gap: 2rem;
-}
-.floating-nav-pill-center a {
-    position: relative;
-    text-decoration: none;
-    color: #444;
-    font-weight: 700;
-    font-size: 1rem;
-}
-.floating-nav-pill-center a:hover {
-    color: var(--bs-primary);
-}
-.floating-nav-pill-center a.active {
-    color: var(--bs-primary);
-}
-.floating-nav-pill-center a.active::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -6px;
-    height: 2px;
-    border-radius: 2px;
-    background: var(--bs-primary);
-}
-
-/* Layout Utilities */
-.full-width-escape {
-    width: 100vw;
-    position: relative;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
-    overflow-x: hidden;
-}
-
-/* Landing Page Layout */
-html:has(.radio-landing-container) {
-    scroll-behavior: smooth;
-}
-@media (prefers-reduced-motion: reduce) {
-    html:has(.radio-landing-container) {
-        scroll-behavior: auto;
-    }
-}
-
-.landing-hero {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 3rem 1rem 4rem;
-}
-.landing-hero-logo {
-    font-size: 3rem;
-    margin-bottom: 1.5rem;
-}
-.landing-hero h1 {
-    font-size: clamp(2rem, 5vw, 3.25rem);
-    line-height: 1.15;
-    margin-bottom: 1rem;
-}
-.landing-hero-lead {
-    max-width: 44rem;
-}
-
-.radio-landing-container {
-    position: relative;
-    padding: 0 0 2rem;
-    scroll-margin-top: 7rem;
-}
-.radio-step {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: 100%;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 3rem 2rem;
-}
-.radio-step + .radio-step {
-    border-top: 1px solid var(--bs-border-color-translucent);
-}
-.step-content {
-    display: flex;
-    width: 100%;
-    justify-content: space-between;
-    align-items: center;
-    gap: 3rem;
-}
-.step-left .step-content {
-    flex-direction: row;
-}
-.step-right .step-content {
-    flex-direction: row-reverse;
-}
-.step-content.text-only {
-    justify-content: center;
-}
-.step-content.text-only .step-text-box {
-    width: 100%;
-    max-width: 46rem;
-}
-.step-text-box, .step-card-box {
-    width: 50%;
-}
-.step-text-box h2 {
-    color: var(--bs-body-color);
-    margin-bottom: 1rem;
-}
-.step-index {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    margin-bottom: .75rem;
-    border-radius: 50%;
-    background: rgba(var(--bs-primary-rgb), .12);
-    color: var(--bs-primary);
-    font-weight: 700;
-}
-.screenshot-card {
-    background: var(--bs-body-bg);
-    border-radius: 16px;
-    height: 350px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--bs-border-color);
-    box-shadow: 0 .5rem 1.5rem rgba(0,0,0,0.08);
-    width: 100%;
-    overflow: hidden;
-}
-.screenshot-card img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-.tier-badge-premium {
-    background: rgba(var(--bs-primary-rgb), .12);
-    color: var(--bs-primary);
-    font-weight: 700;
-}
-
-/* Animated gradient badge for the Morebob tier. */
-.badge-morebob {
-    background: linear-gradient(135deg, #8b5cf6, #ec4899, #f59e0b, #8b5cf6);
-    background-size: 300% 300%;
-    color: #fff;
-    font-weight: 700;
-    border: 0;
-    box-shadow: 0 0 8px rgba(139, 92, 246, .8), 0 0 18px rgba(236, 72, 153, .5);
-    animation: morebob-shift 6s linear infinite, morebob-glow 3s ease-in-out infinite;
-}
-@keyframes morebob-shift {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 300% 50%; }
-}
-@keyframes morebob-glow {
-    0%, 100% { box-shadow: 0 0 6px rgba(139, 92, 246, .7), 0 0 14px rgba(236, 72, 153, .4); }
-    50% { box-shadow: 0 0 12px rgba(139, 92, 246, .9), 0 0 24px rgba(236, 72, 153, .7); }
-}
-@media (prefers-reduced-motion: reduce) {
-    .badge-morebob { animation: none; }
-}
-
-.landing-footer {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 4rem 1rem 5rem;
-    background: transparent;
-}
-.landing-logo-wrapper {
-    font-size: 3.5rem;
-}
-
-.landing-tiers {
-    padding: 3.5rem 1rem 5rem;
-    border-top: 1px solid var(--bs-border-color);
-    background: var(--bs-tertiary-bg);
-}
-.landing-tier-card {
-    max-width: 760px;
-    margin: 0 auto;
-    border: 1px solid var(--bs-border-color);
-    border-radius: .75rem;
-    overflow: hidden;
-    background: var(--bs-body-bg);
-}
-.landing-tier-table {
-    max-width: none;
-    margin: 0;
-}
-.landing-tier-table > :not(caption) > * > * {
-    padding: .85rem 1rem;
-}
-.landing-tier-table thead th {
-    border-bottom-width: 2px;
-}
-.landing-tier-table tbody th {
-    font-weight: 600;
-}
-.landing-tier-premium {
-    color: var(--bs-primary);
-}
-.landing-tier-table thead .landing-tier-premium {
-    color: var(--bs-primary);
-}
-
-@media (max-width: 768px) {
-    .landing-hero {
-        padding-top: 1.5rem;
-    }
-    .step-content {
-        flex-direction: column !important;
-        gap: 1.5rem;
-    }
-    .step-text-box, .step-card-box {
-        width: 100%;
-    }
-    .radio-step {
-        padding: 2rem 1rem;
-    }
-    .screenshot-card {
-        height: 260px;
-    }
-    .landing-tier-table {
-        font-size: .95rem;
-    }
-    .landing-tier-table > :not(caption) > * > * {
-        padding: .7rem .6rem;
-    }
-}
-
-/* About page: pulsing status dot */
-.status-dot {
-    width: 0.65rem;
-    height: 0.65rem;
-    border-radius: 50%;
-    display: inline-block;
-    flex-shrink: 0;
-    animation: status-ping 2s ease-out infinite;
-}
-@keyframes status-ping {
-    0% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.5); }
-    70% { box-shadow: 0 0 0 8px rgba(25, 135, 84, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
-}
-.status-dot.bg-danger { animation-name: status-ping-red; }
-@keyframes status-ping-red {
-    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.5); }
-    70% { box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
-}
-
-@media (max-width: 767.98px) {
-    header {
-        top: 0;
-    }
-    .floating-nav-pill {
-        width: 100%;
-        max-width: none;
-        border-radius: 0;
-        margin-top: 0;
-        margin-bottom: 1rem;
-        padding: 1rem 1.25rem; /* Larger touch target area */
-    }
-    .floating-nav-pill-center {
-        gap: 1.25rem;
-    }
-    .floating-nav-pill-center a {
-        font-size: 1.05rem; /* Better readability */
-    }
-    .nav-logo-img {
-        height: 30px; /* Slightly larger on mobile than it was */
-    }
-}
-
-/* Narrow phones: drop secondary chrome so the primary navigation always fits. */
-@media (max-width: 575.98px) {
-    .floating-nav-pill {
-        gap: .75rem;
-        padding: .75rem 1rem;
-    }
-    .floating-nav-pill-center {
-        gap: 1rem;
-    }
-    .floating-nav-pill .badge {
-        display: none; /* subscription tier stays visible in Account */
-    }
-}
-
-@media (max-width: 479.98px) {
-    .floating-nav-pill .ohrbob-logo-text {
-        display: none; /* keep the brand icon, save the wordmark width */
-    }
-}
-
-.btn-upgrade-morebob {
-    background-color: #fc5d00;
-    border: none;
-    color: #ffffff;
-    font-size: 1.45rem;
-    font-weight: 800;
-    padding: 1.65rem 2rem;
-    border-radius: 16px;
-    position: relative;
-    overflow: hidden;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: 
-        0 8px 24px rgba(252, 93, 0, 0.35),
-        inset 0 1.5px 0 rgba(255, 255, 255, 0.4);
-    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    cursor: pointer;
-    text-align: center;
-}
-
-.btn-upgrade-morebob:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-        0 12px 30px rgba(252, 93, 0, 0.48),
-        inset 0 1.5px 0 rgba(255, 255, 255, 0.55);
-    background-color: #e05300;
-}
-
-.btn-upgrade-morebob:focus-visible {
-    outline: 3px solid #544ff4;
+:focus-visible {
+    outline: 2px solid var(--metro-orange);
     outline-offset: 2px;
-    box-shadow: 0 0 0 4px rgba(84, 79, 244, 0.2);
-}
-.upgrade-card {
-    background: linear-gradient(135deg, #ffffff 0%, #fffdf8 50%, #fff5e6 100%);
-    border: 2px solid #fc5d00;
-    border-radius: 24px;
-    padding: 2.5rem;
-    box-shadow: 
-        0 20px 40px rgba(252, 93, 0, 0.12), 
-        0 8px 20px rgba(0, 25, 87, 0.04),
-        inset 0 1.5px 0 rgba(255, 255, 255, 0.9);
-    position: relative;
-    overflow: hidden;
-}
-
-.upgrade-card::before {
-    content: "";
-    position: absolute;
-    top: -120px;
-    right: -120px;
-    width: 320px;
-    height: 320px;
-    background: radial-gradient(circle, rgba(252, 93, 0, 0.08) 0%, rgba(252, 93, 0, 0) 70%);
-    pointer-events: none;
-    z-index: 1;
-}
-
-.card-content-wrapper {
-    position: relative;
-    z-index: 2;
-}
-
-.card-badge {
-    background: linear-gradient(135deg, #fc5d00 0%, #ff8533 100%);
-    color: white;
-    font-size: 0.75rem;
-    font-weight: bold;
-    text-transform: uppercase;
-    padding: 0.4rem 1.1rem;
-    border-radius: 50px;
-    display: inline-block;
-    margin-bottom: 1.25rem;
-    letter-spacing: 0.5px;
-    box-shadow: 0 4px 10px rgba(252, 93, 0, 0.2);
-}
-
-.card-title-premium {
-    font-family: "Sulphur Point", sans-serif;
-    font-size: 2.75rem;
-    font-weight: 900;
-    margin: 0 0 1rem 0;
-    color: #001957;
-    text-transform: lowercase;
-    letter-spacing: -0.5px;
-    line-height: 1.2;
-}
-
-.card-desc-premium {
-    font-size: 1.15rem;
-    color: #495057;
-    margin-bottom: 2.25rem;
-    line-height: 1.5;
-}
-
-.feature-grid-premium {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.75rem;
-    margin-bottom: 2.75rem;
-}
-
-@media (max-width: 767.98px) {
-    .feature-grid-premium {
-        grid-template-columns: 1fr;
-    }
-}
-
-.feature-item-premium {
-    display: flex;
-    align-items: flex-start;
-}
-
-.feature-icon-premium {
-    color: #198754;
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-right: 0.75rem;
-    line-height: 1;
-}
-
-.feature-title-premium {
-    font-weight: 700;
-    color: #001957;
-    margin-bottom: 0.25rem;
-    font-size: 1.05rem;
-}
-
-.feature-desc-premium {
-    font-size: 0.9rem;
-    color: #6c757d;
-    line-height: 1.4;
-}
-
-.coming-soon-banner {
-    background-color: #fff3cd;
-    border-left: 5px solid #ffc107;
-    border-radius: 14px;
-    padding: 1.35rem;
-    margin-top: 1.75rem;
-    display: flex;
-    align-items: center;
-    color: #664d03;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
-}
-
-.banner-icon-premium {
-    font-size: 2.25rem;
-    margin-right: 1.25rem;
-}
-
-.banner-title-premium {
-    font-weight: bold;
-    margin-bottom: 0.25rem;
-    font-size: 1.05rem;
-}
-
-.banner-desc-premium {
-    font-size: 0.9rem;
-}
-
-.btn-upgrade-morebob .watermark {
-    position: absolute;
-    right: -50px;
-    bottom: -50px;
-    opacity: 0.1;
-    transform: rotate(-15deg);
-    width: 163px;
-    filter: brightness(0) invert(1);
-    pointer-events: none;
-    
-}
-
-.btn-upgrade-morebob span.button-text {
-    position: relative;
-    z-index: 2;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-}
-
-/* ---------------------------------------------------------------------------
-   Dark mode overrides (issue #7).
-   Bootstrap 5.3 provides the base dark palette via [data-bs-theme=dark]; these
-   rules fix the app's custom components and the hard-coded brand utilities that
-   would otherwise be unreadable or out of place in dark mode.
-   --------------------------------------------------------------------------- */
-
-/* Brand text utilities use the theme's dark-mode emphasis colours. */
-[data-bs-theme=dark] .text-primary { color: var(--bs-primary-text-emphasis) !important; }
-[data-bs-theme=dark] .text-secondary { color: var(--bs-secondary-text-emphasis) !important; }
-[data-bs-theme=dark] .text-success { color: var(--bs-success-text-emphasis) !important; }
-[data-bs-theme=dark] .text-info { color: var(--bs-info-text-emphasis) !important; }
-[data-bs-theme=dark] .text-warning { color: var(--bs-warning-text-emphasis) !important; }
-[data-bs-theme=dark] .text-danger { color: var(--bs-danger-text-emphasis) !important; }
-
-/* Floating glass navigation bar. */
-[data-bs-theme=dark] .floating-nav-pill {
-    background: rgba(33, 37, 41, 0.85);
-    border-color: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-}
-[data-bs-theme=dark] .floating-nav-pill-center a { color: var(--bs-body-color); }
-[data-bs-theme=dark] .floating-nav-pill-center a.active { color: var(--bs-primary); }
-
-/* Glass panels. */
-[data-bs-theme=dark] .glass-panel {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.12);
-}
-
-/* "morebob" upgrade card. */
-[data-bs-theme=dark] .upgrade-card {
-    background: linear-gradient(135deg, #2b2f36 0%, #262a30 50%, #2f2a24 100%);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), inset 0 1.5px 0 rgba(255, 255, 255, 0.06);
-}
-[data-bs-theme=dark] .card-title-premium,
-[data-bs-theme=dark] .feature-title-premium { color: var(--bs-body-color); }
-[data-bs-theme=dark] .card-desc-premium,
-[data-bs-theme=dark] .feature-desc-premium { color: var(--bs-secondary-color); }
-[data-bs-theme=dark] .feature-icon-premium { color: var(--bs-success-text-emphasis); }
-[data-bs-theme=dark] .coming-soon-banner {
-    background-color: rgba(253, 178, 0, 0.15);
-    border-left-color: var(--bs-warning);
-    color: var(--bs-warning-text-emphasis);
-}
-
-/* Audio widget cover placeholders (markup lives in theme.css). */
-[data-bs-theme=dark] .audio-widget .audio-meta .track-cover-empty,
-[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-cover-container .expanded-cover-empty {
-    background-color: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.55);
-}
-
-/* The feed actions menu must escape the row: the theme clips the row for its rounded
-   corners. */
-.list-group-item.card-station-feed { overflow: visible; }
-/* Keep an open menu above the sticky editor header (the menu flips up near the top). */
-.card-station-feed:has(.dropdown-menu.show) { z-index: 1055; }
-/* No hover lift: a transformed row becomes the containing block for the fixed-position
-   feed menu, which makes the open menu jump when the pointer leaves the row. */
-.card-station-feed:hover { transform: none; }
-.card-station-feed-cover { border-top-left-radius: 15px; border-bottom-left-radius: 15px; }
-.card-station-feed-watermark { right: 0; bottom: 0; }
-
-/* The lane scrolls horizontally; the vertical padding keeps the card shadows
-   inside the scrollport instead of clipping them. */
-.discover-lane-track { padding: 10px 28px 36px; }
-
-/* The feed row grows with its controls, so the cover must fill that height instead of
-   staying 96px tall and leaving a gap below. */
-.card-station-feed-cover {
-    height: auto;
-    min-height: 96px;
-    align-self: stretch;
-}
-
-/* Feed controls: the actions menu stays next to the span input, also on narrow cards. */
-.card-station-feed-controls-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-left: auto;
-}
-@media (max-width: 575.98px) {
-    .card-station-feed-controls { gap: 6px; }
-    .card-station-feed-controls-right { gap: 6px; }
-}
-
-/* Listen station card: the artwork plays the station, the body opens the editor. */
-.card-station-play {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: #fff;
-    cursor: pointer;
-}
-.card-station-play i {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    padding-left: 2px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.18);
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    backdrop-filter: blur(4px);
-    box-shadow: 0 4px 14px rgba(0, 25, 87, 0.3);
-    font-size: 20px;
-    transition: transform 0.15s ease, background-color 0.15s ease;
-}
-.card-station-play:hover i {
-    transform: scale(1.06);
-    background: rgba(255, 255, 255, 0.28);
-}
-.card-station-play:focus-visible {
-    outline: 2px solid rgba(var(--bs-primary-rgb), 0.7);
-    outline-offset: -2px;
-    border-radius: 14px;
-}
-.card-station-body { cursor: pointer; }
-
-/* Delayed auto-play prompt: bottom-right, above the fixed player bar. */
-.ohrbob-auto-start {
-    position: fixed;
-    right: 16px;
-    bottom: 112px;
-    z-index: 1090;
-    display: none;
-    width: min(320px, calc(100vw - 32px));
-    padding: 14px 16px;
-    overflow: hidden;
-    border-radius: 14px;
-    background: var(--bs-body-bg);
-    color: var(--bs-body-color);
-    border: 1px solid var(--bs-border-color);
-    box-shadow: 0 12px 34px rgba(0, 25, 87, 0.25);
-}
-.ohrbob-auto-start.show { display: block; }
-.ohrbob-auto-start-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: rgba(var(--bs-primary-rgb), 0.15);
-}
-.ohrbob-auto-start-bar-fill {
-    display: block;
-    height: 100%;
-    width: 100%;
-    background: var(--bs-primary);
-}
-.ohrbob-auto-start.show .ohrbob-auto-start-bar-fill {
-    animation: ohrbob-autostart-countdown var(--ohrbob-auto-start-duration, 5s) linear forwards;
-}
-@keyframes ohrbob-autostart-countdown {
-    from { width: 100%; }
-    to { width: 0; }
-}
-.ohrbob-auto-start-text { margin: 0 0 10px; font-weight: 600; }
-.ohrbob-auto-start-actions { display: flex; gap: 8px; justify-content: flex-end; }
-
-/* Selected station: paint the ring on top instead of swapping the 1px border for
-   a 3px one, which shifted the card's content. */
-.card-station.is-active {
-    outline: 3px solid var(--bs-primary);
-    outline-offset: 2px;
-    box-shadow: 0 14px 34px rgba(0, 25, 87, 0.32), 0 0 18px rgba(var(--bs-primary-rgb), 0.35);
-}
-
-/* Station covers stay small squares. The theme stretches them to fill the strip,
-   so a station with one feed showed one full-width cover instead of a thumbnail. */
-.card-station-art { justify-content: flex-start; }
-.card-station-cover { flex: 0 0 72px; width: 72px; }
-
-/* The card fallbacks paint a gradient; give them a solid base too so the white
-   initial stays a dark surface (gradients are ignored by contrast checks/tools). */
-.card-station-cover-empty,
-.card-feed-cover-empty { background-color: #544ff4; }
-
-/* Editor scroll areas: thin grey bar, invisible track. */
-#rotationContainer,
-#resolvedList {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(128, 128, 128, 0.5) transparent;
-}
-#rotationContainer::-webkit-scrollbar,
-#resolvedList::-webkit-scrollbar { width: 6px; }
-#rotationContainer::-webkit-scrollbar-track,
-#resolvedList::-webkit-scrollbar-track { background: transparent; }
-#rotationContainer::-webkit-scrollbar-thumb,
-#resolvedList::-webkit-scrollbar-thumb {
-    background: rgba(128, 128, 128, 0.5);
-    border-radius: 3px;
-}
-#rotationContainer::-webkit-scrollbar-thumb:hover,
-#resolvedList::-webkit-scrollbar-thumb:hover { background: rgba(128, 128, 128, 0.75); }
-#rotationContainer::-webkit-scrollbar-button,
-#resolvedList::-webkit-scrollbar-button { display: none; }
-
-/* The playlist is a fixed-height flex column and the cards clip their content, so
-   without this they shrink to fit instead of scrolling. */
-#resolvedList > .card-episode { flex-shrink: 0; }
-
-/* Episode cards keep the light-theme ink on the light paper surface (the theme
-   hard-codes it), so override the dark-theme (light) text colours here. */
-.card-episode,
-.card-episode .card-episode-title { color: #001957; }
-.card-episode .btn-link { color: rgba(0, 25, 87, 0.5); }
-.card-episode .btn-link:hover,
-.card-episode .btn-link:focus { color: rgba(0, 25, 87, 0.85); }
-.card-episode .btn-outline-success { color: #146c43; border-color: #198754; }
-.card-episode .btn-outline-warning { color: #997404; border-color: #ffc107; }
-.card-episode .btn-outline-danger { color: #b02a37; border-color: #dc3545; }
-.card-episode .btn-outline-secondary { color: #565e64; border-color: #6c757d; }
-
-/* Dark mode: the paper surface would glare, so the episode cards become dark
-   yellow (Bootstrap's dark warning surface) with warm, readable ink. */
-[data-bs-theme=dark] .card-episode {
-    background-color: #332400;
-    border-color: rgba(253, 178, 0, 0.28);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-}
-[data-bs-theme=dark] .card-episode,
-[data-bs-theme=dark] .card-episode .card-episode-title { color: #f3eadb; }
-[data-bs-theme=dark] .card-episode:not(.is-played):hover {
-    box-shadow: 0 9px 24px rgba(0, 0, 0, 0.45);
-}
-[data-bs-theme=dark] .card-episode .card-episode-badge {
-    background-color: rgba(253, 178, 0, 0.16);
-    color: #fed166;
-}
-[data-bs-theme=dark] .card-episode .card-episode-kicker { color: #fed166; }
-[data-bs-theme=dark] .card-episode .card-episode-meta { color: rgba(243, 234, 219, 0.62); }
-[data-bs-theme=dark] .card-episode .btn-link { color: rgba(243, 234, 219, 0.55); }
-[data-bs-theme=dark] .card-episode .btn-link:hover,
-[data-bs-theme=dark] .card-episode .btn-link:focus { color: rgba(243, 234, 219, 0.9); }
-[data-bs-theme=dark] .card-episode .btn-outline-success { color: var(--bs-success-text-emphasis); border-color: var(--bs-success-text-emphasis); }
-[data-bs-theme=dark] .card-episode .btn-outline-warning { color: var(--bs-warning-text-emphasis); border-color: var(--bs-warning-text-emphasis); }
-[data-bs-theme=dark] .card-episode .btn-outline-danger { color: var(--bs-danger-text-emphasis); border-color: var(--bs-danger-text-emphasis); }
-[data-bs-theme=dark] .card-episode .btn-outline-secondary { color: var(--bs-secondary-text-emphasis); border-color: var(--bs-secondary-text-emphasis); }
-
-/* Playing: one step brighter so it still reads as the highlighted row. */
-[data-bs-theme=dark] .card-episode.is-playing {
-    background-color: #403000;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
-}
-
-/* Played rows fall back to a neutral dark surface like the rest of the list. */
-[data-bs-theme=dark] .card-episode.is-played {
-    background-color: #26292e;
-    border-color: rgba(255, 255, 255, 0.08);
-}
-[data-bs-theme=dark] .card-episode.is-played,
-[data-bs-theme=dark] .card-episode.is-played .card-episode-title { color: rgba(243, 234, 219, 0.8); }
-[data-bs-theme=dark] .card-episode.is-played .card-episode-meta { color: rgba(243, 234, 219, 0.45); }
-[data-bs-theme=dark] .card-episode.is-played .card-episode-badge {
-    background-color: rgba(255, 255, 255, 0.07);
-    color: rgba(255, 255, 255, 0.45);
-}
-[data-bs-theme=dark] .card-episode.is-played .card-episode-kicker { color: rgba(255, 255, 255, 0.4); }
-[data-bs-theme=dark] .card-episode.is-played .card-episode-play {
-    background-color: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.4);
-}
-.card-episode .episode-description {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin-bottom: 4px;
-}
-
-/* Landing page screenshot placeholders. */
-[data-bs-theme=dark] .screenshot-card { color: var(--bs-secondary-color); }
-
-/* ohrbob wordmark: the navy/violet letters need lighter inks on dark surfaces. */
-[data-bs-theme=dark] .ohrbob-logo .ohrbob-logo-text .char-1,
-[data-bs-theme=dark] .ohrbob-logo .ohrbob-logo-text .char-4 { color: #a9a5ff; }
-[data-bs-theme=dark] .ohrbob-logo .ohrbob-logo-text .char-2,
-[data-bs-theme=dark] .ohrbob-logo .ohrbob-logo-text .char-6 { color: #e9ecf5; }
-
-/* ---------------------------------------------------------------------------
-   Audio widget (theme.css renders it light-on-white; re-colour for dark).
-   --------------------------------------------------------------------------- */
-[data-bs-theme=dark] .audio-widget::before { background: #1b2130; opacity: 1; }
-[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-info .expanded-title { color: #f1f3f5; }
-[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-info .expanded-artist,
-[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-header .expanded-header-title { color: rgba(255, 255, 255, 0.65); }
-[data-bs-theme=dark] .audio-widget .audio-progress-group .time-elapsed,
-[data-bs-theme=dark] .audio-widget .audio-progress-group .time-total,
-[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-controls-group .expanded-progress-row .time-elapsed,
-[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-controls-group .expanded-progress-row .time-total { color: rgba(255, 255, 255, 0.65); }
-
-/* Glass control buttons. */
-[data-bs-theme=dark] .btn-glass {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.15);
-    color: rgba(255, 255, 255, 0.7);
-    text-shadow: none;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-[data-bs-theme=dark] .btn-glass:hover { background: rgba(255, 255, 255, 0.14); border-color: rgba(255, 255, 255, 0.25); color: #fff; }
-[data-bs-theme=dark] .btn-glass:active { background: rgba(255, 255, 255, 0.18); color: #fff; text-shadow: none; }
-
-/* Slider tracks (unfilled part must be light, not navy). */
-[data-bs-theme=dark] .audio-widget .audio-progress-group .audio-progress::-webkit-slider-runnable-track { background: linear-gradient(to right, #544ff4 0 var(--progress, 0%), rgba(255, 255, 255, 0.18) var(--progress, 0%) 100%); }
-[data-bs-theme=dark] .audio-widget .audio-progress-group .audio-progress::-moz-range-track { background: rgba(255, 255, 255, 0.18); }
-[data-bs-theme=dark] .audio-widget .audio-volume-group .audio-volume::-webkit-slider-runnable-track { background: linear-gradient(to right, #fc5d00 0 var(--progress, 0%), rgba(255, 255, 255, 0.18) var(--progress, 0%) 100%); }
-[data-bs-theme=dark] .audio-widget .audio-volume-group .audio-volume::-moz-range-track { background: rgba(255, 255, 255, 0.18); }
-[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-controls-group .expanded-progress-row .js-expanded-progress::-webkit-slider-runnable-track { background: linear-gradient(to right, #544ff4 0 var(--progress, 0%), rgba(255, 255, 255, 0.18) var(--progress, 0%) 100%); }
-[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-controls-group .expanded-progress-row .js-expanded-progress::-moz-range-track { background: rgba(255, 255, 255, 0.18); }
-
-/* Expanded card + jump cards. */
-[data-bs-theme=dark] .audio-widget .audio-expanded-card {
-    background: rgba(24, 27, 33, 0.97);
-    border-color: rgba(255, 255, 255, 0.12);
-    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
-}
-[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-header { border-bottom-color: rgba(255, 255, 255, 0.1); }
-[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-header .btn-close-expanded { color: rgba(255, 255, 255, 0.75); }
-[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-header .btn-close-expanded:hover { background-color: rgba(255, 255, 255, 0.08); }
-[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .expanded-controls-group {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.06);
-}
-[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .episode-nav-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.08);
-}
-[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .episode-nav-card .episode-nav-label,
-[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .episode-nav-card .episode-nav-title,
-[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .episode-nav-card .episode-nav-artist { color: rgba(255, 255, 255, 0.6); }
-
-/* Collage gaps + the "add station" circle. */
-[data-bs-theme=dark] .collage-container { background-color: var(--bs-tertiary-bg); }
-[data-bs-theme=dark] .discover-plus-circle { background-color: rgba(255, 255, 255, 0.12); }
-[data-bs-theme=dark] .discover-plus-circle i { color: rgba(255, 255, 255, 0.75); }
-[data-bs-theme=dark] .discover-plus-circle:hover { background-color: var(--bs-primary); }
-[data-bs-theme=dark] .discover-plus-circle:hover i { color: #fff; }
-
-/* Landing page: the neutral outline button uses the navy "--bs-dark", which
-   disappears on dark surfaces. */
-[data-bs-theme=dark] .btn-outline-dark {
-    --bs-btn-color: var(--bs-body-color);
-    --bs-btn-border-color: var(--bs-body-color);
-    --bs-btn-hover-color: var(--bs-body-bg);
-    --bs-btn-hover-bg: var(--bs-body-color);
-    --bs-btn-hover-border-color: var(--bs-body-color);
-    --bs-btn-active-color: var(--bs-body-bg);
-    --bs-btn-active-bg: var(--bs-body-color);
-    --bs-btn-active-border-color: var(--bs-body-color);
-}
-
-/* Player: the mute + settings buttons and the expanded backdrop are not covered
-   by .btn-glass, so they kept their hard-coded navy ink on the dark widget. */
-[data-bs-theme=dark] .audio-widget .audio-volume-group .btn-mute,
-[data-bs-theme=dark] .audio-widget .btn-menu { color: rgba(255, 255, 255, 0.7); }
-[data-bs-theme=dark] .audio-widget .audio-volume-group .btn-mute:hover,
-[data-bs-theme=dark] .audio-widget .btn-menu:hover { background: rgba(255, 255, 255, 0.1); }
-[data-bs-theme=dark] .audio-widget .audio-expanded-backdrop { background: rgba(8, 10, 14, 0.6); }
-
-/* Previous/next episode card title (the label + artist were themed, the title was not). */
-[data-bs-theme=dark] .audio-widget .audio-expanded-card .expanded-body .episode-nav-card .episode-nav-title { color: #f1f3f5; }
-
-/* Player: the primary (play) glass button's orange ink on its orange-tinted
-   dark surface was too low-contrast; brighten the ink and the tint. */
-[data-bs-theme=dark] .btn-glass-primary {
-    background: rgba(252, 93, 0, 0.25);
-    border-color: rgba(255, 255, 255, 0.15);
-    color: #ffb27a;
-}
-[data-bs-theme=dark] .btn-glass-primary:hover { background: rgba(252, 93, 0, 0.4); color: #ffd6b0; }
-
-/* Outline buttons: the brand colours are tuned for light surfaces, so on dark
-   their ink/border needs the (lighter) dark-mode emphasis colour. */
-[data-bs-theme=dark] .btn-outline-primary {
-    --bs-btn-color: var(--bs-primary-text-emphasis); --bs-btn-border-color: var(--bs-primary-text-emphasis);
-    --bs-btn-hover-color: #10131a; --bs-btn-hover-bg: var(--bs-primary-text-emphasis); --bs-btn-hover-border-color: var(--bs-primary-text-emphasis);
-    --bs-btn-active-color: #10131a; --bs-btn-active-bg: var(--bs-primary-text-emphasis); --bs-btn-active-border-color: var(--bs-primary-text-emphasis);
-}
-[data-bs-theme=dark] .btn-outline-secondary {
-    --bs-btn-color: var(--bs-secondary-text-emphasis); --bs-btn-border-color: var(--bs-secondary-text-emphasis);
-    --bs-btn-hover-color: #10131a; --bs-btn-hover-bg: var(--bs-secondary-text-emphasis); --bs-btn-hover-border-color: var(--bs-secondary-text-emphasis);
-    --bs-btn-active-color: #10131a; --bs-btn-active-bg: var(--bs-secondary-text-emphasis); --bs-btn-active-border-color: var(--bs-secondary-text-emphasis);
-}
-[data-bs-theme=dark] .btn-outline-success {
-    --bs-btn-color: var(--bs-success-text-emphasis); --bs-btn-border-color: var(--bs-success-text-emphasis);
-    --bs-btn-hover-color: #10131a; --bs-btn-hover-bg: var(--bs-success-text-emphasis); --bs-btn-hover-border-color: var(--bs-success-text-emphasis);
-    --bs-btn-active-color: #10131a; --bs-btn-active-bg: var(--bs-success-text-emphasis); --bs-btn-active-border-color: var(--bs-success-text-emphasis);
-}
-[data-bs-theme=dark] .btn-outline-info {
-    --bs-btn-color: var(--bs-info-text-emphasis); --bs-btn-border-color: var(--bs-info-text-emphasis);
-    --bs-btn-hover-color: #10131a; --bs-btn-hover-bg: var(--bs-info-text-emphasis); --bs-btn-hover-border-color: var(--bs-info-text-emphasis);
-    --bs-btn-active-color: #10131a; --bs-btn-active-bg: var(--bs-info-text-emphasis); --bs-btn-active-border-color: var(--bs-info-text-emphasis);
-}
-[data-bs-theme=dark] .btn-outline-warning {
-    --bs-btn-color: var(--bs-warning-text-emphasis); --bs-btn-border-color: var(--bs-warning-text-emphasis);
-    --bs-btn-hover-color: #10131a; --bs-btn-hover-bg: var(--bs-warning-text-emphasis); --bs-btn-hover-border-color: var(--bs-warning-text-emphasis);
-    --bs-btn-active-color: #10131a; --bs-btn-active-bg: var(--bs-warning-text-emphasis); --bs-btn-active-border-color: var(--bs-warning-text-emphasis);
-}
-[data-bs-theme=dark] .btn-outline-danger {
-    --bs-btn-color: var(--bs-danger-text-emphasis); --bs-btn-border-color: var(--bs-danger-text-emphasis);
-    --bs-btn-hover-color: #10131a; --bs-btn-hover-bg: var(--bs-danger-text-emphasis); --bs-btn-hover-border-color: var(--bs-danger-text-emphasis);
-    --bs-btn-active-color: #10131a; --bs-btn-active-bg: var(--bs-danger-text-emphasis); --bs-btn-active-border-color: var(--bs-danger-text-emphasis);
-}
-
-/* Discover recommendation lanes */
-.discover-lane-track > .col {
-    flex: 0 0 220px;
-    max-width: 220px;
-}
-
-/* Discover cards: show the description over a blurred cover. */
-.podcast-card {
-    overflow: hidden;
-    cursor: pointer;
-}
-.podcast-details-toggle {
-    display: block;
-    width: 100%;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-    -webkit-appearance: none;
-    appearance: none;
-}
-.podcast-cover-media {
-    display: block;
-    aspect-ratio: 1;
-    overflow: hidden;
-    border-bottom: 1px solid var(--bs-border-color);
-    background: var(--bs-secondary-bg);
-}
-.podcast-cover-media > img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: filter .2s ease, transform .2s ease;
-}
-.podcast-cover-placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    background: var(--bs-secondary-bg);
-    transition: filter .2s ease, transform .2s ease;
-}
-.podcast-details-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: flex-end;
-    /* No right padding: the text scrolls at the card edge, not inset by a gutter. */
-    padding: 1rem 0 1rem 1rem;
-    background: linear-gradient(to top, rgba(10, 12, 20, .92), rgba(10, 12, 20, .55) 60%, rgba(10, 12, 20, .2));
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: opacity .2s ease, visibility .2s ease;
-}
-.podcast-details-text {
-    display: block;
-    max-height: 100%;
-    overflow-y: auto;
-    color: #fff;
-    font-size: .85rem;
-    line-height: 1.35;
-    white-space: pre-line;
-    padding-right: 1rem;
-    /* Thin grey bar, invisible track. */
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
-}
-.podcast-details-text::-webkit-scrollbar {
-    width: 6px;
-}
-.podcast-details-text::-webkit-scrollbar-track {
-    background: transparent;
-}
-.podcast-details-text::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.35);
-    border-radius: 3px;
-}
-.podcast-details-text::-webkit-scrollbar-button {
-    display: none;
-}
-.podcast-card.is-open .podcast-details-overlay {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-}
-@media (hover: hover) {
-    .podcast-card:hover .podcast-details-overlay {
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-    }
-}
-.podcast-card.is-open .podcast-cover-media > img,
-.podcast-card.is-open .podcast-cover-media > .podcast-cover-placeholder {
-    filter: blur(6px);
-    transform: scale(1.05);
-}
-@media (hover: hover) {
-    .podcast-card:hover .podcast-cover-media > img,
-    .podcast-card:hover .podcast-cover-media > .podcast-cover-placeholder {
-        filter: blur(6px);
-        transform: scale(1.05);
-    }
-}
-
-/* Fade the category lane out at both edges */
-.category-roster-track {
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 24px), transparent);
-    mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 24px), transparent);
-}
-
-/* Account tab cards */
-.account-tab-link {
-    transition: border-color .15s ease-in-out;
 }
 
 /* Thin progress bar for htmx requests (see site.js) */
@@ -1130,19 +53,457 @@ html:has(.radio-landing-container) {
     opacity: 0;
     z-index: 2000;
     pointer-events: none;
-    background-color: var(--bs-primary, #fc5d00);
+    background-color: var(--metro-orange);
     transition: width .2s ease, opacity .3s ease;
 }
+
 #htmx-progress.is-loading {
     width: 80%;
     opacity: 1;
     transition: width 3s cubic-bezier(.1, .7, .3, 1), opacity .1s ease;
 }
+
 #htmx-progress.is-done {
     width: 100%;
     opacity: 0;
 }
-.account-tab-link:hover,
-.account-tab-link.active {
-    border-color: var(--bs-primary);
+
+/* --------------------------------------------------------------------------
+   Legacy profiles.css — folded in unchanged (restyled in a later task).
+   -------------------------------------------------------------------------- */
+
+.profile-avatar {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: clamp(3rem, 10vw, 6rem);
+    font-weight: bold;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.profile-color-picker {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.profile-color-swatches {
+    display: grid;
+    grid-template-columns: repeat(11, 2rem);
+    gap: .5rem;
+}
+
+.profile-color-swatch {
+    position: relative;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.profile-color-swatch.is-selected {
+    box-shadow: 0 0 0 2px var(--bs-body-bg), 0 0 0 4px var(--bs-body-color);
+}
+
+.profile-color-custom {
+    overflow: hidden;
+    background: conic-gradient(#ef4444, #f59e0b, #22c55e, #0891b2, #3b82f6, #8b5cf6, #ec4899, #ef4444);
+}
+
+.profile-color-custom input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.profile-color-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: .75rem;
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+/* --------------------------------------------------------------------------
+   Legacy collage.css — folded in unchanged (restyled in a later task).
+   -------------------------------------------------------------------------- */
+
+.collage-container {
+    display: grid;
+    gap: 2px;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background-color: #f8f9fa;
+    overflow: hidden;
+}
+.collage-grid-1 { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+.collage-grid-2 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.collage-grid-3 { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); }
+.collage-grid-4 { grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); }
+
+.collage-item {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.collage-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #6c757d;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: clamp(1rem, 2vw, 2rem);
+}
+
+.station-check-overlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 2rem;
+    color: #0d6efd;
+    background-color: white;
+    border-radius: 50%;
+    line-height: 1;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+
+.btn-check:checked + label .station-check-overlay {
+    opacity: 1;
+}
+
+.btn-check:checked + label .card {
+    border: 2px solid #0d6efd !important;
+}
+.cursor-pointer { cursor: pointer; }
+
+.discover-plus-circle {
+    width: 120px;
+    height: 120px;
+    background-color: #dee2e6; /* Soft grey circle */
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.discover-plus-circle i {
+    font-size: 3.5rem;
+    color: #6c757d; /* Medium grey icon color */
+    transition: all 0.2s ease-in-out;
+}
+
+/* Hover effects for a big friendly feel */
+.discover-plus-circle:hover {
+    background-color: #6c757d; /* Darker grey background on hover */
+    transform: scale(1.08); /* Gently pops out */
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.discover-plus-circle:hover i {
+    color: #ffffff; /* White plus symbol on hover */
+}
+
+/* --------------------------------------------------------------------------
+   Shell — flat Metro app bar, footer, profile menu, toasts
+   -------------------------------------------------------------------------- */
+
+.app-header {
+    background: var(--metro-canvas);
+    color: var(--metro-ink);
+    border-bottom: 1px solid var(--metro-hairline);
+}
+
+.app-header__inner {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+.metro-brandline {
+    flex: 0 0 auto;
+    color: var(--metro-ink);
+    text-decoration: none;
+}
+
+.metro-brandline:hover {
+    color: var(--metro-ink);
+}
+
+.app-nav {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    margin-left: 12px;
+}
+
+.app-nav-link {
+    display: inline-block;
+    padding: 6px 0 8px;
+    border-bottom: 2px solid transparent;
+    color: var(--metro-muted);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: color var(--metro-transition), border-color var(--metro-transition);
+}
+
+.app-nav-link:hover {
+    color: var(--metro-ink);
+}
+
+.app-nav-link.active {
+    color: var(--metro-ink);
+    border-bottom-color: var(--metro-orange);
+}
+
+.app-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+}
+
+.app-actions .dropdown-menu {
+    min-width: 220px;
+}
+
+.app-profile-tier {
+    border: 1px solid var(--metro-hairline);
+    background: var(--metro-tile);
+    color: var(--metro-muted);
+    font-size: 0.5625rem;
+    padding: 3px 5px;
+}
+
+.app-profile-tier.is-morebob {
+    border-color: var(--metro-yellow);
+    background: var(--metro-yellow);
+    color: var(--metro-navy);
+}
+
+/* The header avatar stays a 34 px square even though the folded profile page
+   styles size .profile-avatar for the large profile cards. */
+.app-header .profile-avatar {
+    width: 34px;
+    height: 34px;
+    aspect-ratio: auto;
+    font-size: 17px;
+    text-shadow: none;
+}
+
+.profile-menu .profile-avatar {
+    width: 24px;
+    height: 24px;
+    aspect-ratio: auto;
+    font-size: 12px;
+    text-shadow: none;
+}
+
+/* Night pages carry the dark tokens on the body; keep the shell flat in both
+   themes instead of reintroducing light glass surfaces. */
+body.metro-night .app-header {
+    background: var(--metro-canvas);
+    border-color: var(--metro-hairline);
+}
+
+.metro-night .ohrbob-logo .char-1,
+.metro-night .ohrbob-logo .char-2,
+.metro-night .ohrbob-logo .char-4,
+.metro-night .ohrbob-logo .char-6,
+.app-footer .ohrbob-logo .char-1,
+.app-footer .ohrbob-logo .char-2,
+.app-footer .ohrbob-logo .char-4,
+.app-footer .ohrbob-logo .char-6 {
+    color: var(--metro-night-text);
+}
+
+.metro-night .ohrbob-logo .char-3,
+.metro-night .ohrbob-logo .char-5,
+.app-footer .ohrbob-logo .char-3,
+.app-footer .ohrbob-logo .char-5,
+[data-bs-theme="dark"] .app-header .ohrbob-logo .char-3,
+[data-bs-theme="dark"] .app-header .ohrbob-logo .char-5 {
+    color: var(--metro-orange-soft);
+}
+
+[data-bs-theme="dark"] .app-header .ohrbob-logo .char-1,
+[data-bs-theme="dark"] .app-header .ohrbob-logo .char-2,
+[data-bs-theme="dark"] .app-header .ohrbob-logo .char-4,
+[data-bs-theme="dark"] .app-header .ohrbob-logo .char-6 {
+    color: var(--metro-night-text);
+}
+
+.app-footer {
+    background: var(--metro-navy);
+    color: var(--metro-night-text);
+    border-top: 1px solid var(--metro-night-border);
+}
+
+body.metro-night .app-footer {
+    background: var(--metro-navy);
+    border-color: var(--metro-night-border);
+}
+
+.app-footer__inner {
+    display: grid;
+    grid-template-columns: minmax(240px, 1.6fr) repeat(4, minmax(110px, 1fr));
+    gap: 32px;
+    padding-top: 40px;
+    padding-bottom: 28px;
+}
+
+.app-footer__brand p {
+    max-width: 34ch;
+    margin: 14px 0 0;
+    color: var(--metro-night-muted);
+    font-size: 0.75rem;
+    line-height: 1.6;
+}
+
+.app-footer__title {
+    margin: 0 0 12px;
+    color: var(--metro-night-text);
+    font-family: var(--metro-body);
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.app-footer__links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.app-footer__link {
+    color: var(--metro-night-muted);
+    font-size: 0.75rem;
+    text-decoration: none;
+}
+
+.app-footer__link:hover,
+.app-footer__link:focus {
+    color: var(--metro-night-text);
+}
+
+.app-footer__legal {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    padding-top: 16px;
+    padding-bottom: 20px;
+    border-top: 1px solid var(--metro-night-border);
+    color: var(--metro-night-faint);
+    font-size: 0.6875rem;
+}
+
+.app-footer__legal-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.app-footer__legal .app-footer__link {
+    color: var(--metro-night-faint);
+    font-size: 0.6875rem;
+}
+
+.app-footer__legal .app-footer__link:hover,
+.app-footer__legal .app-footer__link:focus {
+    color: var(--metro-night-text);
+}
+
+/* Toast: canvas surface with a 4 px status left border. */
+.metro-toast {
+    width: min(360px, calc(100vw - 32px));
+    border: 1px solid var(--metro-hairline);
+    border-left: 4px solid var(--metro-orange);
+    border-radius: 0;
+    background: var(--metro-tile);
+    color: var(--metro-ink);
+    box-shadow: none;
+}
+
+.metro-toast.is-success {
+    border-left-color: var(--metro-orange);
+}
+
+.metro-toast.is-danger {
+    border-left-color: var(--bs-danger);
+}
+
+.metro-toast .toast-body {
+    padding: 12px 14px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.metro-toast .btn-close {
+    margin: 0 12px 0 0;
+}
+
+@media (max-width: 899.98px) {
+    .app-footer__inner {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .app-footer__brand {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .app-header__inner {
+        gap: 16px;
+    }
+
+    .app-nav {
+        display: none;
+    }
+
+    .app-footer__inner {
+        gap: 24px;
+        padding-top: 32px;
+    }
+
+    .app-footer__legal {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 479.98px) {
+    .metro-brandline .ohrbob-logo {
+        display: none;
+    }
 }

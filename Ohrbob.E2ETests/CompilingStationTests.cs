@@ -371,9 +371,9 @@ public class CompilingStationTests : PageTest
         var toastBody = Page.Locator("#toast-body-text");
         await Expect(toastBody).ToHaveTextAsync("Station limit reached for Free tier.", new() { Timeout = 10000 });
 
-        // Verify that the Toast container has the red background class
+        // Verify that the Toast container has the danger status class
         var toast = Page.Locator("#liveToast");
-        await Expect(toast).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("bg-danger"));
+        await Expect(toast).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("is-danger"));
 
         // Crucial: Verify that the form modal remains fully visible and intact!
         await Expect(modal).ToBeVisibleAsync();
@@ -391,7 +391,7 @@ public class CompilingStationTests : PageTest
 
         // Verify that the green success Toast notification appears!
         await Expect(toastBody).ToHaveTextAsync("Added podcast to: Station 1", new() { Timeout = 10000 });
-        await Expect(toast).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("bg-success"));
+        await Expect(toast).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("is-success"));
 
         // Verify that the modal is now closed
         await Expect(modal).Not.ToBeVisibleAsync();

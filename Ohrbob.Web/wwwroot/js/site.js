@@ -8,12 +8,12 @@ document.body.addEventListener('showToast', function (evt) {
     if (toastEl && toastBody && evt.detail && evt.detail.message) {
         toastBody.textContent = evt.detail.message;
         
-        // Color based on type (success / danger)
-        toastEl.classList.remove('bg-danger', 'bg-success');
+        // Status accent based on type (success / danger)
+        toastEl.classList.remove('is-danger', 'is-success');
         if (evt.detail.type === 'success') {
-            toastEl.classList.add('bg-success');
+            toastEl.classList.add('is-success');
         } else {
-            toastEl.classList.add('bg-danger');
+            toastEl.classList.add('is-danger');
         }
         
         if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
@@ -503,7 +503,7 @@ window.initMoveFeed = function (sourceStationId) {
 (function () {
     function syncActiveNav() {
         var path = window.location.pathname.toLowerCase();
-        document.querySelectorAll('.floating-nav-pill-center a').forEach(function (link) {
+        document.querySelectorAll('.app-nav-link').forEach(function (link) {
             var href = new URL(link.href, window.location.origin).pathname.toLowerCase();
             var active = href === '/' ? path === '/' : (path === href || path.indexOf(href + '/') === 0);
             link.classList.toggle('active', active);

@@ -450,7 +450,7 @@ public class AudioPlaybackTests : PageTest
         }
 
         // Click the "Discover" link in the header
-        await Page.ClickAsync(".floating-nav-pill-center a:has-text(\"Discover\")");
+        await Page.ClickAsync(".app-nav-link:has-text(\"Discover\")");
 
         // Wait for the URL to change to /Discover
         await Page.WaitForURLAsync("**/Discover", new() { Timeout = 10000 });
@@ -461,7 +461,7 @@ public class AudioPlaybackTests : PageTest
         Assert.That(isPlaying, Is.True);
 
         // Click the "Listen" link in the header
-        await Page.ClickAsync(".floating-nav-pill-center a:has-text(\"Listen\")");
+        await Page.ClickAsync(".app-nav-link:has-text(\"Listen\")");
 
         // Verify that the player is still playing
         await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 10000 });

@@ -44,7 +44,7 @@ class AudioWidget extends HTMLElement {
     }
 
     connectedCallback() {
-        this.classList.add('audio-widget', 'glass-panel', 'glass-edge');
+        this.classList.add('audio-widget');
         this.render();
     }
 
