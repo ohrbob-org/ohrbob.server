@@ -70,6 +70,24 @@ public class MetroShellTests : PageTest
     }
 
     [Test]
+    public async Task Shell_SelfHostsHtmxWithoutCdnScripts()
+    {
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        var html = await Page.ContentAsync();
+        Assert.That(html, Does.Not.Contain("unpkg.com"),
+            "The shell must not load htmx from a third-party CDN");
+
+        var scripts = await Page.EvaluateAsync<string[]>(
+            "() => Array.from(document.scripts).map(s => s.src)");
+        Assert.That(scripts.Any(s => s.Contains("/lib/htmx/htmx.min.js")), Is.True,
+            "The local htmx bundle must be referenced");
+
+        Assert.That(await Page.EvaluateAsync<bool>("() => typeof window.htmx !== 'undefined'"), Is.True,
+            "The local htmx bundle must load and execute");
+    }
+
+    [Test]
     public async Task Toast_UsesMetroStatusClasses()
     {
         await Page.GotoAsync(_factory.ServerAddress);

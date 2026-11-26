@@ -105,10 +105,19 @@ public class ProfilesTests : PageTest
 
         await Page.WaitForURLAsync("**/Profiles");
 
-        await Expect(Page.Locator(".profile-avatar").First)
+        var cardAvatar = Page.Locator("#main-content .profile-avatar[data-profile-id]").First;
+        await Expect(cardAvatar)
             .ToHaveCSSAsync("background-color", "rgb(59, 130, 246)");
-        await Expect(Page.Locator("#profileDropdown div.rounded-circle").First)
+
+        var navAvatar = Page.Locator("#profileDropdown .profile-avatar[data-profile-id]").First;
+        await Expect(navAvatar)
             .ToHaveCSSAsync("background-color", "rgb(59, 130, 246)");
+
+        // The header is outside #main-content, so the new colour can only reach it
+        // through profile-color.js reacting to the boosted edit/htmx swap.
+        var inlineNavBackground = await navAvatar.EvaluateAsync<string>("el => el.style.backgroundColor");
+        Assert.That(inlineNavBackground, Is.EqualTo("rgb(59, 130, 246)"),
+            "The header avatar must be synced by the htmx swap handler");
     }
 
     private static async Task SetAccountTierAsync(string accountId, SubscriptionTier tier)

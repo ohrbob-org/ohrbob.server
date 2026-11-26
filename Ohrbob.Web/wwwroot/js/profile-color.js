@@ -30,7 +30,9 @@
     // The nav lives outside the HTMX-swapped content, so refresh its avatars from the cards.
     function syncNavColors() {
         document.querySelectorAll('#profileDropdown [data-profile-id]').forEach(function (avatar) {
-            var card = document.querySelector('.profile-avatar[data-profile-id="' + avatar.dataset.profileId + '"]');
+            // The header avatar also uses .profile-avatar now, so only read the
+            // colour from the swapped page content, never from the header itself.
+            var card = document.querySelector('#main-content .profile-avatar[data-profile-id="' + avatar.dataset.profileId + '"]');
             if (card) avatar.style.backgroundColor = getComputedStyle(card).backgroundColor;
         });
     }
