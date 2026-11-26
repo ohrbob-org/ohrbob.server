@@ -4,63 +4,75 @@
     var query = ViewBag.Query as string;
     var hasQuery = !string.IsNullOrWhiteSpace(query);
     var categoryRoster = ViewBag.CategoryRoster as IReadOnlyList<string> ?? Array.Empty<string>();
+    var searchResults = ViewBag.SearchResults as List<Ohrbob.Web.Models.PodcastSearchResult>;
 }
 
-<div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-12 col-md-8 mx-auto">
-            @* The nav highlight carries the title visually; keep it for screen readers. *@
-            <h2 class="visually-hidden">Discover Podcasts</h2>
-            <div class="input-group input-group-lg">
-                <span class="input-group-text"><i class="bi bi-search"></i></span>
-                <input type="search"
-                       id="discover-search"
-                       class="form-control"
-                       placeholder="Search podcasts by name, author..."
-                       name="query"
-                       value="@query"
-                       hx-get="/Discover/Search"
-                       hx-target="#search-results"
-                       hx-trigger="keyup changed delay:500ms, search" />
-            </div>
-        </div>
+<div class="page-head discover-head">
+    <div class="page-head__text">
+        <p class="metro-kicker">find something new</p>
+        <h1 class="metro-title metro-title--compact">discover</h1>
+        <p class="metro-hint">Search the podcast index or browse a shelf, then add any show to a station.</p>
     </div>
+</div>
 
-    <div id="recommendation-lanes" class="mb-4 @(hasQuery ? "d-none" : "")">
-        @foreach (var lane in Model.Where(l => l.Podcasts.Any()))
-        {
-            <section class="discover-lane mb-4" aria-label="@lane.Category recommendations">
-                <h5 class="mb-2">@lane.Category</h5>
-                <div class="discover-lane-track d-flex flex-nowrap gap-3 overflow-auto">
-                    @foreach (var podcast in lane.Podcasts)
-                    {
-                        @await Html.PartialAsync("_PodcastCard", podcast)
-                    }
-                </div>
-            </section>
-        }
-    </div>
+<div class="discover-search">
+    <i class="bi bi-search discover-search__icon" aria-hidden="true"></i>
+    <label class="visually-hidden" for="discover-search">Search podcasts</label>
+    <input type="search"
+           id="discover-search"
+           class="discover-search__input"
+           placeholder="Search podcasts by name, author..."
+           name="query"
+           value="@query"
+           autocomplete="off"
+           hx-get="/Discover/Search"
+           hx-target="#search-results"
+           hx-trigger="keyup changed delay:500ms, search" />
+</div>
 
-    @if (categoryRoster.Count > 0)
+<div id="recommendation-lanes" class="discover-lanes @(hasQuery ? "d-none" : "")">
+    @foreach (var lane in Model.Where(l => l.Podcasts.Any()))
     {
-        <div id="category-roster" class="mb-4">
-            <h5 class="mb-2">Browse categories</h5>
-            <div class="category-roster-track d-flex flex-nowrap gap-2 overflow-auto py-2">
-                @foreach (var category in categoryRoster)
+        <section class="discover-lane" aria-label="@lane.Category recommendations">
+            <div class="discover-lane__head">
+                <h2 class="discover-lane__title">@lane.Category</h2>
+            </div>
+            <div class="discover-lane-track">
+                @foreach (var podcast in lane.Podcasts)
                 {
-                    <a class="btn btn-outline-secondary rounded-pill flex-shrink-0 @((hasQuery && query == category) ? "active" : "")" href="@Url.Action("Index", "Discover", new { q = category })">@category</a>
+                    @await Html.PartialAsync("_PodcastCard", podcast)
                 }
             </div>
-        </div>
+        </section>
     }
+</div>
 
-    <div id="search-results" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        @if (ViewBag.SearchResults is List<Ohrbob.Web.Models.PodcastSearchResult> searchResults)
+@if (categoryRoster.Count > 0)
+{
+    <section id="category-roster" class="discover-categories">
+        <div class="discover-lane__head">
+            <h2 class="discover-lane__title">browse categories</h2>
+        </div>
+        <div class="category-roster-track">
+            @foreach (var category in categoryRoster)
+            {
+                var isActive = hasQuery && query == category;
+                <a class="category-chip @(isActive ? "is-active" : "")"
+                   href="@Url.Action("Index", "Discover", new { q = category })"
+                   aria-current="@(isActive ? "true" : null)">@category</a>
+            }
+        </div>
+    </section>
+}
+
+<section class="discover-results" aria-label="Search results">
+    <div id="search-results" class="discover-results-grid">
+        @if (searchResults is not null)
         {
             @await Html.PartialAsync("_SearchResults", searchResults)
         }
     </div>
-</div>
+</section>
 
 @* Loaded with the view content so htmx re-executes it after a boosted navigation (which drops layout sections). *@
 <script src="~/js/discover.js" asp-append-version="true"></script>

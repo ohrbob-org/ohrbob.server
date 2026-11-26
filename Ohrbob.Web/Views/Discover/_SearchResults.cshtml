@@ -2,12 +2,13 @@
 
 @if (Model == null || !Model.Any())
 {
-    <div class="col-12 text-center text-muted">
-        <p>No podcasts found.</p>
-    </div>
+    <p class="discover-results__empty">No podcasts found.</p>
 }
 else
 {
+    <div class="discover-results__head">
+        <h2 class="discover-results__title">results</h2>
+    </div>
     @foreach (var podcast in Model)
     {
         @await Html.PartialAsync("_PodcastCard", podcast)
