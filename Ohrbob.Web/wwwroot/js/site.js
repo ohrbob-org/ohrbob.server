@@ -518,6 +518,27 @@ window.initMoveFeed = function (sourceStationId) {
     window.addEventListener('popstate', syncActiveNav);
 })();
 
+// Always-dark views carry the night tokens on <body> during a full render. A
+// boosted navigation only swaps #main-content, so mirror the swapped view's
+// data-body-class marker onto <body> (and drop it when the next view has none).
+(function () {
+    var NIGHT_CLASS = 'metro-night';
+
+    function syncBodyTheme() {
+        var marker = document.querySelector('#main-content [data-body-class]');
+        var wanted = marker ? marker.getAttribute('data-body-class').trim() : '';
+        var hasNight = document.body.classList.contains(NIGHT_CLASS);
+        var wantsNight = wanted === NIGHT_CLASS;
+
+        if (wantsNight === hasNight) return;
+        if (wantsNight) document.body.classList.add(NIGHT_CLASS);
+        else document.body.classList.remove(NIGHT_CLASS);
+    }
+
+    document.addEventListener('htmx:afterSettle', syncBodyTheme);
+    document.addEventListener('htmx:historyRestore', syncBodyTheme);
+})();
+
 // Thin bar at the top of the screen while htmx requests are in flight.
 // shortcut: only htmx requests (boosted nav, hx-get/post). The hand-written
 // fetch calls in this file do not drive it; upgrade if those need feedback too.

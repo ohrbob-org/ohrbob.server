@@ -68,20 +68,63 @@ public class LandingPageTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
 
         await Expect(Page.Locator("body.metro-night")).ToHaveCountAsync(1);
+        await Expect(Page.Locator(".landing-page.metro-night")).ToHaveCountAsync(1);
         await Expect(Page.Locator(".landing-hero .landing-title#landing-title")).ToBeVisibleAsync();
+        Assert.That(await Page.Locator(".screenshot-card").CountAsync(), Is.GreaterThanOrEqualTo(1),
+            "the poster must render at least one screenshot to measure");
 
         var m = await Page.EvaluateAsync<double[]>(@"() => {
-            const body = getComputedStyle(document.body);
+            const page = getComputedStyle(document.querySelector('.landing-page'));
             const shot = document.querySelector('.screenshot-card');
             const title = getComputedStyle(document.querySelector('.landing-title'));
-            const m = body.backgroundColor.match(/[\d.]+/g).slice(0, 3).map(Number);
+            const m = page.backgroundColor.match(/[\d.]+/g).slice(0, 3).map(Number);
             return [ (0.2126*m[0] + 0.7152*m[1] + 0.0722*m[2]) / 255,
-                     parseFloat(shot ? getComputedStyle(shot).borderRadius : '0'),
+                     parseFloat(getComputedStyle(shot).borderRadius),
                      parseFloat(title.fontSize) ];
         }");
         Assert.That(m[0], Is.LessThan(0.25), "landing background must be dark");
         Assert.That(m[1], Is.EqualTo(0), "screenshots must be square");
         Assert.That(m[2], Is.GreaterThan(56), "hero title must be display-sized");
+    }
+
+    [Test]
+    public async Task LandingPage_StaysDarkAcrossBoostedNavigation()
+    {
+        _factory.CreateClient();
+        await Page.EmulateMediaAsync(new() { ColorScheme = ColorScheme.Light });
+        await Context.AddCookiesAsync(new[]
+        {
+            new Cookie { Name = "ohrbob_theme", Value = "light", Url = _factory.ServerAddress }
+        });
+
+        // Start on a normal marketing page: no night tokens on <body> yet.
+        await Page.GotoAsync($"{_factory.ServerAddress}/Home/Faq");
+        await Expect(Page.Locator("body")).Not.ToHaveClassAsync(
+            new System.Text.RegularExpressions.Regex(@"\bmetro-night\b"));
+
+        // A marker on the header survives only if the navigation is boosted:
+        // htmx swaps #main-content instead of reloading the whole document.
+        await Page.EvaluateAsync(
+            "() => { document.querySelector('.app-header').dataset.boostMarker = 'kept'; }");
+        await Page.ClickAsync(".app-header .metro-brandline");
+        await Expect(Page.Locator("h1#landing-title")).ToBeVisibleAsync();
+        await Expect(Page.Locator(".app-header")).ToHaveAttributeAsync("data-boost-marker", "kept");
+
+        // The swapped poster must re-apply the night body class and stay dark.
+        await Expect(Page.Locator("body")).ToHaveClassAsync(
+            new System.Text.RegularExpressions.Regex(@"\bmetro-night\b"));
+        var dark = await Page.EvaluateAsync<bool>(@"() => {
+            const cs = getComputedStyle(document.querySelector('.landing-page'));
+            const m = cs.backgroundColor.match(/[\d.]+/g).slice(0, 3).map(Number);
+            return (0.2126*m[0] + 0.7152*m[1] + 0.0722*m[2]) / 255 < 0.25;
+        }");
+        Assert.That(dark, Is.True, "the boosted poster must keep the night tokens");
+
+        // Leaving through another boosted link must clear the body class again.
+        await Page.ClickAsync(".app-footer a[href='/Home/Features']");
+        await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/Home/Features/?$"));
+        await Expect(Page.Locator("body")).Not.ToHaveClassAsync(
+            new System.Text.RegularExpressions.Regex(@"\bmetro-night\b"));
     }
 
     [Test]

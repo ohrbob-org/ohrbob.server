@@ -660,6 +660,11 @@ body.metro-night .app-footer {
     align-items: center;
 }
 
+/* A step without a screenshot fills the whole row. */
+.step-content.text-only {
+    grid-template-columns: minmax(0, 1fr);
+}
+
 .radio-step.step-left .step-text-box {
     order: 1;
 }
@@ -806,7 +811,26 @@ body.metro-night .app-footer {
     min-width: 520px;
     margin: 0;
     border-collapse: collapse;
+    table-layout: fixed;
     color: var(--metro-night-muted);
+    /* The morebob rule is painted behind the cells, so the colspan row on
+       "App support" cannot interrupt it. Columns are pinned 50/25/25. */
+    background-image: linear-gradient(
+        to right,
+        transparent calc(75% - 4px),
+        var(--metro-orange) calc(75% - 4px),
+        var(--metro-orange) 75%,
+        transparent 75%
+    );
+}
+
+.landing-tier-col--label {
+    width: 50%;
+}
+
+.landing-tier-col--free,
+.landing-tier-col--premium {
+    width: 25%;
 }
 
 .landing-tier-table > :not(caption) > * > * {
@@ -831,11 +855,6 @@ body.metro-night .app-footer {
 
 .landing-tier-table > tbody > tr:last-child > * {
     border-bottom: 0;
-}
-
-.landing-tier-table > thead > tr > th:nth-child(3),
-.landing-tier-table > tbody > tr > td:nth-child(3) {
-    border-left: 4px solid var(--metro-orange);
 }
 
 .landing-tier-table strong {
