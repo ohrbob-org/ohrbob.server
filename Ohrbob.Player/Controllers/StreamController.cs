@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Ohrbob.Player.Services;
 using Ohrbob.Player.Configuration;
 using Ohrbob.Server.Shared.Data;
+using Ohrbob.Server.Shared.Helpers;
 using MongoDB.Driver;
 using Ohrbob.Server.Shared.Requests;
 
@@ -104,6 +105,7 @@ public class StreamController : ControllerBase
             {
                 stationId = station.Id,
                 profileName = profile.Name,
+                profileColor = ProfileColors.Resolve(profile),
                 stationName = station.Name,
                 isCompiling = isCompiling,
                 isEmpty = !isCompiling,
@@ -127,6 +129,7 @@ public class StreamController : ControllerBase
         { 
             stationId = station.Id,
             profileName = profile.Name,
+            profileColor = ProfileColors.Resolve(profile),
             stationName = station.Name, 
             streamEnabled,
             current = new {
@@ -161,33 +164,78 @@ public class StreamController : ControllerBase
     }
 
     [HttpGet("playlist")]
-    public async Task<IActionResult> GetPlaylist([FromQuery] int limit = 50)
+    public async Task<IActionResult> GetPlaylist(
+        [FromQuery] int limit = 50,
+        [FromQuery] bool includeCompleted = false)
     {
         var profile = await GetProfile();
         if (profile == null) return Unauthorized();
 
         var station = await GetActiveStationAsync(profile);
         if (station == null)
-            return Ok(new { stationId = (string?)null, hostPaceEnabled = false, isAging = false, episodes = Array.Empty<object>() });
+        {
+            return Ok(new
+            {
+                stationId = (string?)null,
+                hostPaceEnabled = false,
+                isAging = false,
+                includesCompleted = includeCompleted,
+                episodes = Array.Empty<object>()
+            });
+        }
 
         var current = await ResolveCurrentEpisodeAsync(station, profile);
+        var feeds = await _feeds.Find(f => station.Feeds.Contains(f.Url)).ToListAsync();
+        string Artist(Episode ep) =>
+            feeds.FirstOrDefault(f => f.Url == ep.FeedUrl || f.Id == ep.FeedId)?.Title ?? station.Name;
+
+        if (includeCompleted)
+        {
+            // The metro playlist shows the whole station, including episodes the
+            // listener already finished, so they can be marked uncompleted again.
+            var stationEpisodes = await _episodes.Find(e => station.Feeds.Contains(e.FeedUrl)).ToListAsync();
+            var hostCompleted = await _listenStateService.GetHostCompletedEpisodeIdsAsync(station, stationEpisodes);
+            var allowed = HostPaceHelper.GetAllowedEpisodes(station, profile.Id, stationEpisodes, hostCompleted);
+            var completed = (await _listenStateService.GetListenedEpisodeIdsAsync(
+                profile.Id, allowed.Select(e => e.Id))).ToHashSet();
+
+            var ordered = PlaybackStrategyHelper.GetOrderedPlaylist(
+                allowed, station, new HashSet<string>(), profile.LastActiveEpisodeId);
+
+            var completeList = ordered
+                .Select(e => Track(e, current?.Id == e.Id, Artist(e), completed.Contains(e.Id)))
+                .ToList();
+
+            return Ok(new
+            {
+                stationId = station.Id,
+                hostPaceEnabled = station.HostPaceEnabled,
+                isAging = station.IsAging,
+                includesCompleted = true,
+                episodes = completeList
+            });
+        }
+
         var take = Math.Clamp(limit, 1, 100);
         var upcoming = current == null
             ? new List<Episode>()
             : await _playbackStrategy.GetUpcomingEpisodesAsync(station, current.Id, profile, Math.Max(0, take - 1));
 
-        var feeds = await _feeds.Find(f => station.Feeds.Contains(f.Url)).ToListAsync();
-        string Artist(Episode ep) =>
-            feeds.FirstOrDefault(f => f.Url == ep.FeedUrl || f.Id == ep.FeedId)?.Title ?? station.Name;
-
         var episodes = new List<object>();
         if (current != null)
-            episodes.Add(Track(current, true, Artist(current)));
-        episodes.AddRange(upcoming.Select(e => Track(e, false, Artist(e))));
+            episodes.Add(Track(current, true, Artist(current), false));
+        episodes.AddRange(upcoming.Select(e => Track(e, false, Artist(e), false)));
 
-        return Ok(new { stationId = station.Id, hostPaceEnabled = station.HostPaceEnabled, isAging = station.IsAging, episodes });
+        return Ok(new
+        {
+            stationId = station.Id,
+            hostPaceEnabled = station.HostPaceEnabled,
+            isAging = station.IsAging,
+            includesCompleted = false,
+            episodes
+        });
 
-        object Track(Episode ep, bool isCurrent, string artist) => new
+        object Track(Episode ep, bool isCurrent, string artist, bool isCompleted) => new
         {
             episodeId = ep.Id,
             title = ep.Title,
@@ -196,8 +244,48 @@ public class StreamController : ControllerBase
             coverUrl = string.IsNullOrWhiteSpace(ep.ImageUrl) ? null : ep.ImageUrl,
             streamUri = ep.AudioUrl,
             publishedAt = ep.PublishedAt,
-            isCurrent
+            isCurrent,
+            isCompleted
         };
+    }
+
+    [HttpPost("episodes/{episodeId}/complete")]
+    public Task<IActionResult> CompleteEpisode(string episodeId) =>
+        SetEpisodeCompletionAsync(episodeId, isCompleted: true);
+
+    [HttpPost("episodes/{episodeId}/uncomplete")]
+    public Task<IActionResult> UncompleteEpisode(string episodeId) =>
+        SetEpisodeCompletionAsync(episodeId, isCompleted: false);
+
+    private async Task<IActionResult> SetEpisodeCompletionAsync(string episodeId, bool isCompleted)
+    {
+        var profile = await GetProfile();
+        if (profile == null) return Unauthorized();
+
+        var station = await GetActiveStationAsync(profile);
+        if (station == null) return BadRequest();
+
+        var episode = await _episodes
+            .Find(e => e.Id == episodeId && station.Feeds.Contains(e.FeedUrl))
+            .FirstOrDefaultAsync();
+        if (episode == null) return NotFound();
+
+        // Host-paced listeners may only complete episodes the host has released.
+        if (isCompleted && !await _playbackStrategy.IsEpisodePlayableAsync(station, episode, profile))
+            return Forbid();
+
+        var state = await _listenStateService.GetStateAsync(profile.Id, episodeId);
+        if (state == null && !isCompleted)
+            return Ok(new { episodeId, isCompleted = false });
+
+        await _listenStateService.UpsertStateAsync(
+            profile.Id,
+            station.Id,
+            episodeId,
+            state?.PositionSeconds ?? 0,
+            isCompleted);
+
+        return Ok(new { episodeId, isCompleted });
     }
 
     private async Task<Station?> GetActiveStationAsync(Profile profile)

@@ -49,6 +49,8 @@ public class StreamControllerTests
     {
         public string? stationId { get; set; }
         public string? stationName { get; set; }
+        public string? profileName { get; set; }
+        public string? profileColor { get; set; }
         public bool? isCompiling { get; set; }
         public bool? isEmpty { get; set; }
         public bool? streamEnabled { get; set; }
@@ -72,6 +74,7 @@ public class StreamControllerTests
         public string? stationId { get; set; }
         public bool hostPaceEnabled { get; set; }
         public bool isAging { get; set; }
+        public bool includesCompleted { get; set; }
         public List<PlaylistTrackInfo>? episodes { get; set; }
     }
 
@@ -84,6 +87,7 @@ public class StreamControllerTests
         public string? streamUri { get; set; }
         public DateTime? publishedAt { get; set; }
         public bool isCurrent { get; set; }
+        public bool isCompleted { get; set; }
     }
 
     [Test]
@@ -146,6 +150,41 @@ public class StreamControllerTests
         Assert.That(status.current.link, Is.EqualTo("https://audio/1"));
         Assert.That(status.next.artist, Is.EqualTo("Feed Title"));
         Assert.That(status.next.link, Is.EqualTo("https://audio/2"));
+    }
+
+    [Test]
+    public async Task GetStatus_ExposesProfileNameAndColour()
+    {
+        var stationId = ObjectId.GenerateNewId().ToString();
+        var episodeId = ObjectId.GenerateNewId().ToString();
+        var profile = new Profile
+        {
+            AccountId = "test-account",
+            StreamToken = "token-123",
+            Name = "Kai",
+            Color = "#3b82f6",
+            LastActiveStationId = stationId,
+            LastActiveEpisodeId = episodeId,
+        };
+
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(CreateOldestFirstStation(stationId));
+        await SeedEpisodesAsync(new Episode
+        {
+            Id = episodeId,
+            Title = "Ep 1",
+            FeedUrl = "https://feed.url",
+            PublishedAt = DateTime.UtcNow.AddDays(-1),
+            AudioUrl = "https://audio/1",
+        });
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+        var response = await _client.GetAsync("/stream/status");
+        response.EnsureSuccessStatusCode();
+
+        var status = await response.Content.ReadFromJsonAsync<StatusResponse>();
+        Assert.That(status!.profileName, Is.EqualTo("Kai"));
+        Assert.That(status.profileColor, Is.EqualTo("#3b82f6"));
     }
 
     [Test]
@@ -764,6 +803,91 @@ public class StreamControllerTests
 
         Assert.That(playlist!.hostPaceEnabled, Is.True);
         Assert.That(playlist.episodes!.Select(e => e.episodeId), Is.EqualTo(new[] { ep1.Id }));
+    }
+
+    [Test]
+    public async Task GetPlaylist_IncludeCompleted_ReturnsCompletedEpisodesWithFlags()
+    {
+        var stationId = ObjectId.GenerateNewId().ToString();
+        var ep1 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 1", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-3), AudioUrl = "https://audio/1" };
+        var ep2 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 2", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-2), AudioUrl = "https://audio/2" };
+        var ep3 = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 3", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-1), AudioUrl = "https://audio/3" };
+        var profile = new Profile { AccountId = "test-account", StreamToken = "token-123", LastActiveStationId = stationId, LastActiveEpisodeId = ep2.Id };
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(CreateOldestFirstStation(stationId));
+        await SeedEpisodesAsync(ep1, ep2, ep3);
+        await _app.MongoDbContext.GetCollection<ListenState>("ListenStateCollection").InsertOneAsync(
+            new ListenState { UserId = profile.Id, StationId = stationId, EpisodeId = ep1.Id, IsListened = true });
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+        var response = await _client.GetAsync("/stream/playlist?includeCompleted=true");
+        response.EnsureSuccessStatusCode();
+
+        var playlist = await response.Content.ReadFromJsonAsync<PlaylistResponse>();
+        Assert.That(playlist!.includesCompleted, Is.True);
+        Assert.That(playlist.episodes!.Select(e => e.episodeId), Is.EqualTo(new[] { ep1.Id, ep2.Id, ep3.Id }));
+        Assert.That(playlist.episodes.Single(e => e.episodeId == ep1.Id).isCompleted, Is.True);
+        Assert.That(playlist.episodes.Single(e => e.episodeId == ep2.Id).isCurrent, Is.True);
+        Assert.That(playlist.episodes.Single(e => e.episodeId == ep2.Id).isCompleted, Is.False);
+    }
+
+    [Test]
+    public async Task CompleteEpisode_MarksListenStateAndKeepsPlayhead()
+    {
+        var stationId = ObjectId.GenerateNewId().ToString();
+        var episode = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 1", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-1) };
+        var profile = new Profile { AccountId = "test-account", StreamToken = "token-123", LastActiveStationId = stationId, LastActiveEpisodeId = episode.Id };
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(CreateOldestFirstStation(stationId));
+        await SeedEpisodesAsync(episode);
+        await _app.MongoDbContext.GetCollection<ListenState>("ListenStateCollection").InsertOneAsync(
+            new ListenState { UserId = profile.Id, StationId = stationId, EpisodeId = episode.Id, PositionSeconds = 42 });
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+        var response = await _client.PostAsync($"/stream/episodes/{episode.Id}/complete", null);
+        response.EnsureSuccessStatusCode();
+
+        var state = await _app.MongoDbContext.GetCollection<ListenState>("ListenStateCollection")
+            .Find(s => s.UserId == profile.Id && s.EpisodeId == episode.Id).FirstOrDefaultAsync();
+        Assert.That(state!.IsListened, Is.True);
+        Assert.That(state.PositionSeconds, Is.EqualTo(42));
+    }
+
+    [Test]
+    public async Task UncompleteEpisode_ClearsListenState()
+    {
+        var stationId = ObjectId.GenerateNewId().ToString();
+        var episode = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Ep 1", FeedUrl = "https://feed.url", PublishedAt = DateTime.UtcNow.AddDays(-1) };
+        var profile = new Profile { AccountId = "test-account", StreamToken = "token-123", LastActiveStationId = stationId, LastActiveEpisodeId = episode.Id };
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(CreateOldestFirstStation(stationId));
+        await SeedEpisodesAsync(episode);
+        await _app.MongoDbContext.GetCollection<ListenState>("ListenStateCollection").InsertOneAsync(
+            new ListenState { UserId = profile.Id, StationId = stationId, EpisodeId = episode.Id, IsListened = true });
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+        var response = await _client.PostAsync($"/stream/episodes/{episode.Id}/uncomplete", null);
+        response.EnsureSuccessStatusCode();
+
+        var state = await _app.MongoDbContext.GetCollection<ListenState>("ListenStateCollection")
+            .Find(s => s.UserId == profile.Id && s.EpisodeId == episode.Id).FirstOrDefaultAsync();
+        Assert.That(state!.IsListened, Is.False);
+    }
+
+    [Test]
+    public async Task CompleteEpisode_FromAnotherStation_ReturnsNotFound()
+    {
+        var stationId = ObjectId.GenerateNewId().ToString();
+        var foreignEpisode = new Episode { Id = ObjectId.GenerateNewId().ToString(), Title = "Foreign", FeedUrl = "https://other.feed/url", PublishedAt = DateTime.UtcNow };
+        var profile = new Profile { AccountId = "test-account", StreamToken = "token-123", LastActiveStationId = stationId };
+        await _app.MongoDbContext.GetCollection<Profile>("ProfileCollection").InsertOneAsync(profile);
+        await _app.MongoDbContext.GetCollection<Station>("StationCollection").InsertOneAsync(CreateOldestFirstStation(stationId));
+        await SeedEpisodesAsync(foreignEpisode);
+
+        _client.DefaultRequestHeaders.Add("X-Stream-Token", "token-123");
+        var response = await _client.PostAsync($"/stream/episodes/{foreignEpisode.Id}/complete", null);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
     }
 
     [Test]
