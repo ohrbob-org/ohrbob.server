@@ -106,8 +106,8 @@ public class StationsEditTests : PageTest
         // Click the Resolved tab to see the playlist
         await Page.ClickAsync("#resolved-tab");
 
-        // We should see the upcoming playlist section
-        await Expect(Page.Locator("h4:has-text('Upcoming Playlist & Playhead')")).ToBeVisibleAsync();
+        // We should see the playlist section
+        await Expect(Page.Locator("#resolvedList")).ToBeVisibleAsync();
         
         // Find the first episode in the list and click "Mark Completed"
         var firstEpisode = Page.Locator(".resolved-item").First;
@@ -120,9 +120,11 @@ public class StationsEditTests : PageTest
         Page.Dialog += (_, dialog) => dialog.AcceptAsync();
         await firstEpisode.Locator("button.mark-completed-btn").ClickAsync();
         
-        // Wait for completed overlay to be visible/active on the marked episode (using its unique ID since playhead advances and shifts list)
+        // Wait for the marked episode to carry the completed state (using its unique ID
+        // since the playhead advances and shifts the list).
         var markedEpisode = Page.Locator($".resolved-item[data-episode-id='{episodeId}']");
-        await Expect(markedEpisode.Locator(".completed-overlay")).ToBeVisibleAsync(new() { Timeout = 10000 });
+        await Expect(markedEpisode).ToHaveClassAsync(
+            new System.Text.RegularExpressions.Regex(@"\bis-played\b"), new() { Timeout = 10000 });
     }
 
     [Test]
@@ -444,9 +446,19 @@ public class StationsEditTests : PageTest
         // Set Span = 7 on the source feed and persist it
         var spanInput = Page.Locator("#rotationContainer .rotation-item .episodes-input").First;
         await spanInput.FillAsync("7");
+        // Mark the current row so we can wait for the in-place playlist re-render that
+        // follows the schedule update (it replaces the rotation rows' inner HTML).
+        await Page.EvaluateAsync(
+            "() => document.querySelector('#rotationContainer .rotation-item').setAttribute('data-test-stale', '1')");
         await Page.RunAndWaitForResponseAsync(
             async () => await spanInput.DispatchEventAsync("change"),
             r => r.Url.Contains("/Stations/UpdateSchedule/"));
+        await Page.WaitForFunctionAsync(
+            "() => { const row = document.querySelector('#rotationContainer .rotation-item'); return row && !row.hasAttribute('data-test-stale'); }",
+            null, new() { Timeout = 10000 });
+        // The refresh can also smooth-scroll to the active episode; let the layout settle
+        // before clicking a control inside the re-rendered row.
+        await Page.WaitForTimeoutAsync(500);
 
         // Marker that survives only if there is no full page reload
         await Page.EvaluateAsync("() => { window.__moveMarker = 'kept'; }");
@@ -455,6 +467,7 @@ public class StationsEditTests : PageTest
         var srcRow = Page.Locator("#rotationContainer .rotation-item").First;
         await Expect(srcRow.Locator(".feed-actions-menu")).ToBeVisibleAsync();
         await srcRow.Locator(".feed-actions-menu").ClickAsync();
+        await Expect(srcRow.Locator(".feed-actions-menu")).ToHaveAttributeAsync("aria-expanded", "true", new() { Timeout = 5000 });
         await Expect(srcRow.Locator(".move-feed")).ToBeVisibleAsync();
 
         // Regression (Review Focus #1): the menu must be painted where it is clicked,

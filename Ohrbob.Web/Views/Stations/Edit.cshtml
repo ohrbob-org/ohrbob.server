@@ -5,116 +5,34 @@
     ViewData["Title"] = "Edit Station";
 }
 
-<div id="dock-sentinel" style="height: 1px; margin-top: -1px;"></div>
-<div id="dockable-header">
-    <h1 class="d-flex align-items-center justify-content-between mb-1">
-        <span class="d-flex align-items-center">
+<div id="dock-sentinel" class="editor-sentinel" aria-hidden="true"></div>
+<header class="editor-header" id="dockable-header">
+    <div class="editor-header__inner">
+        <h1 class="editor-title">
             <span id="stationNameDisplay">@Model.Station.Name</span>
             @if (Model.Station.HostPaceEnabled)
             {
-                <span class="badge bg-info text-white ms-2 fs-6" title="Only episodes the host has completed are available">Host Pace</span>
+                <span class="editor-badge" title="Only episodes the host has completed are available">Host Pace</span>
             }
-        </span>
-        <button type="button" class="btn btn-link text-decoration-none p-0 lh-1" id="renameStationBtn" title="Station Settings" style="font-size: 1.5rem; color: #6c757d;">
-            <i class="bi bi-gear-fill"></i>
+        </h1>
+        <button type="button" class="editor-icon-btn" id="renameStationBtn" title="Station Settings" aria-label="Station Settings">
+            <i class="bi bi-gear-fill" aria-hidden="true"></i>
         </button>
-    </h1>
+    </div>
 
-    <ul class="nav pill-nav d-lg-none" id="stationTabs" role="tablist" style="margin-bottom: 0;">
-      <li class="nav-item">
+    <ul class="nav pill-nav editor-tabs d-lg-none" id="stationTabs" role="tablist">
+      <li class="nav-item" role="presentation">
         <a class="nav-link active" id="rotation-tab" data-bs-toggle="tab" href="#rotation" role="tab">Podcasts</a>
       </li>
-      <li class="nav-item">
+      <li class="nav-item" role="presentation">
         <a class="nav-link" id="resolved-tab" data-bs-toggle="tab" href="#resolved" role="tab">Episodes</a>
       </li>
     </ul>
-</div>
+</header>
 
-<style>
-#dockable-header {
-    position: sticky;
-    top: 90px;
-    z-index: 1040;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    background: transparent;
-    padding: 10px 0;
-    margin-bottom: 20px;
-}
-#dockable-header.docked {
-    top: 62px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    padding: 12px 12px;
-    border-radius: 0 0 30px 30px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    border-top: none;
-    margin-top: -24px;
-}
-#dockable-header h1 {
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    margin: 0;
-}
-#dockable-header.docked h1 {
-    font-size: 1.5rem;
-    margin-bottom: 2px !important;
-}
-.pill-nav {
-    display: flex;
-    background: var(--bs-secondary-bg);
-    border-radius: 50px;
-    padding: 5px;
-    margin-bottom: 20px;
-}
-.pill-nav .nav-item {
-    flex: 1;
-    text-align: center;
-}
-.pill-nav .nav-link {
-    border-radius: 50px;
-    color: var(--bs-secondary-color);
-    font-weight: 600;
-}
-.pill-nav .nav-link.active {
-    background: var(--bs-primary);
-    color: #fff;
-}
-.rotation-item {
-    flex-shrink: 0;
-}
-
-@@media (min-width: 992px) {
-    #stationTabs {
-        display: none !important;
-    }
-    #stationTabsContent {
-        display: flex !important;
-        flex-wrap: wrap !important;
-    }
-    #stationTabsContent .tab-pane {
-        display: block !important;
-        opacity: 1 !important;
-        flex: 0 0 50% !important;
-        max-width: 50% !important;
-    }
-    #rotationContainer, #resolvedList {
-        height: calc(100vh - 380px);
-        min-height: 300px;
-        overflow-y: auto;
-        position: relative;
-    }
-    /* Room for the card shadows inside the scrollport: a blur of N paints up to
-       N beyond the card, so the padding must be at least the largest blur. */
-    #rotationContainer { padding: 24px 40px 52px; }
-    #resolvedList { padding: 16px 26px 34px; }
-}
-</style>
-
-
-<div class="tab-content row" id="stationTabsContent">
-  <div class="tab-pane fade show active col-12 col-lg-6" id="rotation" role="tabpanel">
-    <h3 class="d-none d-lg-block">Podcasts</h3>
+<div class="tab-content editor-panes" id="stationTabsContent">
+  <div class="tab-pane fade show active editor-pane" id="rotation" role="tabpanel">
+    <h3 class="editor-pane__title d-none d-lg-block">Podcasts</h3>
     <div class="list-group py-3" id="rotationContainer" data-station-id="@Model.Station.Id" style="max-width: 100%;">
         @{ var feedScheduleIndex = 0; }
         @foreach(var feedSchedule in Model.Station.Schedule.Feeds)
@@ -124,7 +42,7 @@
             {
                 var currentFeedIndex = feedScheduleIndex++;
                 var activeValue = (int)feedSchedule.SortOrder;
-                var feedAccent = string.IsNullOrEmpty(feedSchedule.Color) ? "#ff9a00" : feedSchedule.Color;
+                var feedAccent = string.IsNullOrEmpty(feedSchedule.Color) ? "var(--metro-hairline)" : feedSchedule.Color;
                 <div class="list-group-item rotation-item card-station-feed mb-2" draggable="true" data-url="@feedSchedule.Url" data-feed-id="@feedData.Id" style="--station-feed-accent: @feedAccent;">
                     <i class="bi bi-soundwave card-station-feed-watermark" aria-hidden="true"></i>
                     @if (!string.IsNullOrEmpty(feedData.ImageUrl))
@@ -185,7 +103,7 @@
                                         <li><button type="button" class="dropdown-item refresh-feed"><i class="bi bi-arrow-clockwise me-2"></i>Refresh</button></li>
                                         <li><button type="button" class="dropdown-item move-feed"><i class="bi bi-arrow-left-right me-2"></i>Move to another station</button></li>
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><button type="button" class="dropdown-item text-danger remove-feed"><i class="bi bi-trash3-fill me-2"></i>Delete feed</button></li>
+                                        <li><button type="button" class="dropdown-item feed-delete remove-feed"><i class="bi bi-trash3-fill me-2"></i>Delete feed</button></li>
                                     </ul>
                                 </div>
                             </div>
@@ -199,15 +117,15 @@
         }
         
         
-        <div class="mt-4 d-flex align-items-center justify-content-center" style="gap: 12px;">
-            Add more to Station:
+        <div class="editor-section-label">
+            Add more to Station
         </div>
-        <div class="mt-1 mb-4 d-flex align-items-center justify-content-center flex-wrap" style="gap: 12px;">
+        <div class="editor-add-actions">
             <a href="/Discover" class="btn btn-primary d-inline-flex align-items-center">
                 <i class="bi bi-compass me-2"></i>Discover
             </a>
             <div class="dropdown">
-                <button type="button" class="btn btn-outline-secondary d-inline-flex align-items-center" id="stationMoreMenuBtn" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
+                <button type="button" class="btn btn-ghost editor-more-btn d-inline-flex align-items-center" id="stationMoreMenuBtn" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
                     <i class="bi bi-three-dots me-2"></i>More
                 </button>
                 <ul class="dropdown-menu" id="stationMoreMenu" aria-labelledby="stationMoreMenuBtn">
@@ -225,102 +143,100 @@
             </div>
         </div>
 
-        <div class="mt-4 d-flex align-items-center justify-content-center" style="gap: 12px;">
-            Share Station:
+        <div class="editor-section-label">
+            Share Station
         </div>
-        <div class="mb-4 mx-auto d-flex align-items-center gap-2 border rounded px-3 py-2 bg-body-tertiary" style="max-width: 760px;">
-            <i class="bi bi-link-45deg fs-4 text-body-secondary" aria-hidden="true"></i>
-            <input type="text" id="shareStationUrl" class="form-control border-0 shadow-none flex-grow-1"
+        <div class="editor-sharebar">
+            <i class="bi bi-link-45deg editor-sharebar__icon" aria-hidden="true"></i>
+            <input type="text" id="shareStationUrl" class="editor-sharebar__field"
                    readonly value="@Url.Action("Index", "Share", new { code = Model.Station.ShareCode }, Context.Request.Scheme)" aria-label="Station share link" />
-            <select id="shareVisibilitySelect" class="form-select" style="width: auto;" aria-label="Station visibility">
+            <select id="shareVisibilitySelect" class="editor-sharebar__select" aria-label="Station visibility">
                 <option value="public" selected="@(Model.Station.IsPublic)">Public</option>
                 <option value="private" selected="@(!Model.Station.IsPublic)">Private</option>
             </select>
-            <button type="button" class="btn btn-outline-secondary text-nowrap" id="copyShareLinkBtn">
-                <i class="bi bi-clipboard me-1"></i>Copy
+            <button type="button" class="btn btn-ghost editor-sharebar__copy" id="copyShareLinkBtn">
+                <i class="bi bi-clipboard me-1" aria-hidden="true"></i>Copy
             </button>
         </div>
         
     </div>
     
   </div>
-  <div class="tab-pane fade col-12 col-lg-6" id="resolved" role="tabpanel">
+  <div class="tab-pane fade editor-pane" id="resolved" role="tabpanel">
     @if (ViewBag.Playlist != null)
     {
         var playlist = (List<Ohrbob.Server.Shared.Requests.EpisodePlayStateDto>)ViewBag.Playlist;
         <div>
-            <h4 class="mb-3 d-none d-lg-block">Episodes</h4>
+            <h4 class="editor-pane__title d-none d-lg-block">Episodes</h4>
             <ul class="list-group" id="resolvedList">
                 @foreach (var item in playlist)
                 {
-                    var feedColor = Model.Station.Schedule.Feeds.FirstOrDefault(f => f.Url == item.Episode.FeedUrl)?.Color ?? "#ccc";
+                    var scheduleFeed = Model.Station.Schedule.Feeds.FirstOrDefault(f => f.Url == item.Episode.FeedUrl);
+                    var feedColor = string.IsNullOrEmpty(scheduleFeed?.Color) ? "var(--metro-hairline)" : scheduleFeed.Color;
+                    var feedTitle = Model.Feeds.FirstOrDefault(f => f.Url == item.Episode.FeedUrl)?.Title ?? "Podcast";
                     var episodeTitle = HtmlText.ToDisplayText(item.Episode.Title);
-                    <li class="card-episode resolved-item mb-2 @(item.IsActive ? "is-playing" : "") @(item.IsCompleted ? "is-played" : "")"
+                    <li class="card-episode resolved-item @(item.IsActive ? "is-playing" : "") @(item.IsCompleted ? "is-played" : "")"
                         data-episode-id="@item.Episode.Id"
                         data-feed-color="@(feedColor)"
-                        style="@(item.IsCompleted ? "" : $"--card-episode-accent: {feedColor};")">
+                        style="--card-episode-accent: @feedColor;">
 
-                        <!-- Feed badge (left) -->
-                        <span class="card-episode-badge" aria-hidden="true"><i class="bi bi-mic"></i></span>
+                        <!-- Cover (left) -->
+                        @if (!string.IsNullOrEmpty(item.Episode.ImageUrl))
+                        {
+                            <img src="@item.Episode.ImageUrl" class="card-episode-cover" alt="" loading="lazy" />
+                        }
+                        else
+                        {
+                            <span class="card-episode-badge" aria-hidden="true"><i class="bi bi-mic"></i></span>
+                        }
 
                         <!-- Metadata (Middle) -->
                         <div class="card-episode-body">
-                            <div class="card-episode-kicker">
-                                <i class="bi bi-mic" aria-hidden="true"></i> Episode
-                                @if (item.IsActive)
-                                {
-                                    <span class="badge bg-primary ms-1">Playing</span>
-                                }
+                            <div class="card-episode-byline">
+                                <span class="card-episode-artist" title="@feedTitle">@feedTitle</span>
+                                <span class="card-episode-date">@(item.Episode.PublishedAt?.ToString("MMM d, yyyy"))</span>
                             </div>
                             <h3 class="card-episode-title" title="@episodeTitle"><strong>@episodeTitle</strong></h3>
                             <p class="card-episode-meta episode-description">@HtmlText.ToDisplayText(item.Episode.PlainDescription)</p>
-                            <div class="d-flex align-items-center flex-wrap" style="gap: 6px;">
+                            <div class="card-episode-status">
                                 <small class="card-episode-meta">
-                                    Position: <span class="episode-position">@(item.PositionSeconds)</span>s / Published: @(item.Episode.PublishedAt?.ToString("g"))
+                                    Position: <span class="episode-position">@(item.PositionSeconds)</span>s
                                 </small>
-                                <div class="d-inline-flex align-items-center" style="gap: 2px;">
-                                    <button type="button" class="btn btn-link p-0 px-1 reset-playhead-btn" title="Reset playhead to 0" style="font-size: 0.75rem; line-height: 1;" data-station-id="@Model.Station.Id" data-episode-id="@item.Episode.Id" data-position="@item.PositionSeconds">
-                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                <span class="episode-playhead-actions">
+                                    <button type="button" class="episode-mini-btn reset-playhead-btn" title="Reset playhead to 0" aria-label="Reset playhead for @episodeTitle" data-station-id="@Model.Station.Id" data-episode-id="@item.Episode.Id" data-position="@item.PositionSeconds">
+                                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
                                     </button>
-                                    <button type="button" class="btn btn-link p-0 px-1 set-playhead-btn" title="Set playhead position" style="font-size: 0.75rem; line-height: 1;" data-station-id="@Model.Station.Id" data-episode-id="@item.Episode.Id" data-position="@item.PositionSeconds">
-                                        <i class="bi bi-sliders"></i>
+                                    <button type="button" class="episode-mini-btn set-playhead-btn" title="Set playhead position" aria-label="Set playhead for @episodeTitle" data-station-id="@Model.Station.Id" data-episode-id="@item.Episode.Id" data-position="@item.PositionSeconds">
+                                        <i class="bi bi-sliders" aria-hidden="true"></i>
                                     </button>
-                                </div>
+                                </span>
                             </div>
                         </div>
 
                         <!-- Play + Action Controls (Right) -->
-                        <div class="d-flex flex-column align-items-end justify-content-center flex-shrink-0" style="gap: 6px;">
+                        <div class="episode-row-actions">
                             <button type="button" class="card-episode-play continue-episode-btn" title="Continue playing from @(item.PositionSeconds)s" aria-label="Play @episodeTitle from @(item.PositionSeconds) seconds" data-station-id="@Model.Station.Id" data-episode-id="@item.Episode.Id" data-position="@item.PositionSeconds">
                                 <i class="bi bi-play-fill" aria-hidden="true"></i>
                             </button>
-                                <div class="button-container d-flex flex-column gap-1 w-100">
-                                    @if (item.IsCompleted)
-                                    {
-                                        <button type="button" class="btn btn-sm btn-outline-danger w-100 py-1 clear-completed-btn" title="Clear completed state" style="font-size: 0.75rem; padding: 2px 4px;">
-                                            <i class="bi bi-arrow-counterclockwise"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary w-100 py-1 clear-completed-until-btn" title="Clear everything until here" style="font-size: 0.75rem; padding: 2px 4px;">
-                                            <span class="d-inline-flex position-relative align-items-center" style="width: 18px; height: 12px; vertical-align: middle;">
-                                                <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 0px; top: -2px; opacity: 0.6; font-size: 0.7rem;"></i>
-                                                <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 4px; top: 0px; opacity: 0.8; font-size: 0.7rem;"></i>
-                                                <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 8px; top: 2px; font-size: 0.7rem;"></i>
-                                            </span>
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <button type="button" class="btn btn-sm btn-outline-success w-100 py-1 mark-completed-btn" title="Mark Completed" style="font-size: 0.75rem; padding: 2px 4px;">
-                                            <i class="bi bi-check-lg"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-warning w-100 py-1 mark-completed-until-btn" title="Mark All Until Here Completed" style="font-size: 0.75rem; padding: 2px 4px;">
-                                            <span class="d-inline-flex position-relative align-items-center" style="width: 18px; height: 12px; vertical-align: middle;">
-                                                <i class="bi bi-check" style="position: absolute; left: 0px; top: -3px; opacity: 0.6; font-size: 0.7rem;"></i>
-                                                <i class="bi bi-check" style="position: absolute; left: 4px; top: -1px; opacity: 0.8; font-size: 0.7rem;"></i>
-                                                <i class="bi bi-check-lg" style="position: absolute; left: 8px; top: 1px; font-size: 0.7rem;"></i>
-                                            </span>
-                                        </button>
-                                    }
+                            <div class="button-container episode-actions">
+                                @if (item.IsCompleted)
+                                {
+                                    <button type="button" class="episode-action-btn clear-completed-btn" title="Clear completed state" aria-label="Clear completed state for @episodeTitle">
+                                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                                    </button>
+                                    <button type="button" class="episode-action-btn clear-completed-until-btn" title="Clear everything until here" aria-label="Clear completed state until @episodeTitle">
+                                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="episode-action-btn mark-completed-btn" title="Mark Completed" aria-label="Mark @episodeTitle completed">
+                                        <i class="bi bi-check-lg" aria-hidden="true"></i>
+                                    </button>
+                                    <button type="button" class="episode-action-btn mark-completed-until-btn" title="Mark All Until Here Completed" aria-label="Mark everything until @episodeTitle completed">
+                                        <i class="bi bi-check2-all" aria-hidden="true"></i>
+                                    </button>
+                                }
                             </div>
                         </div>
                     </li>
@@ -339,6 +255,7 @@
 <div class="modal fade" id="renameStationModal" tabindex="-1" aria-labelledby="renameStationModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
+            <div class="metro-modal-accent"></div>
             <div class="modal-header">
                 <h5 class="modal-title" id="renameStationModalLabel">Station Settings</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -398,6 +315,7 @@
 <div class="modal" id="confirmRemoveFeedModal" tabindex="-1" aria-labelledby="confirmRemoveFeedModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
+            <div class="metro-modal-accent"></div>
             <div class="modal-header">
                 <h5 class="modal-title" id="confirmRemoveFeedModalLabel">Confirm Removal</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -417,6 +335,7 @@
 <div class="modal fade" id="manualAddFeedModal" tabindex="-1" aria-labelledby="manualAddFeedModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
+            <div class="metro-modal-accent"></div>
             <div class="modal-header">
                 <h5 class="modal-title" id="manualAddFeedModalLabel">Manual Add Feed</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -442,6 +361,7 @@
 <div class="modal fade" id="importOpmlModal" tabindex="-1" aria-labelledby="importOpmlModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
+            <div class="metro-modal-accent"></div>
             <div class="modal-header">
                 <h5 class="modal-title" id="importOpmlModalLabel">Import OPML</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -468,6 +388,7 @@
 <div class="modal fade" id="moveFeedModal" tabindex="-1" aria-labelledby="moveFeedModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
+      <div class="metro-modal-accent"></div>
       <div class="modal-header">
         <h5 class="modal-title" id="moveFeedModalLabel">Move feed to another station</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -504,13 +425,14 @@
 <div class="modal fade" id="confirmMarkCompletedUntilModal" tabindex="-1" aria-labelledby="confirmMarkCompletedUntilModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
+            <div class="metro-modal-accent"></div>
             <div class="modal-header">
                 <h5 class="modal-title" id="confirmMarkCompletedUntilModalLabel">Confirm Completing Episodes</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-body">
                 <p>Are you sure you want to mark the following episodes as completed?</p>
-                <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--bs-border-color); border-radius: 4px;">
+                <div class="modal-episode-list">
                     <ul class="list-group list-group-flush" id="episodesToMarkList">
                         <!-- Populated dynamically via JS -->
                     </ul>
@@ -528,6 +450,7 @@
 <div class="modal fade" id="confirmClearCompletedModal" tabindex="-1" aria-labelledby="confirmClearCompletedModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
+            <div class="metro-modal-accent"></div>
             <div class="modal-header">
                 <h5 class="modal-title" id="confirmClearCompletedModalLabel">Confirm Reset</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -547,13 +470,14 @@
 <div class="modal fade" id="confirmClearCompletedUntilModal" tabindex="-1" aria-labelledby="confirmClearCompletedUntilUntilModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content text-body">
+            <div class="metro-modal-accent"></div>
             <div class="modal-header">
                 <h5 class="modal-title" id="confirmClearCompletedUntilModalLabel">Confirm Bulk Reset</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to clear the completed state for all episodes up to and including this one?</p>
-                <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--bs-border-color); border-radius: 4px;">
+                <div class="modal-episode-list">
                     <ul class="list-group list-group-flush" id="episodesToClearList">
                         <!-- Populated dynamically via JS -->
                     </ul>
@@ -571,6 +495,7 @@
 <div class="modal fade" id="setPlayheadModal" tabindex="-1" aria-labelledby="setPlayheadModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
+            <div class="metro-modal-accent"></div>
             <div class="modal-header">
                 <h5 class="modal-title" id="setPlayheadModalLabel">Set Playhead Position</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -881,28 +806,20 @@
                 if (btnContainer) {
                     if (isCompleted) {
                         btnContainer.innerHTML = `
-                            <button type="button" class="btn btn-sm btn-outline-danger w-100 py-1 clear-completed-btn" title="Clear completed state" style="font-size: 0.75rem; padding: 2px 4px;">
+                            <button type="button" class="episode-action-btn clear-completed-btn" title="Clear completed state">
                                 <i class="bi bi-arrow-counterclockwise"></i>
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary w-100 py-1 clear-completed-until-btn" title="Clear everything until here" style="font-size: 0.75rem; padding: 2px 4px;">
-                                <span class="d-inline-flex position-relative align-items-center" style="width: 18px; height: 12px; vertical-align: middle;">
-                                    <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 0px; top: -2px; opacity: 0.6; font-size: 0.7rem;"></i>
-                                    <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 4px; top: 0px; opacity: 0.8; font-size: 0.7rem;"></i>
-                                    <i class="bi bi-arrow-counterclockwise" style="position: absolute; left: 8px; top: 2px; font-size: 0.7rem;"></i>
-                                </span>
+                            <button type="button" class="episode-action-btn clear-completed-until-btn" title="Clear everything until here">
+                                <i class="bi bi-arrow-counterclockwise"></i>
                             </button>
                         `;
                     } else {
                         btnContainer.innerHTML = `
-                            <button type="button" class="btn btn-sm btn-outline-success w-100 py-1 mark-completed-btn" title="Mark Completed" style="font-size: 0.75rem; padding: 2px 4px;">
+                            <button type="button" class="episode-action-btn mark-completed-btn" title="Mark Completed">
                                 <i class="bi bi-check-lg"></i>
                             </button>
-                            <button type="button" class="btn btn-sm btn-outline-warning w-100 py-1 mark-completed-until-btn" title="Mark All Until Here Completed" style="font-size: 0.75rem; padding: 2px 4px;">
-                                <span class="d-inline-flex position-relative align-items-center" style="width: 18px; height: 12px; vertical-align: middle;">
-                                    <i class="bi bi-check" style="position: absolute; left: 0px; top: -3px; opacity: 0.6; font-size: 0.7rem;"></i>
-                                    <i class="bi bi-check" style="position: absolute; left: 4px; top: -1px; opacity: 0.8; font-size: 0.7rem;"></i>
-                                    <i class="bi bi-check-lg" style="position: absolute; left: 8px; top: 1px; font-size: 0.7rem;"></i>
-                                </span>
+                            <button type="button" class="episode-action-btn mark-completed-until-btn" title="Mark All Until Here Completed">
+                                <i class="bi bi-check2-all"></i>
                             </button>
                         `;
                     }

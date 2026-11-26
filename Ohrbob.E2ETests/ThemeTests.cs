@@ -245,10 +245,11 @@ public class ThemeTests : PageTest
             .ToHaveCountAsync(1, new() { Timeout = 15000 });
     }
 
-    /// <summary>The station editor's episode cards carry the light theme's paper surface in
-    /// theme.css. In dark mode they must not glare, so they get a dark yellow surface.</summary>
+    /// <summary>The station editor's episode rows keep their feed-colour 4 px bar (Task 2's
+    /// always-on bar) on a surface that stays dark in dark mode, so neither the row nor the
+    /// bar glares.</summary>
     [Test]
-    public async Task Theme_Dark_EpisodeCardsUseDarkYellowSurface()
+    public async Task Theme_Dark_EpisodeRowsUseFeedColourOnADarkSurface()
     {
         if (!await TestCasts.IsAvailableAsync())
         {
@@ -302,9 +303,30 @@ public class ThemeTests : PageTest
 
         var luma = (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255;
         Assert.That(luma, Is.LessThan(0.25),
-            $"The dark-theme episode card surface must not be light (was '{computed}')");
-        Assert.That(rgb[0], Is.GreaterThan(rgb[1]), "The dark surface must be yellow (red above green)");
-        Assert.That(rgb[1], Is.GreaterThan(rgb[2]), "The dark surface must be yellow (green above blue)");
+            $"The dark-theme episode row surface must be dark (was '{computed}')");
+
+        // The 4 px bar is always the feed colour, resolved from the row's custom property.
+        var bar = Array.Empty<string>();
+        deadline = DateTime.UtcNow.AddSeconds(10);
+        while (DateTime.UtcNow < deadline)
+        {
+            bar = await Page.EvaluateAsync<string[]>(@"() => {
+                const el = document.querySelector('#resolvedList .card-episode.resolved-item');
+                if (!el) return [];
+                const accent = getComputedStyle(el).getPropertyValue('--card-episode-accent').trim();
+                const probe = document.createElement('span');
+                probe.style.backgroundColor = accent;
+                document.body.appendChild(probe);
+                const expected = getComputedStyle(probe).backgroundColor;
+                probe.remove();
+                return [getComputedStyle(el, '::before').backgroundColor, expected];
+            }");
+            if (bar.Length == 2 && bar[0].StartsWith("rgb", StringComparison.Ordinal)) break;
+            await Page.WaitForTimeoutAsync(200);
+        }
+        Assert.That(bar, Has.Length.EqualTo(2), "Could not read the episode row's bar colours");
+        Assert.That(bar[0], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "The feed bar must not be transparent");
+        Assert.That(bar[0], Is.EqualTo(bar[1]), "The feed bar must be the row's feed colour");
     }
 
     private async Task AssertNoContrastIssuesAsync(string path)
