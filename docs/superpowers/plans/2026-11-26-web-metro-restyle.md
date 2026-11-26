@@ -295,7 +295,7 @@ git commit -m "feat(theme): always-on feed colours and web episode navigation"
 - Generate: `Ohrbob.Web/wwwroot/css/theme.css`, `wwwroot/css/fonts/inter-*.woff2`, `Ohrbob.Web/docs/bootstrap-theme.html`
 - Add: `Ohrbob.Web/wwwroot/lib/bootstrap-icons/bootstrap-icons.min.css`, `.../fonts/bootstrap-icons.woff2`
 - Rewrite: `Ohrbob.Web/wwwroot/css/site.css` (shell/base sections only; later tasks append)
-- Delete: `Ohrbob.Web/wwwroot/css/profiles.css`, `wwwroot/css/collage.css`, `Ohrbob.Web/Views/Shared/_Layout.cshtml.css`
+- Delete: `Ohrbob.Web/wwwroot/css/profiles.css`, `wwwroot/css/collage.css` (fold their rules into `site.css` as-is in this task; Tasks 5 and 8 restyle them), `Ohrbob.Web/Views/Shared/_Layout.cshtml.css`
 - Modify: `Ohrbob.Web/Views/Shared/_Layout.cshtml`, `_Layout_Minimal.cshtml`
 - Modify: `Ohrbob.Web/Views/Shared/Components/ProfileSelector/Default.cshtml`
 - Modify: `Ohrbob.Web/wwwroot/js/site.js`, `wwwroot/js/audio-widget.js`
@@ -348,7 +348,7 @@ Expected: FAIL — `.app-header` missing, toast has `bg-success`.
 
 From the kit: `npm run apply -- /home/kaiwegner/Projects/ohrbob2/Ohrbob.Web/`. Confirm `js/audio-widget.js` was not touched (check `git diff --stat`).
 Vendor Bootstrap Icons 1.11.3 CSS + woff2 into `wwwroot/lib/bootstrap-icons/`; the CSS must reference `./fonts/bootstrap-icons.woff2`.
-Delete `profiles.css`, `collage.css`, `_Layout.cshtml.css`, and remove their `<link>`/`Ohrbob.Web.styles.css` tags from both layouts.
+Delete `profiles.css`, `collage.css`, `_Layout.cshtml.css`, and remove their `<link>`/`Ohrbob.Web.styles.css` tags from both layouts. Copy the old `profiles.css` and `collage.css` rule bodies into `site.css` unchanged first (they are retrieved from `git show aac62d9:Ohrbob.Web/wwwroot/css/<file>` before deletion), so no page loses its styling between tasks.
 
 - [ ] **Step 4: Rewrite the shell**
 
@@ -556,7 +556,7 @@ Use a `.page-head` with kicker `your stations`, `h1.metro-title.metro-title--com
 
 - [ ] **Step 4: Write the station CSS**
 
-Append to `site.css`: `.page-head` layout, `.station-grid` gap overrides, visible `.card-station-count` as 10 px uppercase muted, `.status-label` (10 px, 700, +0.08em, uppercase; `.is-empty`/`.is-danger` red, `.is-pacing`/`.is-subscribed` violet, `.is-compiling` yellow/navy), `.card-station-play` 46 px orange square (visible on hover/focus, always visible under `(hover: none)`), `.card-station.is-active` inset ring, `.station-add` square hairline tile, `.form-narrow` max 560 px. Fold the old `collage.css` rules in here: square cells, 2 px hairline gaps, violet fallback, hover changes border colour only.
+Append to `site.css`: `.page-head` layout, `.station-grid` gap overrides, visible `.card-station-count` as 10 px uppercase muted, `.status-label` (10 px, 700, +0.08em, uppercase; `.is-empty`/`.is-danger` red, `.is-pacing`/`.is-subscribed` violet, `.is-compiling` yellow/navy), `.card-station-play` 46 px orange square (visible on hover/focus, always visible under `(hover: none)`), `.card-station.is-active` inset ring, `.station-add` square hairline tile, `.form-narrow` max 560 px. Restyle the collage rules already folded into `site.css` in Task 3: square cells, 2 px hairline gaps, violet fallback, hover changes border colour only.
 
 - [ ] **Step 5: Run the tests**
 
@@ -719,7 +719,7 @@ git commit -m "feat(web): Metro discover page"
 
 **Files:**
 - Modify: `Ohrbob.Web/Views/Profiles/Index.cshtml`, `Create.cshtml`, `Edit.cshtml`, `_ColorPicker.cshtml`
-- Modify: `Ohrbob.Web/wwwroot/css/site.css` (profiles section, folded from `profiles.css`)
+- Modify: `Ohrbob.Web/wwwroot/css/site.css` (profiles section; rules already folded in Task 3)
 - Test: `Ohrbob.E2ETests/MetroProfilesTests.cs` (new), `ProfilesTests.cs`
 
 **Interfaces:**
