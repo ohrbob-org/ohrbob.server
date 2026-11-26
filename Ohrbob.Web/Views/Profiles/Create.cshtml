@@ -4,30 +4,29 @@
     ViewData["Title"] = "Create Profile";
 }
 
-<h1>Create Profile</h1>
-
-<h4>Profile</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create" hx-boost="false">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            
-            <div class="form-group mb-3">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" required />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-
-            @await Html.PartialAsync("_ColorPicker", Model)
-            
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-            </div>
-        </form>
+<div class="page-head">
+    <div class="page-head__text">
+        <p class="metro-kicker">profiles</p>
+        <h1 class="metro-title metro-title--compact">new profile</h1>
     </div>
 </div>
+
+<form asp-action="Create" hx-boost="false" class="profile-form">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" required />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    @await Html.PartialAsync("_ColorPicker", Model)
+
+    <div class="profile-form__actions form-actions">
+        <input type="submit" value="Create" class="btn btn-primary" />
+        <a asp-action="Index" class="btn btn-ghost">Back to List</a>
+    </div>
+</form>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

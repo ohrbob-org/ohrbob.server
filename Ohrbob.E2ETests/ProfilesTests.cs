@@ -62,7 +62,7 @@ public class ProfilesTests : PageTest
         await Page.GotoAsync($"{_factory.ServerAddress}/Profiles");
 
         // Ensure exactly 1 profile card is shown
-        var profileCards = Page.Locator(".card");
+        var profileCards = Page.Locator(".profile-card");
         await Expect(profileCards).ToHaveCountAsync(1);
 
         // Verify the Delete button is disabled
@@ -70,7 +70,7 @@ public class ProfilesTests : PageTest
         await Expect(deleteBtn).ToBeDisabledAsync();
 
         // Create a second profile
-        await Page.ClickAsync("text=Create New Profile");
+        await Page.ClickAsync(".page-head__action");
         await Page.FillAsync("input[name='Name']", "Secondary Profile");
         await Page.ClickAsync("input[type='submit']");
 

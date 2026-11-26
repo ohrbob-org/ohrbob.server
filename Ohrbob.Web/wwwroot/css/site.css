@@ -69,47 +69,248 @@ body.with-player {
 }
 
 /* --------------------------------------------------------------------------
-   Legacy profiles.css — folded in unchanged (restyled in a later task).
+   Profiles — square hairline cards, the colour picker and the profile forms
    -------------------------------------------------------------------------- */
 
-.profile-avatar {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: clamp(3rem, 10vw, 6rem);
-    font-weight: bold;
-    text-transform: uppercase;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 8px;
 }
 
-.profile-color-picker {
+.profile-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border: 1px solid var(--metro-hairline);
+    border-radius: 0;
+    background: var(--metro-tile);
+    color: var(--metro-ink);
+}
+
+.profile-card.is-active {
+    box-shadow: inset 0 0 0 2px var(--metro-orange);
+}
+
+.profile-card__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 16px 12px;
+}
+
+.profile-card .profile-avatar {
+    flex: 0 0 64px;
+    width: 64px;
+    height: 64px;
+    aspect-ratio: 1 / 1;
+    border-radius: 0;
+    font-family: var(--metro-display);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+    text-shadow: none;
+}
+
+.profile-card__identity {
+    min-width: 0;
+}
+
+.profile-card__name {
+    margin: 0;
+    overflow: hidden;
+    font-family: var(--metro-display);
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-active {
+    margin: 5px 0 0;
+    color: var(--metro-orange);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.profile-card__meta {
+    padding: 0 16px 14px;
+}
+
+.profile-card__token {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin: 0;
+    overflow: hidden;
+}
+
+.profile-card__label {
+    flex: 0 0 auto;
+    color: var(--metro-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+.profile-card__token code {
+    overflow: hidden;
+    color: var(--metro-muted);
+    font-family: var(--bs-font-monospace);
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-card__stations {
+    margin: 6px 0 0;
+    color: var(--metro-muted);
+    font-size: 11px;
+    line-height: 1.3;
+}
+
+.profile-card__actions {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: auto;
+    padding: 8px 12px;
+    border-top: 1px solid var(--metro-hairline);
+}
+
+.profile-card__actions form {
+    margin: 0;
+}
+
+.profile-card__actions-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.profile-card__action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 8px 12px;
+    border: 1px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: var(--metro-ink);
+    font-family: var(--metro-body);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color var(--metro-transition), border-color var(--metro-transition),
+        color var(--metro-transition);
+}
+
+.profile-card__action:hover,
+.profile-card__action:focus {
+    color: var(--metro-orange);
+}
+
+.profile-card__action:focus-visible {
+    outline: 2px solid var(--metro-orange);
+    outline-offset: 2px;
+}
+
+.profile-card__action.is-primary {
+    background: var(--metro-orange);
+    color: var(--metro-on-accent);
+}
+
+.profile-card__action.is-primary:hover,
+.profile-card__action.is-primary:focus {
+    background: var(--metro-orange-soft);
+    color: var(--metro-navy);
+}
+
+.profile-card__action.is-danger {
+    color: var(--bs-danger);
+}
+
+.profile-card__action.is-danger:hover,
+.profile-card__action.is-danger:focus {
+    color: var(--metro-orange);
+}
+
+.profile-card__action:disabled {
+    color: var(--metro-muted);
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+/* Colour picker: 32 px square swatches and a 96 px preview tile. */
+.profile-color-picker {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
     flex-wrap: wrap;
 }
 
 .profile-color-swatches {
-    display: grid;
-    grid-template-columns: repeat(11, 2rem);
-    gap: .5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 320px;
+    padding: 4px;
 }
 
 .profile-color-swatch {
     position: relative;
-    width: 2rem;
-    height: 2rem;
+    width: 32px;
+    height: 32px;
     padding: 0;
-    border: 2px solid transparent;
-    border-radius: 50%;
+    border: 1px solid var(--metro-hairline);
+    border-radius: 0;
+    background-clip: padding-box;
     cursor: pointer;
 }
 
-.profile-color-swatch.is-selected {
-    box-shadow: 0 0 0 2px var(--bs-body-bg), 0 0 0 4px var(--bs-body-color);
+/* `button:focus:not(:focus-visible)` in theme.css resets the outline after a
+   click, so the selected state targets the button element directly. */
+.profile-color-swatch.is-selected,
+button.profile-color-swatch.is-selected {
+    outline: 2px solid var(--metro-orange);
+    outline-offset: 2px;
+}
+
+.profile-color-swatch.is-selected::after {
+    content: "";
+    position: absolute;
+    left: 10px;
+    top: 7px;
+    width: 12px;
+    height: 6px;
+    border-left: 2px solid var(--metro-on-accent);
+    border-bottom: 2px solid var(--metro-on-accent);
+    transform: rotate(-45deg);
+    mix-blend-mode: difference;
+    pointer-events: none;
+}
+
+.profile-color-swatch:focus-visible {
+    outline: 2px solid var(--metro-orange);
+    outline-offset: 2px;
+}
+
+.profile-color-custom:focus-within {
+    outline: 2px solid var(--metro-orange);
+    outline-offset: 2px;
 }
 
 .profile-color-custom {
@@ -120,21 +321,193 @@ body.with-player {
 .profile-color-custom input {
     position: absolute;
     inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
     opacity: 0;
     cursor: pointer;
 }
 
 .profile-color-preview {
     display: flex;
+    flex: 0 0 96px;
     align-items: center;
     justify-content: center;
-    width: 3.5rem;
-    height: 3.5rem;
-    border-radius: .75rem;
-    color: #fff;
-    font-size: 1.5rem;
+    width: 96px;
+    height: 96px;
+    border-radius: 0;
+    color: var(--metro-on-accent);
+    font-family: var(--metro-display);
+    font-size: 32px;
     font-weight: 700;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    line-height: 1;
+    text-transform: uppercase;
+    text-shadow: none;
+}
+
+/* Create and edit forms. */
+.profile-form {
+    max-width: 480px;
+    padding-top: 4px;
+}
+
+.profile-form .form-group {
+    margin-bottom: 22px;
+}
+
+.profile-form__actions {
+    margin-top: 8px;
+    padding-top: 16px;
+    border-top: 1px solid var(--metro-hairline);
+}
+
+.profile-token {
+    font-family: var(--bs-font-monospace);
+    font-size: 12px;
+}
+
+.profile-form--wide {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 0 32px;
+    max-width: none;
+}
+
+.profile-form__col {
+    min-width: 0;
+}
+
+.profile-form__col--stations {
+    padding-left: 32px;
+    border-left: 1px solid var(--metro-hairline);
+}
+
+.profile-form--wide .profile-form__actions {
+    grid-column: 1 / -1;
+}
+
+/* Allowed stations reuse the station mosaic as selectable tiles. */
+.profile-stations {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.profile-stations legend {
+    float: none;
+    width: auto;
+    margin-bottom: 10px;
+}
+
+.profile-station-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: 8px;
+}
+
+.profile-station-tile {
+    min-width: 0;
+}
+
+.profile-station-tile__label {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid var(--metro-hairline);
+    background: var(--metro-tile);
+    color: var(--metro-ink);
+    cursor: pointer;
+    transition: border-color var(--metro-transition);
+}
+
+.profile-station-tile__label:hover {
+    border-color: var(--metro-violet);
+}
+
+.profile-station-tile .collage-container {
+    border: 0;
+}
+
+.btn-check:checked + .profile-station-tile__label {
+    box-shadow: inset 0 0 0 2px var(--metro-orange);
+}
+
+.btn-check:focus-visible + .profile-station-tile__label {
+    outline: 2px solid var(--metro-orange);
+    outline-offset: 2px;
+}
+
+.profile-station-tile__body {
+    display: block;
+    padding: 8px 10px 10px;
+}
+
+.profile-station-tile__name {
+    display: block;
+    overflow: hidden;
+    font-family: var(--metro-display);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-station-tile__meta {
+    display: block;
+    margin-top: 4px;
+    color: var(--metro-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.3;
+    text-transform: uppercase;
+}
+
+.profile-stations__empty {
+    margin: 0;
+    padding: 16px;
+    border: 1px solid var(--metro-hairline);
+    color: var(--metro-muted);
+    font-size: 12px;
+}
+
+@media (max-width: 991.98px) {
+    .profile-form--wide {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .profile-form__col--stations {
+        margin-top: 4px;
+        padding-top: 20px;
+        padding-left: 0;
+        border-top: 1px solid var(--metro-hairline);
+        border-left: 0;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .profile-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .profile-card__head {
+        padding: 14px 14px 10px;
+    }
+
+    .profile-card__actions {
+        padding: 8px;
+    }
+
+    .profile-card__action {
+        padding: 8px 10px;
+    }
 }
 
 /* --------------------------------------------------------------------------
@@ -190,16 +563,19 @@ body.with-player {
 
 .station-check-overlay {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 2rem;
-    color: var(--metro-orange);
-    background-color: var(--metro-tile);
-    border-radius: 50%;
+    top: 8px;
+    right: 8px;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 0;
+    background-color: var(--metro-orange);
+    color: var(--metro-on-accent);
+    font-size: 15px;
     line-height: 1;
     opacity: 0;
-    transition: opacity 0.2s ease-in-out;
-    box-shadow: none;
+    transition: opacity var(--metro-transition);
     z-index: 10;
 }
 

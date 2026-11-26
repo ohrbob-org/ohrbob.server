@@ -1,7 +1,21 @@
 (function () {
+    // White or navy initial for a profile colour, mirroring ProfileColorInk on the server.
+    function inkFor(color) {
+        var match = /^#([0-9a-f]{6})$/i.exec(color || '');
+        if (!match) return '';
+        var rgb = parseInt(match[1], 16);
+        var r = (rgb >> 16) & 0xff;
+        var g = (rgb >> 8) & 0xff;
+        var b = rgb & 0xff;
+        var luma = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+        return luma > 0.55 ? 'var(--metro-navy)' : 'var(--metro-on-accent)';
+    }
+
     function selectColor(picker, color, custom) {
         picker.querySelector('[data-color-value]').value = color;
-        picker.querySelector('[data-color-preview]').style.backgroundColor = color;
+        var preview = picker.querySelector('[data-color-preview]');
+        preview.style.backgroundColor = color;
+        preview.style.color = inkFor(color);
 
         picker.querySelectorAll('.profile-color-swatch').forEach(function (swatch) {
             swatch.classList.toggle('is-selected', !custom && swatch.dataset.color === color);

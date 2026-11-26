@@ -16,17 +16,7 @@
     var hasActive = Model.ActiveProfile != null && !string.IsNullOrEmpty(Model.ActiveProfile.Id);
     var activeInitial = hasActive && !string.IsNullOrEmpty(Model.ActiveProfile.Name) ? Model.ActiveProfile.Name[0].ToString().ToUpper() : "?";
     var activeColor = Ohrbob.Server.Shared.Data.ProfileColors.Resolve(Model.ActiveProfile);
-
-    // Dark profile colours carry white initials, light ones need navy text.
-    string AvatarInk(string color)
-    {
-        if (string.IsNullOrEmpty(color) || color.Length < 7) return "var(--metro-on-accent)";
-        var r = Convert.ToInt32(color.Substring(1, 2), 16);
-        var g = Convert.ToInt32(color.Substring(3, 2), 16);
-        var b = Convert.ToInt32(color.Substring(5, 2), 16);
-        var luma = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255.0;
-        return luma > 0.55 ? "var(--metro-navy)" : "var(--metro-on-accent)";
-    }
+    var activeInk = ProfileColorInk.For(activeColor);
 }
 
 <div class="nav-item dropdown">
@@ -34,7 +24,7 @@
         <span class="badge app-profile-tier @(Model.Tier == Ohrbob.Server.Shared.Data.SubscriptionTier.Morebob ? "is-morebob" : "")" title="Subscription tier">@Model.Tier</span>
         @if (hasActive)
         {
-            <span class="profile-avatar" data-profile-id="@Model.ActiveProfile.Id" style="--metro-avatar: @activeColor; color: @AvatarInk(activeColor);">@activeInitial</span>
+            <span class="profile-avatar" data-profile-id="@Model.ActiveProfile.Id" style="--metro-avatar: @activeColor; color: @activeInk;">@activeInitial</span>
         }
         else
         {
@@ -54,7 +44,7 @@
                         <input type="hidden" name="id" value="@profile.Id" />
                         <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
                         <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2">
-                            <span class="profile-avatar" data-profile-id="@profile.Id" style="--metro-avatar: @color; color: @AvatarInk(color);">@initial</span>
+                            <span class="profile-avatar" data-profile-id="@profile.Id" style="--metro-avatar: @color; color: @ProfileColorInk.For(color);">@initial</span>
                             @profile.Name
                         </button>
                     </form>
