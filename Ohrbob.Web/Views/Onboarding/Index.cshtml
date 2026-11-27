@@ -1,47 +1,47 @@
 @{
     ViewData["Title"] = "Welcome";
+    ViewData["BodyClass"] = "metro-night";
     Layout = "_Layout_Minimal";
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card shadow-sm border-0 glass-panel">
-                <div class="card-body p-5 text-center">
-                    <h1 class="display-5 fw-bold mb-4 text-primary">Welcome to Ohrbob!</h1>
-                    
-                    <p class="lead mb-4">
-                        Ohrbob allows you to create multiple <strong>Profiles</strong> under a single account. 
-                        This is perfect for families—each person can have their own stations, listening history, and recommendations.
-                    </p>
-                    
-                    <form asp-action="CreateProfile" method="post">
-                        <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
-                        <div class="mb-4 text-start">
-                            <label for="profileName" class="form-label fw-bold">Name your first Profile</label>
-                            <input type="text" class="form-control form-control-lg" id="profileName" name="profileName" value="@ViewBag.DefaultName" required>
-                        </div>
+<div class="onboarding-page">
+    <div class="onboarding-intro">
+        <p class="onboarding-wordmark" aria-hidden="true">ohrbob</p>
+        <p class="onboarding-kicker">welcome</p>
+        <h1 class="onboarding-subtitle">Welcome to Ohrbob!</h1>
+    </div>
 
-                        @if (ViewBag.LegalShown is true)
-                        {
-                            <div class="mb-4 text-start">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="acceptTerms" name="acceptTerms" value="true" required>
-                                    <label class="form-check-label" for="acceptTerms">
-                                        I accept the <a asp-controller="Home" asp-action="Legal">terms</a>
-                                    </label>
-                                </div>
-                                @if (TempData["TermsRequired"] is true)
-                                {
-                                    <div class="alert alert-warning mt-3" role="alert">Please accept the terms to continue.</div>
-                                }
-                            </div>
-                        }
-                        
-                        <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill">Continue <i class="bi bi-arrow-right ms-2"></i></button>
-                    </form>
-                </div>
+    <div class="onboarding-card">
+        <p class="onboarding-card__kicker">your first profile</p>
+        <p class="onboarding-card__lead">
+            Ohrbob allows you to create multiple <strong>Profiles</strong> under a single account.
+            This is perfect for families—each person can have their own stations, listening history, and recommendations.
+        </p>
+
+        <form asp-action="CreateProfile" method="post">
+            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+            <div class="onboarding-field">
+                <label for="profileName" class="form-label">Name your first Profile</label>
+                <input type="text" class="form-control form-control-lg" id="profileName" name="profileName" value="@ViewBag.DefaultName" required>
             </div>
-        </div>
+
+            @if (ViewBag.LegalShown is true)
+            {
+                <div class="onboarding-terms">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="acceptTerms" name="acceptTerms" value="true" required>
+                        <label class="form-check-label" for="acceptTerms">
+                            I accept the <a asp-controller="Home" asp-action="Legal">terms</a>
+                        </label>
+                    </div>
+                    @if (TempData["TermsRequired"] is true)
+                    {
+                        <div class="onboarding-alert" role="alert">Please accept the terms to continue.</div>
+                    }
+                </div>
+            }
+
+            <button type="submit" class="btn btn-primary onboarding-submit">Continue <i class="bi bi-arrow-right ms-2"></i></button>
+        </form>
     </div>
 </div>
