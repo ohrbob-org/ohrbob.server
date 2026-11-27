@@ -102,8 +102,8 @@ public class MetroPlayerTests : PageTest
         }");
 
         Assert.That(m[0], Is.EqualTo("fixed"), "the deck sits on the viewport");
-        Assert.That(m[1], Is.EqualTo("1px"), "the deck is separated by a 1px hairline");
-        Assert.That(m[2], Is.EqualTo("solid"), "the hairline is a solid rule");
+        Assert.That(m[1], Is.EqualTo("0px"), "the deck has no top rule");
+        Assert.That(m[2], Is.EqualTo("none"), "the deck has no border style");
         Assert.That(ParsePx(m[3]), Is.EqualTo(0), "the deck has no radius");
         Assert.That(m[4], Is.EqualTo("none"), "the deck must not use a backdrop filter");
         Assert.That(ParsePx(m[5]), Is.EqualTo(72), "desktop play button is 72px wide");
@@ -112,6 +112,14 @@ public class MetroPlayerTests : PageTest
         Assert.That(m[8], Is.EqualTo("rgb(252, 93, 0)"), "the play button is Metro orange");
         Assert.That(m[9], Is.Empty, "glass-panel must be gone from the widget");
         Assert.That(m[10], Is.Empty, "glass-edge must be gone from the widget");
+
+        var surface = await Page.EvaluateAsync<string[]>(@"() => {
+            const w = document.querySelector('#ohrbob-player');
+            const s = getComputedStyle(w);
+            return [s.backgroundColor, w.querySelectorAll('.btn-menu, .js-settings').length.toString()];
+        }");
+        Assert.That(surface[0], Does.Not.Contain("rgba"), "the deck surface is opaque");
+        Assert.That(surface[1], Is.EqualTo("0"), "the deck has no settings cog");
     }
 
     [Test]
@@ -188,9 +196,9 @@ public class MetroPlayerTests : PageTest
             const skip = getComputedStyle(w.querySelector('.js-skipback'));
             const volume = getComputedStyle(w.querySelector('.audio-volume-group'));
             const progress = getComputedStyle(w.querySelector('.audio-progress-group'));
-            const menu = getComputedStyle(w.querySelector('.btn-menu'));
             return [play.width, play.height, skip.width, skip.height,
-                    volume.display, progress.display, menu.display];
+                    volume.display, progress.display,
+                    w.querySelectorAll('.btn-menu, .js-settings').length.toString()];
         }");
 
         Assert.That(ParsePx(m[0]), Is.EqualTo(52), "the phone play button is 52px wide");
@@ -199,7 +207,7 @@ public class MetroPlayerTests : PageTest
         Assert.That(ParsePx(m[3]), Is.EqualTo(34), "the phone skip button is 34px tall");
         Assert.That(m[4], Is.EqualTo("none"), "volume is hidden on phones");
         Assert.That(m[5], Is.EqualTo("none"), "the progress group is hidden on phones");
-        Assert.That(m[6], Is.EqualTo("none"), "the menu is hidden on phones");
+        Assert.That(m[6], Is.EqualTo("0"), "the settings cog is gone from the phone deck");
     }
 
     [Test]

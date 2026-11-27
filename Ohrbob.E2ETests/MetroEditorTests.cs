@@ -101,7 +101,7 @@ public class MetroEditorTests : PageTest
         }");
         Assert.That(m[0], Is.EqualTo("none"));
         Assert.That(m[1], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "the bar sits on the canvas");
-        Assert.That(m[2], Is.EqualTo("1px"), "the bar has one hairline");
+        Assert.That(m[2], Is.EqualTo("0px"), "the bar has no rule under the station title");
         Assert.That(m[3], Is.EqualTo("2px"));
         Assert.That(m[4], Does.Match("rgb\\(252, 93, 0\\)"));
         Assert.That(m[5], Is.EqualTo("none"), "no shadow");
@@ -109,6 +109,34 @@ public class MetroEditorTests : PageTest
         Assert.That(m[7], Is.EqualTo("0px"), "the docked bar sticks to the top of the viewport");
         Assert.That(m[8], Is.EqualTo("none"), "the docked bar stays flat");
         Assert.That(m[9], Is.EqualTo("0px"), "the docked bar stays square");
+    }
+
+    [Test]
+    public async Task PaneTitlesMatchAndPlaylistRowsKeepTheirHeight()
+    {
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{_stationId}");
+
+        var json = await Page.EvaluateAsync<string>(@"() => {
+            const titles = Array.from(document.querySelectorAll('.editor-pane__title'))
+                .filter(e => getComputedStyle(e).display !== 'none')
+                .map(e => ({ text: e.textContent.trim(), size: parseFloat(getComputedStyle(e).fontSize),
+                             family: getComputedStyle(e).fontFamily }));
+            const rows = Array.from(document.querySelectorAll('#resolvedList .card-episode'))
+                .map(e => e.getBoundingClientRect().height);
+            return JSON.stringify({ titles, rows });
+        }");
+        using var doc = System.Text.Json.JsonDocument.Parse(json);
+        var titles = doc.RootElement.GetProperty("titles");
+        var texts = titles.EnumerateArray().Select(t => t.GetProperty("text").GetString()).ToArray();
+        var sizes = titles.EnumerateArray().Select(t => t.GetProperty("size").GetDouble()).ToArray();
+        Assert.That(texts, Does.Contain("Podcasts"));
+        Assert.That(texts, Does.Contain("Playlist"), "the episode pane is called Playlist now");
+        Assert.That(sizes.Distinct().Count(), Is.EqualTo(1), "both pane titles use the same size");
+        Assert.That(sizes[0], Is.GreaterThanOrEqualTo(24), "pane titles are larger than the old 11 px labels");
+
+        var rows = doc.RootElement.GetProperty("rows").EnumerateArray().Select(r => r.GetDouble()).ToArray();
+        Assert.That(rows, Is.Not.Empty, "the playlist has episodes to measure");
+        Assert.That(rows, Has.All.GreaterThanOrEqualTo(58), "playlist rows keep the content height");
     }
 
     [Test]
@@ -132,9 +160,12 @@ public class MetroEditorTests : PageTest
     public async Task FeedAndEpisodeRowsCarryFeedColours()
     {
         await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{_stationId}");
-        var feed = await Page.EvaluateAsync<string>(
-            @"() => getComputedStyle(document.querySelector('.card-station-feed')).borderLeftWidth");
-        Assert.That(feed, Is.EqualTo("4px"));
+        var feed = await Page.EvaluateAsync<string[]>(
+            @"() => { const s = getComputedStyle(document.querySelector('.card-station-feed'));
+                     return [s.borderLeftWidth, s.borderTopWidth, s.backgroundColor]; }");
+        Assert.That(feed[0], Is.EqualTo("4px"), "the feed bar stays 4 px");
+        Assert.That(feed[1], Is.EqualTo("0px"), "feed cards have no outline");
+        Assert.That(feed[2], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "feed cards are filled with the feed colour");
 
         await Page.SetViewportSizeAsync(375, 812);
         await Page.ClickAsync("#resolved-tab");

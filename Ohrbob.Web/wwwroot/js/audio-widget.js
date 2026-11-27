@@ -273,7 +273,6 @@ class AudioWidget extends HTMLElement {
                     <button type="button" class="btn-mute js-mute" aria-label="Mute" aria-pressed="false">${ICONS.volume}</button>
                     <input type="range" class="audio-volume" min="0" max="1" step="0.01" value="1" aria-label="Volume">
                 </div>
-                <button type="button" class="btn-menu js-settings" aria-label="Settings">${ICONS.settings}</button>
             </div>
 
             <!-- Fullscreen Blur Backdrop Overlay -->

@@ -32,7 +32,7 @@
         <a class="nav-link active" id="rotation-tab" data-bs-toggle="tab" href="#rotation" role="tab">Podcasts</a>
       </li>
       <li class="nav-item" role="presentation">
-        <a class="nav-link" id="resolved-tab" data-bs-toggle="tab" href="#resolved" role="tab">Episodes</a>
+        <a class="nav-link" id="resolved-tab" data-bs-toggle="tab" href="#resolved" role="tab">Playlist</a>
       </li>
     </ul>
 </header>
@@ -49,8 +49,10 @@
             {
                 var currentFeedIndex = feedScheduleIndex++;
                 var activeValue = (int)feedSchedule.SortOrder;
-                var feedAccent = string.IsNullOrEmpty(feedSchedule.Color) ? "var(--metro-hairline)" : feedSchedule.Color;
-                <div class="list-group-item rotation-item card-station-feed mb-2" draggable="true" data-url="@feedSchedule.Url" data-feed-id="@feedData.Id" style="--station-feed-accent: @feedAccent;">
+                var feedColorValue = feedSchedule.Color;
+                var feedAccent = string.IsNullOrEmpty(feedColorValue) ? "var(--metro-hairline)" : feedColorValue;
+                var feedInk = string.IsNullOrEmpty(feedColorValue) ? "var(--metro-ink)" : ProfileColorInk.For(feedColorValue);
+                <div class="list-group-item rotation-item card-station-feed mb-2" draggable="true" data-url="@feedSchedule.Url" data-feed-id="@feedData.Id" data-feed-color="@feedAccent" style="--station-feed-accent: @feedAccent; --station-feed-ink: @feedInk;">
                     <i class="bi bi-soundwave card-station-feed-watermark" aria-hidden="true"></i>
                     @if (!string.IsNullOrEmpty(feedData.ImageUrl))
                     {
@@ -174,7 +176,7 @@
     {
         var playlist = (List<Ohrbob.Server.Shared.Requests.EpisodePlayStateDto>)ViewBag.Playlist;
         <div>
-            <h4 class="editor-pane__title d-none d-lg-block">Episodes</h4>
+            <h4 class="editor-pane__title d-none d-lg-block">Playlist</h4>
             <ul class="list-group" id="resolvedList">
                 @foreach (var item in playlist)
                 {

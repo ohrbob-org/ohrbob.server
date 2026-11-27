@@ -73,6 +73,20 @@ body.with-player {
    owned by theme.css; site.css only tightens the sheet on phones.
    -------------------------------------------------------------------------- */
 
+/* Player deck: solid paper/dark surface, no top rule. */
+.audio-widget {
+    border-top: 0;
+    background: var(--metro-canvas);
+    color: var(--metro-ink);
+}
+
+.audio-widget .audio-bar {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+        "progress progress progress"
+        "meta controls volume";
+}
+
 .metro-auto-start {
     position: fixed;
     right: 16px;
@@ -144,7 +158,21 @@ body.with-player {
 }
 
 @media (max-width: 767.98px) {
-    .metro-auto-start {
+    /* Player deck: solid paper/dark surface, no top rule. */
+.audio-widget {
+    border-top: 0;
+    background: var(--metro-canvas);
+    color: var(--metro-ink);
+}
+
+.audio-widget .audio-bar {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+        "progress progress progress"
+        "meta controls volume";
+}
+
+.metro-auto-start {
         right: 12px;
         bottom: 92px;
         width: min(320px, calc(100vw - 24px));
@@ -1946,14 +1974,14 @@ body.with-player .app-toast-container {
     margin-top: -1px;
 }
 
-/* Sticky editor bar: flat canvas, a single hairline, no glass. */
+/* Sticky editor bar: flat canvas, no rules, no glass. */
 #dockable-header {
     position: sticky;
     top: 0;
     z-index: 1040;
     margin: 0 0 20px;
     padding: 10px 0;
-    border-bottom: 1px solid var(--metro-hairline);
+    border-bottom: 0;
     background: var(--metro-canvas);
     transition: padding var(--metro-transition);
 }
@@ -2097,19 +2125,29 @@ body.with-player .app-toast-container {
 }
 
 .editor-pane__title {
-    margin: 0 0 12px;
-    color: var(--metro-muted);
-    font-family: var(--metro-body);
-    font-size: 11px;
+    margin: 0 0 16px;
+    color: var(--metro-ink);
+    font-family: var(--metro-display);
+    font-size: 28px;
     font-weight: 700;
-    letter-spacing: 0.16em;
-    line-height: 1.2;
-    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    text-transform: none;
 }
 
 #rotationContainer,
 #resolvedList {
     padding: 0 0 24px;
+}
+
+/* Bootstrap .list-group is a flex column; without this the fixed-height
+   playlist squeezes every row instead of letting it scroll. */
+#resolvedList {
+    display: block;
+}
+
+#resolvedList .card-episode {
+    flex: 0 0 auto;
 }
 
 @media (min-width: 992px) {
@@ -2151,6 +2189,62 @@ body.with-player .app-toast-container {
 #rotationContainer .card-station-feed {
     /* The kit's overflow clip hides the three-dot dropdown behind the next row. */
     overflow: visible;
+    border: 0;
+    border-left: 4px solid color-mix(in srgb, var(--station-feed-accent) 62%, var(--station-feed-ink));
+    background: var(--station-feed-accent);
+    color: var(--station-feed-ink);
+}
+
+#rotationContainer .card-station-feed:hover {
+    border-left-color: var(--station-feed-ink);
+}
+
+#rotationContainer .card-station-feed-title {
+    color: var(--station-feed-ink);
+}
+
+#rotationContainer .card-station-feed-meta,
+#rotationContainer .card-station-feed-span,
+#rotationContainer .card-station-feed-span .bi-question-circle {
+    color: color-mix(in srgb, var(--station-feed-ink) 72%, transparent);
+}
+
+#rotationContainer .card-station-feed-dot {
+    background: var(--station-feed-ink);
+}
+
+#rotationContainer .card-station-feed-menu {
+    color: color-mix(in srgb, var(--station-feed-ink) 72%, transparent);
+}
+
+#rotationContainer .card-station-feed-menu:hover,
+#rotationContainer .card-station-feed-menu:focus {
+    color: var(--station-feed-ink);
+    background: color-mix(in srgb, var(--station-feed-ink) 12%, transparent);
+}
+
+#rotationContainer .playback-order-toggle {
+    border-color: color-mix(in srgb, var(--station-feed-ink) 40%, transparent);
+    background: color-mix(in srgb, var(--station-feed-ink) 10%, transparent);
+}
+
+#rotationContainer .slider-thumb-container {
+    background: var(--station-feed-ink);
+    color: var(--station-feed-accent);
+}
+
+#rotationContainer .playback-node-btn {
+    color: color-mix(in srgb, var(--station-feed-ink) 62%, transparent);
+}
+
+#rotationContainer .playback-node-btn:hover {
+    color: var(--station-feed-ink);
+}
+
+#rotationContainer .episodes-input {
+    color: var(--station-feed-ink);
+    background: color-mix(in srgb, var(--station-feed-ink) 8%, transparent);
+    border-bottom-color: color-mix(in srgb, var(--station-feed-ink) 40%, transparent);
 }
 
 #rotationContainer .card-station-feed-body {
