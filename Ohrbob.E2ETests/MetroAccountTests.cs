@@ -350,6 +350,44 @@ public class MetroAccountTests : PageTest
     }
 
     [Test]
+    public async Task CreatingApiKey_AfterHtmxSwap_ShowsToastAndOpensFreshKeyQr()
+    {
+        await Page.GotoAsync($"{_factory.ServerAddress}/Account");
+        await Page.ClickAsync("#api-keys-tab");
+        await Expect(Page.Locator("#api-keys-pane")).ToBeVisibleAsync();
+
+        // A document marker would disappear on a full page reload. The boosted
+        // create form must swap #main-content instead, keeping playback alive.
+        await Page.EvaluateAsync("() => { window.__ohrbobSameDocument = true; }");
+
+        await Page.FillAsync("#keyName", "Hallway Speaker");
+        await Page.Locator("#api-keys-pane form[action='/Account/AddApiKey'] button[type='submit']").ClickAsync();
+
+        // TempData from the create request must be surfaced after the swap.
+        await Expect(Page.Locator("#liveToast")).ToBeVisibleAsync(new() { Timeout = 15000 });
+        await Expect(Page.Locator("#liveToast")).ToHaveClassAsync(new Regex(@"\bis-success\b"));
+        await Expect(Page.Locator("#toast-body-text"))
+            .ToContainTextAsync("API key created successfully.");
+
+        // ... and the freshly created key opens its QR modal, fully populated.
+        await Expect(Page.Locator("#qrCodeModal")).ToBeVisibleAsync(new() { Timeout = 15000 });
+        await Expect(Page.Locator("#qrKeyName")).ToHaveTextAsync("Hallway Speaker");
+        await Expect(Page.Locator("#qrToken")).ToHaveValueAsync(new Regex(".+"));
+        await Expect(Page.Locator("#qrServerUrl")).ToHaveValueAsync(new Regex(".+"));
+        Assert.That(await Page.Locator("#qrDeepLink").TextContentAsync(),
+            Does.StartWith("ohrbob://connect?"));
+        await Expect(Page.Locator("#qrcode-container img:visible, #qrcode-container canvas:visible"))
+            .ToHaveCountAsync(1, new() { Timeout = 15000 });
+
+        Assert.That(await Page.EvaluateAsync<bool>("() => window.__ohrbobSameDocument === true"),
+            Is.True, "the create form must submit through htmx, keeping the document and playback alive");
+
+        // The swapped-in account page contains the new key.
+        await Expect(Page.Locator(".api-key-row", new() { HasTextString = "Hallway Speaker" }))
+            .ToHaveCountAsync(1);
+    }
+
+    [Test]
     public async Task DeletePage_UsesDangerPanelWithRedRule()
     {
         await Page.GotoAsync($"{_factory.ServerAddress}/Account");

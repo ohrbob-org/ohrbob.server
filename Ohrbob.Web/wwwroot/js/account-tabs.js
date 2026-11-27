@@ -140,6 +140,11 @@
         const name = modal.getAttribute('data-initial-key-name');
         const link = modal.getAttribute('data-initial-deep-link');
         if (!name || !link) return;
+
+        // Consume the trigger before opening: init() also runs after every htmx
+        // settle, so repeated calls must not queue the modal twice.
+        modal.removeAttribute('data-initial-key-name');
+        modal.removeAttribute('data-initial-deep-link');
         setTimeout(function () { showConnectionQr(name, link); }, 100);
     }
 
@@ -153,4 +158,13 @@
     } else {
         init();
     }
+
+    // The create-key form (and boosted navigation) swaps #main-content, not the
+    // app shell, so this document-level listener survives. Re-run the account
+    // initialisation on the swapped fragment: that is what turns TempData into
+    // a toast and opens the QR modal for a freshly created key without a full
+    // page reload (and therefore without interrupting playback).
+    document.body.addEventListener('htmx:afterSettle', function () {
+        init();
+    });
 })();
