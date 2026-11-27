@@ -122,7 +122,9 @@ public class MetroEditorTests : PageTest
                 .map(e => ({ text: e.textContent.trim(), size: parseFloat(getComputedStyle(e).fontSize),
                              family: getComputedStyle(e).fontFamily }));
             const rows = Array.from(document.querySelectorAll('#resolvedList .card-episode'))
-                .map(e => e.getBoundingClientRect().height);
+                .map(e => ({ h: e.getBoundingClientRect().height,
+                             bar: parseFloat(getComputedStyle(e, '::before').height),
+                             border: parseFloat(getComputedStyle(e).borderTopWidth) }));
             return JSON.stringify({ titles, rows });
         }");
         using var doc = System.Text.Json.JsonDocument.Parse(json);
@@ -134,9 +136,22 @@ public class MetroEditorTests : PageTest
         Assert.That(sizes.Distinct().Count(), Is.EqualTo(1), "both pane titles use the same size");
         Assert.That(sizes[0], Is.GreaterThanOrEqualTo(24), "pane titles are larger than the old 11 px labels");
 
-        var rows = doc.RootElement.GetProperty("rows").EnumerateArray().Select(r => r.GetDouble()).ToArray();
+        var rows = doc.RootElement.GetProperty("rows").EnumerateArray().Select(r => new
+        {
+            Height = r.GetProperty("h").GetDouble(),
+            Bar = r.GetProperty("bar").GetDouble(),
+            Border = r.GetProperty("border").GetDouble(),
+        }).ToArray();
         Assert.That(rows, Is.Not.Empty, "the playlist has episodes to measure");
-        Assert.That(rows, Has.All.GreaterThanOrEqualTo(58), "playlist rows keep the content height");
+        Assert.That(rows.Select(r => r.Height), Has.All.GreaterThanOrEqualTo(58),
+            "playlist rows keep the content height");
+        Assert.That(rows.Select(r => r.Border), Has.All.EqualTo(0),
+            "there is no horizontal rule between episodes");
+        foreach (var row in rows)
+        {
+            Assert.That(row.Bar, Is.EqualTo(row.Height).Within(1),
+                "the feed-colour bar spans the full row height");
+        }
     }
 
     [Test]
@@ -167,6 +182,18 @@ public class MetroEditorTests : PageTest
         Assert.That(feed[1], Is.EqualTo("0px"), "feed cards have no outline");
         Assert.That(feed[2], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "feed cards are filled with the feed colour");
 
+        var placeholder = await Page.EvaluateAsync<string[]>(@"() => {
+            const el = document.querySelector('.card-station-feed-cover-empty');
+            const s = getComputedStyle(el);
+            return [s.fontSize, s.backgroundColor];
+        }");
+        Assert.That(placeholder, Has.Length.EqualTo(2), "the feed without cover art renders an initial");
+        Assert.That(double.Parse(placeholder[0].Replace("px", string.Empty),
+            System.Globalization.CultureInfo.InvariantCulture), Is.GreaterThanOrEqualTo(40),
+            "the feed initial is large");
+        Assert.That(placeholder[1], Is.Not.EqualTo("rgb(244, 241, 234)"),
+            "the placeholder is not a white/paper square");
+
         await Page.SetViewportSizeAsync(375, 812);
         await Page.ClickAsync("#resolved-tab");
         var bar = await Page.EvaluateAsync<string>(@"() => {
@@ -174,6 +201,13 @@ public class MetroEditorTests : PageTest
             return getComputedStyle(el, '::before').backgroundColor;
         }");
         Assert.That(bar, Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "non-playing rows must still show a feed bar");
+
+        var episodePlaceholder = await Page.EvaluateAsync<string>(@"() => {
+            const el = document.querySelector('#resolvedList .card-episode-badge');
+            return el ? getComputedStyle(el).backgroundColor : 'missing';
+        }");
+        Assert.That(episodePlaceholder, Is.Not.EqualTo("rgb(244, 241, 234)"),
+            "episode placeholders are not white tiles either");
 
         // A completed row keeps its feed bar too (the old markup dropped the accent var
         // for completed episodes, so the bar fell back to transparent).

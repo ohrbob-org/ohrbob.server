@@ -2218,6 +2218,25 @@ body.with-player .app-toast-container {
     color: var(--station-feed-ink);
 }
 
+/* Feeds without cover art: the same translucent tint as the inputs, with a
+   large display initial instead of a white square. */
+#rotationContainer .card-station-feed-cover-empty {
+    display: grid;
+    place-items: center;
+    background: color-mix(in srgb, var(--station-feed-ink) 10%, transparent);
+    color: var(--station-feed-ink);
+    font-family: var(--metro-display);
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Episodes without cover art: no white tile either. */
+#resolvedList .card-episode-badge {
+    background: color-mix(in srgb, var(--card-episode-accent) 10%, transparent);
+    color: var(--card-episode-accent);
+}
+
 #rotationContainer .card-station-feed-meta,
 #rotationContainer .card-station-feed-span,
 #rotationContainer .card-station-feed-span .bi-question-circle {
@@ -2306,8 +2325,15 @@ body.with-player .app-toast-container {
     background: var(--metro-tile);
 }
 
-#resolvedList .card-episode + .card-episode {
-    border-top: 1px solid var(--metro-hairline);
+/* The feed-colour bar spans the full height of each episode row, with no
+   horizontal rule between rows. */
+#resolvedList .card-episode::before {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 4px;
+    height: auto;
 }
 
 .card-episode-byline {
