@@ -167,7 +167,7 @@ public class ThemeTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
         await Page.EvaluateAsync("() => { document.getElementById('ohrbob-player').isExpanded = true; }");
         await Page.WaitForTimeoutAsync(400);
-        AssertNoContrastIssues(await Page.EvaluateAsync<string[]>(ContrastScript), "expanded player");
+        ContrastChecks.AssertNoIssues(await Page.EvaluateAsync<string[]>(ContrastChecks.Script), "expanded player");
 
         // The anonymous landing page (which carries its own inline styles).
         TestAuthHandler.IsAuthenticated = false;
@@ -345,12 +345,8 @@ public class ThemeTests : PageTest
     {
         await Page.GotoAsync(_factory.ServerAddress + path);
         Assert.That(await CurrentThemeAsync(), Is.EqualTo("dark"), $"Expected the dark theme on {path}");
-        AssertNoContrastIssues(await Page.EvaluateAsync<string[]>(ContrastScript), path);
+        ContrastChecks.AssertNoIssues(await Page.EvaluateAsync<string[]>(ContrastChecks.Script), path);
     }
-
-    private static void AssertNoContrastIssues(string[] offenders, string label) =>
-        Assert.That(offenders, Is.Empty,
-            $"Unreadable text/controls in dark mode ({label}):\n  {string.Join("\n  ", offenders)}");
 
     private async Task WaitForEpisodesAsync(string stationId, int minimum)
     {
@@ -365,55 +361,6 @@ public class ThemeTests : PageTest
         }
         Assert.Fail($"Feed episodes were not parsed within the timeout (station {stationId}).");
     }
-
-    // Composites translucent backgrounds/text colours over their ancestors so a
-    // subtle white-on-dark surface is not mistaken for a light one.
-    private const string ContrastScript = @"() => {
-        const parse = (rgb) => {
-            const m = rgb.match(/[\d.]+/g);
-            if (!m) return { r: 0, g: 0, b: 0, a: 0 };
-            return { r: +m[0], g: +m[1], b: +m[2], a: m.length > 3 ? +m[3] : 1 };
-        };
-        const luma = (c) => (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b) / 255;
-        const effectiveBg = (el) => {
-            const chain = [];
-            let node = el;
-            while (node && node.nodeType === 1) { chain.push(node); node = node.parentElement; }
-            let acc = { r: 255, g: 255, b: 255 };
-            for (let i = chain.length - 1; i >= 0; i--) {
-                const c = parse(getComputedStyle(chain[i]).backgroundColor);
-                if (c.a <= 0) continue;
-                acc = { r: c.r * c.a + acc.r * (1 - c.a), g: c.g * c.a + acc.g * (1 - c.a), b: c.b * c.a + acc.b * (1 - c.a) };
-            }
-            return acc;
-        };
-        const offenders = [];
-        document.querySelectorAll('body *').forEach((el) => {
-            if (el instanceof SVGElement) return;
-            const direct = Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent.trim().length > 0);
-            const isControl = el.matches('button, a, .btn, [role=""button""], [role=""slider""]');
-            if (!direct && !isControl) return;
-            const cs = getComputedStyle(el);
-            if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) === 0) return;
-            const rect = el.getBoundingClientRect();
-            if (rect.width === 0 || rect.height === 0) return;
-
-            const bg = effectiveBg(el);
-            const fgColor = parse(cs.color);
-            const fg = {
-                r: fgColor.r * fgColor.a + bg.r * (1 - fgColor.a),
-                g: fgColor.g * fgColor.a + bg.g * (1 - fgColor.a),
-                b: fgColor.b * fgColor.a + bg.b * (1 - fgColor.a)
-            };
-            const bl = luma(bg);
-            const fl = luma(fg);
-            if ((bl < 0.4 && fl < 0.45) || (bl > 0.6 && fl > 0.55)) {
-                const cls = typeof el.className === 'string' ? el.className : '';
-                offenders.push(el.tagName + '.' + cls + ' (fg=' + fl.toFixed(2) + ', bg=' + bl.toFixed(2) + ')');
-            }
-        });
-        return offenders.slice(0, 25);
-    }";
 
     private async Task<string?> CookieValueAsync(string name)
     {
