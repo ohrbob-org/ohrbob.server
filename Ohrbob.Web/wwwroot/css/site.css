@@ -726,6 +726,8 @@ button.profile-color-swatch.is-selected {
    -------------------------------------------------------------------------- */
 
 .app-header {
+    position: relative;
+    z-index: 1045;
     background: var(--metro-canvas);
     color: var(--metro-ink);
 }

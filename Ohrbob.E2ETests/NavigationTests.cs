@@ -185,6 +185,16 @@ public class NavigationTests : PageTest
         // Check for menu items
         await Expect(Page.Locator("text=About")).ToBeVisibleAsync();
         await Expect(Page.Locator("text=GitHub")).ToBeVisibleAsync();
+
+        // The menu must paint above the page heading/cards, not behind them.
+        var onTop = await Page.EvaluateAsync<bool>(@"() => {
+            const menu = document.querySelector('.dropdown-menu.show');
+            if (!menu) return false;
+            const r = menu.getBoundingClientRect();
+            const hit = document.elementFromPoint(r.left + 12, r.top + 12);
+            return !!hit && menu.contains(hit);
+        }");
+        Assert.That(onTop, Is.True, "the profile dropdown must sit above the page content");
     }
 
     [Test]
