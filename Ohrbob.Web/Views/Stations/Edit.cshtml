@@ -8,16 +8,23 @@
 <div id="dock-sentinel" class="editor-sentinel" aria-hidden="true"></div>
 <header class="editor-header" id="dockable-header">
     <div class="editor-header__inner">
-        <h1 class="editor-title">
-            <span id="stationNameDisplay">@Model.Station.Name</span>
-            @if (Model.Station.HostPaceEnabled)
-            {
-                <span class="editor-badge" title="Only episodes the host has completed are available">Host Pace</span>
-            }
-        </h1>
-        <button type="button" class="editor-icon-btn" id="renameStationBtn" title="Station Settings" aria-label="Station Settings">
-            <i class="bi bi-gear-fill" aria-hidden="true"></i>
-        </button>
+        <div class="editor-header__lead">
+            <a href="/Stations" class="editor-icon-btn editor-back-btn" aria-label="Back to stations" title="Back to stations">
+                <i class="bi bi-arrow-left" aria-hidden="true"></i>
+            </a>
+            <h1 class="editor-title">
+                <span id="stationNameDisplay">@Model.Station.Name</span>
+                @if (Model.Station.HostPaceEnabled)
+                {
+                    <span class="editor-badge" title="Only episodes the host has completed are available">Host Pace</span>
+                }
+            </h1>
+        </div>
+        <div class="editor-header__actions">
+            <button type="button" class="editor-icon-btn" id="renameStationBtn" title="Station Settings" aria-label="Station Settings">
+                <i class="bi bi-gear-fill" aria-hidden="true"></i>
+            </button>
+        </div>
     </div>
 
     <ul class="nav pill-nav editor-tabs d-lg-none" id="stationTabs" role="tablist">
@@ -516,7 +523,6 @@
 
 <script>
         (function () {
-            console.log("IIFE EXECUTED");
             const getVerificationToken = () => document.querySelector('input[name="__RequestVerificationToken"]').value;
 
             function reloadPlaylist() {
@@ -610,7 +616,6 @@
             };
 
             function updateSchedule(shouldReload = false) {
-                console.log("UPDATE SCHEDULE CALLED");
                 const rotationItems = document.querySelectorAll('#rotationContainer .rotation-item');
                 const feeds = Array.from(rotationItems).map(item => {
                     const url = item.getAttribute('data-url');
@@ -786,46 +791,6 @@
                 });
             }
             
-            function setEpisodeCompletedState(li, isCompleted) {
-                if (!li) return;
-
-                li.classList.toggle('is-played', isCompleted);
-
-                // Show/hide overlay
-                const overlay = li.querySelector('.completed-overlay');
-                if (overlay) {
-                    if (isCompleted) {
-                        overlay.classList.remove('d-none');
-                    } else {
-                        overlay.classList.add('d-none');
-                    }
-                }
-                
-                // Swap buttons
-                const btnContainer = li.querySelector('.button-container');
-                if (btnContainer) {
-                    if (isCompleted) {
-                        btnContainer.innerHTML = `
-                            <button type="button" class="episode-action-btn clear-completed-btn" title="Clear completed state">
-                                <i class="bi bi-arrow-counterclockwise"></i>
-                            </button>
-                            <button type="button" class="episode-action-btn clear-completed-until-btn" title="Clear everything until here">
-                                <i class="bi bi-arrow-counterclockwise"></i>
-                            </button>
-                        `;
-                    } else {
-                        btnContainer.innerHTML = `
-                            <button type="button" class="episode-action-btn mark-completed-btn" title="Mark Completed">
-                                <i class="bi bi-check-lg"></i>
-                            </button>
-                            <button type="button" class="episode-action-btn mark-completed-until-btn" title="Mark All Until Here Completed">
-                                <i class="bi bi-check2-all"></i>
-                            </button>
-                        `;
-                    }
-                }
-            }
-
             // Resolved List Buttons
             const resolvedTabPane = document.getElementById('resolved');
             if (resolvedTabPane) {

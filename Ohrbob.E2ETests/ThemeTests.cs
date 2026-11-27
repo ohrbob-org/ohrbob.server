@@ -56,6 +56,19 @@ public class ThemeTests : PageTest
     }
 
     [Test]
+    public async Task ThemeCssSourceMapIsServed()
+    {
+        await Page.GotoAsync(_factory.ServerAddress);
+        var response = await Page.GotoAsync($"{_factory.ServerAddress}/css/theme.css.map");
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response!.Status, Is.EqualTo(200), "theme.css advertises a source map that must not 404");
+        Assert.That(response.Headers.TryGetValue("content-type", out var contentType), Is.True);
+        Assert.That(contentType, Does.Contain("json"));
+        var body = await Page.EvaluateAsync<string>("() => document.body.innerText");
+        Assert.That(body, Does.Contain("\"version\""), "the served file is a real source map");
+    }
+
+    [Test]
     public async Task Theme_FollowsOperatingSystemPreferenceByDefault()
     {
         await Page.EmulateMediaAsync(new() { ColorScheme = ColorScheme.Dark });

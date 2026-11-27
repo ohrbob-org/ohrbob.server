@@ -115,6 +115,26 @@ public class DelayedAutoplayTests : PageTest
     }
 
     [Test]
+    public async Task AutoPlayPrompt_IsReadableInDarkMode()
+    {
+        await StartStationAsync();
+        await Context.AddCookiesAsync(new[]
+        {
+            new Cookie { Name = "ohrbob_theme", Value = "dark", Url = _factory.ServerAddress }
+        });
+
+        await Page.ReloadAsync();
+        await Expect(Page.Locator("html")).ToHaveAttributeAsync("data-bs-theme", "dark",
+            new() { Timeout = 5000 });
+        var overlay = Page.Locator("#ohrbob-auto-start.show");
+        await Expect(overlay).ToBeVisibleAsync(new() { Timeout = 20000 });
+        await Expect(overlay.Locator(".js-auto-start-pause")).ToBeVisibleAsync();
+
+        ContrastChecks.AssertNoIssues(
+            await Page.EvaluateAsync<string[]>(ContrastChecks.Script), "auto-start prompt");
+    }
+
+    [Test]
     public async Task ExplicitPlay_DoesNotWaitForTheCountdown()
     {
         var station = await StartStationAsync();

@@ -130,16 +130,27 @@ public class MetroProfilesTests : PageTest
             const actions = card.querySelector('.profile-card__actions');
             const nameStyle = getComputedStyle(name);
             const labelStyle = getComputedStyle(label);
+            const channels = (value) => value.match(/[\d.]+/g).slice(0, 3).map(Number);
+            const luminance = ([r, g, b]) => {
+                const lin = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+                return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+            };
+            const contrast = (fg, bg) => {
+                const a = luminance(channels(fg));
+                const b = luminance(channels(bg));
+                return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+            };
             return [nameStyle.fontFamily, nameStyle.fontSize,
                     labelStyle.color, labelStyle.textTransform,
                     getComputedStyle(token).fontFamily, getComputedStyle(token).fontSize,
                     getComputedStyle(card).backgroundColor,
                     getComputedStyle(actions).borderTopWidth,
-                    getComputedStyle(card).boxShadow];
+                    getComputedStyle(card).boxShadow,
+                    contrast(labelStyle.color, getComputedStyle(card).backgroundColor).toFixed(2)];
         }");
         Assert.That(m[0], Does.Contain("Sulphur"), "the profile name uses the display face");
         Assert.That(m[1], Is.EqualTo("24px"), "the profile name is 24 px");
-        Assert.That(m[2], Is.EqualTo("rgb(252, 93, 0)"), "the active label is orange");
+        Assert.That(m[2], Is.EqualTo("rgb(194, 65, 12)"), "the active label uses the accessible now-accent orange");
         Assert.That(m[3], Is.EqualTo("uppercase"), "the active label is uppercase");
         Assert.That(m[4].ToLowerInvariant(), Does.Contain("mono"), "the stream token is mono");
         Assert.That(m[5], Is.EqualTo("11px"), "the stream token is 11 px");
@@ -147,6 +158,8 @@ public class MetroProfilesTests : PageTest
         Assert.That(m[7], Is.EqualTo("1px"), "the action footer is hairline-separated");
         Assert.That(m[8], Does.Contain("inset"), "the active tile gets an inset ring");
         Assert.That(m[8], Does.Contain("rgb(252, 93, 0)"), "the active ring is orange");
+        Assert.That(double.Parse(m[9], System.Globalization.CultureInfo.InvariantCulture),
+            Is.GreaterThanOrEqualTo(4.5), "the 10 px active label meets AA contrast");
     }
 
     [Test]
@@ -220,6 +233,45 @@ public class MetroProfilesTests : PageTest
         Assert.That(m[4], Is.EqualTo("uppercase"), "labels are uppercase");
         Assert.That(m[5], Is.EqualTo("11px"), "labels are 11 px");
         Assert.That(m[6], Is.EqualTo("700"), "labels are bold");
+    }
+
+    [Test]
+    public async Task ProfileValidationErrorIsReadableInDarkMode()
+    {
+        await Context.AddCookiesAsync(new[]
+        {
+            new Cookie { Name = "ohrbob_theme", Value = "dark", Url = _factory.ServerAddress }
+        });
+        await Page.GotoAsync($"{_factory.ServerAddress}/Profiles/Create");
+        await Expect(Page.Locator("html")).ToHaveAttributeAsync("data-bs-theme", "dark",
+            new() { Timeout = 5000 });
+
+        // Bypass the browser's required-field bubble so the server-side validation
+        // message renders, then verify its dark-mode contrast.
+        await Page.EvaluateAsync(@"() => {
+            const form = document.querySelector('.profile-form');
+            form.noValidate = true;
+            form.requestSubmit();
+        }");
+
+        var error = Page.Locator("span[data-valmsg-for='Name']");
+        await Expect(error).Not.ToBeEmptyAsync(new() { Timeout = 15000 });
+        var m = await error.EvaluateAsync<string[]>(@"el => {
+            const style = getComputedStyle(el);
+            const bg = getComputedStyle(document.body).backgroundColor;
+            const channels = (value) => value.match(/[\d.]+/g).slice(0, 3).map(Number);
+            const luminance = ([r, g, b]) => {
+                const lin = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+                return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+            };
+            const a = luminance(channels(style.color));
+            const b = luminance(channels(bg));
+            const contrast = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+            return [style.color, contrast.toFixed(2)];
+        }");
+        Assert.That(m[0], Is.EqualTo("rgb(234, 134, 143)"), "validation text uses the dark danger emphasis token");
+        Assert.That(double.Parse(m[1], System.Globalization.CultureInfo.InvariantCulture),
+            Is.GreaterThanOrEqualTo(4.5), "the validation error meets AA contrast in dark mode");
     }
 
     [Test]

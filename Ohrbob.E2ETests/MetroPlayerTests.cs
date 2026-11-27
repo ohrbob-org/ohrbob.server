@@ -246,6 +246,37 @@ public class MetroPlayerTests : PageTest
             "the desktop prompt must sit above the transport deck without covering it");
     }
 
+    [Test]
+    public async Task ToastContainerClearsThePlayerDeck()
+    {
+        await Page.SetViewportSizeAsync(1280, 900);
+        await OpenStationAsync();
+
+        var desktop = await Page.EvaluateAsync<double[]>(@"() => {
+            const deck = document.querySelector('#ohrbob-player');
+            const toast = document.querySelector('.app-toast-container');
+            return [deck.getBoundingClientRect().height,
+                    parseFloat(getComputedStyle(toast).bottom),
+                    window.innerHeight - toast.getBoundingClientRect().bottom];
+        }");
+        Assert.That(desktop[1], Is.GreaterThanOrEqualTo(desktop[0] + 8),
+            "toasts must clear the desktop player deck");
+        Assert.That(desktop[2], Is.GreaterThanOrEqualTo(desktop[0] + 8),
+            "the toast container sits above the deck, not on top of it");
+
+        await Page.SetViewportSizeAsync(390, 844);
+        var mobile = await Page.EvaluateAsync<double[]>(@"() => {
+            const deck = document.querySelector('#ohrbob-player');
+            const toast = document.querySelector('.app-toast-container');
+            return [deck.getBoundingClientRect().height,
+                    parseFloat(getComputedStyle(toast).bottom),
+                    window.innerHeight - toast.getBoundingClientRect().bottom];
+        }");
+        Assert.That(mobile[1], Is.GreaterThanOrEqualTo(mobile[0] + 8),
+            "toasts must clear the mobile player deck");
+        Assert.That(mobile[1], Is.EqualTo(90), "the mobile toast offset is 90 px");
+    }
+
     private async Task OpenStationAsync()
     {
         await Page.GotoAsync(_factory.ServerAddress);

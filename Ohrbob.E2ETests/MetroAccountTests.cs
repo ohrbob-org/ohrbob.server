@@ -95,6 +95,38 @@ public class MetroAccountTests : PageTest
     }
 
     [Test]
+    public async Task AccountStatusLabelMeetsAAContrast()
+    {
+        await Page.GotoAsync($"{_factory.ServerAddress}/Account");
+
+        // Tier upgrades are disabled in the test API, so probe the real stylesheet
+        // with the same element the Morebob panel renders.
+        var m = await Page.EvaluateAsync<string[]>(@"() => {
+            const el = document.createElement('p');
+            el.className = 'account-panel__status';
+            el.textContent = 'You are on Morebob.';
+            document.querySelector('#main-content').appendChild(el);
+            const style = getComputedStyle(el);
+            const bg = getComputedStyle(document.body).backgroundColor;
+            const channels = (value) => value.match(/[\d.]+/g).slice(0, 3).map(Number);
+            const luminance = ([r, g, b]) => {
+                const lin = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+                return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+            };
+            const a = luminance(channels(style.color));
+            const b = luminance(channels(bg));
+            const contrast = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+            const result = [style.color, style.fontSize, contrast.toFixed(2)];
+            el.remove();
+            return result;
+        }");
+        Assert.That(m[0], Is.EqualTo("rgb(194, 65, 12)"), "the small status label uses the accessible now-accent orange");
+        Assert.That(m[1], Is.EqualTo("11px"), "the status label is small text");
+        Assert.That(double.Parse(m[2], System.Globalization.CultureInfo.InvariantCulture),
+            Is.GreaterThanOrEqualTo(4.5), "the 11 px status label meets AA contrast");
+    }
+
+    [Test]
     public async Task AccountTiles_UseFiveThreeTwoOneGridAndOrangeActiveRule()
     {
         await Page.GotoAsync($"{_factory.ServerAddress}/Account");
@@ -300,13 +332,15 @@ public class MetroAccountTests : PageTest
                     getComputedStyle(token).fontSize,
                     cellStyle.borderBottomWidth,
                     actionStyle.borderRadius,
-                    actionStyle.borderTopWidth];
+                    actionStyle.borderTopWidth,
+                    actionStyle.minHeight];
         }");
         Assert.That(row[0].ToLowerInvariant(), Does.Contain("mono"), "API keys are mono");
         Assert.That(row[1], Is.EqualTo("11px"), "API keys are 11 px");
         Assert.That(row[2], Is.EqualTo("1px"), "key rows have a hairline rule");
         Assert.That(row[3], Is.EqualTo("0px"), "key actions are square");
         Assert.That(row[4], Is.EqualTo("1px"), "key actions sit on a hairline");
+        Assert.That(row[5], Is.EqualTo("44px"), "key actions meet the 44 px touch target");
 
         Assert.That(await Page.EvaluateAsync<bool>("() => typeof window.showConnectionQr === 'function'"),
             Is.True, "showConnectionQr stays available");

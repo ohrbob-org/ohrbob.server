@@ -12421,7 +12421,9 @@ a:hover {
   opacity: 0.8;
 }
 
-.form-check-input {
+.form-check-input,
+.form-check-input[type=checkbox],
+.form-check-input[type=radio] {
   border-radius: 0;
   border-color: var(--metro-hairline);
   background-color: var(--metro-field);
@@ -13171,6 +13173,148 @@ a:hover {
 
 .rounded-metro {
   border-radius: 0 !important;
+}
+
+/* ------------------------------------------------------------------ */
+/* Dark-mode role emphasis                                             */
+/* ------------------------------------------------------------------ */
+/* Bootstrap's outline buttons and text utilities keep their light-mode
+   colour tokens in dark mode. Use the dark emphasis tokens so small text
+   and hairline buttons stay readable on the near-black Metro canvas. */
+[data-bs-theme=dark] .btn-outline-primary {
+  --bs-btn-color: var(--bs-primary-text-emphasis);
+  --bs-btn-border-color: var(--bs-primary-text-emphasis);
+  --bs-btn-hover-color: var(--bs-body-bg);
+  --bs-btn-hover-bg: var(--bs-primary-text-emphasis);
+  --bs-btn-hover-border-color: var(--bs-primary-text-emphasis);
+  --bs-btn-active-color: var(--bs-body-bg);
+  --bs-btn-active-bg: var(--bs-primary-text-emphasis);
+  --bs-btn-active-border-color: var(--bs-primary-text-emphasis);
+  --bs-btn-disabled-color: var(--bs-primary-text-emphasis);
+  --bs-btn-disabled-border-color: var(--bs-primary-text-emphasis);
+}
+
+[data-bs-theme=dark] .text-primary {
+  color: var(--bs-primary-text-emphasis) !important;
+}
+
+[data-bs-theme=dark] .btn-outline-secondary {
+  --bs-btn-color: var(--bs-secondary-text-emphasis);
+  --bs-btn-border-color: var(--bs-secondary-text-emphasis);
+  --bs-btn-hover-color: var(--bs-body-bg);
+  --bs-btn-hover-bg: var(--bs-secondary-text-emphasis);
+  --bs-btn-hover-border-color: var(--bs-secondary-text-emphasis);
+  --bs-btn-active-color: var(--bs-body-bg);
+  --bs-btn-active-bg: var(--bs-secondary-text-emphasis);
+  --bs-btn-active-border-color: var(--bs-secondary-text-emphasis);
+  --bs-btn-disabled-color: var(--bs-secondary-text-emphasis);
+  --bs-btn-disabled-border-color: var(--bs-secondary-text-emphasis);
+}
+
+[data-bs-theme=dark] .text-secondary {
+  color: var(--bs-secondary-text-emphasis) !important;
+}
+
+[data-bs-theme=dark] .btn-outline-success {
+  --bs-btn-color: var(--bs-success-text-emphasis);
+  --bs-btn-border-color: var(--bs-success-text-emphasis);
+  --bs-btn-hover-color: var(--bs-body-bg);
+  --bs-btn-hover-bg: var(--bs-success-text-emphasis);
+  --bs-btn-hover-border-color: var(--bs-success-text-emphasis);
+  --bs-btn-active-color: var(--bs-body-bg);
+  --bs-btn-active-bg: var(--bs-success-text-emphasis);
+  --bs-btn-active-border-color: var(--bs-success-text-emphasis);
+  --bs-btn-disabled-color: var(--bs-success-text-emphasis);
+  --bs-btn-disabled-border-color: var(--bs-success-text-emphasis);
+}
+
+[data-bs-theme=dark] .text-success {
+  color: var(--bs-success-text-emphasis) !important;
+}
+
+[data-bs-theme=dark] .btn-outline-info {
+  --bs-btn-color: var(--bs-info-text-emphasis);
+  --bs-btn-border-color: var(--bs-info-text-emphasis);
+  --bs-btn-hover-color: var(--bs-body-bg);
+  --bs-btn-hover-bg: var(--bs-info-text-emphasis);
+  --bs-btn-hover-border-color: var(--bs-info-text-emphasis);
+  --bs-btn-active-color: var(--bs-body-bg);
+  --bs-btn-active-bg: var(--bs-info-text-emphasis);
+  --bs-btn-active-border-color: var(--bs-info-text-emphasis);
+  --bs-btn-disabled-color: var(--bs-info-text-emphasis);
+  --bs-btn-disabled-border-color: var(--bs-info-text-emphasis);
+}
+
+[data-bs-theme=dark] .text-info {
+  color: var(--bs-info-text-emphasis) !important;
+}
+
+[data-bs-theme=dark] .btn-outline-warning {
+  --bs-btn-color: var(--bs-warning-text-emphasis);
+  --bs-btn-border-color: var(--bs-warning-text-emphasis);
+  --bs-btn-hover-color: var(--bs-body-bg);
+  --bs-btn-hover-bg: var(--bs-warning-text-emphasis);
+  --bs-btn-hover-border-color: var(--bs-warning-text-emphasis);
+  --bs-btn-active-color: var(--bs-body-bg);
+  --bs-btn-active-bg: var(--bs-warning-text-emphasis);
+  --bs-btn-active-border-color: var(--bs-warning-text-emphasis);
+  --bs-btn-disabled-color: var(--bs-warning-text-emphasis);
+  --bs-btn-disabled-border-color: var(--bs-warning-text-emphasis);
+}
+
+[data-bs-theme=dark] .text-warning {
+  color: var(--bs-warning-text-emphasis) !important;
+}
+
+[data-bs-theme=dark] .btn-outline-danger {
+  --bs-btn-color: var(--bs-danger-text-emphasis);
+  --bs-btn-border-color: var(--bs-danger-text-emphasis);
+  --bs-btn-hover-color: var(--bs-body-bg);
+  --bs-btn-hover-bg: var(--bs-danger-text-emphasis);
+  --bs-btn-hover-border-color: var(--bs-danger-text-emphasis);
+  --bs-btn-active-color: var(--bs-body-bg);
+  --bs-btn-active-bg: var(--bs-danger-text-emphasis);
+  --bs-btn-active-border-color: var(--bs-danger-text-emphasis);
+  --bs-btn-disabled-color: var(--bs-danger-text-emphasis);
+  --bs-btn-disabled-border-color: var(--bs-danger-text-emphasis);
+}
+
+[data-bs-theme=dark] .text-danger {
+  color: var(--bs-danger-text-emphasis) !important;
+}
+
+[data-bs-theme=dark] .btn-outline-light {
+  --bs-btn-color: var(--bs-light-text-emphasis);
+  --bs-btn-border-color: var(--bs-light-text-emphasis);
+  --bs-btn-hover-color: var(--bs-body-bg);
+  --bs-btn-hover-bg: var(--bs-light-text-emphasis);
+  --bs-btn-hover-border-color: var(--bs-light-text-emphasis);
+  --bs-btn-active-color: var(--bs-body-bg);
+  --bs-btn-active-bg: var(--bs-light-text-emphasis);
+  --bs-btn-active-border-color: var(--bs-light-text-emphasis);
+  --bs-btn-disabled-color: var(--bs-light-text-emphasis);
+  --bs-btn-disabled-border-color: var(--bs-light-text-emphasis);
+}
+
+[data-bs-theme=dark] .text-light {
+  color: var(--bs-light-text-emphasis) !important;
+}
+
+[data-bs-theme=dark] .btn-outline-dark {
+  --bs-btn-color: var(--bs-dark-text-emphasis);
+  --bs-btn-border-color: var(--bs-dark-text-emphasis);
+  --bs-btn-hover-color: var(--bs-body-bg);
+  --bs-btn-hover-bg: var(--bs-dark-text-emphasis);
+  --bs-btn-hover-border-color: var(--bs-dark-text-emphasis);
+  --bs-btn-active-color: var(--bs-body-bg);
+  --bs-btn-active-bg: var(--bs-dark-text-emphasis);
+  --bs-btn-active-border-color: var(--bs-dark-text-emphasis);
+  --bs-btn-disabled-color: var(--bs-dark-text-emphasis);
+  --bs-btn-disabled-border-color: var(--bs-dark-text-emphasis);
+}
+
+[data-bs-theme=dark] .text-dark {
+  color: var(--bs-dark-text-emphasis) !important;
 }
 
 .card-station {

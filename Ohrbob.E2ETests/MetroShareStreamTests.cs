@@ -141,6 +141,23 @@ public class MetroShareStreamTests : PageTest
     }
 
     [Test]
+    public async Task ShareModalsUseSquareCheckboxes()
+    {
+        var station = await SeedShareStationAsync("#457B9D");
+        TestAuthHandler.IsAuthenticated = true;
+
+        await Page.GotoAsync($"{_factory.ServerAddress}/s/{station.ShareCode}");
+        await Page.Locator(".share-feed .card-feed-add").First.ClickAsync();
+
+        var modal = Page.Locator(".share-modal.show");
+        await Expect(modal).ToBeVisibleAsync(new() { Timeout = 15000 });
+        var checkbox = modal.Locator(".form-check-input").First;
+        await Expect(checkbox).ToHaveCountAsync(1);
+        Assert.That(await checkbox.EvaluateAsync<string>("el => getComputedStyle(el).borderRadius"),
+            Is.EqualTo("0px"), "share-modal checkboxes must be square");
+    }
+
+    [Test]
     public async Task ShareFits390WithoutPageOverflow()
     {
         var station = await SeedShareStationAsync("#6A057F");
@@ -185,7 +202,8 @@ public class MetroShareStreamTests : PageTest
                     getComputedStyle(url).fontSize,
                     getComputedStyle(copy).borderRadius,
                     copy.getBoundingClientRect().width.toString(),
-                    copy.getAttribute('onclick') ?? 'missing'];
+                    copy.getAttribute('onclick') ?? 'missing',
+                    copy.getBoundingClientRect().height.toString()];
         }");
 
         Assert.That(m[0], Is.EqualTo("1px"), "stream rows sit on a hairline");
@@ -193,8 +211,9 @@ public class MetroShareStreamTests : PageTest
         Assert.That(m[2].ToLowerInvariant(), Does.Contain("mono"), "stream URLs use a mono face");
         Assert.That(m[3], Is.EqualTo("12px"), "stream URLs print at 12 px");
         Assert.That(m[4], Is.EqualTo("0px"), "the copy control is square");
-        Assert.That(double.Parse(m[5]), Is.GreaterThanOrEqualTo(34), "the copy control is a real target");
+        Assert.That(double.Parse(m[5]), Is.GreaterThanOrEqualTo(44), "the copy control is at least 44 px wide");
         Assert.That(m[6], Does.Contain("navigator.clipboard.writeText"), "the copy onclick is kept");
+        Assert.That(double.Parse(m[7]), Is.GreaterThanOrEqualTo(44), "the copy control is at least 44 px tall");
     }
 
     [Test]

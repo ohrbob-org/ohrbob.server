@@ -224,7 +224,7 @@ body.with-player {
 
 .profile-active {
     margin: 5px 0 0;
-    color: var(--metro-orange);
+    color: var(--metro-now-accent);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.16em;
@@ -676,8 +676,6 @@ button.profile-color-swatch.is-selected {
 .btn-check:checked + label .station-check-overlay {
     opacity: 1;
 }
-.cursor-pointer { cursor: pointer; }
-
 /* --------------------------------------------------------------------------
    Shell — flat Metro app bar, footer, profile menu, toasts
    -------------------------------------------------------------------------- */
@@ -897,6 +895,21 @@ body.metro-night .app-footer {
 .app-footer__legal .app-footer__link:hover,
 .app-footer__legal .app-footer__link:focus {
     color: var(--metro-night-text);
+}
+
+/* Toasts sit above the fixed player deck instead of overlapping it. */
+.app-toast-container {
+    bottom: 0;
+}
+
+body.with-player .app-toast-container {
+    bottom: 145px;
+}
+
+@media (max-width: 767.98px) {
+    body.with-player .app-toast-container {
+        bottom: 90px;
+    }
 }
 
 /* Toast: canvas surface with a 4 px status left border. */
@@ -1404,6 +1417,19 @@ body.metro-night .app-footer {
     margin: 6px 0 0;
 }
 
+/* Listen is the hero title of the app: 76 px on desktop, 58 px on phones. */
+.page-head .metro-title--listen {
+    font-size: 76px;
+    line-height: 70px;
+}
+
+@media (max-width: 767.98px) {
+    .page-head .metro-title--listen {
+        font-size: 58px;
+        line-height: 54px;
+    }
+}
+
 .page-head__action {
     display: inline-flex;
     flex: 0 0 auto;
@@ -1454,6 +1480,7 @@ body.metro-night .app-footer {
 }
 
 .card-station-action {
+    position: relative;
     display: inline-grid;
     flex: 0 0 auto;
     place-items: center;
@@ -1473,6 +1500,17 @@ body.metro-night .app-footer {
 .card-station-action:hover,
 .card-station-action:focus {
     color: var(--metro-orange);
+}
+
+/* Keep the 30 px icon but give it a 44 px touch target (spec 9). */
+.card-station-action::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
 }
 
 .card-station-meta {
@@ -1505,8 +1543,7 @@ body.metro-night .app-footer {
     text-transform: uppercase;
 }
 
-.status-label.is-empty,
-.status-label.is-danger {
+.status-label.is-empty {
     color: var(--bs-danger);
 }
 
@@ -1560,7 +1597,7 @@ body.metro-night .app-footer {
     color: var(--metro-navy);
 }
 
-@media (hover: none) {
+@media (hover: none), (pointer: coarse) {
     .card-station-play {
         opacity: 1;
     }
@@ -1601,6 +1638,55 @@ body.metro-night .app-footer {
     border-color: var(--metro-orange);
     background: var(--metro-orange);
     color: var(--metro-on-accent);
+}
+
+/* Listen empty state: no stations yet. */
+.listen-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: clamp(32px, 6vw, 64px) 20px;
+    border: 1px solid var(--metro-hairline);
+    text-align: center;
+}
+
+.listen-empty__title {
+    margin: 0;
+    font-family: var(--metro-display);
+    font-size: clamp(2.5rem, 6vw, 3.5rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 0.95;
+}
+
+.listen-empty__hint {
+    max-width: 46ch;
+    margin: 0;
+}
+
+.listen-empty__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 12px 16px;
+    border-radius: 0;
+    background: var(--metro-orange);
+    color: var(--metro-on-accent);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.listen-empty__cta:hover,
+.listen-empty__cta:focus {
+    background: var(--metro-ink);
+    color: var(--metro-canvas);
 }
 
 /* Management index: the same tile with a hairline action footer. */
@@ -1762,7 +1848,7 @@ body.metro-night .app-footer {
 /* Sticky editor bar: flat canvas, a single hairline, no glass. */
 #dockable-header {
     position: sticky;
-    top: 90px;
+    top: 0;
     z-index: 1040;
     margin: 0 0 20px;
     padding: 10px 0;
@@ -1772,7 +1858,7 @@ body.metro-night .app-footer {
 }
 
 #dockable-header.docked {
-    top: 62px;
+    top: 0;
     padding: 8px 0;
 }
 
@@ -1783,8 +1869,24 @@ body.metro-night .app-footer {
     gap: 16px;
 }
 
+.editor-header__lead {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.editor-header__actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 4px;
+}
+
 .editor-title {
     display: flex;
+    flex: 1 1 auto;
     align-items: center;
     gap: 12px;
     min-width: 0;
@@ -2045,6 +2147,7 @@ body.metro-night .app-footer {
 }
 
 .episode-mini-btn {
+    position: relative;
     display: grid;
     place-items: center;
     width: 26px;
@@ -2064,6 +2167,17 @@ body.metro-night .app-footer {
     color: var(--metro-ink);
 }
 
+/* Keep the 26 px icon but give it a 44 px touch target (spec 9). */
+.episode-mini-btn::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+}
+
 .episode-row-actions {
     display: flex;
     flex-direction: column;
@@ -2080,6 +2194,7 @@ body.metro-night .app-footer {
 }
 
 .episode-action-btn {
+    position: relative;
     display: grid;
     place-items: center;
     width: 28px;
@@ -2097,6 +2212,17 @@ body.metro-night .app-footer {
 .episode-action-btn:focus-visible {
     border-color: var(--metro-orange);
     color: var(--metro-orange);
+}
+
+/* Keep the 28 px icon but give it a 44 px touch target (spec 9). */
+.episode-action-btn::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
 }
 
 /* Add / share area in the rotation pane. */
@@ -2179,6 +2305,20 @@ body.metro-night .app-footer {
 .editor-sharebar__copy {
     flex: 0 0 auto;
     white-space: nowrap;
+}
+
+/* Shared confirmation modal (spec 7.1): 30 px Sulphur title, 13 px body. */
+#confirmationModal .modal-title {
+    font-family: var(--metro-display);
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+}
+
+#confirmationModal .modal-body {
+    font-size: 13px;
+    line-height: 20px;
 }
 
 /* Editor modals: square canvas shell with the orange accent bar. */
@@ -2732,7 +2872,7 @@ body.metro-night .app-footer {
 
 .account-panel__status {
     margin: 10px 0 0;
-    color: var(--metro-orange);
+    color: var(--metro-now-accent);
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.12em;
@@ -2924,7 +3064,7 @@ body.metro-night .app-footer {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    min-height: 34px;
+    min-height: 44px;
     padding: 8px 10px;
     border: 1px solid var(--metro-hairline);
     border-radius: 0;
@@ -4478,7 +4618,7 @@ body:not(.metro-night) .onboarding-page.metro-night {
     flex: 0 0 auto;
     align-items: center;
     gap: 6px;
-    min-height: 34px;
+    min-height: 44px;
     padding: 8px 10px;
     border: 1px solid var(--metro-hairline);
     border-radius: 0;
@@ -4616,8 +4756,11 @@ body:not(.metro-night) .onboarding-page.metro-night {
     align-items: center;
     gap: 10px;
     margin: 0 0 8px;
-    font-size: 18px;
-    line-height: 1.15;
+    font-family: var(--metro-display);
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
 }
 
 .editorial-section__title i {
@@ -5018,8 +5161,11 @@ body:not(.metro-night) .onboarding-page.metro-night {
     display: block;
     margin-bottom: 4px;
     color: var(--metro-ink);
-    font-size: 13px;
-    line-height: 18px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1.4;
+    text-transform: uppercase;
 }
 
 .privacy-summary span {
@@ -5173,7 +5319,7 @@ body:not(.metro-night) .onboarding-page.metro-night {
     background: var(--bs-danger);
 }
 
-.status-label {
+.status-card .status-label {
     margin-left: auto;
     color: var(--metro-muted);
     font-size: 10px;

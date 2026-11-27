@@ -87,15 +87,19 @@ public class MetroListenTests : PageTest
             const title = getComputedStyle(card.querySelector('.card-station-title'));
             const play = getComputedStyle(card.querySelector('.card-station-play'));
             const count = getComputedStyle(card.querySelector('.card-station-count'));
+            const pageTitle = getComputedStyle(document.querySelector('.page-head .metro-title--listen'));
             return [ parseFloat(getComputedStyle(card).borderRadius),
                      parseFloat(title.fontSize), title.whiteSpace === 'nowrap' ? 1 : 0,
-                     parseFloat(play.width), count.display === 'none' ? 0 : 1 ];
+                     parseFloat(play.width), count.display === 'none' ? 0 : 1,
+                     parseFloat(pageTitle.fontSize), parseFloat(pageTitle.lineHeight) ];
         }");
         Assert.That(m[0], Is.EqualTo(0), "tile radius");
         Assert.That(m[1], Is.GreaterThanOrEqualTo(27), "tile title");
         Assert.That(m[2], Is.EqualTo(1), "tile title truncates");
         Assert.That(m[3], Is.GreaterThanOrEqualTo(44), "play target");
         Assert.That(m[4], Is.EqualTo(1), "podcast count stays visible");
+        Assert.That(m[5], Is.EqualTo(76), "the Listen title prints at 76 px on desktop");
+        Assert.That(m[6], Is.EqualTo(70), "the Listen title has 70 px leading");
     }
 
     [Test]
@@ -129,7 +133,85 @@ public class MetroListenTests : PageTest
             }");
             Assert.That(ok, Is.True,
                 $"At {width}px the long station name must stay on one clipped line inside the tile");
+
+            var mobile = await Page.EvaluateAsync<string[]>(@"() => {
+                const title = getComputedStyle(document.querySelector('.page-head .metro-title--listen'));
+                const label = document.querySelector('.card-station-meta .status-label');
+                const gear = document.querySelector('.card-station-action');
+                return [title.fontSize, title.lineHeight,
+                        label ? getComputedStyle(label).marginLeft : 'missing',
+                        gear ? getComputedStyle(gear, '::after').width : 'missing'];
+            }");
+            Assert.That(mobile[0], Is.EqualTo("58px"), $"the Listen title prints at 58 px at {width}px");
+            Assert.That(mobile[1], Is.EqualTo("54px"), $"the Listen title has 54 px leading at {width}px");
+            Assert.That(mobile[2], Is.EqualTo("0px"), "station meta labels must not inherit the Status auto margin");
+            Assert.That(double.Parse(mobile[3].Replace("px", ""), System.Globalization.CultureInfo.InvariantCulture),
+                Is.GreaterThanOrEqualTo(44), "the station gear gets a 44 px touch target");
         }
+    }
+
+    [Test]
+    public async Task Listen_ShowsEmptyStateWhenThereAreNoStations()
+    {
+        var accountService = _factory.Services.GetRequiredService<AccountApiService>();
+        var account = await accountService.CreateOrUpdateAccountAsync(
+            "Empty Listen", $"empty-listen-{Guid.NewGuid()}@test.com", "", "Test", Guid.NewGuid().ToString());
+        await accountService.CompleteOnboardingAsync(account!.Id);
+
+        var profileService = _factory.Services.GetRequiredService<ProfilesApiService>();
+        if (await profileService.GetProfilesByAccountIdAsync(account.Id) is not { Count: > 0 })
+        {
+            await profileService.CreateProfileAsync(account.Id, new Profile { Name = "Main Profile" });
+        }
+
+        TestAuthHandler.TestAccountId = account.Id;
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        await Expect(Page.Locator(".listen-empty")).ToBeVisibleAsync(new() { Timeout = 15000 });
+        await Expect(Page.Locator("#listen-empty-title")).ToHaveTextAsync("no stations yet");
+        await Expect(Page.Locator(".station-grid .card-station")).ToHaveCountAsync(0);
+        await Expect(Page.Locator(".station-add")).ToBeVisibleAsync();
+
+        var m = await Page.EvaluateAsync<string[]>(@"() => {
+            const title = getComputedStyle(document.querySelector('.listen-empty__title'));
+            const hint = getComputedStyle(document.querySelector('.listen-empty__hint'));
+            const cta = getComputedStyle(document.querySelector('.listen-empty__cta'));
+            return [title.fontFamily, title.fontSize, hint.color, cta.backgroundColor, cta.borderRadius];
+        }");
+        Assert.That(m[0], Does.Contain("Sulphur"), "the empty title uses the display face");
+        Assert.That(m[1], Is.Not.EqualTo("0px"), "the empty title is rendered");
+        Assert.That(m[2], Is.EqualTo("rgb(104, 100, 92)"), "the hint is muted");
+        Assert.That(m[3], Is.EqualTo("rgb(252, 93, 0)"), "the empty-state CTA is orange");
+        Assert.That(m[4], Is.EqualTo("0px"), "the empty-state CTA is square");
+    }
+
+    [Test]
+    public async Task Listen_TouchDevicesAlwaysShowThePlayAffordance()
+    {
+        await CreateStationAsync("Touch Station", Array.Empty<string>(), waitForEpisodes: false);
+
+        await using var context = await Browser.NewContextAsync(new()
+        {
+            IgnoreHTTPSErrors = true,
+            HasTouch = true,
+            IsMobile = true,
+            ViewportSize = new ViewportSize { Width = 390, Height = 844 }
+        });
+        var page = await context.NewPageAsync();
+        await page.GotoAsync(_factory.ServerAddress);
+        await Expect(page.Locator(".card-station-play").First)
+            .ToBeVisibleAsync(new() { Timeout = 15000 });
+
+        var m = await page.EvaluateAsync<string[]>(@"() => {
+            const play = getComputedStyle(document.querySelector('.card-station-play'));
+            return [play.opacity, play.pointerEvents, play.width, play.height];
+        }");
+        Assert.That(m[0], Is.EqualTo("1"), "touch devices always show the station play button");
+        Assert.That(m[1], Is.EqualTo("auto"));
+        Assert.That(double.Parse(m[2].Replace("px", ""), System.Globalization.CultureInfo.InvariantCulture),
+            Is.GreaterThanOrEqualTo(44));
+        Assert.That(double.Parse(m[3].Replace("px", ""), System.Globalization.CultureInfo.InvariantCulture),
+            Is.GreaterThanOrEqualTo(44));
     }
 
     [Test]

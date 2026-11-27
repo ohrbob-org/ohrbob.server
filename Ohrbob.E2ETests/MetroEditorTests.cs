@@ -106,9 +106,26 @@ public class MetroEditorTests : PageTest
         Assert.That(m[4], Does.Match("rgb\\(252, 93, 0\\)"));
         Assert.That(m[5], Is.EqualTo("none"), "no shadow");
         Assert.That(m[6], Is.EqualTo("0px"), "no radius");
-        Assert.That(m[7], Is.EqualTo("62px"), "the docked offset is preserved");
+        Assert.That(m[7], Is.EqualTo("0px"), "the docked bar sticks to the top of the viewport");
         Assert.That(m[8], Is.EqualTo("none"), "the docked bar stays flat");
         Assert.That(m[9], Is.EqualTo("0px"), "the docked bar stays square");
+    }
+
+    [Test]
+    public async Task EditorHeaderOffersABackLinkToStations()
+    {
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{_stationId}");
+        var back = Page.Locator("#dockable-header .editor-back-btn");
+        await Expect(back).ToBeVisibleAsync(new() { Timeout = 15000 });
+        Assert.That(await back.GetAttributeAsync("href"), Is.EqualTo("/Stations"));
+        Assert.That(await back.GetAttributeAsync("aria-label"), Is.EqualTo("Back to stations"));
+
+        // The gear stays available as the station settings affordance.
+        await Expect(Page.Locator("#dockable-header #renameStationBtn")).ToBeVisibleAsync();
+
+        await back.ClickAsync();
+        await Page.WaitForURLAsync("**/Stations", new() { Timeout = 15000 });
+        await Expect(Page.Locator(".page-head .metro-title")).ToContainTextAsync("stations");
     }
 
     [Test]
@@ -213,6 +230,18 @@ public class MetroEditorTests : PageTest
         Assert.That(Px(episode[6]), Is.EqualTo(40), "play target");
         Assert.That(Px(episode[7]), Is.EqualTo(40), "play target");
         Assert.That(episode[8], Does.Match("rgb\\(252, 93, 0\\)"), "play square is orange");
+
+        // Spec 9: keep the small icons but expose a 44 px touch target.
+        var targets = await Page.EvaluateAsync<double[]>(@"() => {
+            const hit = (selector) => parseFloat(getComputedStyle(document.querySelector(selector), '::after').width);
+            return [hit('.episode-mini-btn'), hit('.episode-action-btn'),
+                    parseFloat(getComputedStyle(document.querySelector('.episode-mini-btn')).width),
+                    parseFloat(getComputedStyle(document.querySelector('.episode-action-btn')).width)];
+        }");
+        Assert.That(targets[0], Is.GreaterThanOrEqualTo(44), "mini playhead buttons get a 44 px hit box");
+        Assert.That(targets[1], Is.GreaterThanOrEqualTo(44), "episode action buttons get a 44 px hit box");
+        Assert.That(targets[2], Is.EqualTo(26), "the mini icon stays 26 px");
+        Assert.That(targets[3], Is.EqualTo(28), "the action icon stays 28 px");
     }
 
     [Test]
@@ -267,9 +296,9 @@ public class MetroEditorTests : PageTest
         }");
         Assert.That(styles[0], Does.Contain("Sulphur"), "editor modal titles use the display face");
         Assert.That(styles[1], Is.EqualTo("24px"), "editor modal title size");
-        Assert.That(styles[2], Is.EqualTo("17.5px"), "global modal title keeps its size");
+        Assert.That(styles[2], Is.EqualTo("30px"), "the confirmation title is 30 px Sulphur (spec 7.1)");
         Assert.That(styles[3], Is.EqualTo("13px"), "editor modal body size");
-        Assert.That(styles[4], Is.EqualTo("14px"), "global modal body keeps its size");
+        Assert.That(styles[4], Is.EqualTo("13px"), "the confirmation body is 13 px (spec 7.1)");
         Assert.That(styles[5], Is.EqualTo("2px"), "share field focus ring width");
         Assert.That(styles[6], Is.EqualTo("solid"), "share field focus ring is drawn");
         Assert.That(styles[7], Does.Match("rgb\\(252, 93, 0\\)"), "share field focus ring is orange");

@@ -8,22 +8,32 @@
 @if (User.Identity?.IsAuthenticated == true)
 {
     var subscribedIds = ViewBag.SubscribedStationIds as HashSet<string> ?? new HashSet<string>();
+    var stations = Model ?? new List<StationWithFeedsDto>();
 
     <div class="page-head">
         <div class="page-head__text">
             <p class="metro-kicker">your stations</p>
-            <h1 class="metro-title metro-title--compact">stations</h1>
+            <h1 class="metro-title metro-title--listen">stations</h1>
         </div>
         <a asp-controller="Stations" asp-action="Create" class="page-head__action">
             <i class="bi bi-plus-lg" aria-hidden="true"></i> new station
         </a>
     </div>
 
+    @if (stations.Count == 0)
+    {
+        <section class="listen-empty" aria-labelledby="listen-empty-title">
+            <h2 class="listen-empty__title" id="listen-empty-title">no stations yet</h2>
+            <p class="metro-hint listen-empty__hint">Create a station, add a few podcasts, and ohrbob will keep your place.</p>
+            <a asp-controller="Stations" asp-action="Create" class="listen-empty__cta">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> build your first station
+            </a>
+        </section>
+    }
+
     <div class="station-grid">
-        @if (Model != null)
+        @foreach (var dto in stations)
         {
-            @foreach (var dto in Model)
-            {
                 var feedCount = dto.Feeds?.Count ?? 0;
                 var displayFeeds = dto.Feeds?.Take(4).ToList() ?? new List<FeedStatsDto>();
                 var totalEpisodes = dto.Feeds?.Sum(f => f.EpisodeCount) ?? 0;
@@ -116,7 +126,6 @@
                     </div>
                 </div>
             }
-        }
 
         <a asp-controller="Discover" asp-action="Index" class="station-add" title="Discover Stations">
             <i class="bi bi-plus-lg" aria-hidden="true"></i>
@@ -223,7 +232,7 @@ else
                         <tr>
                             <th scope="col">What you get</th>
                             <th scope="col">Free</th>
-                            <th scope="col" class="landing-tier-premium">morebob</th>
+                            <th scope="col">morebob</th>
                         </tr>
                     </thead>
                     <tbody>

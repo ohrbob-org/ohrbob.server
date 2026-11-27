@@ -88,6 +88,37 @@ public class MetroShellTests : PageTest
     }
 
     [Test]
+    public async Task ChangelogModalCarriesTheMetroAccent()
+    {
+        var env = _factory.Services.GetRequiredService<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
+        var version = _factory.Services
+            .GetRequiredService<Microsoft.Extensions.Options.IOptions<Ohrbob.Web.Configuration.AppVersionOptions>>()
+            .Value.Tag;
+
+        var path = Path.Combine(env.ContentRootPath, "changelog.md");
+        try
+        {
+            await File.WriteAllTextAsync(path, "## Test release\n\n- A change worth showing.");
+            await Page.GotoAsync(_factory.ServerAddress);
+
+            var modal = Page.Locator("#changelogModal.show");
+            await Expect(modal).ToBeVisibleAsync(new() { Timeout = 15000 });
+            await Expect(Page.Locator("#changelogModal .modal-title")).ToContainTextAsync(version);
+
+            var accent = Page.Locator("#changelogModal .metro-modal-accent");
+            await Expect(accent).ToHaveCountAsync(1);
+            var style = await accent.EvaluateAsync<string[]>(
+                "el => [getComputedStyle(el).height, getComputedStyle(el).backgroundColor]");
+            Assert.That(style[0], Is.EqualTo("6px"), "the changelog modal has the 6 px accent bar");
+            Assert.That(style[1], Is.EqualTo("rgb(252, 93, 0)"), "the changelog accent is orange");
+        }
+        finally
+        {
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
+    [Test]
     public async Task Toast_UsesMetroStatusClasses()
     {
         await Page.GotoAsync(_factory.ServerAddress);

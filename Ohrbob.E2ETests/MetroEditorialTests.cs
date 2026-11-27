@@ -81,6 +81,19 @@ public class MetroEditorialTests : PageTest
         Assert.That(head[2], Is.EqualTo("16px"), "the lede prints at 16 px");
         Assert.That(head[3], Is.EqualTo("24px"), "the lede has 24 px leading");
 
+        // Section hierarchy: 11 px uppercase kicker, 24 px Sulphur heading.
+        var sectionHead = await Page.EvaluateAsync<string[]>(@"() => {
+            const kicker = document.querySelector('.editorial .metro-kicker');
+            const title = document.querySelector('.editorial-section__title');
+            const k = getComputedStyle(kicker);
+            const t = getComputedStyle(title);
+            return [k.fontSize, k.textTransform, t.fontFamily, t.fontSize];
+        }");
+        Assert.That(sectionHead[0], Is.EqualTo("11px"), "section labels print at 11 px");
+        Assert.That(sectionHead[1], Is.EqualTo("uppercase"), "section labels are uppercase");
+        Assert.That(sectionHead[2], Does.Contain("Sulphur"), "section headings use the display face");
+        Assert.That(sectionHead[3], Is.EqualTo("24px"), "section headings print at 24 px");
+
         await Page.GotoAsync($"{_factory.ServerAddress}/Home/Clients");
         Assert.That(await Page.Locator("[onmouseover]").CountAsync(), Is.EqualTo(0));
         var radius = await Page.EvaluateAsync<double>(
@@ -226,6 +239,7 @@ public class MetroEditorialTests : PageTest
             const menu = document.querySelector('.privacy-lang');
             const option = menu.querySelector('[data-privacy-lang]');
             const summary = document.querySelector('.privacy-summary');
+            const summaryLabel = summary.querySelector('strong');
             return [document.querySelectorAll('[data-privacy-lang]').length.toString(),
                     document.querySelectorAll('.privacy-lang .dropdown').length.toString(),
                     getComputedStyle(option).borderRadius,
@@ -233,7 +247,9 @@ public class MetroEditorialTests : PageTest
                     document.querySelectorAll('.privacy-summary').length.toString(),
                     getComputedStyle(summary).borderTopWidth,
                     getComputedStyle(summary).borderRadius,
-                    getComputedStyle(menu).borderTopWidth];
+                    getComputedStyle(menu).borderTopWidth,
+                    getComputedStyle(summaryLabel).fontSize,
+                    getComputedStyle(summaryLabel).textTransform];
         }");
 
         Assert.That(m[0], Is.EqualTo("2"), "both languages remain available");
@@ -244,6 +260,8 @@ public class MetroEditorialTests : PageTest
             Is.GreaterThanOrEqualTo(4), "summary panels render in both languages");
         Assert.That(m[5], Is.EqualTo("1px"), "summary panels are hairline-ruled");
         Assert.That(m[6], Is.EqualTo("0px"), "summary panels are square");
+        Assert.That(m[8], Is.EqualTo("11px"), "summary labels print at 11 px");
+        Assert.That(m[9], Is.EqualTo("uppercase"), "summary labels are uppercase");
 
         await Page.Locator("[data-privacy-lang='de']").ClickAsync();
         await Expect(Page.Locator("#privacy-de")).ToBeVisibleAsync();
@@ -253,6 +271,30 @@ public class MetroEditorialTests : PageTest
         await Page.Locator("[data-privacy-lang='en']").ClickAsync();
         await Expect(Page.Locator("#privacy-en")).ToBeVisibleAsync();
         await Expect(Page.Locator("#privacy-language-label")).ToHaveTextAsync("English");
+    }
+
+    [Test]
+    public async Task FooterPrivacyLinkLoadsThePolicyThroughBoostedNavigation()
+    {
+        await Page.GotoAsync($"{_factory.ServerAddress}/");
+        await Expect(Page.Locator(".app-footer__links a", new() { HasTextString = "Privacy Policy" }).First)
+            .ToBeVisibleAsync();
+
+        // A marker survives only when htmx swaps #main-content instead of reloading.
+        await Page.EvaluateAsync("() => { window.__boostedNavigation = 'kept'; }");
+        await Page.Locator(".app-footer__links a", new() { HasTextString = "Privacy Policy" }).First.ClickAsync();
+
+        await Page.WaitForURLAsync("**/Home/Privacy", new() { Timeout = 15000 });
+        Assert.That(await Page.EvaluateAsync<string?>("() => window.__boostedNavigation"),
+            Is.EqualTo("kept"), "the footer privacy link must be boosted, not a full reload");
+
+        // The view-local script must run after the htmx swap and unhide a policy.
+        // The chosen language follows the browser/last choice, so accept either.
+        var policy = Page.Locator("#privacy-de:visible, #privacy-en:visible");
+        await Expect(policy).ToHaveCountAsync(1, new() { Timeout = 5000 });
+        await Expect(policy.First).ToContainTextAsync(new System.Text.RegularExpressions.Regex("DSGVO|GDPR"));
+        Assert.That(await Page.EvaluateAsync<string>("() => document.documentElement.lang"),
+            Does.Match("^(de|en)$"), "privacy-language.js ran and set the document language");
     }
 
     [Test]
