@@ -49,7 +49,7 @@ public class AccountDeletionTests : PageTest
     public async Task DeleteAccount_FromConfirmationPage_RemovesAccountAndSignsOut()
     {
         await Page.GotoAsync($"{_factory.ServerAddress}/Account");
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Manage Account");
+        await Expect(Page.Locator("h1")).ToHaveTextAsync("account");
 
         await Page.ClickAsync("#delete-tab");
         await Expect(Page.Locator("#delete-pane")).ToBeVisibleAsync();

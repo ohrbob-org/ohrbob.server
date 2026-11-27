@@ -89,6 +89,7 @@ public class ThemeTests : PageTest
     public async Task Account_CanChangeTheme_AndItPersists()
     {
         await Page.GotoAsync($"{_factory.ServerAddress}/Account");
+        await OpenAppearanceAsync();
 
         var darkLabel = Page.Locator("label[for='themeDark']");
         await darkLabel.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 15000 });
@@ -102,12 +103,23 @@ public class ThemeTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
         Assert.That(await CurrentThemeAsync(), Is.EqualTo("dark"), "The saved theme must survive navigation");
         await Page.GotoAsync($"{_factory.ServerAddress}/Account");
+        await OpenAppearanceAsync();
         await Expect(Page.Locator("input[name='theme'][value='dark']")).ToBeCheckedAsync();
 
         // Switching back to "system" is stored as such.
         await Page.Locator("label[for='themeSystem']").ClickAsync();
         Assert.That(await CookieValueAsync("ohrbob_theme"), Is.EqualTo("system"),
             "Choosing System must store the system mode, not a resolved light/dark value");
+    }
+
+    /// <summary>
+    /// /Account shows the overview tiles first; the Appearance selector lives in
+    /// the hidden details container until its tile is opened.
+    /// </summary>
+    private async Task OpenAppearanceAsync()
+    {
+        await Page.Locator("#appearance-tab").ClickAsync();
+        await Expect(Page.Locator("#appearance-pane")).ToBeVisibleAsync(new() { Timeout = 15000 });
     }
 
     private async Task<string?> CurrentThemeAsync() =>

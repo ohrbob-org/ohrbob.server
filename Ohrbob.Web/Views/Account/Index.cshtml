@@ -1,268 +1,285 @@
 @model Ohrbob.Web.Models.ManageAccountViewModel
 @inject Microsoft.Extensions.Options.IOptions<Ohrbob.Web.Configuration.LegalOptions> LegalOptions
+@inject Microsoft.Extensions.Options.IOptions<Ohrbob.Web.Configuration.OhrbobApiOptions> ApiOptions
 @{
-    ViewData["Title"] = "Manage Account";
+    ViewData["Title"] = "Account";
     string Limit(int v) => v < 0 ? "Unlimited" : v.ToString();
     var cancelAt = Model.Account.StripeCancelAt?.ToLocalTime();
     var periodEnd = Model.Account.StripeCurrentPeriodEnd?.ToLocalTime();
     var endedAt = Model.Account.StripeSubscriptionEndedAt?.ToLocalTime();
     string Date(DateTime? value) => value?.ToString("d MMM yyyy", System.Globalization.CultureInfo.InvariantCulture) ?? "";
+    var isMorebob = Model.Tier == Ohrbob.Server.Shared.Data.SubscriptionTier.Morebob;
+
+    var themeMode = Context.Request.Cookies["ohrbob_theme"];
+    if (!string.IsNullOrEmpty(themeMode)) { themeMode = Uri.UnescapeDataString(themeMode); }
+    if (themeMode != "light" && themeMode != "dark") { themeMode = "system"; }
+
+    var supportEmail = LegalOptions.Value.Email;
+    var supportMailto = $"mailto:{supportEmail}?subject={Uri.EscapeDataString("Ohrbob: problem with my account or billing")}";
+
+    var newKeyName = TempData["NewApiKeyName"]?.ToString();
+    var newKeyToken = TempData["NewApiKeyToken"]?.ToString();
+    string? autoDeepLink = null;
+    if (!string.IsNullOrEmpty(newKeyName) && !string.IsNullOrEmpty(newKeyToken))
+    {
+        autoDeepLink = $"ohrbob://connect?server={Uri.EscapeDataString(ApiOptions.Value.FrontendPlayerUrl)}&token={Uri.EscapeDataString(newKeyToken)}";
+    }
 }
-<h1>Manage Account</h1>
-@if (TempData["Notice"] != null) { <div class="alert alert-success">@TempData["Notice"]</div> }
-@if (TempData["Error"] != null) { <div class="alert alert-danger">@TempData["Error"]</div> }
+
+<div class="page-head">
+    <div class="page-head__text">
+        <p class="metro-kicker">your account</p>
+        <h1 class="metro-title metro-title--compact">account</h1>
+    </div>
+</div>
+
+@if (TempData["Notice"] != null)
+{
+    <span hidden data-toast-message="@TempData["Notice"]" data-toast-type="success"></span>
+}
+@if (TempData["Error"] != null)
+{
+    <span hidden data-toast-message="@TempData["Error"]" data-toast-type="danger"></span>
+}
 
 <div id="accountTabs">
-    <div class="row row-cols-1 row-cols-md-2 g-3" id="accountTabsNav" role="tablist">
-        <div class="col" role="presentation">
-            <button type="button" class="card h-100 w-100 text-start text-body p-0 account-tab-link active" id="account-tab" data-bs-toggle="tab" data-bs-target="#account-pane" role="tab" aria-controls="account-pane" aria-selected="true">
-                <span class="card-body d-block">
-                    <span class="h5 d-block mb-1"><i class="bi bi-person-circle me-2"></i>Account &amp; Billing</span>
-                    <span class="d-block text-muted">Your plan, limits, renewal date and billing.</span>
-                </span>
-            </button>
-        </div>
-        <div class="col" role="presentation">
-            <button type="button" class="card h-100 w-100 text-start text-body p-0 account-tab-link" id="appearance-tab" data-bs-toggle="tab" data-bs-target="#appearance-pane" role="tab" aria-controls="appearance-pane" aria-selected="false">
-                <span class="card-body d-block">
-                    <span class="h5 d-block mb-1"><i class="bi bi-palette me-2"></i>Appearance</span>
-                    <span class="d-block text-muted">Light, dark or system theme for this device.</span>
-                </span>
-            </button>
-        </div>
-        <div class="col" role="presentation">
-            <button type="button" class="card h-100 w-100 text-start text-body p-0 account-tab-link" id="api-keys-tab" data-bs-toggle="tab" data-bs-target="#api-keys-pane" role="tab" aria-controls="api-keys-pane" aria-selected="false">
-                <span class="card-body d-block">
-                    <span class="h5 d-block mb-1"><i class="bi bi-key me-2"></i>API Keys</span>
-                    <span class="d-block text-muted">Device connections, tokens and QR codes.</span>
-                </span>
-            </button>
-        </div>
-        <div class="col" role="presentation">
-            <button type="button" class="card h-100 w-100 text-start text-body p-0 account-tab-link" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" role="tab" aria-controls="report-pane" aria-selected="false">
-                <span class="card-body d-block">
-                    <span class="h5 d-block mb-1"><i class="bi bi-life-preserver me-2"></i>Report a problem</span>
-                    <span class="d-block text-muted">Billing help, bug reports and feature requests.</span>
-                </span>
-            </button>
-        </div>
-        <div class="col" role="presentation">
-            <button type="button" class="card h-100 w-100 text-start text-body p-0 account-tab-link" id="delete-tab" data-bs-toggle="tab" data-bs-target="#delete-pane" role="tab" aria-controls="delete-pane" aria-selected="false">
-                <span class="card-body d-block">
-                    <span class="h5 d-block mb-1"><i class="bi bi-trash3 me-2"></i>Delete Account</span>
-                    <span class="d-block text-muted">Permanently remove your account and all data.</span>
-                </span>
-            </button>
-        </div>
-    </div>
-    <div id="accountTabsContent" class="d-none">
-        <button type="button" class="btn btn-sm btn-outline-secondary mb-3" id="accountTabsBack">
-            <i class="bi bi-arrow-left me-1"></i>Back
+    <div class="account-tiles" id="accountTabsNav" role="tablist" aria-label="Account sections">
+        <button type="button" class="account-tile account-tab-link active" id="account-tab" data-bs-toggle="tab" data-bs-target="#account-pane" role="tab" aria-controls="account-pane" aria-selected="true">
+            <span class="account-tile__kicker">plan &amp; billing</span>
+            <span class="account-tile__title">Account &amp; Billing</span>
         </button>
+        <button type="button" class="account-tile account-tab-link" id="appearance-tab" data-bs-toggle="tab" data-bs-target="#appearance-pane" role="tab" aria-controls="appearance-pane" aria-selected="false">
+            <span class="account-tile__kicker">theme</span>
+            <span class="account-tile__title">Appearance</span>
+        </button>
+        <button type="button" class="account-tile account-tab-link" id="api-keys-tab" data-bs-toggle="tab" data-bs-target="#api-keys-pane" role="tab" aria-controls="api-keys-pane" aria-selected="false">
+            <span class="account-tile__kicker">devices</span>
+            <span class="account-tile__title">API Keys</span>
+        </button>
+        <button type="button" class="account-tile account-tab-link" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" role="tab" aria-controls="report-pane" aria-selected="false">
+            <span class="account-tile__kicker">support</span>
+            <span class="account-tile__title">Report a problem</span>
+        </button>
+        <button type="button" class="account-tile account-tab-link" id="delete-tab" data-bs-toggle="tab" data-bs-target="#delete-pane" role="tab" aria-controls="delete-pane" aria-selected="false">
+            <span class="account-tile__kicker">close your account</span>
+            <span class="account-tile__title">Delete Account</span>
+        </button>
+    </div>
+
+    <div id="accountTabsContent" class="d-none">
+        <button type="button" class="account-back" id="accountTabsBack">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i>Back
+        </button>
+
         <div class="tab-content">
-    <div class="tab-pane fade show active" id="account-pane" role="tabpanel" aria-labelledby="account-tab">
-        <h4 class="mb-3">Account details</h4>
-        <table class="table">
-            <tr><th>Name</th><td>@Model.Account.Name</td></tr>
-            <tr><th>Email</th><td>@Model.Account.Email</td></tr>
-            <tr><th>Plan</th><td><span class="badge @(Model.Tier == Ohrbob.Server.Shared.Data.SubscriptionTier.Morebob ? "badge-morebob" : "bg-secondary")">@Model.Tier</span></td></tr>
-            <tr><th>Stations</th><td>@Model.StationCount / @Limit(Model.Limits.MaxStations)</td></tr>
-            <tr><th>Profiles</th><td>@Model.ProfileCount / @Limit(Model.Limits.MaxProfiles)</td></tr>
-            <tr><th>Max feeds per station</th><td>@Limit(Model.Limits.MaxFeedsPerStation) (most used: @Model.MaxFeedsPerStationUsed)</td></tr>
-            <tr><th>Streaming</th><td>@(Model.Limits.StreamEnabled ? $"On (up to {Limit(Model.Limits.MaxConcurrentListeners)} simultaneous listeners)" : "Off")</td></tr>
-        </table>
+            <div class="tab-pane fade show active" id="account-pane" role="tabpanel" aria-labelledby="account-tab">
+                <section class="account-panel" aria-labelledby="account-details-title">
+                    <h2 class="account-panel__title" id="account-details-title">account details</h2>
+                    <p class="account-panel__hint">Your plan, limits and billing at a glance.</p>
+                    <table class="account-table">
+                        <tbody>
+                            <tr><th scope="row">Name</th><td>@Model.Account.Name</td></tr>
+                            <tr><th scope="row">Email</th><td>@Model.Account.Email</td></tr>
+                            <tr><th scope="row">Plan</th><td><span class="account-plan @(isMorebob ? "is-morebob" : "")">@Model.Tier</span></td></tr>
+                            <tr><th scope="row">Stations</th><td>@Model.StationCount / @Limit(Model.Limits.MaxStations)</td></tr>
+                            <tr><th scope="row">Profiles</th><td>@Model.ProfileCount / @Limit(Model.Limits.MaxProfiles)</td></tr>
+                            <tr><th scope="row">Max feeds per station</th><td>@Limit(Model.Limits.MaxFeedsPerStation) (most used: @Model.MaxFeedsPerStationUsed)</td></tr>
+                            <tr><th scope="row">Streaming</th><td>@(Model.Limits.StreamEnabled ? $"On (up to {Limit(Model.Limits.MaxConcurrentListeners)} simultaneous listeners)" : "Off")</td></tr>
+                        </tbody>
+                    </table>
+                </section>
 
-        @if (Model.Tier != Ohrbob.Server.Shared.Data.SubscriptionTier.Morebob)
-        {
-            @if (Model.Account.StripeSubscriptionStatus == "canceled" && endedAt != null)
-            {
-                <p class="text-muted">Your Morebob subscription ended on @Date(endedAt).</p>
-            }
-            <div class="upgrade-card shadow-sm mb-4">
-                <div class="card-content-wrapper">
-                    <span class="card-badge">More</span>
-                    <h3 class="card-title-premium">morebob</h3>
-                    <p class="card-desc-premium">
-                        Build your ultimate personalized audio space with zero limits.
-                    </p>
-
-                    <!-- Feature Grid (The Claim) -->
-                    <div class="feature-grid-premium">
-                        <div class="feature-item-premium">
-                            <span class="feature-icon-premium">✓</span>
-                            <div>
-                                <div class="feature-title-premium">Unlimited Stations</div>
-                                <div class="feature-desc-premium">Create as many customized stations as you want (versus 1).</div>
-                            </div>
-                        </div>
-                        <div class="feature-item-premium">
-                            <span class="feature-icon-premium">✓</span>
-                            <div>
-                                <div class="feature-title-premium">Unlimited Feeds</div>
-                                <div class="feature-desc-premium">Add any number of RSS, podcast, and news sources per station.</div>
-                            </div>
-                        </div>
-                        <div class="feature-item-premium">
-                            <span class="feature-icon-premium">✓</span>
-                            <div>
-                                <div class="feature-title-premium">Up to 5 Profiles</div>
-                                <div class="feature-desc-premium">Separate by moods or easily share with your family.</div>
-                            </div>
-                        </div>
-                        <div class="feature-item-premium">
-                            <span class="feature-icon-premium">✓</span>
-                            <div>
-                                <div class="feature-title-premium">Full Audio Streaming</div>
-                                <div class="feature-desc-premium">Enjoy instant background audio streams with up to 3 simultaneous listeners.</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Upgrade Button Form -->
-                    <form asp-action="Upgrade" method="post" hx-boost="false">
-                        @Html.AntiForgeryToken()
-                        <button class="btn-upgrade-morebob" type="submit">
-                            <span class="button-text">Upgrade to Morebob</span>
-                            <img src="~/images/ohrbob-logo.svg" alt="Morebob Logo" class="watermark" />
-
-                        </button>
-                    </form>
-                </div>
-            </div>
-        }
-        else
-        {
-            <p class="text-success">You are on Morebob.</p>
-            <p class="text-muted" id="morebob-thanks">@MorebobThanks.For(Model.Account.Id)</p>
-            @if (cancelAt != null)
-            {
-                <p class="text-warning-emphasis mb-2"><strong>Renewal is off.</strong> Your subscription ends on @Date(cancelAt).</p>
-            }
-            else if (periodEnd != null)
-            {
-                <p class="text-muted mb-2">Renews on @Date(periodEnd).</p>
-            }
-            @if (!string.IsNullOrEmpty(Model.Account.StripeCustomerId))
-            {
-                <form asp-action="ManageBilling" method="post" hx-boost="false" class="mb-4">
-                    @Html.AntiForgeryToken()
-                    <button class="btn btn-outline-primary" type="submit">Manage billing</button>
-                </form>
-            }
-            else
-            {
-                <p class="text-muted mb-2">No Stripe subscription is linked to this account.</p>
-                <form asp-action="Upgrade" method="post" hx-boost="false" class="mb-4">
-                    @Html.AntiForgeryToken()
-                    <button class="btn btn-outline-primary" type="submit">Set up billing</button>
-                </form>
-            }
-        }
-    </div>
-
-    <div class="tab-pane fade" id="appearance-pane" role="tabpanel" aria-labelledby="appearance-tab">
-        @{
-            var themeMode = Context.Request.Cookies["ohrbob_theme"];
-            if (!string.IsNullOrEmpty(themeMode)) { themeMode = Uri.UnescapeDataString(themeMode); }
-            if (themeMode != "light" && themeMode != "dark") { themeMode = "system"; }
-        }
-        <div class="card" id="appearanceCard">
-            <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
-                <h4 class="mb-0">Appearance</h4>
-            </div>
-            <div class="card-body">
-                <p class="text-muted mb-3">Choose how ohrbob looks on this device. <strong>System</strong> follows your browser or operating system setting.</p>
-                <div role="group" aria-label="Theme">
-                    <input type="radio" class="btn-check" name="theme" id="themeSystem" value="system" autocomplete="off" @(themeMode == "system" ? "checked" : "")>
-                    <label class="btn btn-outline-primary" for="themeSystem"><i class="bi bi-circle-half me-1"></i> System</label>
-
-                    <input type="radio" class="btn-check" name="theme" id="themeLight" value="light" autocomplete="off" @(themeMode == "light" ? "checked" : "")>
-                    <label class="btn btn-outline-primary" for="themeLight"><i class="bi bi-sun me-1"></i> Light</label>
-
-                    <input type="radio" class="btn-check" name="theme" id="themeDark" value="dark" autocomplete="off" @(themeMode == "dark" ? "checked" : "")>
-                    <label class="btn btn-outline-primary" for="themeDark"><i class="bi bi-moon-stars me-1"></i> Dark</label>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="tab-pane fade" id="api-keys-pane" role="tabpanel" aria-labelledby="api-keys-tab">
-        @inject Microsoft.Extensions.Options.IOptions<Ohrbob.Web.Configuration.OhrbobApiOptions> ApiOptions
-
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center bg-transparent">
-                <h4 class="mb-0">Device Connectivity &amp; API Keys</h4>
-            </div>
-            <div class="card-body text-body">
-                <p class="text-muted">Generate API keys to connect external devices and players. Connect via the generated QR code.</p>
-
-                @if (Model.ApiKeys == null || !Model.ApiKeys.Any())
+                @if (!isMorebob)
                 {
-                    <div class="text-center py-4 text-muted border rounded mb-3 bg-body-secondary">
-                        <i class="bi bi-key-fill" style="font-size: 2rem;"></i>
-                        <p class="mt-2 mb-0">No active API keys found. Create one below to connect your devices.</p>
-                    </div>
+                    @if (Model.Account.StripeSubscriptionStatus == "canceled" && endedAt != null)
+                    {
+                        <p class="account-panel__hint">Your Morebob subscription ended on @Date(endedAt).</p>
+                    }
+                    <aside class="morebob-panel" aria-labelledby="morebob-title">
+                        <span class="morebob-panel__bar" aria-hidden="true"></span>
+                        <p class="morebob-panel__kicker">morebob</p>
+                        <h2 class="morebob-panel__title" id="morebob-title">zero limits, all yours.</h2>
+                        <p class="morebob-panel__lede">Build your ultimate personalized audio space with zero limits.</p>
+
+                        <ul class="morebob-panel__features">
+                            <li>
+                                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                                <span>
+                                    <span class="morebob-panel__feature-title">Unlimited Stations</span>
+                                    <span class="morebob-panel__feature-desc">Create as many customized stations as you want (versus 1).</span>
+                                </span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                                <span>
+                                    <span class="morebob-panel__feature-title">Unlimited Feeds</span>
+                                    <span class="morebob-panel__feature-desc">Add any number of RSS, podcast, and news sources per station.</span>
+                                </span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                                <span>
+                                    <span class="morebob-panel__feature-title">Up to 5 Profiles</span>
+                                    <span class="morebob-panel__feature-desc">Separate by moods or easily share with your family.</span>
+                                </span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check-lg" aria-hidden="true"></i>
+                                <span>
+                                    <span class="morebob-panel__feature-title">Full Audio Streaming</span>
+                                    <span class="morebob-panel__feature-desc">Enjoy instant background audio streams with up to 3 simultaneous listeners.</span>
+                                </span>
+                            </li>
+                        </ul>
+
+                        <form asp-action="Upgrade" method="post" hx-boost="false">
+                            @Html.AntiForgeryToken()
+                            <button class="morebob-panel__cta" type="submit">
+                                Upgrade to Morebob <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                            </button>
+                        </form>
+                    </aside>
                 }
                 else
                 {
-                    <div class="table-responsive">
-                        <table class="table align-middle text-body">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Profile</th>
-                                    <th>Token</th>
-                                    <th>Connection</th>
-                                    <th class="text-end">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var key in Model.ApiKeys)
-                                {
-                                    var profileName = Model.Profiles.FirstOrDefault(p => p.Id == key.ProfileId)?.Name ?? "All Profiles (Account level)";
-                                    var abbrevToken = key.Token.Length > 9
-                                        ? key.Token.Substring(0, 5) + "..." + key.Token.Substring(key.Token.Length - 4)
-                                        : key.Token;
-                                    var deepLink = $"ohrbob://connect?server={Uri.EscapeDataString(ApiOptions.Value.FrontendPlayerUrl)}&token={Uri.EscapeDataString(key.Token)}";
-
-                                    <tr>
-                                        <td><strong>@key.Name</strong></td>
-                                        <td><span class="badge bg-body-secondary text-body border">@profileName</span></td>
-                                        <td><code>@abbrevToken</code></td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-primary" type="button"
-                                                    onclick="showConnectionQr('@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(key.Name))', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(deepLink))')">
-                                                <i class="bi bi-qr-code"></i> Show QR
-                                            </button>
-                                        </td>
-                                        <td class="text-end">
-                                            <form asp-action="RevokeApiKey" method="post" style="display:inline;" onsubmit="return confirm('Are you sure you want to revoke this API key? This will instantly disconnect any connected devices.');">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@key.Id" />
-                                                <button class="btn btn-sm btn-outline-danger" type="submit">
-                                                    <i class="bi bi-trash"></i> Revoke
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                    <section class="account-panel" aria-labelledby="morebob-status-title">
+                        <h2 class="account-panel__title" id="morebob-status-title">morebob</h2>
+                        <p class="account-panel__status">You are on Morebob.</p>
+                        <p class="account-panel__hint" id="morebob-thanks">@MorebobThanks.For(Model.Account.Id)</p>
+                        @if (cancelAt != null)
+                        {
+                            <p class="account-status-warning"><strong>Renewal is off.</strong> Your subscription ends on @Date(cancelAt).</p>
+                        }
+                        else if (periodEnd != null)
+                        {
+                            <p class="account-panel__hint">Renews on @Date(periodEnd).</p>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Account.StripeCustomerId))
+                        {
+                            <form asp-action="ManageBilling" method="post" hx-boost="false">
+                                @Html.AntiForgeryToken()
+                                <button class="account-action is-primary" type="submit">Manage billing</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <p class="account-panel__hint">No Stripe subscription is linked to this account.</p>
+                            <form asp-action="Upgrade" method="post" hx-boost="false">
+                                @Html.AntiForgeryToken()
+                                <button class="account-action is-primary" type="submit">Set up billing</button>
+                            </form>
+                        }
+                    </section>
                 }
+            </div>
 
-                <!-- Create New Key Form -->
-                <div class="border rounded p-3 mt-4 bg-body-secondary text-body">
-                    <h5>Generate New API Key</h5>
-                    <form asp-action="AddApiKey" method="post" class="row g-3 align-items-end">
-                        @Html.AntiForgeryToken()
-                        <div class="col-md-5">
-                            <label for="keyName" class="form-label small text-muted">Device or Key Name</label>
-                            <input type="text" class="form-control form-control-sm text-body bg-body" id="keyName" name="name" placeholder="e.g. My Smart Speaker, Living Room Tablet" required />
+            <div class="tab-pane fade" id="appearance-pane" role="tabpanel" aria-labelledby="appearance-tab">
+                <section class="account-panel" aria-labelledby="appearance-title">
+                    <h2 class="account-panel__title" id="appearance-title">appearance</h2>
+                    <p class="account-panel__hint">Choose how ohrbob looks on this device. <strong>System</strong> follows your browser or operating system setting.</p>
+                    <div class="theme-choices" role="group" aria-label="Theme">
+                        <div class="theme-choice">
+                            <input type="radio" class="btn-check" name="theme" id="themeSystem" value="system" autocomplete="off" @(themeMode == "system" ? "checked" : "")>
+                            <label class="theme-choice__label" for="themeSystem">
+                                <span class="theme-choice__swatch theme-choice__swatch--system" aria-hidden="true"></span>
+                                <span class="theme-choice__name">System</span>
+                                <span class="theme-choice__hint">Follow this device</span>
+                            </label>
                         </div>
-                        <div class="col-md-5">
-                            <label for="profileId" class="form-label small text-muted">Profile Scope</label>
-                            <select class="form-select form-select-sm text-body bg-body" id="profileId" name="profileId">
+                        <div class="theme-choice">
+                            <input type="radio" class="btn-check" name="theme" id="themeLight" value="light" autocomplete="off" @(themeMode == "light" ? "checked" : "")>
+                            <label class="theme-choice__label" for="themeLight">
+                                <span class="theme-choice__swatch theme-choice__swatch--light" aria-hidden="true"></span>
+                                <span class="theme-choice__name">Light</span>
+                                <span class="theme-choice__hint">Canvas and ink</span>
+                            </label>
+                        </div>
+                        <div class="theme-choice">
+                            <input type="radio" class="btn-check" name="theme" id="themeDark" value="dark" autocomplete="off" @(themeMode == "dark" ? "checked" : "")>
+                            <label class="theme-choice__label" for="themeDark">
+                                <span class="theme-choice__swatch theme-choice__swatch--dark" aria-hidden="true"></span>
+                                <span class="theme-choice__name">Dark</span>
+                                <span class="theme-choice__hint">Low light</span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="tab-pane fade" id="api-keys-pane" role="tabpanel" aria-labelledby="api-keys-tab">
+                <section class="account-panel" aria-labelledby="api-keys-title">
+                    <h2 class="account-panel__title" id="api-keys-title">device connectivity &amp; api keys</h2>
+                    <p class="account-panel__hint">Generate API keys to connect external devices and players. Connect via the generated QR code.</p>
+
+                    @if (Model.ApiKeys == null || !Model.ApiKeys.Any())
+                    {
+                        <div class="account-empty">
+                            <i class="bi bi-key" aria-hidden="true"></i>
+                            <p>No active API keys found. Create one below to connect your devices.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="api-key-table-wrap">
+                            <table class="account-table account-table--keys">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">Profile</th>
+                                        <th scope="col">Token</th>
+                                        <th scope="col">Connection</th>
+                                        <th scope="col" class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var key in Model.ApiKeys)
+                                    {
+                                        var profileName = Model.Profiles.FirstOrDefault(p => p.Id == key.ProfileId)?.Name ?? "All Profiles (Account level)";
+                                        var abbrevToken = key.Token.Length > 9
+                                            ? key.Token.Substring(0, 5) + "..." + key.Token.Substring(key.Token.Length - 4)
+                                            : key.Token;
+                                        var deepLink = $"ohrbob://connect?server={Uri.EscapeDataString(ApiOptions.Value.FrontendPlayerUrl)}&token={Uri.EscapeDataString(key.Token)}";
+
+                                        <tr class="api-key-row">
+                                            <td><strong class="api-key-row__name">@key.Name</strong></td>
+                                            <td><span class="account-pill">@profileName</span></td>
+                                            <td><code>@abbrevToken</code></td>
+                                            <td>
+                                                <button class="api-key-action" type="button"
+                                                        data-qr-key-name="@key.Name" data-qr-deep-link="@deepLink">
+                                                    <i class="bi bi-qr-code" aria-hidden="true"></i> Show QR
+                                                </button>
+                                            </td>
+                                            <td class="api-key-row__actions">
+                                                <form asp-action="RevokeApiKey" method="post" id="revoke-api-key-form-@key.Id" hx-boost="false">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@key.Id" />
+                                                    <button class="api-key-action is-danger" type="button"
+                                                            data-confirm-form="revoke-api-key-form-@key.Id"
+                                                            data-confirm-message="Are you sure you want to revoke this API key? This will instantly disconnect any connected devices.">
+                                                        <i class="bi bi-trash" aria-hidden="true"></i> Revoke
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </section>
+
+                <section class="account-panel" aria-labelledby="api-key-create-title">
+                    <h2 class="account-panel__title" id="api-key-create-title">generate api key</h2>
+                    <form asp-action="AddApiKey" method="post" class="account-form">
+                        @Html.AntiForgeryToken()
+                        <div class="account-field">
+                            <label for="keyName" class="form-label">Device or key name</label>
+                            <input type="text" class="form-control" id="keyName" name="name" placeholder="e.g. My Smart Speaker, Living Room Tablet" required />
+                        </div>
+                        <div class="account-field">
+                            <label for="profileId" class="form-label">Profile scope</label>
+                            <select class="form-select" id="profileId" name="profileId">
                                 <option value="">All Profiles (Account level)</option>
                                 @foreach (var p in Model.Profiles)
                                 {
@@ -270,149 +287,92 @@
                                 }
                             </select>
                         </div>
-                        <div class="col-md-2 text-end">
-                            <button type="submit" class="btn btn-sm btn-primary w-100">
-                                <i class="bi bi-plus-circle"></i> Generate
+                        <div class="account-form__action">
+                            <button type="submit" class="account-action is-primary">
+                                <i class="bi bi-plus-lg" aria-hidden="true"></i> Generate
                             </button>
                         </div>
                     </form>
-                </div>
+                </section>
             </div>
-        </div>
-    </div>
 
-    <div class="tab-pane fade" id="report-pane" role="tabpanel" aria-labelledby="report-tab">
-        @{
-            var supportEmail = LegalOptions.Value.Email;
-            var supportMailto = $"mailto:{supportEmail}?subject={Uri.EscapeDataString("Ohrbob: problem with my account or billing")}";
-        }
-        <h4 class="mb-3">Report a problem</h4>
-        <div class="row row-cols-1 row-cols-md-2 g-3">
-            <div class="col">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title"><i class="bi bi-person-lines-fill me-2"></i>Problem with my account or billing</h5>
-                        <p class="card-text text-muted">Tell us what went wrong and we'll look into it.</p>
-                        @if (!string.IsNullOrWhiteSpace(supportEmail))
-                        {
-                            <a class="btn btn-outline-primary" href="@supportMailto">Email us</a>
-                        }
-                        else
-                        {
-                            <span class="text-muted">Contact address is not configured.</span>
-                        }
+            <div class="tab-pane fade" id="report-pane" role="tabpanel" aria-labelledby="report-tab">
+                <section class="account-panel" aria-labelledby="report-title">
+                    <h2 class="account-panel__title" id="report-title">report a problem</h2>
+                    <p class="account-panel__hint">Billing help, bug reports and feature requests.</p>
+                    <div class="account-links">
+                        <article class="account-link-card">
+                            <h3 class="account-link-card__title"><i class="bi bi-person-lines-fill" aria-hidden="true"></i>Problem with my account or billing</h3>
+                            <p class="account-link-card__text">Tell us what went wrong and we'll look into it.</p>
+                            @if (!string.IsNullOrWhiteSpace(supportEmail))
+                            {
+                                <a class="account-action" href="@supportMailto">Email us</a>
+                            }
+                            else
+                            {
+                                <span class="account-panel__hint">Contact address is not configured.</span>
+                            }
+                        </article>
+                        <article class="account-link-card">
+                            <h3 class="account-link-card__title"><i class="bi bi-github" aria-hidden="true"></i>Bug or feature request</h3>
+                            <p class="account-link-card__text">Report bugs and suggest features on GitHub.</p>
+                            <a class="account-action" href="https://github.com/ohrbob-org/ohrbob.server/issues/" target="_blank" rel="noopener noreferrer" hx-boost="false">Open GitHub issues</a>
+                        </article>
                     </div>
-                </div>
+                </section>
             </div>
-            <div class="col">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h5 class="card-title"><i class="bi bi-github me-2"></i>Bug or feature request</h5>
-                        <p class="card-text text-muted">Report bugs and suggest features on GitHub.</p>
-                        <a class="btn btn-outline-primary" href="https://github.com/ohrbob-org/ohrbob.server/issues/" target="_blank" rel="noopener noreferrer" hx-boost="false">Open GitHub issues</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="tab-pane fade" id="delete-pane" role="tabpanel" aria-labelledby="delete-tab">
-        <h4 class="text-danger">Delete account</h4>
-        <p class="text-muted mb-3">Permanently delete your account, profiles, stations and listening history.</p>
-        <a asp-action="Delete" class="btn btn-outline-danger">
-            <i class="bi bi-trash3-fill me-1"></i>Delete account
-        </a>
-    </div>
+            <div class="tab-pane fade" id="delete-pane" role="tabpanel" aria-labelledby="delete-tab">
+                <section class="account-panel" aria-labelledby="delete-title">
+                    <h2 class="account-panel__title" id="delete-title">delete account</h2>
+                    <div class="account-danger">
+                        <p>Permanently delete your account, profiles, stations and listening history.</p>
+                        <a asp-action="Delete" class="account-action is-danger">
+                            <i class="bi bi-trash3" aria-hidden="true"></i>Delete account
+                        </a>
+                    </div>
+                </section>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- QR Code Modal -->
-<div class="modal fade" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true">
+<div class="modal fade qr-modal" id="qrCodeModal" tabindex="-1" aria-labelledby="qrCodeModalLabel" aria-hidden="true"
+     data-initial-key-name="@newKeyName" data-initial-deep-link="@autoDeepLink">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
+            <div class="metro-modal-accent" aria-hidden="true"></div>
             <div class="modal-header">
                 <h5 class="modal-title" id="qrCodeModalLabel">Connect Device</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-center text-body">
-                <p>Scan this QR code with your Ohrbob app/device to connect <strong class="text-body"><span id="qrKeyName"></span></strong>.</p>
-                <div id="qrcode-container" class="d-flex justify-content-center my-3 p-3 bg-white rounded border" style="width: fit-content; margin: 0 auto;"></div>
-                <div class="mt-2 text-body text-start">
-                    <span class="small text-muted d-block mb-1">Deep link:</span>
-                    <code class="d-block text-break small p-2 bg-body-secondary border rounded text-body mb-3" id="qrDeepLink"></code>
+            <div class="modal-body">
+                <p class="qr-intro">Scan this QR code with your Ohrbob app/device to connect <strong><span id="qrKeyName"></span></strong>.</p>
+                <div id="qrcode-container" class="qr-frame"></div>
 
-                    <label class="form-label small text-muted mb-1 d-block">Server URL</label>
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control text-body bg-body-secondary" id="qrServerUrl" readonly />
-                        <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('qrServerUrl').value); alert('Server URL copied to clipboard!');">Copy</button>
+                <div class="qr-values">
+                    <span class="form-label d-block">Deep link</span>
+                    <code class="qr-value" id="qrDeepLink"></code>
+
+                    <label class="form-label d-block" for="qrServerUrl">Server URL</label>
+                    <div class="qr-copy-row">
+                        <input type="text" class="form-control qr-value" id="qrServerUrl" readonly />
+                        <button class="account-action qr-copy" type="button" data-copy-target="qrServerUrl" data-copy-message="Server URL copied to clipboard.">Copy</button>
                     </div>
 
-                    <label class="form-label small text-muted mb-1 d-block">API Token</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control text-body bg-body-secondary" id="qrToken" readonly />
-                        <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('qrToken').value); alert('Token copied to clipboard!');">Copy</button>
+                    <label class="form-label d-block" for="qrToken">API Token</label>
+                    <div class="qr-copy-row">
+                        <input type="text" class="form-control qr-value" id="qrToken" readonly />
+                        <button class="account-action qr-copy" type="button" data-copy-target="qrToken" data-copy-message="Token copied to clipboard.">Copy</button>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="account-action" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" referrerpolicy="no-referrer"></script>
-<script>
-    window.showConnectionQr = function(keyName, deepLink) {
-        document.getElementById('qrKeyName').textContent = keyName;
-        document.getElementById('qrDeepLink').textContent = deepLink;
-
-        let serverUrl = "";
-        let token = "";
-        try {
-            const queryStr = deepLink.split('?')[1];
-            if (queryStr) {
-                const pairs = queryStr.split('&');
-                for (const pair of pairs) {
-                    const parts = pair.split('=');
-                    if (parts[0] === 'server') serverUrl = decodeURIComponent(parts[1] || "");
-                    if (parts[0] === 'token') token = decodeURIComponent(parts[1] || "");
-                }
-            }
-        } catch (e) {
-            console.error("Failed to parse deep link parameters:", e);
-        }
-
-        document.getElementById('qrServerUrl').value = serverUrl;
-        document.getElementById('qrToken').value = token;
-
-        const container = document.getElementById('qrcode-container');
-        container.innerHTML = '';
-
-        new QRCode(container, {
-            text: deepLink,
-            width: 200,
-            height: 200,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M
-        });
-
-        const modal = new bootstrap.Modal(document.getElementById('qrCodeModal'));
-        modal.show();
-    };
-
-    @if (TempData["NewApiKeyName"] != null && TempData["NewApiKeyToken"] != null)
-    {
-        var newKeyName = TempData["NewApiKeyName"]?.ToString();
-        var newToken = TempData["NewApiKeyToken"]?.ToString();
-        var autoDeepLink = $"ohrbob://connect?server={Uri.EscapeDataString(ApiOptions.Value.FrontendPlayerUrl)}&token={Uri.EscapeDataString(newToken ?? "")}";
-        <text>
-        // Use timeout to ensure the DOM and bootstrap are fully ready
-        setTimeout(function() {
-            window.showConnectionQr('@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(newKeyName))', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(autoDeepLink))');
-        }, 100);
-        </text>
-    }
-</script>

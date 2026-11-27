@@ -2516,3 +2516,842 @@ body.metro-night .app-footer {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
+
+/* --------------------------------------------------------------------------
+   Account — square overview tiles, hairline panels, flat morebob panel
+   -------------------------------------------------------------------------- */
+
+.account-tiles {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.account-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+    width: 100%;
+    min-height: 132px;
+    padding: 16px;
+    border: 1px solid var(--metro-hairline);
+    border-radius: 0;
+    background: var(--metro-tile);
+    color: var(--metro-ink);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color var(--metro-transition), box-shadow var(--metro-transition);
+}
+
+.account-tile:hover,
+.account-tile:focus {
+    border-color: var(--metro-orange);
+}
+
+.account-tile:focus-visible,
+.account-tab-link:focus-visible {
+    outline: 2px solid var(--metro-orange);
+    outline-offset: 2px;
+}
+
+.account-tile.active,
+.account-tile.active:hover,
+.account-tile.active:focus {
+    border-color: var(--metro-orange);
+    box-shadow: inset 0 -3px 0 var(--metro-orange);
+}
+
+.account-tile__kicker {
+    color: var(--metro-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+.account-tile__title {
+    margin-top: auto;
+    font-family: var(--metro-display);
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 0.95;
+}
+
+.account-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 18px;
+    padding: 8px 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--metro-muted);
+    font-family: var(--metro-body);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color var(--metro-transition);
+}
+
+.account-back:hover,
+.account-back:focus {
+    color: var(--metro-orange);
+}
+
+.account-back:focus-visible {
+    outline: 2px solid var(--metro-orange);
+    outline-offset: 2px;
+}
+
+.account-panel {
+    padding: 22px 0 26px;
+    border-top: 1px solid var(--metro-hairline);
+}
+
+.account-panel + .account-panel {
+    margin-top: 6px;
+}
+
+.account-panel__title {
+    margin: 0;
+    font-family: var(--metro-display);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1;
+}
+
+.account-panel__hint {
+    max-width: 68ch;
+    margin: 8px 0 0;
+    color: var(--metro-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.account-panel__status {
+    margin: 10px 0 0;
+    color: var(--metro-orange);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+.account-status-warning {
+    margin: 10px 0 0;
+    padding: 10px 12px;
+    border-left: 4px solid var(--metro-orange);
+    background: var(--metro-tile);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* Hairline tables: the labels are the 11 px uppercase layer. */
+.account-table {
+    width: 100%;
+    margin: 16px 0 0;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.account-table th,
+.account-table td {
+    padding: 11px 16px 11px 0;
+    border-bottom: 1px solid var(--metro-hairline);
+    text-align: left;
+    vertical-align: top;
+}
+
+.account-table th {
+    width: 38%;
+    color: var(--metro-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1.45;
+    text-transform: uppercase;
+}
+
+.account-table td {
+    overflow-wrap: anywhere;
+}
+
+.account-table tr:last-child th,
+.account-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.account-table--keys {
+    min-width: 640px;
+}
+
+.account-table--keys thead th {
+    width: auto;
+    padding-top: 0;
+    border-bottom: 1px solid var(--metro-hairline);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+}
+
+.api-key-table-wrap {
+    max-width: 100%;
+    margin-top: 16px;
+    overflow-x: auto;
+}
+
+.api-key-row td {
+    padding-top: 14px;
+    padding-bottom: 14px;
+}
+
+.api-key-row__name {
+    font-weight: 700;
+}
+
+.api-key-row code {
+    color: var(--metro-muted);
+    font-family: var(--bs-font-monospace);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.api-key-row__actions {
+    text-align: right;
+}
+
+.api-key-row__actions form {
+    display: inline-block;
+    margin: 0;
+}
+
+.account-pill {
+    display: inline-block;
+    padding: 2px 6px;
+    border: 1px solid var(--metro-hairline);
+    color: var(--metro-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+    text-transform: uppercase;
+}
+
+.account-plan {
+    display: inline-block;
+    padding: 2px 7px;
+    border: 1px solid var(--metro-hairline);
+    color: var(--metro-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1.5;
+    text-transform: uppercase;
+}
+
+.account-plan.is-morebob {
+    border-color: var(--metro-yellow);
+    background: var(--metro-yellow);
+    color: var(--metro-navy);
+}
+
+/* Square actions for panes, tables, the modal and the delete page. */
+.account-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 9px 12px;
+    border: 1px solid var(--metro-hairline);
+    border-radius: 0;
+    background: transparent;
+    color: var(--metro-ink);
+    font-family: var(--metro-body);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color var(--metro-transition), border-color var(--metro-transition),
+        color var(--metro-transition);
+}
+
+.account-action:hover,
+.account-action:focus {
+    border-color: var(--metro-orange);
+    color: var(--metro-orange);
+}
+
+.account-action:focus-visible {
+    outline: 2px solid var(--metro-orange);
+    outline-offset: 2px;
+}
+
+.account-action.is-primary {
+    border-color: var(--metro-orange);
+    background: var(--metro-orange);
+    color: var(--metro-on-accent);
+}
+
+.account-action.is-primary:hover,
+.account-action.is-primary:focus {
+    border-color: var(--metro-orange-soft);
+    background: var(--metro-orange-soft);
+    color: var(--metro-navy);
+}
+
+.account-action.is-danger {
+    border-color: var(--bs-danger);
+    background: var(--bs-danger);
+    color: var(--metro-on-accent);
+}
+
+.account-action.is-danger:hover,
+.account-action.is-danger:focus {
+    border-color: var(--bs-danger);
+    background: transparent;
+    color: var(--bs-danger);
+}
+
+.api-key-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 8px 10px;
+    border: 1px solid var(--metro-hairline);
+    border-radius: 0;
+    background: transparent;
+    color: var(--metro-ink);
+    font-family: var(--metro-body);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color var(--metro-transition), color var(--metro-transition);
+}
+
+.api-key-action:hover,
+.api-key-action:focus {
+    border-color: var(--metro-orange);
+    color: var(--metro-orange);
+}
+
+.api-key-action:focus-visible {
+    outline: 2px solid var(--metro-orange);
+    outline-offset: 2px;
+}
+
+.api-key-action.is-danger {
+    color: var(--bs-danger);
+}
+
+.api-key-action.is-danger:hover,
+.api-key-action.is-danger:focus {
+    border-color: var(--bs-danger);
+    color: var(--bs-danger);
+}
+
+.account-empty {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 16px;
+    padding: 18px;
+    border: 1px solid var(--metro-hairline);
+    color: var(--metro-muted);
+    font-size: 12px;
+}
+
+.account-empty i {
+    color: var(--metro-orange);
+    font-size: 20px;
+    line-height: 1;
+}
+
+.account-empty p {
+    margin: 0;
+}
+
+.account-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.4fr) auto;
+    gap: 16px;
+    align-items: end;
+    margin-top: 18px;
+}
+
+.account-field {
+    min-width: 0;
+}
+
+.account-form__action {
+    padding-bottom: 1px;
+}
+
+.account-form__action .account-action {
+    min-height: 45px;
+}
+
+.account-links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.account-link-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid var(--metro-hairline);
+    background: var(--metro-tile);
+}
+
+.account-link-card__title {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0;
+    font-family: var(--metro-display);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.05;
+}
+
+.account-link-card__title i {
+    color: var(--metro-orange);
+    font-size: 16px;
+    line-height: 1.3;
+}
+
+.account-link-card__text {
+    margin: 0;
+    color: var(--metro-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.account-link-card .account-action {
+    margin-top: auto;
+}
+
+.account-danger {
+    margin-top: 16px;
+    padding: 16px;
+    border-left: 4px solid var(--bs-danger);
+    background: var(--metro-tile);
+}
+
+.account-danger p {
+    margin: 0 0 12px;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* Appearance: three square radio tiles with a canvas/ink preview. */
+.theme-choices {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    max-width: 760px;
+    margin-top: 18px;
+}
+
+.theme-choice {
+    min-width: 0;
+}
+
+.theme-choice__label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+    padding: 14px;
+    border: 1px solid var(--metro-hairline);
+    background: var(--metro-tile);
+    color: var(--metro-ink);
+    cursor: pointer;
+    transition: border-color var(--metro-transition);
+}
+
+.theme-choice__label:hover {
+    border-color: var(--metro-orange);
+}
+
+.btn-check:checked + .theme-choice__label {
+    border-color: var(--metro-orange);
+    box-shadow: inset 0 0 0 2px var(--metro-orange);
+}
+
+.btn-check:focus-visible + .theme-choice__label {
+    outline: 2px solid var(--metro-orange);
+    outline-offset: 2px;
+}
+
+.theme-choice__swatch {
+    position: relative;
+    display: block;
+    height: 44px;
+    border: 1px solid var(--metro-hairline);
+    background: var(--metro-on-accent);
+}
+
+.theme-choice__swatch::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--metro-navy);
+}
+
+.theme-choice__swatch--system::after {
+    left: 50%;
+}
+
+.theme-choice__swatch--light::after {
+    display: none;
+}
+
+.theme-choice__swatch--dark {
+    background: var(--metro-navy);
+}
+
+.theme-choice__swatch--dark::after {
+    display: none;
+}
+
+.theme-choice__name {
+    font-family: var(--metro-display);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.theme-choice__hint {
+    color: var(--metro-muted);
+    font-size: 11px;
+    line-height: 1.3;
+}
+
+/* The flat morebob upsell: yellow surface, navy ink, one orange bar. */
+.morebob-panel {
+    margin: 24px 0 4px;
+    padding: 24px;
+    background: var(--metro-yellow);
+    color: var(--metro-navy);
+}
+
+.morebob-panel__bar {
+    display: block;
+    width: 46px;
+    height: 5px;
+    margin-bottom: 16px;
+    background: var(--metro-orange);
+}
+
+.morebob-panel__kicker {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.morebob-panel__title {
+    margin: 8px 0 0;
+    font-family: var(--metro-display);
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 0.95;
+}
+
+.morebob-panel__lede {
+    max-width: 54ch;
+    margin: 10px 0 0;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.morebob-panel__features {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 24px;
+    margin: 20px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.morebob-panel__features li {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid color-mix(in srgb, var(--metro-navy) 24%, transparent);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.morebob-panel__features i {
+    flex: 0 0 auto;
+    color: var(--metro-orange);
+    font-size: 14px;
+    line-height: 1.2;
+}
+
+.morebob-panel__features > li > span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.morebob-panel__feature-title {
+    font-weight: 700;
+}
+
+.morebob-panel__feature-desc {
+    color: color-mix(in srgb, var(--metro-navy) 78%, transparent);
+}
+
+.morebob-panel__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+    padding: 12px 18px;
+    border: 0;
+    border-radius: 0;
+    background: var(--metro-orange);
+    color: var(--metro-navy);
+    font-family: var(--metro-body);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color var(--metro-transition), color var(--metro-transition);
+}
+
+.morebob-panel__cta:hover,
+.morebob-panel__cta:focus {
+    background: var(--metro-navy);
+    color: var(--metro-yellow);
+}
+
+.morebob-panel__cta:focus-visible {
+    outline: 2px solid var(--metro-navy);
+    outline-offset: 2px;
+}
+
+/* QR modal: Metro shell, orange accent, white square QR area. */
+.qr-modal .modal-title {
+    font-family: var(--metro-display);
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+}
+
+.qr-modal .modal-body {
+    font-size: 12px;
+}
+
+.qr-intro {
+    margin: 0 0 16px;
+    color: var(--metro-muted);
+    line-height: 1.5;
+}
+
+.qr-frame {
+    display: flex;
+    justify-content: center;
+    width: fit-content;
+    margin: 0 auto 18px;
+    padding: 12px;
+    border: 1px solid var(--metro-hairline);
+    border-radius: 0;
+    background: var(--metro-on-accent);
+}
+
+.qr-values {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.qr-values .form-label {
+    margin: 6px 0 0;
+}
+
+.qr-value {
+    display: block;
+    overflow-wrap: anywhere;
+    color: var(--metro-muted);
+    font-family: var(--bs-font-monospace);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+code.qr-value {
+    padding: 8px;
+    border: 1px solid var(--metro-hairline);
+    background: var(--metro-tile-alt);
+    color: var(--metro-ink);
+}
+
+.qr-copy-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.qr-copy-row .form-control {
+    min-width: 0;
+    flex: 1 1 auto;
+    font-family: var(--bs-font-monospace);
+    font-size: 11px;
+}
+
+.qr-copy {
+    flex: 0 0 auto;
+}
+
+/* Delete account confirmation page. */
+.danger-panel {
+    margin: 8px 0 24px;
+    padding: 22px 24px;
+    border: 1px solid var(--metro-hairline);
+    border-left: 4px solid var(--bs-danger);
+    border-radius: 0;
+    background: var(--metro-tile);
+    color: var(--metro-ink);
+}
+
+.danger-panel__title {
+    margin: 0 0 10px;
+    color: var(--bs-danger);
+    font-family: var(--metro-display);
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1;
+}
+
+.danger-panel p {
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.danger-panel ul {
+    margin: 0 0 14px;
+    padding-left: 20px;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.danger-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+@media (max-width: 1199.98px) {
+    .account-tiles {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 899.98px) {
+    .account-tiles {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .account-form {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .account-form__action {
+        grid-column: 1 / -1;
+    }
+
+    .account-form__action .account-action {
+        width: 100%;
+    }
+
+    .account-links {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .account-tiles {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .account-tile {
+        min-height: 0;
+        padding: 14px;
+    }
+
+    .account-tile__title {
+        font-size: 26px;
+    }
+
+    .account-panel__title {
+        font-size: 23px;
+    }
+
+    .theme-choices {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .morebob-panel {
+        padding: 18px;
+    }
+
+    .morebob-panel__features {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .account-form {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .account-table th {
+        width: 42%;
+    }
+
+    .danger-panel {
+        padding: 18px;
+    }
+
+    .qr-copy-row {
+        flex-wrap: wrap;
+    }
+
+    .qr-copy {
+        width: 100%;
+    }
+}

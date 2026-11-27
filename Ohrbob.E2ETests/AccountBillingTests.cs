@@ -100,7 +100,8 @@ public class AccountBillingTests : PageTest
         await Page.GotoAsync($"{_factory.ServerAddress}/Account");
         await Page.ClickAsync("#account-tab");
 
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Manage Account");
+        await Expect(Page.Locator("h1")).ToHaveTextAsync("account");
+        await Expect(Page.Locator(".metro-kicker")).ToHaveTextAsync("your account");
         await Expect(Page.Locator("form[action='/Account/Upgrade'] button")).ToContainTextAsync("Upgrade to Morebob");
         await Expect(Page.Locator("text=Stripe Card Billing Integration Coming Soon")).ToHaveCountAsync(0);
     }
