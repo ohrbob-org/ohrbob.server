@@ -205,6 +205,7 @@ public class MetroPlayerTests : PageTest
     [Test]
     public async Task AutoStartPromptUsesTheMetroPanel()
     {
+        await Page.SetViewportSizeAsync(1280, 900);
         await OpenStationAsync();
 
         // A reload is an automatic start, so the countdown prompt appears first.
@@ -235,6 +236,14 @@ public class MetroPlayerTests : PageTest
         Assert.That(m[8], Is.EqualTo("uppercase"), "the prompt label is uppercase");
         Assert.That(ParsePx(m[9]), Is.EqualTo(11), "the prompt label is 11px");
         Assert.That(ParsePx(m[10]), Is.EqualTo(0), "the prompt buttons are square");
+
+        var rects = await Page.EvaluateAsync<double[]>(@"() => {
+            const prompt = document.getElementById('ohrbob-auto-start').getBoundingClientRect();
+            const deck = document.getElementById('ohrbob-player').getBoundingClientRect();
+            return [prompt.bottom, deck.top];
+        }");
+        Assert.That(rects[0], Is.LessThanOrEqualTo(rects[1]),
+            "the desktop prompt must sit above the transport deck without covering it");
     }
 
     private async Task OpenStationAsync()

@@ -76,7 +76,8 @@ body.with-player {
 .metro-auto-start {
     position: fixed;
     right: 16px;
-    bottom: 112px;
+    /* Clear the 133 px desktop deck with a 12 px gap. */
+    bottom: 145px;
     z-index: 1090;
     display: none;
     width: min(320px, calc(100vw - 32px));
