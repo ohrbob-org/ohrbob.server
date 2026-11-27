@@ -110,6 +110,7 @@ builder.Services.AddSingleton<IMigration, Migration_0_0_13_NormalizeAccountEmail
 builder.Services.AddSingleton<IMigration, Migration_0_0_14_StripeCustomerIndex>();
 builder.Services.AddSingleton<IMigration, Migration_0_0_15_PlainFeedTitles>();
 builder.Services.AddSingleton<IMigration, Migration_0_0_16_FeedRefreshSchedules>();
+builder.Services.AddSingleton<IMigration, Migration_0_0_17_OrangeFeedColours>();
 builder.Services.AddSingleton<DatabaseMigrator>();
 builder.Services.AddHostedService<FeedUpdateWorker>();
 

@@ -22,7 +22,7 @@ public class StationsColoringTests
 
         var palette = new[]
         {
-            "#E63946", "#1D3557", "#457B9D", "#2A9D8F", "#E9C46A", "#F4A261",
+            "#FC5D00", "#1D3557", "#457B9D", "#2A9D8F", "#E9C46A", "#F4A261",
             "#E76F51", "#6A057F", "#264653", "#8AB17D", "#D62828", "#FF9F1C"
         };
 
@@ -37,7 +37,7 @@ public class StationsColoringTests
             }
         }
 
-        Assert.That(schedule.Feeds[0].Color, Is.EqualTo("#E63946"));
+        Assert.That(schedule.Feeds[0].Color, Is.EqualTo("#FC5D00"));
         Assert.That(schedule.Feeds[1].Color, Is.EqualTo("#1D3557"));
         Assert.That(schedule.Feeds[0].Color, Is.Not.EqualTo(schedule.Feeds[1].Color));
     }

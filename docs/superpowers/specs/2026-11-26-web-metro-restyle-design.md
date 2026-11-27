@@ -675,3 +675,14 @@ Arial, sans-serif) for body and control text; Sulphur Point remains the display
 face. Dropdown menus use the raised tile surface (white in light mode, the dark
 tile in dark mode), and the editor feed actions (discover / share / more) sit in
 the pane header rather than below the feed list.
+
+## 18. Amendment (2026-11-27): landing table, brand and feed orange
+
+- The landing tier table is a plain white panel: no yellow morebob column, no
+  orange vertical rule and no internal scrollbar.
+- The hero places a translucent logo silhouette over the decorative squares.
+- The closing wordmark uses the individually coloured letters plus the logo
+  icon again.
+- The first automatically assigned feed colour is now Ohrbob orange
+  (`#FC5D00`); migration `0.0.17` rewrites the old `#E63946` in existing station
+  schedules.

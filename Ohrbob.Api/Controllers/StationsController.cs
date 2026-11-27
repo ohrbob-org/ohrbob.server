@@ -13,7 +13,7 @@ public class StationsController : ControllerBase
 {
     private static readonly string[] StationFeedColors = new[]
     {
-        "#E63946", // Imperial Red
+        "#FC5D00", // Ohrbob Orange
         "#1D3557", // Prussian Blue
         "#457B9D", // Celadon Blue
         "#2A9D8F", // Persian Green

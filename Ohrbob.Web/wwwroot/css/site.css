@@ -1100,6 +1100,17 @@ body.with-player .app-toast-container {
     opacity: 0.14;
 }
 
+/* A white silhouette of the logo sits over the two decorative squares. */
+.landing-hero-mark {
+    position: absolute;
+    top: 16%;
+    right: 7%;
+    width: clamp(140px, 18vw, 250px);
+    height: auto;
+    filter: brightness(0) invert(1);
+    opacity: 0.16;
+}
+
 .landing-bars {
     display: flex;
     align-items: flex-end;
@@ -1392,17 +1403,10 @@ body.with-player .app-toast-container {
 
 .landing-tier-card {
     position: relative;
-    overflow-x: auto;
+    overflow: visible;
     border: 0;
-    background: var(--bs-light);
+    background: var(--bs-white);
     color: var(--metro-navy);
-}
-
-.landing-tier-card::before {
-    content: "";
-    display: block;
-    height: 6px;
-    background: var(--metro-orange);
 }
 
 .landing-tier-table caption {
@@ -1415,20 +1419,12 @@ body.with-player .app-toast-container {
     --bs-table-border-color: transparent;
     --bs-table-hover-bg: transparent;
     width: 100%;
-    min-width: 520px;
+    min-width: 0;
     margin: 0;
     border-collapse: collapse;
     table-layout: fixed;
     color: var(--metro-navy);
-    /* A 4 px orange edge plus a solid yellow morebob column, painted behind
-       the cells so the colspan row on "App support" cannot interrupt it. */
-    background-image: linear-gradient(
-        to right,
-        transparent calc(75% - 4px),
-        var(--metro-orange) calc(75% - 4px),
-        var(--metro-orange) 75%,
-        color-mix(in srgb, var(--metro-yellow) 58%, transparent) 75%
-    );
+    background: var(--bs-white);
 }
 
 .landing-tier-col--label {
@@ -1494,6 +1490,25 @@ body.with-player .app-toast-container {
     font-weight: 700;
     line-height: 0.8;
     letter-spacing: -0.04em;
+}
+
+.landing-brand {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.08em;
+}
+
+.landing-brand .ohrbob-logo-icon img {
+    display: block;
+    width: 0.52em;
+    height: 0.52em;
+    object-fit: contain;
+}
+
+.landing-brand .ohrbob-logo-text {
+    font-size: 1em;
+    line-height: 0.8;
 }
 
 @media (max-width: 899.98px) {
