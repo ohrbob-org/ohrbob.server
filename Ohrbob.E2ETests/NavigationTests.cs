@@ -307,14 +307,19 @@ public class NavigationTests : PageTest
             const kr = kicker.getBoundingClientRect();
             const tr = title.getBoundingClientRect();
             return [ks.fontSize, ks.color, ks.textTransform,
-                    String(kr.top < tr.top && kr.bottom > tr.top)];
+                    String(tr.top >= kr.top), ks.lineHeight,
+                    getComputedStyle(document.querySelector('.page-head')).paddingTop,
+                    getComputedStyle(document.querySelector('#main-content')).paddingTop];
         }");
         Assert.That(double.Parse(m[0].Replace("px", string.Empty),
             System.Globalization.CultureInfo.InvariantCulture), Is.GreaterThanOrEqualTo(72),
             "the kicker is a display-sized ghost line");
         Assert.That(m[1], Does.Not.EqualTo("rgb(17, 18, 23)"), "the ghost line is lavender, not ink");
         Assert.That(m[2], Is.EqualTo("lowercase"));
-        Assert.That(m[3], Is.EqualTo("true"), "the title overlaps the ghost line");
+        Assert.That(m[3], Is.EqualTo("true"), "the title starts on the ghost line");
+        Assert.That(m[4], Is.EqualTo("8px"), "the ghost line uses the 0.5rem leading");
+        Assert.That(m[5], Is.EqualTo("0px"), "the page head has no top padding");
+        Assert.That(m[6], Is.EqualTo("0px"), "the metro page has no top padding");
     }
 
     [Test]

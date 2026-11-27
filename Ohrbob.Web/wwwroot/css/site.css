@@ -1514,7 +1514,7 @@ body.with-player .app-toast-container {
     align-items: flex-end;
     justify-content: space-between;
     gap: 16px 24px;
-    padding: 36px 0 26px;
+    padding: 0 0 26px;
     margin-bottom: 26px;
 }
 
@@ -1525,22 +1525,26 @@ body.with-player .app-toast-container {
 
 /* The kicker is the large lavender ghost line behind the page title. */
 .page-head .metro-kicker {
-    margin: 0;
-    overflow: hidden;
+    margin: clamp(1.5rem, 4vw, 3.5rem) 0 0;
+    overflow: visible;
     color: color-mix(in srgb, var(--metro-violet) 16%, var(--metro-canvas));
     font-family: var(--metro-display);
     font-size: clamp(2.5rem, 12vw, 6rem);
     font-weight: 700;
     letter-spacing: -0.03em;
-    line-height: 0.8;
+    line-height: 0.5rem;
     text-transform: lowercase;
     white-space: nowrap;
+}
+
+#main-content.metro-page {
+    padding-top: 0;
 }
 
 .page-head .metro-title {
     position: relative;
     z-index: 1;
-    margin: -0.55em 0 0;
+    margin: 0;
 }
 
 /* Listen is the hero title of the app: 76 px on desktop, 58 px on phones. */
