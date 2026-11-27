@@ -275,7 +275,7 @@ public class MetroDiscoverTests : PageTest
     }
 
     [Test]
-    public async Task Discover_CategoryChipsAreColorTiles()
+    public async Task Discover_CategoryChipsAreQuietTextTiles()
     {
         await Page.GotoAsync($"{_factory.ServerAddress}/Discover");
 
@@ -289,7 +289,7 @@ public class MetroDiscoverTests : PageTest
         }");
         Assert.That(m[0], Is.EqualTo("0px"), "chips are square");
         Assert.That(m[1], Is.EqualTo("0px"), "chips have no hairline");
-        Assert.That(m[2], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "chips are solid colour tiles");
+        Assert.That(m[2], Is.EqualTo("rgba(0, 0, 0, 0)"), "chips sit quietly on the canvas");
         Assert.That(m[3], Is.EqualTo("uppercase"));
         Assert.That(m[4], Is.EqualTo("11px"), "chips use the 11 px label size");
         Assert.That(m[5], Is.EqualTo("700"));
@@ -297,9 +297,10 @@ public class MetroDiscoverTests : PageTest
 
         await chip.FocusAsync();
         await Page.WaitForTimeoutAsync(250);
-        var focusOutline = await chip.EvaluateAsync<string>(
-            "el => getComputedStyle(el).outlineWidth");
-        Assert.That(focusOutline, Is.EqualTo("2px"), "keyboard focus stays visible on the tile");
+        var focus = await chip.EvaluateAsync<string[]>(
+            "el => { const s = getComputedStyle(el); return [s.outlineWidth, s.backgroundColor]; }");
+        Assert.That(focus[0], Is.EqualTo("2px"), "keyboard focus stays visible on the chip");
+        Assert.That(focus[1], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "focus fills the chip with ink");
     }
 
     [Test]
@@ -324,7 +325,7 @@ public class MetroDiscoverTests : PageTest
         }");
         Assert.That(m[0], Is.EqualTo("grid"), "results sit on a Metro grid");
         Assert.That(m[2], Is.EqualTo("0px"), "result cards are square");
-        Assert.That(m[3], Is.EqualTo("20px"), "result titles use the larger tile title");
+        Assert.That(m[3], Is.EqualTo("18px"), "result titles use the 18 px card title");
         Assert.That(m[4], Is.EqualTo("none"), "the results heading is set in display type");
         Assert.That(double.Parse(m[5].Replace("px", string.Empty), System.Globalization.CultureInfo.InvariantCulture),
             Is.GreaterThanOrEqualTo(24), "the results heading is a section title");

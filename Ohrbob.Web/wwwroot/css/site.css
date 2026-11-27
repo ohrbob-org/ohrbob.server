@@ -1134,34 +1134,45 @@ body.with-player .app-toast-container {
     grid-column: 1 / -1;
 }
 
-/* Colour cycle: orange, violet, navy, yellow, paper, orange. */
-.landing-tiles > .landing-tile:nth-child(4n+1) {
+/* The app's 46×5 accent bar marks every feature tile. */
+.landing-tile::before {
+    content: "";
+    display: block;
+    width: 46px;
+    height: 5px;
+    margin: 0 0 14px;
+    background: var(--tile-ink, var(--metro-orange));
+    opacity: 0.8;
+}
+
+/* Tile surfaces follow the app: orange, paper, navy, paper, violet, yellow. */
+.landing-tiles > .landing-tile:nth-child(1) {
     --tile-bg: var(--metro-orange);
     --tile-ink: var(--metro-navy);
 }
 
-.landing-tiles > .landing-tile:nth-child(4n+2) {
-    --tile-bg: var(--metro-violet);
-    --tile-ink: var(--metro-night-text);
+.landing-tiles > .landing-tile:nth-child(2) {
+    --tile-bg: var(--bs-light);
+    --tile-ink: var(--metro-navy);
 }
 
-.landing-tiles > .landing-tile:nth-child(4n+3) {
+.landing-tiles > .landing-tile:nth-child(3) {
     --tile-bg: var(--metro-navy);
     --tile-ink: var(--metro-night-text);
 }
 
-.landing-tiles > .landing-tile:nth-child(4n+4) {
-    --tile-bg: var(--metro-yellow);
+.landing-tiles > .landing-tile:nth-child(4) {
+    --tile-bg: var(--bs-light);
     --tile-ink: var(--metro-navy);
 }
 
 .landing-tiles > .landing-tile:nth-child(5) {
-    --tile-bg: var(--metro-canvas);
-    --tile-ink: var(--metro-ink);
+    --tile-bg: var(--metro-violet);
+    --tile-ink: var(--metro-night-text);
 }
 
 .landing-tiles > .landing-tile:nth-child(6) {
-    --tile-bg: var(--metro-orange);
+    --tile-bg: var(--metro-yellow);
     --tile-ink: var(--metro-navy);
 }
 
@@ -1517,84 +1528,36 @@ body.with-player .app-toast-container {
     gap: 16px;
 }
 
-/* Listen tiles: a colour block with an image top and a solid typographic footer. */
+/* Listen uses the app's station tile: 2x2 mosaic, fade, orange bar, title over the art. */
+.station-grid {
+    gap: 8px;
+}
+
 .card-station--listen {
-    --tile-bg: var(--metro-tile);
-    --tile-ink: var(--metro-ink);
-
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    background: var(--tile-bg);
-    color: var(--tile-ink);
-}
-
-.station-grid > .card-station--listen:nth-child(4n+1) {
-    --tile-bg: var(--metro-orange);
-    --tile-ink: var(--metro-navy);
-}
-
-.station-grid > .card-station--listen:nth-child(4n+2) {
-    --tile-bg: var(--metro-violet);
-    --tile-ink: var(--metro-night-text);
-}
-
-.station-grid > .card-station--listen:nth-child(4n+3) {
-    --tile-bg: var(--metro-navy);
-    --tile-ink: var(--metro-night-text);
-}
-
-.station-grid > .card-station--listen:nth-child(4n+4) {
-    --tile-bg: var(--metro-yellow);
-    --tile-ink: var(--metro-navy);
-}
-
-.card-station--listen .card-station-art {
-    position: relative;
-    inset: auto;
-    z-index: auto;
-    order: 1;
-    height: clamp(120px, 16vw, 170px);
-    opacity: 1;
-    background: var(--tile-bg);
-}
-
-.card-station--listen .card-station-art::after {
-    display: none;
-}
-
-.card-station--listen .card-station-cover,
-.card-station--listen .card-station-cover-empty {
-    background: var(--tile-bg);
-    color: var(--tile-ink);
-}
-
-.card-station--listen .card-station-body {
-    order: 2;
-    min-height: 0;
-    padding: 15px 18px 18px;
-    background: var(--tile-bg);
-    color: var(--tile-ink);
-}
-
-.card-station--listen .card-station-body::before {
-    background: var(--tile-ink);
-    opacity: 0.85;
-}
-
-.card-station--listen .card-station-title,
-.card-station--listen .card-station-title a {
-    color: var(--tile-ink);
+    min-height: 184px;
 }
 
 .card-station--listen .card-station-count {
-    color: color-mix(in srgb, var(--tile-ink) 70%, transparent);
+    color: color-mix(in srgb, var(--metro-station-title) 72%, transparent);
 }
 
 .card-station--listen .status-label {
-    padding: 2px 6px;
-    background: var(--tile-ink);
-    color: var(--tile-bg);
+    color: color-mix(in srgb, var(--metro-station-title) 82%, transparent);
+}
+
+.card-station--listen .status-label.is-empty {
+    color: var(--bs-danger);
+}
+
+.card-station--listen .status-label.is-pacing,
+.card-station--listen .status-label.is-subscribed {
+    color: var(--metro-violet);
+}
+
+.card-station--listen .status-label.is-compiling {
+    padding: 1px 4px;
+    background: var(--metro-yellow);
+    color: var(--metro-navy);
 }
 
 .card-station-title-row {
@@ -1623,20 +1586,18 @@ body.with-player .app-toast-container {
     padding: 0;
     border: 0;
     background: transparent;
-    color: var(--tile-ink, var(--metro-muted));
+    color: color-mix(in srgb, var(--metro-station-title) 78%, transparent);
     font-size: 16px;
     line-height: 1;
     text-decoration: none;
     cursor: pointer;
-    opacity: 0.75;
-    transition: color var(--metro-transition), background-color var(--metro-transition), opacity var(--metro-transition);
+    transition: color var(--metro-transition), background-color var(--metro-transition);
 }
 
 .card-station-action:hover,
 .card-station-action:focus {
-    color: var(--tile-ink, var(--metro-orange));
-    background: color-mix(in srgb, var(--tile-ink, var(--metro-ink)) 12%, transparent);
-    opacity: 1;
+    color: var(--metro-orange);
+    background: color-mix(in srgb, var(--metro-station-title) 12%, transparent);
 }
 
 /* Keep the 30 px icon but give it a 44 px touch target (spec 9). */
@@ -1748,10 +1709,10 @@ body.with-player .app-toast-container {
     align-items: center;
     justify-content: center;
     gap: 12px;
-    min-height: 240px;
+    min-height: 184px;
     border: 0;
-    background: var(--metro-violet);
-    color: var(--metro-night-text);
+    background: var(--metro-tile);
+    color: var(--metro-muted);
     text-decoration: none;
     transition: background-color var(--metro-transition), color var(--metro-transition);
 }
@@ -1774,23 +1735,23 @@ body.with-player .app-toast-container {
     color: var(--metro-navy);
 }
 
-/* Listen empty state: a bold colour panel instead of a bordered box. */
+/* Listen empty state: type on the canvas, like the app's empty stations screen. */
 .listen-empty {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 12px;
-    padding: clamp(40px, 7vw, 80px) 24px;
+    padding: clamp(56px, 10vw, 120px) 24px;
     border: 0;
-    background: var(--metro-violet);
-    color: var(--metro-night-text);
+    background: transparent;
+    color: var(--metro-ink);
     text-align: center;
 }
 
 .listen-empty__title {
     margin: 0;
-    color: inherit;
+    color: var(--metro-ink);
     font-family: var(--metro-display);
     font-size: clamp(2.5rem, 6vw, 3.5rem);
     font-weight: 700;
@@ -1801,7 +1762,7 @@ body.with-player .app-toast-container {
 .listen-empty__hint {
     max-width: 46ch;
     margin: 0;
-    color: color-mix(in srgb, var(--metro-night-text) 72%, transparent);
+    color: var(--metro-muted);
 }
 
 .listen-empty__cta {
@@ -1813,8 +1774,8 @@ body.with-player .app-toast-container {
     margin-top: 8px;
     padding: 12px 18px;
     border-radius: 0;
-    background: var(--metro-yellow);
-    color: var(--metro-navy);
+    background: var(--metro-orange);
+    color: var(--metro-on-accent);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.14em;
@@ -1825,8 +1786,8 @@ body.with-player .app-toast-container {
 
 .listen-empty__cta:hover,
 .listen-empty__cta:focus {
-    background: var(--metro-canvas);
-    color: var(--metro-ink);
+    background: var(--metro-orange-soft);
+    color: var(--metro-navy);
 }
 
 /* Management index: the same tile with a hairline action footer. */
@@ -2509,6 +2470,18 @@ body.with-player .app-toast-container {
     max-width: 56ch;
 }
 
+.discover-head .metro-title {
+    font-size: 58px;
+    line-height: 54px;
+}
+
+@media (max-width: 767.98px) {
+    .discover-head .metro-title {
+        font-size: 48px;
+        line-height: 44px;
+    }
+}
+
 /* One field on the canvas: no card, no pill, just a 2 px rule. */
 .discover-search {
     display: flex;
@@ -2590,24 +2563,8 @@ body.with-player .app-toast-container {
     display: block;
     flex: 0 0 auto;
     width: 46px;
-    height: 8px;
+    height: 5px;
     background: var(--lane-accent, var(--metro-orange));
-}
-
-.discover-lane:nth-child(4n+1) {
-    --lane-accent: var(--metro-orange);
-}
-
-.discover-lane:nth-child(4n+2) {
-    --lane-accent: var(--metro-violet);
-}
-
-.discover-lane:nth-child(4n+3) {
-    --lane-accent: var(--metro-yellow);
-}
-
-.discover-lane:nth-child(4n+4) {
-    --lane-accent: var(--metro-navy);
 }
 
 .discover-lane__title {
@@ -2647,67 +2604,32 @@ body.with-player .app-toast-container {
 .discover-results-grid .card-feed {
     height: 100%;
     border: 0;
-    background: var(--card-bg, var(--metro-tile));
-    color: var(--card-ink, var(--metro-ink));
+    background: var(--metro-canvas);
+    color: var(--metro-ink);
 }
 
 .discover-lane-track .card-feed-body,
 .discover-results-grid .card-feed-body {
-    background: var(--card-bg, var(--metro-tile));
-    color: var(--card-ink, var(--metro-ink));
+    background: transparent;
+    color: var(--metro-ink);
 }
 
 .discover-lane-track .card-feed-title,
 .discover-results-grid .card-feed-title {
-    color: var(--card-ink, var(--metro-ink));
-    font-size: 20px;
+    color: var(--metro-ink);
+    font-size: 18px;
 }
 
 .discover-lane-track .card-feed-author,
 .discover-results-grid .card-feed-author {
-    color: color-mix(in srgb, var(--card-ink, var(--metro-ink)) 70%, transparent);
+    color: var(--metro-muted);
 }
 
 .discover-lane-track .card-feed-add,
 .discover-results-grid .card-feed-add {
-    background: var(--card-action-bg, var(--metro-orange));
-    color: var(--card-action-ink, var(--metro-on-accent));
+    background: var(--metro-orange);
+    color: var(--metro-on-accent);
 }
-
-/* Colour cycle for cards: orange, violet, navy, yellow. */
-.discover-lane-track > .col:nth-child(4n+1),
-.discover-results-grid > .col:nth-child(4n+1) {
-    --card-bg: var(--metro-orange);
-    --card-ink: var(--metro-navy);
-    --card-action-bg: var(--metro-navy);
-    --card-action-ink: var(--metro-night-text);
-}
-
-.discover-lane-track > .col:nth-child(4n+2),
-.discover-results-grid > .col:nth-child(4n+2) {
-    --card-bg: var(--metro-violet);
-    --card-ink: var(--metro-night-text);
-    --card-action-bg: var(--metro-yellow);
-    --card-action-ink: var(--metro-navy);
-}
-
-.discover-lane-track > .col:nth-child(4n+3),
-.discover-results-grid > .col:nth-child(4n+3) {
-    --card-bg: var(--metro-navy);
-    --card-ink: var(--metro-night-text);
-    --card-action-bg: var(--metro-orange);
-    --card-action-ink: var(--metro-on-accent);
-}
-
-.discover-lane-track > .col:nth-child(4n+4),
-.discover-results-grid > .col:nth-child(4n+4) {
-    --card-bg: var(--metro-yellow);
-    --card-ink: var(--metro-navy);
-    --card-action-bg: var(--metro-violet);
-    --card-action-ink: var(--metro-night-text);
-}
-
-/* Category roster: solid colour tiles that scroll in one row. */
 .discover-categories {
     margin: 0 0 40px;
     padding: 0;
@@ -2732,8 +2654,8 @@ body.with-player .app-toast-container {
     padding: 10px 14px;
     border: 0;
     border-radius: 0;
-    background: var(--chip-bg, var(--metro-orange));
-    color: var(--chip-ink, var(--metro-navy));
+    background: transparent;
+    color: var(--metro-muted);
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.12em;
@@ -2743,30 +2665,10 @@ body.with-player .app-toast-container {
     transition: background-color var(--metro-transition), color var(--metro-transition);
 }
 
-.category-roster-track .category-chip:nth-child(4n+1) {
-    --chip-bg: var(--metro-orange);
-    --chip-ink: var(--metro-navy);
-}
-
-.category-roster-track .category-chip:nth-child(4n+2) {
-    --chip-bg: var(--metro-violet);
-    --chip-ink: var(--metro-night-text);
-}
-
-.category-roster-track .category-chip:nth-child(4n+3) {
-    --chip-bg: var(--metro-yellow);
-    --chip-ink: var(--metro-navy);
-}
-
-.category-roster-track .category-chip:nth-child(4n+4) {
-    --chip-bg: var(--metro-navy);
-    --chip-ink: var(--metro-night-text);
-}
-
 .category-chip:hover,
 .category-chip:focus {
-    background: color-mix(in srgb, var(--chip-bg, var(--metro-orange)) 80%, var(--metro-ink));
-    color: var(--chip-ink, var(--metro-navy));
+    background: var(--metro-ink);
+    color: var(--metro-canvas);
 }
 
 .category-chip:focus-visible {
@@ -2775,8 +2677,8 @@ body.with-player .app-toast-container {
 }
 
 .category-chip.is-active {
-    background: var(--metro-ink);
-    color: var(--metro-canvas);
+    background: var(--metro-orange);
+    color: var(--metro-navy);
 }
 
 /* Search results: a plain grid of the same feed cards. */

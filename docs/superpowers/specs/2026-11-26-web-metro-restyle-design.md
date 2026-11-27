@@ -640,29 +640,29 @@ Web repo:
 3. Optional: a `theme.css` checksum/version comment in the applied file to make
    drift obvious.
 
-## 16. Amendment (2026-11-27): colour tiles over hairline rules
+## 16. Amendment (2026-11-27): match the app's station language
 
-The first implementation leaned on hairline borders and horizontal rules to
-separate sections. The revised direction uses Metro's colour tiles and
-typography instead:
+The first implementation leaned on hairline rules, and the first colour pass
+over-corrected into solid rainbow footers. The references are the Avalonia app
+(`ohrbob2.app/android-screenshots/*`, `ohrbob-bootstrap/images/stations-*` and
+`screenshot-*`) and the kit's station/playlist surfaces. The rule is now:
 
-- **Landing**: the six feature steps are now one grid of solid colour tiles
-  (orange, violet, navy, yellow, paper, orange) with large index numerals,
-  display headings and whitespace. The first and last tiles span the grid.
-  Screenshots are borderless and sit inside the tile. The tier comparison is a
-  pale-yellow panel with a solid morebob column and no row rules.
-- **Discover**: lane shelves have no baseline rules; a 46×8 colour marker plus a
-  large Sulphur lane title carries the hierarchy. Feed cards have no border and
-  use solid colour bodies cycling through orange, violet, navy and yellow.
-  Category chips are solid colour tiles rather than hairline outlines. Search
-  remains a single underline field.
-- **Listen**: station tiles split into a mosaic/cover area and a solid colour
-  footer (orange, violet, navy, yellow cycling). The title, count and status
-  chips use the tile's contrast pair; the play button is a high-contrast square
-  on the artwork. The add tile and empty state are solid violet panels.
-- **Shell**: the app bar and page heads lose their bottom hairlines; spacing and
-  typography separate regions instead.
+- **Listen** is the app's station tile: a 2×2 cover mosaic with the station
+  fade, a 46×5 orange bar, the 27 px Sulphur title over the artwork, and the
+  count/status meta below it. Tiles use the station base (`#ede8de` light /
+  navy dark), an 8 px canvas gutter, and no borders. The add tile is a neutral
+  tile; the empty state is type on the canvas.
+- **Discover** uses the app's playlist hierarchy: large Sulphur lane titles
+  with a 46×5 orange marker, feed cards that sit directly on the canvas with
+  no border or colour footer (the cover art carries the colour), and quiet
+  uppercase category links. Search stays one underlined field.
+- **Landing** keeps the dark navy poster but uses the same palette discipline:
+  orange, cream, navy, cream, violet and yellow tiles with a 46×5 ink bar,
+  large type and generous gutters. The feature screenshots are the current
+  Metro surfaces from the kit/app, not the pre-Metro web UI; steps without a
+  current screen are typographic tiles.
+- **Shell**: the app bar and page heads keep no bottom hairline; spacing and
+  type separate regions.
 
 Functional density is unchanged: all counts, status labels, feed colours,
-play/edit affordances and hooks remain. The emphasis is on larger gutters,
-solid colour blocks and display typography rather than outlines.
+play/edit affordances and hooks remain.

@@ -104,12 +104,12 @@ public class MetroListenTests : PageTest
         var tile = await Page.EvaluateAsync<string[]>(@"() => {
             const card = document.querySelector('.card-station');
             return [getComputedStyle(card).borderTopWidth,
-                    getComputedStyle(card.querySelector('.card-station-art')).backgroundColor,
-                    getComputedStyle(card.querySelector('.card-station-body')).backgroundColor];
+                    getComputedStyle(card).backgroundColor,
+                    getComputedStyle(card.querySelector('.card-station-art')).display];
         }");
         Assert.That(tile[0], Is.EqualTo("0px"), "station tiles have no border");
-        Assert.That(tile[1], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "the tile art sits on a solid colour");
-        Assert.That(tile[2], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "the tile footer is a solid colour block");
+        Assert.That(tile[1], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "the tile sits on a solid station base");
+        Assert.That(tile[2], Is.EqualTo("grid"), "the tile art is the app's 2x2 mosaic");
     }
 
     [Test]
@@ -192,8 +192,8 @@ public class MetroListenTests : PageTest
         }");
         Assert.That(m[0], Does.Contain("Sulphur"), "the empty title uses the display face");
         Assert.That(m[1], Is.Not.EqualTo("0px"), "the empty title is rendered");
-        Assert.That(m[2], Does.StartWith("color(srgb"), "the hint is a translucent night tone");
-        Assert.That(m[3], Is.EqualTo("rgb(253, 178, 0)"), "the empty-state CTA is the yellow tile");
+        Assert.That(m[2], Is.EqualTo("rgb(104, 100, 92)"), "the hint is muted");
+        Assert.That(m[3], Is.EqualTo("rgb(252, 93, 0)"), "the empty-state CTA is orange");
         Assert.That(m[4], Is.EqualTo("0px"), "the empty-state CTA is square");
         Assert.That(double.Parse(m[5], System.Globalization.CultureInfo.InvariantCulture),
             Is.GreaterThanOrEqualTo(44), "the empty-state CTA is a 44 px touch target");
