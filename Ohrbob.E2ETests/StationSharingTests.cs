@@ -154,10 +154,10 @@ public class StationSharingTests : PageTest
         await Expect(Page.Locator("#renameStationModal")).ToBeHiddenAsync(new() { Timeout = 10000 });
 
         await Page.ReloadAsync();
-        await Expect(Page.Locator("h1 .badge:has-text('Host Pace')")).ToBeVisibleAsync();
+        await Expect(Page.Locator("h1 .editor-badge:has-text('Host Pace')")).ToBeVisibleAsync();
 
         await Page.GotoAsync($"{_factory.ServerAddress}/s/{station.ShareCode}");
-        await Expect(Page.Locator(".badge:has-text('Host Pace')").First).ToBeVisibleAsync();
+        await Expect(Page.Locator(".status-label.is-pacing:has-text('Host Pace')").First).ToBeVisibleAsync();
 
         var (subscriberAccountId, subscriberProfileId) = await CreateAccountAsync("Paced Listener");
         var profiles = _factory.Services.GetRequiredService<ProfilesApiService>();
