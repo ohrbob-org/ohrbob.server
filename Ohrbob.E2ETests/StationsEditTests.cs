@@ -10,10 +10,8 @@ using System.IO;
 
 namespace Ohrbob.E2ETests;
 
-[NonParallelizable]
-public class StationsEditTests : PageTest
+public class StationsEditTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _testAccountId = string.Empty;
 
     public override BrowserNewContextOptions ContextOptions()
@@ -29,7 +27,6 @@ public class StationsEditTests : PageTest
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        _factory = new PlaywrightWebApplicationFactory();
         
         var accountService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.AccountApiService>();
         var uniqueEmail = $"stations-{Guid.NewGuid()}@test.com";
@@ -40,7 +37,7 @@ public class StationsEditTests : PageTest
         }
         
         _testAccountId = account!.Id;
-        TestAuthHandler.TestAccountId = _testAccountId;
+        SetAccount(_testAccountId);
 
         _factory.CreateClient();
     }
@@ -49,8 +46,7 @@ public class StationsEditTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]

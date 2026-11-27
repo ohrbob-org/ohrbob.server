@@ -10,17 +10,14 @@ namespace Ohrbob.E2ETests;
 /// Task 3 of the Metro restyle: the shared shell is a flat app bar on the canvas,
 /// not a floating glass pill, and toasts use semantic status classes.
 /// </summary>
-[NonParallelizable]
-public class MetroShellTests : PageTest
+public class MetroShellTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _testAccountId = string.Empty;
 
     [SetUp]
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        _factory = new PlaywrightWebApplicationFactory();
 
         var accountService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.AccountApiService>();
         var uniqueEmail = $"metro-shell-{Guid.NewGuid()}@test.com";
@@ -40,15 +37,14 @@ public class MetroShellTests : PageTest
         }
 
         _testAccountId = account!.Id;
-        TestAuthHandler.TestAccountId = _testAccountId;
+        SetAccount(_testAccountId);
     }
 
     [TearDown]
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]
@@ -90,6 +86,10 @@ public class MetroShellTests : PageTest
     [Test]
     public async Task ChangelogModalCarriesTheMetroAccent()
     {
+        // The changelog popup is disabled by default in E2E hosts so it cannot
+        // intercept unrelated tests; this test opts back in.
+        _factory.AppVersion.Tag = "beta";
+
         var env = _factory.Services.GetRequiredService<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>();
         var version = _factory.Services
             .GetRequiredService<Microsoft.Extensions.Options.IOptions<Ohrbob.Web.Configuration.AppVersionOptions>>()
@@ -114,6 +114,7 @@ public class MetroShellTests : PageTest
         }
         finally
         {
+            _factory.AppVersion.Tag = string.Empty;
             if (File.Exists(path)) File.Delete(path);
         }
     }

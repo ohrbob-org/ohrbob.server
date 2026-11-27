@@ -8,17 +8,16 @@ using System.IO;
 
 namespace Ohrbob.E2ETests;
 
+[Category("TestCasts")]
 [NonParallelizable]
-public class NavigationTests : PageTest
+public class NavigationTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _testAccountId = string.Empty;
 
     [SetUp]
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        _factory = new PlaywrightWebApplicationFactory();
         
         var accountService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.AccountApiService>();
         var uniqueEmail = $"nav-{Guid.NewGuid()}@test.com";
@@ -35,15 +34,14 @@ public class NavigationTests : PageTest
         }
         
         _testAccountId = account!.Id;
-        TestAuthHandler.TestAccountId = _testAccountId;
+        SetAccount(_testAccountId);
     }
 
     [TearDown]
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [TestCase(320)]

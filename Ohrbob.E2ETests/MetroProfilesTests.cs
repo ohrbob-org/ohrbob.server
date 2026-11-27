@@ -13,10 +13,8 @@ namespace Ohrbob.E2ETests;
 /// page puts details and allowed stations in two columns.
 /// Every assertion reads computed styles, not class names.
 /// </summary>
-[NonParallelizable]
-public class MetroProfilesTests : PageTest
+public class MetroProfilesTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _accountId = string.Empty;
     private string _profileId = string.Empty;
     private string _stationId = string.Empty;
@@ -31,7 +29,6 @@ public class MetroProfilesTests : PageTest
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        _factory = new PlaywrightWebApplicationFactory();
 
         var accountService = _factory.Services.GetRequiredService<AccountApiService>();
         var account = await accountService.CreateOrUpdateAccountAsync(
@@ -60,7 +57,7 @@ public class MetroProfilesTests : PageTest
         _stationId = station!.Id;
         await profileService.AddStationToProfileAsync(_profileId, _stationId);
 
-        TestAuthHandler.TestAccountId = _accountId;
+        SetAccount(_accountId);
         _factory.CreateClient();
     }
 
@@ -68,8 +65,7 @@ public class MetroProfilesTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]

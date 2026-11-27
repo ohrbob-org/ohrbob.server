@@ -11,10 +11,10 @@ namespace Ohrbob.E2ETests;
 /// Issue #7: ohrbob.web dark mode. The theme follows the browser/OS preference by default and
 /// can be overridden (system/light/dark) from the Appearance section on /Account.
 /// </summary>
+[Category("TestCasts")]
 [NonParallelizable]
-public class ThemeTests : PageTest
+public class ThemeTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _accountId = string.Empty;
     private string _profileId = string.Empty;
 
@@ -24,7 +24,6 @@ public class ThemeTests : PageTest
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
 
@@ -43,7 +42,7 @@ public class ThemeTests : PageTest
         }
         _profileId = profiles!.First().Id;
 
-        TestAuthHandler.TestAccountId = _accountId;
+        SetAccount(_accountId);
         _factory.CreateClient();
     }
 
@@ -51,8 +50,7 @@ public class ThemeTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory?.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]
@@ -183,14 +181,14 @@ public class ThemeTests : PageTest
         ContrastChecks.AssertNoIssues(await Page.EvaluateAsync<string[]>(ContrastChecks.Script), "expanded player");
 
         // The anonymous landing page (which carries its own inline styles).
-        TestAuthHandler.IsAuthenticated = false;
+        SignOut();
         try
         {
             await AssertNoContrastIssuesAsync("/");
         }
         finally
         {
-            TestAuthHandler.IsAuthenticated = true;
+            SignIn();
         }
     }
 

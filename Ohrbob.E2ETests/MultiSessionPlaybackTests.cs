@@ -12,8 +12,9 @@ namespace Ohrbob.E2ETests;
 /// Several web sessions share one player state on the server. Starting a station in one
 /// session must not make another open session start playing by itself.
 /// </summary>
+[Category("TestCasts")]
 [NonParallelizable]
-public class MultiSessionPlaybackTests : PageTest
+public class MultiSessionPlaybackTests : E2EPageTest
 {
     // The testcasts host is not reachable from the browser in this environment, so media
     // can never buffer. Record play() attempts and resolve them so the assertions are about
@@ -21,7 +22,6 @@ public class MultiSessionPlaybackTests : PageTest
     private const string MockPlayScript = @"window.__playCalls = 0;
         HTMLMediaElement.prototype.play = function () { window.__playCalls++; return Promise.resolve(); };";
 
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _accountId = string.Empty;
     private string _profileId = string.Empty;
 
@@ -36,7 +36,6 @@ public class MultiSessionPlaybackTests : PageTest
             Assert.Ignore($"podcast-testcasts is not reachable at {TestCasts.ConfigureBaseUrl}.");
         }
 
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
 
@@ -55,7 +54,7 @@ public class MultiSessionPlaybackTests : PageTest
         }
         _profileId = list!.First().Id;
 
-        TestAuthHandler.TestAccountId = _accountId;
+        SetAccount(_accountId);
         _factory.CreateClient();
     }
 
@@ -63,8 +62,7 @@ public class MultiSessionPlaybackTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory?.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]

@@ -12,10 +12,10 @@ namespace Ohrbob.E2ETests;
 /// plus a station grid of square tiles, with a visible podcast count and a single-line
 /// 27 px station title.
 /// </summary>
+[Category("TestCasts")]
 [NonParallelizable]
-public class MetroListenTests : PageTest
+public class MetroListenTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _accountId = string.Empty;
     private string _profileId = string.Empty;
 
@@ -26,7 +26,6 @@ public class MetroListenTests : PageTest
     {
         await Context.ClearCookiesAsync();
 
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
 
@@ -45,7 +44,7 @@ public class MetroListenTests : PageTest
         }
         _profileId = profiles!.First().Id;
 
-        TestAuthHandler.TestAccountId = _accountId;
+        SetAccount(_accountId);
         _factory.CreateClient();
     }
 
@@ -53,8 +52,7 @@ public class MetroListenTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory?.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]
@@ -174,7 +172,7 @@ public class MetroListenTests : PageTest
             await profileService.CreateProfileAsync(account.Id, new Profile { Name = "Main Profile" });
         }
 
-        TestAuthHandler.TestAccountId = account.Id;
+        SetAccount(account.Id);
         await Page.GotoAsync(_factory.ServerAddress);
 
         await Expect(Page.Locator(".listen-empty")).ToBeVisibleAsync(new() { Timeout = 15000 });

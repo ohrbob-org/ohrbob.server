@@ -9,21 +9,17 @@ using System.Threading.Tasks;
 using MongoDB.Driver;
 using Ohrbob.Server.Shared.Data;
 
-[assembly: NonParallelizable]
-
 namespace Ohrbob.E2ETests;
 
 [NonParallelizable]
-public class CompilingStationTests : PageTest
+public class CompilingStationTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _testAccountId = string.Empty;
 
     [SetUp]
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        _factory = new PlaywrightWebApplicationFactory();
         
         var accountService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.AccountApiService>();
         var uniqueEmail = $"compiling-test-{Guid.NewGuid()}@test.com";
@@ -40,7 +36,7 @@ public class CompilingStationTests : PageTest
         }
         
         _testAccountId = account!.Id;
-        TestAuthHandler.TestAccountId = _testAccountId;
+        SetAccount(_testAccountId);
         
         // Seed a dummy compiling feed in MongoDB so ValidateAndEnsureFeedsExistAsync succeeds immediately but shows as compiling
         var client = new MongoClient("mongodb://localhost:27019");
@@ -132,8 +128,7 @@ public class CompilingStationTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
         
         var client = new MongoClient("mongodb://localhost:27019");
         var database = client.GetDatabase("OhrbobData");

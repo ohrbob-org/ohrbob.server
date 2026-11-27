@@ -15,10 +15,8 @@ namespace Ohrbob.E2ETests;
 /// modal and delete page use the Metro surfaces.
 /// Every assertion reads computed styles, not class names.
 /// </summary>
-[NonParallelizable]
-public class MetroAccountTests : PageTest
+public class MetroAccountTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _accountId = string.Empty;
 
     public override BrowserNewContextOptions ContextOptions() => new()
@@ -31,9 +29,8 @@ public class MetroAccountTests : PageTest
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        TestAuthHandler.IsAuthenticated = true;
+        SignIn();
 
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
 
@@ -58,7 +55,7 @@ public class MetroAccountTests : PageTest
             });
         }
 
-        TestAuthHandler.TestAccountId = _accountId;
+        SetAccount(_accountId);
         _factory.CreateClient();
     }
 
@@ -66,9 +63,8 @@ public class MetroAccountTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
-        TestAuthHandler.IsAuthenticated = true;
+        SetAccount(string.Empty);
+        SignIn();
     }
 
     [Test]

@@ -10,10 +10,8 @@ namespace Ohrbob.E2ETests;
 /// Task 10 of the Metro restyle: login, app connect and handoff are the same
 /// always-dark connect surface. Every assertion reads computed styles.
 /// </summary>
-[NonParallelizable]
-public class MetroAuthTests : PageTest
+public class MetroAuthTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
 
     public override BrowserNewContextOptions ContextOptions() => new()
     {
@@ -23,15 +21,13 @@ public class MetroAuthTests : PageTest
     [SetUp]
     public void Setup()
     {
-        TestAuthHandler.IsAuthenticated = false;
-        _factory = new PlaywrightWebApplicationFactory();
+        SignOut();
     }
 
     [TearDown]
     public void TearDown()
     {
-        _factory.Dispose();
-        TestAuthHandler.IsAuthenticated = true;
+        SignIn();
     }
 
     [Test]
@@ -161,14 +157,14 @@ public class MetroAuthTests : PageTest
     [Test]
     public async Task ConnectAppUsesTheSameNightCard()
     {
-        TestAuthHandler.IsAuthenticated = true;
+        SignIn();
         try
         {
             var accountService = _factory.Services.GetRequiredService<AccountApiService>();
             var account = await accountService.CreateOrUpdateAccountAsync(
                 "Metro Connect", $"metro-connect-{Guid.NewGuid()}@test.com", "", "Test", Guid.NewGuid().ToString());
             await accountService.CompleteOnboardingAsync(account!.Id);
-            TestAuthHandler.TestAccountId = account.Id;
+            SetAccount(account.Id);
 
             _factory.CreateClient();
             await Page.GotoAsync($"{_factory.ServerAddress}/Connect/App");
@@ -189,8 +185,8 @@ public class MetroAuthTests : PageTest
         }
         finally
         {
-            TestAuthHandler.TestAccountId = string.Empty;
-            TestAuthHandler.IsAuthenticated = false;
+            SetAccount(string.Empty);
+            SignOut();
         }
     }
 }

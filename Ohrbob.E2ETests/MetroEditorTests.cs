@@ -11,10 +11,10 @@ namespace Ohrbob.E2ETests;
 /// Task 6 of the Metro restyle: the station editor is a flat sticky canvas bar with
 /// underline tabs, two canvas panes, and feed/episode rows that carry their feed colour.
 /// </summary>
+[Category("TestCasts")]
 [NonParallelizable]
-public class MetroEditorTests : PageTest
+public class MetroEditorTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _accountId = string.Empty;
     private string _profileId = string.Empty;
     private string _stationId = string.Empty;
@@ -35,7 +35,6 @@ public class MetroEditorTests : PageTest
             Assert.Ignore($"podcast-testcasts is not reachable at {TestCasts.ConfigureBaseUrl}.");
         }
 
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, err) => Console.WriteLine($"BROWSER ERROR: {err}");
 
@@ -71,7 +70,7 @@ public class MetroEditorTests : PageTest
         await profileService.AddStationToProfileAsync(_profileId, _stationId);
         await WaitForEpisodesAsync(_stationId, 1);
 
-        TestAuthHandler.TestAccountId = _accountId;
+        SetAccount(_accountId);
         _factory.CreateClient();
     }
 
@@ -79,8 +78,7 @@ public class MetroEditorTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory?.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]

@@ -9,10 +9,8 @@ namespace Ohrbob.E2ETests;
 /// sections and compact Metro titles; the FAQ, status cards and error panels keep
 /// their ids and handlers but lose every rounded, shadowed surface.
 /// </summary>
-[NonParallelizable]
-public class MetroEditorialTests : PageTest
+public class MetroEditorialTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
 
     private static readonly string[] EditorialPaths =
     {
@@ -40,9 +38,8 @@ public class MetroEditorialTests : PageTest
     [SetUp]
     public void Setup()
     {
-        TestAuthHandler.IsAuthenticated = false;
-        TestAuthHandler.TestAccountId = string.Empty;
-        _factory = new PlaywrightWebApplicationFactory();
+        SignOut();
+        SetAccount(string.Empty);
         _factory.CreateClient();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, err) => Console.WriteLine($"BROWSER ERROR: {err}");
@@ -52,9 +49,8 @@ public class MetroEditorialTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory?.Dispose();
-        TestAuthHandler.IsAuthenticated = true;
-        TestAuthHandler.TestAccountId = string.Empty;
+        SignIn();
+        SetAccount(string.Empty);
     }
 
     [Test]

@@ -12,10 +12,10 @@ namespace Ohrbob.E2ETests;
 /// Issue #10: every episode in the Edit view's playlist offers a tiny "continue",
 /// "reset playhead" and "set playhead" control.
 /// </summary>
+[Category("TestCasts")]
 [NonParallelizable]
-public class EpisodePlayheadTests : PageTest
+public class EpisodePlayheadTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private StationsApiService _stations = null!;
     private string _accountId = string.Empty;
     private string _profileId = string.Empty;
@@ -41,7 +41,6 @@ public class EpisodePlayheadTests : PageTest
                 "OHRBOB_TESTCASTS_FEED_URL=http://testcasts:5004 so stored feed URLs use the service name.");
         }
 
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, err) => Console.WriteLine($"BROWSER ERROR: {err}");
 
@@ -76,7 +75,7 @@ public class EpisodePlayheadTests : PageTest
             Feeds = new[] { TestCasts.FeedUrl(slug) }
         }))!;
 
-        TestAuthHandler.TestAccountId = _accountId;
+        SetAccount(_accountId);
         _factory.CreateClient();
 
         // Never let the widget auto-play (and overwrite the playhead) during the test.
@@ -90,8 +89,7 @@ public class EpisodePlayheadTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory?.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]

@@ -10,10 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Ohrbob.E2ETests;
 
-[NonParallelizable]
-public class AudioPlaybackTests : PageTest
+public class AudioPlaybackTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _testAccountId = string.Empty;
 
     public override BrowserNewContextOptions ContextOptions()
@@ -29,7 +27,6 @@ public class AudioPlaybackTests : PageTest
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
         
@@ -127,15 +124,14 @@ public class AudioPlaybackTests : PageTest
         }
         
         _testAccountId = account!.Id;
-        TestAuthHandler.TestAccountId = _testAccountId;
+        SetAccount(_testAccountId);
     }
 
     [TearDown]
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]

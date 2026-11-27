@@ -14,13 +14,11 @@ namespace Ohrbob.E2ETests;
 /// mosaic and feed-coloured cards; the stream page becomes hairline rows with
 /// mono URLs. Every assertion reads computed styles, not class names.
 /// </summary>
-[NonParallelizable]
-public class MetroShareStreamTests : PageTest
+public class MetroShareStreamTests : E2EPageTest
 {
     private readonly MongoClient _mongo = new("mongodb://localhost:27019");
     private readonly List<string> _stationIds = new();
     private readonly List<string> _feedIds = new();
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _accountId = string.Empty;
     private string _profileId = string.Empty;
 
@@ -34,11 +32,10 @@ public class MetroShareStreamTests : PageTest
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        TestAuthHandler.IsAuthenticated = true;
+        SignIn();
 
-        _factory = new PlaywrightWebApplicationFactory();
         (_accountId, _profileId) = await CreateAccountAsync("Share Owner");
-        TestAuthHandler.TestAccountId = _accountId;
+        SetAccount(_accountId);
         _factory.CreateClient();
     }
 
@@ -51,9 +48,8 @@ public class MetroShareStreamTests : PageTest
             await Feeds.DeleteManyAsync(f => _feedIds.Contains(f.Id));
 
         await Context.CloseAsync();
-        _factory?.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
-        TestAuthHandler.IsAuthenticated = true;
+        SetAccount(string.Empty);
+        SignIn();
     }
 
     private IMongoCollection<Station> Stations =>
@@ -73,7 +69,7 @@ public class MetroShareStreamTests : PageTest
     {
         const string accent = "#E63946";
         var station = await SeedShareStationAsync(accent);
-        TestAuthHandler.IsAuthenticated = false;
+        SignOut();
 
         await Page.GotoAsync($"{_factory.ServerAddress}/s/{station.ShareCode}");
         await Expect(Page.Locator(".share-hero .metro-title")).ToBeVisibleAsync();
@@ -103,7 +99,7 @@ public class MetroShareStreamTests : PageTest
     public async Task ShareHeroUsesMosaicAndMetroType()
     {
         var station = await SeedShareStationAsync("#2A9D8F");
-        TestAuthHandler.IsAuthenticated = false;
+        SignOut();
 
         await Page.GotoAsync($"{_factory.ServerAddress}/s/{station.ShareCode}");
         await Expect(Page.Locator(".share-hero .metro-title")).ToHaveTextAsync("Metro Shared Station");
@@ -144,7 +140,7 @@ public class MetroShareStreamTests : PageTest
     public async Task ShareModalsUseSquareCheckboxes()
     {
         var station = await SeedShareStationAsync("#457B9D");
-        TestAuthHandler.IsAuthenticated = true;
+        SignIn();
 
         await Page.GotoAsync($"{_factory.ServerAddress}/s/{station.ShareCode}");
         await Page.Locator(".share-feed .card-feed-add").First.ClickAsync();
@@ -161,7 +157,7 @@ public class MetroShareStreamTests : PageTest
     public async Task ShareFits390WithoutPageOverflow()
     {
         var station = await SeedShareStationAsync("#6A057F");
-        TestAuthHandler.IsAuthenticated = false;
+        SignOut();
         await Page.SetViewportSizeAsync(390, 844);
 
         await Page.GotoAsync($"{_factory.ServerAddress}/s/{station.ShareCode}");
@@ -220,7 +216,7 @@ public class MetroShareStreamTests : PageTest
     public async Task StreamPlanGateUsesMetroWarning()
     {
         var (freeAccountId, _) = await CreateAccountAsync("Free Streamer");
-        TestAuthHandler.TestAccountId = freeAccountId;
+        SetAccount(freeAccountId);
 
         await Page.GotoAsync($"{_factory.ServerAddress}/Stream");
         await Expect(Page.Locator(".metro-warning")).ToBeVisibleAsync();

@@ -13,12 +13,12 @@ namespace Ohrbob.E2ETests;
 /// the expanded sheet is a square hairline panel and the auto-play prompt is a
 /// canvas panel with an orange countdown rule.
 /// </summary>
+[Category("TestCasts")]
 [NonParallelizable]
-public class MetroPlayerTests : PageTest
+public class MetroPlayerTests : E2EPageTest
 {
     private const string StationName = "Metro Player Station";
 
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _accountId = string.Empty;
     private string _profileId = string.Empty;
     private Station _station = null!;
@@ -35,7 +35,6 @@ public class MetroPlayerTests : PageTest
             Assert.Ignore($"podcast-testcasts is not reachable at {TestCasts.ConfigureBaseUrl}.");
         }
 
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
         await InstallMockAudioAsync();
@@ -55,7 +54,7 @@ public class MetroPlayerTests : PageTest
         }
         _profileId = profiles!.First().Id;
 
-        TestAuthHandler.TestAccountId = _accountId;
+        SetAccount(_accountId);
         _factory.CreateClient();
 
         // One station with two episodes, so the expanded sheet can show both nav cards.
@@ -81,8 +80,7 @@ public class MetroPlayerTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory?.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]
@@ -312,6 +310,11 @@ public class MetroPlayerTests : PageTest
             new() { Timeout = 10000 });
         await Page.EvaluateAsync(@"() => {
             if (window._ohrbobSyncInterval) clearInterval(window._ohrbobSyncInterval);
+        }");
+        // A sync started before the clear may still be in flight; let it land so it
+        // cannot overwrite the pinned cards after they are set.
+        await Page.WaitForTimeoutAsync(500);
+        await Page.EvaluateAsync(@"() => {
             const w = document.getElementById('ohrbob-player');
             w.setAttribute('prev-episode', JSON.stringify({ track: 'A very long previous episode title that should truncate', artist: 'Feed' }));
             w.setAttribute('next-episode', JSON.stringify({ track: 'A very long next episode title that should truncate', artist: 'Feed' }));

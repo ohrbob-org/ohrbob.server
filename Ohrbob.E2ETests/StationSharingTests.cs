@@ -9,10 +9,10 @@ using Ohrbob.Web.Services;
 
 namespace Ohrbob.E2ETests;
 
+[Category("TestCasts")]
 [NonParallelizable]
-public class StationSharingTests : PageTest
+public class StationSharingTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _ownerAccountId = string.Empty;
     private string _ownerProfileId = string.Empty;
 
@@ -22,14 +22,13 @@ public class StationSharingTests : PageTest
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        TestAuthHandler.IsAuthenticated = true;
+        SignIn();
 
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
 
         (_ownerAccountId, _ownerProfileId) = await CreateAccountAsync("Owner");
-        TestAuthHandler.TestAccountId = _ownerAccountId;
+        SetAccount(_ownerAccountId);
         _factory.CreateClient();
     }
 
@@ -37,9 +36,8 @@ public class StationSharingTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory?.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
-        TestAuthHandler.IsAuthenticated = true;
+        SetAccount(string.Empty);
+        SignIn();
     }
 
     [Test]
@@ -71,14 +69,14 @@ public class StationSharingTests : PageTest
 
         // Anonymous visitors see the read-only overview with exactly one Subscribe action.
         await SetStationPublicAsync(station.Id, true, _ownerAccountId);
-        TestAuthHandler.IsAuthenticated = false;
+        SignOut();
         await Page.GotoAsync(shareUrl);
         await Expect(Page.Locator("h1")).ToContainTextAsync("Shared Station");
         await Expect(Page.Locator("a.btn:has-text('Subscribe')")).ToHaveCountAsync(1);
         await Expect(Page.Locator("a[href*='/Stations/Edit/']")).ToHaveCountAsync(0);
 
         // Switching back to private hides the public page again.
-        TestAuthHandler.IsAuthenticated = true;
+        SignIn();
         await SetStationPublicAsync(station.Id, false, _ownerAccountId);
         var response = await Page.GotoAsync(shareUrl);
         Assert.That(response, Is.Not.Null);
@@ -97,7 +95,7 @@ public class StationSharingTests : PageTest
             subscriberAccountId, new Profile { Name = "Second Profile" });
         Assert.That(secondProfile, Is.Not.Null);
 
-        TestAuthHandler.TestAccountId = subscriberAccountId;
+        SetAccount(subscriberAccountId);
         await Page.GotoAsync($"{_factory.ServerAddress}/s/{station.ShareCode}");
 
         await Page.ClickAsync("button.btn:has-text('Subscribe')");
@@ -165,7 +163,7 @@ public class StationSharingTests : PageTest
         var profiles = _factory.Services.GetRequiredService<ProfilesApiService>();
         await profiles.SubscribeToStationAsync(subscriberProfileId, station.Id);
 
-        TestAuthHandler.TestAccountId = subscriberAccountId;
+        SetAccount(subscriberAccountId);
         await Page.GotoAsync($"{_factory.ServerAddress}/");
         var card = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Host Paced" }).First;
         await Expect(card).ToBeVisibleAsync(new() { Timeout = 15000 });
@@ -205,7 +203,7 @@ public class StationSharingTests : PageTest
         var (viewerAccountId, viewerProfileId) = await CreateAccountAsync("Adder");
         var target = await CreateStationAsync(viewerAccountId, viewerProfileId, "My Target Station", false);
 
-        TestAuthHandler.TestAccountId = viewerAccountId;
+        SetAccount(viewerAccountId);
         await Page.GotoAsync($"{_factory.ServerAddress}/s/{station.ShareCode}");
 
         await Page.Locator("button[title='Add this podcast to a station']").First.ClickAsync();
@@ -239,11 +237,11 @@ public class StationSharingTests : PageTest
         await SetStationPublicAsync(station.Id, false, _ownerAccountId);
 
         var (newcomerAccountId, _) = await CreateAccountAsync("Newcomer");
-        TestAuthHandler.TestAccountId = newcomerAccountId;
+        SetAccount(newcomerAccountId);
         var response = await Page.GotoAsync($"{_factory.ServerAddress}/s/{station.ShareCode}");
         Assert.That(response!.Status, Is.EqualTo(404), "Newcomers cannot open or subscribe to a private station");
 
-        TestAuthHandler.TestAccountId = subscriberAccountId;
+        SetAccount(subscriberAccountId);
         await Page.GotoAsync($"{_factory.ServerAddress}/");
         var card = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Private Later" }).First;
         await Expect(card).ToBeVisibleAsync(new() { Timeout = 15000 });

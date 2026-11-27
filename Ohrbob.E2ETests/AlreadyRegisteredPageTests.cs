@@ -5,23 +5,19 @@ using Ohrbob.E2ETests.Infrastructure;
 
 namespace Ohrbob.E2ETests;
 
-[NonParallelizable]
-public class AlreadyRegisteredPageTests : PageTest
+public class AlreadyRegisteredPageTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
 
     [SetUp]
     public void Setup()
     {
-        TestAuthHandler.IsAuthenticated = false;
-        _factory = new PlaywrightWebApplicationFactory();
+        SignOut();
     }
 
     [TearDown]
     public void TearDown()
     {
-        _factory.Dispose();
-        TestAuthHandler.IsAuthenticated = true;
+        SignIn();
     }
 
     [Test]

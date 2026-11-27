@@ -13,11 +13,9 @@ namespace Ohrbob.E2ETests;
 /// search, horizontal recommendation shelves, flat feed cards and hairline chips.
 /// Every assertion reads computed styles, not class names.
 /// </summary>
-[NonParallelizable]
-public class MetroDiscoverTests : PageTest
+public class MetroDiscoverTests : E2EPageTest
 {
     private readonly MongoClient _mongo = new("mongodb://localhost:27019");
-    private PlaywrightWebApplicationFactory _factory = null!;
     private Feed _seededFeed = null!;
 
     public override BrowserNewContextOptions ContextOptions() => new()
@@ -30,7 +28,6 @@ public class MetroDiscoverTests : PageTest
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        _factory = new PlaywrightWebApplicationFactory();
 
         var accountService = _factory.Services.GetRequiredService<AccountApiService>();
         var account = await accountService.CreateOrUpdateAccountAsync(
@@ -44,7 +41,7 @@ public class MetroDiscoverTests : PageTest
             await profileService.CreateProfileAsync(account.Id, new Profile { Name = "Main Profile" });
         }
 
-        TestAuthHandler.TestAccountId = account.Id;
+        SetAccount(account.Id);
 
         // The recommendation lanes are fed from the DB first, so a seeded Comedy feed is
         // guaranteed to be the first card in a visible lane.
@@ -68,8 +65,7 @@ public class MetroDiscoverTests : PageTest
     {
         await Feeds.DeleteOneAsync(f => f.Id == _seededFeed.Id);
         await Context.CloseAsync();
-        _factory.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     private IMongoCollection<Feed> Feeds =>

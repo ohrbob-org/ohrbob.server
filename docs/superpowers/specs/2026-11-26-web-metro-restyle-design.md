@@ -686,3 +686,27 @@ the pane header rather than below the feed list.
 - The first automatically assigned feed colour is now Ohrbob orange
   (`#FC5D00`); migration `0.0.17` rewrites the old `#E63946` in existing station
   schedules.
+
+## 19. Amendment (2026-11-27): faster E2E suite
+
+- Every E2E fixture starts **one** in-process web host in `OneTimeSetUp`
+  (`E2EPageTest`) instead of building Kestrel per test. Each test still gets a
+  fresh browser context.
+- The fake identity moved from process-global statics into a per-host
+  `TestAuthState` singleton, exposed to fixtures as `SignIn()`, `SignOut()` and
+  `SetAccount(id)`. Parallel fixtures can therefore act as different accounts.
+- The assembly runs with `ParallelScope.Fixtures` and a level of parallelism of
+  six. The classes that reconfigure the single shared `podcast-testcasts`
+  server stay `[NonParallelizable]`; NUnit queues them after the parallel
+  phase and runs them one at a time.
+- Host startup is serialized inside `E2EPageTest` because the generic-host
+  resolver shares static state; the tests themselves still run in parallel.
+- The one-time changelog popup is disabled in E2E hosts by default (the app
+  version options are empty) so its modal backdrop cannot intercept unrelated
+  tests. `MetroShellTests` opts back in to cover the popup itself.
+- `test-e2e.sh` runs the suite as two concurrent shards: the serial testcasts
+  classes and everything else.
+- Each fixture hosts the app on a single Kestrel instance with an ephemeral
+  loopback port (`WebApplicationFactory.UseKestrel()` plus `UseUrls("…:0")`).
+  The old double build (in-memory TestServer + Kestrel) sometimes left the
+  TestServer unstarted, so `CreateClient()` failed when fixtures ran in parallel.

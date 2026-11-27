@@ -7,10 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Ohrbob.E2ETests;
 
-[NonParallelizable]
-public class OnboardingTests : PageTest
+public class OnboardingTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _testAccountId = string.Empty;
 
     public override BrowserNewContextOptions ContextOptions()
@@ -24,7 +22,6 @@ public class OnboardingTests : PageTest
     [SetUp]
     public async Task Setup()
     {
-        _factory = new PlaywrightWebApplicationFactory();
         
         // Use the injected AccountApiService to create a fresh user in the running backend
         var accountService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.AccountApiService>();
@@ -32,13 +29,12 @@ public class OnboardingTests : PageTest
         var account = await accountService.CreateOrUpdateAccountAsync("E2E Onboarding Test", uniqueEmail, "", "Test", Guid.NewGuid().ToString());
         
         _testAccountId = account!.Id;
-        TestAuthHandler.TestAccountId = _testAccountId;
+        SetAccount(_testAccountId);
     }
 
     [TearDown]
     public void TearDown()
     {
-        _factory.Dispose();
     }
 
     [Test]
