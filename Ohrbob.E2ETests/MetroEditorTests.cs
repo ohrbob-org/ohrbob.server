@@ -123,8 +123,9 @@ public class MetroEditorTests : PageTest
                              family: getComputedStyle(e).fontFamily }));
             const rows = Array.from(document.querySelectorAll('#resolvedList .card-episode'))
                 .map(e => ({ h: e.getBoundingClientRect().height,
-                             bar: parseFloat(getComputedStyle(e, '::before').height),
-                             border: parseFloat(getComputedStyle(e).borderTopWidth) }));
+                             border: parseFloat(getComputedStyle(e).borderTopWidth),
+                             left: parseFloat(getComputedStyle(e).borderLeftWidth),
+                             body: e.querySelector('.card-episode-body').getBoundingClientRect().width }));
             return JSON.stringify({ titles, rows });
         }");
         using var doc = System.Text.Json.JsonDocument.Parse(json);
@@ -139,19 +140,19 @@ public class MetroEditorTests : PageTest
         var rows = doc.RootElement.GetProperty("rows").EnumerateArray().Select(r => new
         {
             Height = r.GetProperty("h").GetDouble(),
-            Bar = r.GetProperty("bar").GetDouble(),
             Border = r.GetProperty("border").GetDouble(),
+            Left = r.GetProperty("left").GetDouble(),
+            Body = r.GetProperty("body").GetDouble(),
         }).ToArray();
         Assert.That(rows, Is.Not.Empty, "the playlist has episodes to measure");
         Assert.That(rows.Select(r => r.Height), Has.All.GreaterThanOrEqualTo(58),
             "playlist rows keep the content height");
         Assert.That(rows.Select(r => r.Border), Has.All.EqualTo(0),
             "there is no horizontal rule between episodes");
-        foreach (var row in rows)
-        {
-            Assert.That(row.Bar, Is.EqualTo(row.Height).Within(1),
-                "the feed-colour bar spans the full row height");
-        }
+        Assert.That(rows.Select(r => r.Left), Has.All.EqualTo(4),
+            "each row carries a full-height 4 px feed border");
+        Assert.That(rows.Select(r => r.Body), Has.All.GreaterThan(200),
+            "the episode text keeps the main column instead of collapsing");
     }
 
     [Test]
@@ -163,8 +164,15 @@ public class MetroEditorTests : PageTest
         Assert.That(await back.GetAttributeAsync("href"), Is.EqualTo("/Stations"));
         Assert.That(await back.GetAttributeAsync("aria-label"), Is.EqualTo("Back to stations"));
 
-        // The gear stays available as the station settings affordance.
-        await Expect(Page.Locator("#dockable-header #renameStationBtn")).ToBeVisibleAsync();
+        // The gear sits between the back arrow and the station title.
+        var gear = Page.Locator("#dockable-header #renameStationBtn");
+        await Expect(gear).ToBeVisibleAsync();
+        var order = await Page.EvaluateAsync<double[]>(
+            @"() => { const r = (s) => document.querySelector(s).getBoundingClientRect();
+                      const b = r('.editor-back-btn'), g = r('#renameStationBtn'), t = r('#stationNameDisplay');
+                      return [b.left, g.left, t.left]; }");
+        Assert.That(order[0], Is.LessThan(order[1]), "the gear follows the back arrow");
+        Assert.That(order[1], Is.LessThan(order[2]), "the title follows the gear");
 
         await back.ClickAsync();
         await Page.WaitForURLAsync("**/Stations", new() { Timeout = 15000 });
@@ -196,11 +204,13 @@ public class MetroEditorTests : PageTest
 
         await Page.SetViewportSizeAsync(375, 812);
         await Page.ClickAsync("#resolved-tab");
-        var bar = await Page.EvaluateAsync<string>(@"() => {
+        var bar = await Page.EvaluateAsync<string[]>(@"() => {
             const el = document.querySelector('#resolvedList .card-episode');
-            return getComputedStyle(el, '::before').backgroundColor;
+            const s = getComputedStyle(el);
+            return [s.borderLeftWidth, s.borderLeftColor];
         }");
-        Assert.That(bar, Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "non-playing rows must still show a feed bar");
+        Assert.That(bar[0], Is.EqualTo("4px"), "non-playing rows show a 4 px feed border");
+        Assert.That(bar[1], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "the feed border has the feed colour");
 
         var episodePlaceholder = await Page.EvaluateAsync<string>(@"() => {
             const el = document.querySelector('#resolvedList .card-episode-badge');
@@ -227,7 +237,7 @@ public class MetroEditorTests : PageTest
             document.body.appendChild(probe);
             const expected = getComputedStyle(probe).backgroundColor;
             probe.remove();
-            return [getComputedStyle(el, '::before').backgroundColor,
+            return [getComputedStyle(el).borderLeftColor,
                     expected,
                     el.getAttribute('style') || ''];
         }");
@@ -272,7 +282,7 @@ public class MetroEditorTests : PageTest
             const title = row.querySelector('.card-episode-title');
             const artist = row.querySelector('.card-episode-artist');
             const date = row.querySelector('.card-episode-date');
-            const bar = getComputedStyle(row, '::before');
+            const bar = getComputedStyle(row).borderLeftWidth;
             const play = row.querySelector('.card-episode-play');
             const playStyle = getComputedStyle(play);
             return [getComputedStyle(cover).width,
@@ -280,7 +290,7 @@ public class MetroEditorTests : PageTest
                     getComputedStyle(title).fontWeight,
                     getComputedStyle(artist).fontSize,
                     getComputedStyle(date).fontSize,
-                    bar.width,
+                    bar,
                     playStyle.width,
                     playStyle.height,
                     playStyle.backgroundColor];

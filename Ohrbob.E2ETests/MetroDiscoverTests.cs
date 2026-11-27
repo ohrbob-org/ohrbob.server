@@ -290,7 +290,7 @@ public class MetroDiscoverTests : PageTest
         Assert.That(m[0], Is.EqualTo("0px"), "chips are square");
         Assert.That(m[1], Is.EqualTo("0px"), "chips have no hairline");
         Assert.That(m[2], Is.EqualTo("rgba(0, 0, 0, 0)"), "chips sit quietly on the canvas");
-        Assert.That(m[3], Is.EqualTo("uppercase"));
+        Assert.That(m[3], Is.EqualTo("lowercase"));
         Assert.That(m[4], Is.EqualTo("11px"), "chips use the 11 px label size");
         Assert.That(m[5], Is.EqualTo("700"));
         Assert.That(m[6], Is.EqualTo("44px"), "chips meet the touch minimum");

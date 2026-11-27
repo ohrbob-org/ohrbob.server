@@ -109,7 +109,7 @@ public class OnboardingTests : PageTest
         await finishBtn.ClickAsync();
 
         // After finish, we should end up on Home/Index, which renders the station grid.
-        await Expect(Page.Locator(".page-head .metro-title")).ToContainTextAsync("stations", new() { Timeout = 15000 });
+        await Expect(Page.Locator(".page-head .metro-title")).ToContainTextAsync("listen", new() { Timeout = 15000 });
 
         // Assert Profile is selected
         var profileDropdown = Page.Locator("#profileDropdown");

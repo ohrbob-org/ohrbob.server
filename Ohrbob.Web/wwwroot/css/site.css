@@ -1514,20 +1514,33 @@ body.with-player .app-toast-container {
     align-items: flex-end;
     justify-content: space-between;
     gap: 16px 24px;
-    padding: 44px 0 26px;
+    padding: 36px 0 26px;
     margin-bottom: 26px;
 }
 
 .page-head__text {
+    position: relative;
     min-width: 0;
 }
 
+/* The kicker is the large lavender ghost line behind the page title. */
 .page-head .metro-kicker {
     margin: 0;
+    overflow: hidden;
+    color: color-mix(in srgb, var(--metro-violet) 16%, var(--metro-canvas));
+    font-family: var(--metro-display);
+    font-size: clamp(2.5rem, 12vw, 6rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 0.8;
+    text-transform: lowercase;
+    white-space: nowrap;
 }
 
 .page-head .metro-title {
-    margin: 6px 0 0;
+    position: relative;
+    z-index: 1;
+    margin: -0.55em 0 0;
 }
 
 /* Listen is the hero title of the app: 76 px on desktop, 58 px on phones. */
@@ -2021,13 +2034,6 @@ body.with-player .app-toast-container {
     min-width: 0;
 }
 
-.editor-header__actions {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: 4px;
-}
-
 .editor-title {
     display: flex;
     flex: 1 1 auto;
@@ -2162,7 +2168,13 @@ body.with-player .app-toast-container {
 }
 
 #resolvedList .card-episode {
+    grid-template-columns: 58px minmax(0, 1fr) auto;
     flex: 0 0 auto;
+    border-left: 4px solid var(--card-episode-accent);
+}
+
+#resolvedList .card-episode::before {
+    display: none;
 }
 
 @media (min-width: 992px) {
@@ -2244,7 +2256,7 @@ body.with-player .app-toast-container {
 }
 
 #rotationContainer .card-station-feed-dot {
-    background: var(--station-feed-ink);
+    display: none;
 }
 
 #rotationContainer .card-station-feed-menu {
@@ -2325,16 +2337,7 @@ body.with-player .app-toast-container {
     background: var(--metro-tile);
 }
 
-/* The feed-colour bar spans the full height of each episode row, with no
-   horizontal rule between rows. */
-#resolvedList .card-episode::before {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 4px;
-    height: auto;
-}
+/* The row border is the full-height feed-colour bar. */
 
 .card-episode-byline {
     display: flex;
@@ -5869,4 +5872,72 @@ body:not(.metro-night) .onboarding-page.metro-night {
     .faq-accordion .accordion-button::after {
         transition: none;
     }
+}
+
+/* Lowercase voice: kickers, labels, badges and actions. */
+.metro-kicker,
+.form-label,
+.badge,
+.dropdown-header,
+.metro-tabs .nav-link,
+.metro-auto-start .ohrbob-auto-start-text,
+.profile-active,
+.profile-card__label,
+.profile-card__action,
+.profile-color-preview,
+.profile-station-tile__meta,
+.collage-fallback,
+.app-nav-link,
+.app-footer__title,
+.landing-tier-badge,
+.landing-tier-table > thead > tr > th,
+.page-head__action,
+.card-station-count,
+.status-label,
+.station-add__label,
+.listen-empty__cta,
+.card-station-footer__link,
+.form-add-feed,
+.editor-badge,
+.editor-tabs .nav-link,
+.editor-section-label,
+.editor-sharebar__select,
+.category-chip,
+.account-tile__kicker,
+.account-back,
+.account-panel__status,
+.account-table th,
+.account-pill,
+.account-plan,
+.account-action,
+.api-key-action,
+.morebob-panel__kicker,
+.morebob-panel__cta,
+.minimal-brandline__kicker,
+.auth-page__kicker,
+.onboarding-kicker,
+.onboarding-card__kicker,
+.share-hero__meta,
+.share-hero__action.btn,
+.share-feeds__title,
+.stream-name,
+.stream-copy,
+.client-tile__soon,
+.client-tile__variant,
+.editorial-action,
+.faq-accordion .accordion-button,
+.privacy-lang__label,
+.privacy-lang__option,
+.privacy-summary strong,
+.status-count,
+.status-card .status-label,
+.status-card__tag,
+.metro-panel__action {
+    text-transform: lowercase;
+}
+.audio-widget .audio-expanded-card .expanded-header .expanded-header-title,
+.audio-widget .audio-expanded-card .expanded-body .episode-nav-card .episode-nav-label,
+.connect-brand__sub,
+.connect-card__label {
+    text-transform: lowercase;
 }

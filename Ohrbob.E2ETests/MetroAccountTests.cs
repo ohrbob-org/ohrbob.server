@@ -158,7 +158,7 @@ public class MetroAccountTests : PageTest
         Assert.That(m[4], Does.Contain("Sulphur"), "tile titles use the display face");
         Assert.That(m[5], Is.EqualTo("30px"), "tile titles are 30 px");
         Assert.That(m[6], Is.EqualTo("11px"), "tile kickers are 11 px");
-        Assert.That(m[7], Is.EqualTo("uppercase"), "tile kickers are uppercase");
+        Assert.That(m[7], Is.EqualTo("lowercase"), "tile kickers are lowercase");
         Assert.That(m[8], Does.Contain("inset"), "the active tile gets an inset rule");
         Assert.That(m[8], Does.Contain("rgb(252, 93, 0)"), "the active rule is orange");
 
@@ -193,7 +193,7 @@ public class MetroAccountTests : PageTest
     }
 
     [Test]
-    public async Task AccountPanel_UsesHairlineTableAndUppercaseLabels()
+    public async Task AccountPanel_UsesHairlineTableAndLowercaseLabels()
     {
         await Page.GotoAsync($"{_factory.ServerAddress}/Account");
         await Page.ClickAsync("#account-tab");
@@ -221,7 +221,7 @@ public class MetroAccountTests : PageTest
         Assert.That(m[1], Is.EqualTo("rgb(216, 210, 197)"), "the rule uses the hairline colour");
         Assert.That(m[2], Does.Contain("Sulphur"), "panel titles use the display face");
         Assert.That(m[3], Is.EqualTo("1px"), "table rows have a hairline rule");
-        Assert.That(m[4], Is.EqualTo("uppercase"), "row labels are uppercase");
+        Assert.That(m[4], Is.EqualTo("lowercase"), "row labels are lowercase");
         Assert.That(m[5], Is.EqualTo("11px"), "row labels are 11 px");
         Assert.That(m[6], Is.EqualTo("700"), "row labels are bold");
         Assert.That(m[7], Is.EqualTo("1px"), "table cells keep the row rule");
@@ -375,7 +375,7 @@ public class MetroAccountTests : PageTest
         Assert.That(modal[4], Is.EqualTo("1px"), "the QR area has a hairline");
         Assert.That(modal[5], Is.EqualTo("0px"), "the QR area is square");
         Assert.That(modal[6].ToLowerInvariant(), Does.Contain("mono"), "deep link values are mono");
-        Assert.That(modal[7], Is.EqualTo("uppercase"), "QR labels are uppercase");
+        Assert.That(modal[7], Is.EqualTo("lowercase"), "QR labels are lowercase");
         Assert.That(modal[8], Is.EqualTo("11px"), "QR labels are 11 px");
         Assert.That(modal[9], Does.StartWith("ohrbob://connect?"), "the deep link is filled in");
 

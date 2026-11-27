@@ -344,7 +344,7 @@ public class ThemeTests : PageTest
                 document.body.appendChild(probe);
                 const expected = getComputedStyle(probe).backgroundColor;
                 probe.remove();
-                return [getComputedStyle(el, '::before').backgroundColor, expected];
+                return [getComputedStyle(el).borderLeftColor, expected];
             }");
             if (bar.Length == 2 && bar[0].StartsWith("rgb", StringComparison.Ordinal)) break;
             await Page.WaitForTimeoutAsync(200);

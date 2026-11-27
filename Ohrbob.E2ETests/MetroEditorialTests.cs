@@ -76,12 +76,12 @@ public class MetroEditorialTests : PageTest
                     lede ? getComputedStyle(lede).fontSize : 'missing',
                     lede ? getComputedStyle(lede).lineHeight : 'missing'];
         }");
-        Assert.That(head[0], Is.EqualTo("uppercase"), "the kicker is uppercase");
+        Assert.That(head[0], Is.EqualTo("lowercase"), "the kicker is lowercase");
         Assert.That(head[1], Does.Contain("Sulphur"), "the page title uses the display face");
         Assert.That(head[2], Is.EqualTo("16px"), "the lede prints at 16 px");
         Assert.That(head[3], Is.EqualTo("24px"), "the lede has 24 px leading");
 
-        // Section hierarchy: 11 px uppercase kicker, 24 px Sulphur heading.
+        // Section hierarchy: 11 px lowercase kicker, 24 px Sulphur heading.
         var sectionHead = await Page.EvaluateAsync<string[]>(@"() => {
             const kicker = document.querySelector('.editorial .metro-kicker');
             const title = document.querySelector('.editorial-section__title');
@@ -90,7 +90,7 @@ public class MetroEditorialTests : PageTest
             return [k.fontSize, k.textTransform, t.fontFamily, t.fontSize];
         }");
         Assert.That(sectionHead[0], Is.EqualTo("11px"), "section labels print at 11 px");
-        Assert.That(sectionHead[1], Is.EqualTo("uppercase"), "section labels are uppercase");
+        Assert.That(sectionHead[1], Is.EqualTo("lowercase"), "section labels are lowercase");
         Assert.That(sectionHead[2], Does.Contain("Sulphur"), "section headings use the display face");
         Assert.That(sectionHead[3], Is.EqualTo("24px"), "section headings print at 24 px");
 
@@ -151,7 +151,7 @@ public class MetroEditorialTests : PageTest
         Assert.That(m[6], Is.EqualTo("0px"), "the icon area is square");
         Assert.That(m[7], Is.EqualTo("rgb(253, 178, 0)"), "coming soon prints on Metro yellow");
         Assert.That(m[8], Is.EqualTo("rgb(0, 25, 87)"), "coming soon prints navy");
-        Assert.That(m[9], Is.EqualTo("uppercase"), "coming soon is an uppercase label");
+        Assert.That(m[9], Is.EqualTo("lowercase"), "coming soon is an lowercase label");
         Assert.That(m[10], Is.EqualTo("0px"), "the client action is square");
         Assert.That(m[11], Is.EqualTo("rgb(252, 93, 0)"), "the primary client action is orange");
     }
@@ -180,7 +180,7 @@ public class MetroEditorialTests : PageTest
         Assert.That(m[2], Is.EqualTo("1px"), "accordion items are hairline-ruled");
         Assert.That(m[3], Is.EqualTo("0px"), "accordion items are square");
         Assert.That(m[4], Is.EqualTo("11px"), "questions print at 11 px");
-        Assert.That(m[5], Is.EqualTo("uppercase"), "questions are uppercase");
+        Assert.That(m[5], Is.EqualTo("lowercase"), "questions are lowercase");
         Assert.That(int.Parse(m[6], System.Globalization.CultureInfo.InvariantCulture),
             Is.GreaterThanOrEqualTo(700), "questions are heavy");
         Assert.That(m[7], Does.Contain("+"), "a collapsed question shows a plus");
@@ -261,7 +261,7 @@ public class MetroEditorialTests : PageTest
         Assert.That(m[5], Is.EqualTo("1px"), "summary panels are hairline-ruled");
         Assert.That(m[6], Is.EqualTo("0px"), "summary panels are square");
         Assert.That(m[8], Is.EqualTo("11px"), "summary labels print at 11 px");
-        Assert.That(m[9], Is.EqualTo("uppercase"), "summary labels are uppercase");
+        Assert.That(m[9], Is.EqualTo("lowercase"), "summary labels are lowercase");
 
         await Page.Locator("[data-privacy-lang='de']").ClickAsync();
         await Expect(Page.Locator("#privacy-de")).ToBeVisibleAsync();

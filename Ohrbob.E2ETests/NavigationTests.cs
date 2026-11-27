@@ -134,7 +134,7 @@ public class NavigationTests : PageTest
         await Page.GoBackAsync();
         
         // Wait for dashboard to reload
-        await Expect(Page.Locator(".page-head .metro-title")).ToContainTextAsync("stations", new() { Timeout = 10000 });
+        await Expect(Page.Locator(".page-head .metro-title")).ToContainTextAsync("listen", new() { Timeout = 10000 });
         await Task.Delay(1000); // Give the browser a moment to settle after popstate
 
         // Try to click dropdown again
@@ -292,6 +292,29 @@ public class NavigationTests : PageTest
         await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("/Discover"));
         await Expect(bar).Not.ToHaveClassAsync(new System.Text.RegularExpressions.Regex(@"\bis-loading\b"),
             new() { Timeout = 5000 });
+    }
+
+    [Test]
+    public async Task PageHeadKickerIsTheLargeLavenderGhostLine()
+    {
+        await Page.SetViewportSizeAsync(1280, 900);
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        var m = await Page.EvaluateAsync<string[]>(@"() => {
+            const kicker = document.querySelector('.page-head .metro-kicker');
+            const title = document.querySelector('.page-head .metro-title');
+            const ks = getComputedStyle(kicker);
+            const kr = kicker.getBoundingClientRect();
+            const tr = title.getBoundingClientRect();
+            return [ks.fontSize, ks.color, ks.textTransform,
+                    String(kr.top < tr.top && kr.bottom > tr.top)];
+        }");
+        Assert.That(double.Parse(m[0].Replace("px", string.Empty),
+            System.Globalization.CultureInfo.InvariantCulture), Is.GreaterThanOrEqualTo(72),
+            "the kicker is a display-sized ghost line");
+        Assert.That(m[1], Does.Not.EqualTo("rgb(17, 18, 23)"), "the ghost line is lavender, not ink");
+        Assert.That(m[2], Is.EqualTo("lowercase"));
+        Assert.That(m[3], Is.EqualTo("true"), "the title overlaps the ghost line");
     }
 
     [Test]

@@ -151,7 +151,7 @@ public class MetroProfilesTests : PageTest
         Assert.That(m[0], Does.Contain("Sulphur"), "the profile name uses the display face");
         Assert.That(m[1], Is.EqualTo("24px"), "the profile name is 24 px");
         Assert.That(m[2], Is.EqualTo("rgb(194, 65, 12)"), "the active label uses the accessible now-accent orange");
-        Assert.That(m[3], Is.EqualTo("uppercase"), "the active label is uppercase");
+        Assert.That(m[3], Is.EqualTo("lowercase"), "the active label is lowercase");
         Assert.That(m[4].ToLowerInvariant(), Does.Contain("mono"), "the stream token is mono");
         Assert.That(m[5], Is.EqualTo("11px"), "the stream token is 11 px");
         Assert.That(m[6], Is.EqualTo("rgb(255, 255, 255)"), "the card sits on a tile surface");
@@ -230,7 +230,7 @@ public class MetroProfilesTests : PageTest
         Assert.That(m[1], Is.EqualTo("0px"), "fields have no box border");
         Assert.That(m[2], Is.EqualTo("0px"), "fields are square");
         Assert.That(m[3], Is.EqualTo("rgb(255, 255, 255)"), "fields sit on the field surface");
-        Assert.That(m[4], Is.EqualTo("uppercase"), "labels are uppercase");
+        Assert.That(m[4], Is.EqualTo("lowercase"), "labels are lowercase");
         Assert.That(m[5], Is.EqualTo("11px"), "labels are 11 px");
         Assert.That(m[6], Is.EqualTo("700"), "labels are bold");
     }

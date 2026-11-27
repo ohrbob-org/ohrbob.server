@@ -144,7 +144,7 @@ public class MetroPlayerTests : PageTest
         }");
 
         Assert.That(ParsePx(m[0]), Is.EqualTo(0), "the expanded sheet is square");
-        Assert.That(m[1], Is.EqualTo("uppercase"), "the sheet header is uppercase");
+        Assert.That(m[1], Is.EqualTo("lowercase"), "the sheet header is lowercase");
         Assert.That(ParsePx(m[2]), Is.EqualTo(11), "the sheet header is 11px");
         Assert.That(ParsePx(m[3]), Is.EqualTo(160), "the expanded cover is 160px wide");
         Assert.That(ParsePx(m[4]), Is.EqualTo(160), "the expanded cover is 160px tall");
@@ -241,7 +241,7 @@ public class MetroPlayerTests : PageTest
         Assert.That(m[5], Is.EqualTo("rgb(244, 241, 234)"), "the prompt sits on the canvas");
         Assert.That(ParsePx(m[6]), Is.EqualTo(3), "the countdown rule is 3px tall");
         Assert.That(m[7], Is.EqualTo("rgb(252, 93, 0)"), "the countdown rule is Metro orange");
-        Assert.That(m[8], Is.EqualTo("uppercase"), "the prompt label is uppercase");
+        Assert.That(m[8], Is.EqualTo("lowercase"), "the prompt label is lowercase");
         Assert.That(ParsePx(m[9]), Is.EqualTo(11), "the prompt label is 11px");
         Assert.That(ParsePx(m[10]), Is.EqualTo(0), "the prompt buttons are square");
 

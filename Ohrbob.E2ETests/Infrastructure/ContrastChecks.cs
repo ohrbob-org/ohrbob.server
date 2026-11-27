@@ -35,6 +35,8 @@ public static class ContrastChecks
         const offenders = [];
         document.querySelectorAll('body *').forEach((el) => {
             if (el instanceof SVGElement) return;
+            // Decorative watermarks (the ghost page kicker) are intentionally low contrast.
+            if (el.closest('[aria-hidden=""true""]')) return;
             const direct = Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent.trim().length > 0);
             const isControl = el.matches('button, a, .btn, [role=""button""], [role=""slider""]');
             if (!direct && !isControl) return;

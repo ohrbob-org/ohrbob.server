@@ -70,7 +70,7 @@ public class DiscoverSearchNavigationTests : PageTest
 
         // Browser back/forward restores the view from htmx history; search must work there too.
         await Page.GoBackAsync();
-        await Expect(Page.Locator(".page-head .metro-title")).ToContainTextAsync("stations", new() { Timeout = 10000 });
+        await Expect(Page.Locator(".page-head .metro-title")).ToContainTextAsync("listen", new() { Timeout = 10000 });
         await Page.GoForwardAsync();
 
         var restoredInput = Page.Locator("#discover-search");

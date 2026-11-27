@@ -12,6 +12,9 @@
             <a href="/Stations" class="editor-icon-btn editor-back-btn" aria-label="Back to stations" title="Back to stations">
                 <i class="bi bi-arrow-left" aria-hidden="true"></i>
             </a>
+            <button type="button" class="editor-icon-btn" id="renameStationBtn" title="Station Settings" aria-label="Station Settings">
+                <i class="bi bi-gear-fill" aria-hidden="true"></i>
+            </button>
             <h1 class="editor-title">
                 <span id="stationNameDisplay">@Model.Station.Name</span>
                 @if (Model.Station.HostPaceEnabled)
@@ -19,11 +22,6 @@
                     <span class="editor-badge" title="Only episodes the host has completed are available">Host Pace</span>
                 }
             </h1>
-        </div>
-        <div class="editor-header__actions">
-            <button type="button" class="editor-icon-btn" id="renameStationBtn" title="Station Settings" aria-label="Station Settings">
-                <i class="bi bi-gear-fill" aria-hidden="true"></i>
-            </button>
         </div>
     </div>
 
