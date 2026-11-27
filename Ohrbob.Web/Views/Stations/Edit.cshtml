@@ -188,16 +188,16 @@
                         data-feed-color="@(feedColor)"
                         style="--card-episode-accent: @feedColor; --card-episode-ink: @episodeInk;">
 
-                        <div class="episode-top">
-                            @if (!string.IsNullOrEmpty(item.Episode.ImageUrl))
-                            {
-                                <img src="@item.Episode.ImageUrl" class="card-episode-cover" alt="" loading="lazy" />
-                            }
-                            else
-                            {
-                                <span class="card-episode-badge" aria-hidden="true"><i class="bi bi-mic"></i></span>
-                            }
+                        @if (!string.IsNullOrEmpty(item.Episode.ImageUrl))
+                        {
+                            <img src="@item.Episode.ImageUrl" class="card-episode-backdrop" alt="" loading="lazy" />
+                        }
+                        else
+                        {
+                            <span class="card-episode-badge card-episode-backdrop" aria-hidden="true"><i class="bi bi-mic"></i></span>
+                        }
 
+                        <div class="episode-top">
                             <div class="card-episode-body">
                                 <div class="card-episode-byline">
                                     <span class="card-episode-artist" title="@feedTitle">@feedTitle</span>

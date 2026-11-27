@@ -289,14 +289,15 @@ public class MetroEditorTests : PageTest
 
         var episode = await Page.EvaluateAsync<string[]>(@"() => {
             const row = document.querySelector('#resolvedList .card-episode.resolved-item');
-            const cover = row.querySelector('.card-episode-cover, .card-episode-badge');
+            const backdrop = row.querySelector('.card-episode-backdrop');
             const title = row.querySelector('.card-episode-title');
             const artist = row.querySelector('.card-episode-artist');
             const date = row.querySelector('.card-episode-date');
             const bar = getComputedStyle(row).borderLeftWidth;
             const play = row.querySelector('.card-episode-play');
             const playStyle = getComputedStyle(play);
-            return [getComputedStyle(cover).width,
+            const backdropStyle = getComputedStyle(backdrop);
+            return [backdropStyle.position, parseFloat(backdropStyle.opacity).toString(),
                     getComputedStyle(title).fontSize,
                     getComputedStyle(title).fontWeight,
                     getComputedStyle(artist).fontSize,
@@ -308,16 +309,18 @@ public class MetroEditorTests : PageTest
                     getComputedStyle(row).backgroundColor];
         }");
         static double Px(string value) => double.Parse(value.Replace("px", ""), System.Globalization.CultureInfo.InvariantCulture);
-        Assert.That(Px(episode[0]), Is.EqualTo(58), "episode cover");
-        Assert.That(Px(episode[1]), Is.EqualTo(15), "episode title");
-        Assert.That(int.Parse(episode[2], System.Globalization.CultureInfo.InvariantCulture), Is.GreaterThanOrEqualTo(600), "episode title weight");
-        Assert.That(Px(episode[3]), Is.EqualTo(11), "episode artist");
-        Assert.That(Px(episode[4]), Is.EqualTo(10), "episode date");
-        Assert.That(Px(episode[5]), Is.EqualTo(4), "episode feed bar");
-        Assert.That(Px(episode[6]), Is.EqualTo(40), "play target");
+        Assert.That(episode[0], Is.EqualTo("absolute"), "the cover is a background layer");
+        Assert.That(double.Parse(episode[1], System.Globalization.CultureInfo.InvariantCulture),
+            Is.LessThan(1), "the cover is semi-transparent");
+        Assert.That(Px(episode[2]), Is.EqualTo(15), "episode title");
+        Assert.That(int.Parse(episode[3], System.Globalization.CultureInfo.InvariantCulture), Is.GreaterThanOrEqualTo(600), "episode title weight");
+        Assert.That(Px(episode[4]), Is.EqualTo(11), "episode artist");
+        Assert.That(Px(episode[5]), Is.EqualTo(10), "episode date");
+        Assert.That(Px(episode[6]), Is.EqualTo(4), "episode feed bar");
         Assert.That(Px(episode[7]), Is.EqualTo(40), "play target");
-        Assert.That(episode[8], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "play square is filled");
-        Assert.That(episode[8], Is.Not.EqualTo(episode[9]), "play square contrasts with the feed tile");
+        Assert.That(Px(episode[8]), Is.EqualTo(40), "play target");
+        Assert.That(episode[9], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "play square is filled");
+        Assert.That(episode[9], Is.Not.EqualTo(episode[10]), "play square contrasts with the feed tile");
 
         // Spec 9: fine pointers keep the compact icons and must not rely on
         // overlapping pseudo-element hit boxes that steal a neighbour's click.
