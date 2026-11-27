@@ -3756,6 +3756,14 @@ body.minimal-shell:has(.onboarding-finishbar) .minimal-footer {
     z-index: 1;
 }
 
+/* Defence in depth: if an onboarding fragment is rendered outside the minimal
+   night body (for example a boosted request with Layout = null), the wrapper
+   itself still carries the dark tokens and paints the onboarding surface. */
+body:not(.metro-night) .onboarding-page.metro-night {
+    background-color: var(--metro-canvas);
+    background-image: linear-gradient(165deg, var(--metro-navy) 0%, var(--metro-canvas) 70%);
+}
+
 .onboarding-page::before,
 .onboarding-page::after {
     content: "";

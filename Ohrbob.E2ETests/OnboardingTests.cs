@@ -61,6 +61,7 @@ public class OnboardingTests : PageTest
         }");
         Assert.That(onboarding[0], Is.EqualTo(0), "onboarding card must be square");
         Assert.That(onboarding[1], Is.EqualTo(7), "onboarding card keeps the orange accent bar");
+        await Expect(Page.Locator(".onboarding-page.metro-night")).ToHaveCountAsync(1);
 
         // Step 1: Create Profile
         await Page.FillAsync("input[name='profileName']", "My E2E Profile");

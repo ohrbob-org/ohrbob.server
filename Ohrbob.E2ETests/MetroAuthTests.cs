@@ -97,6 +97,68 @@ public class MetroAuthTests : PageTest
     }
 
     [Test]
+    public async Task ClientsOpenWebAppNavigatesToANightLoginPage()
+    {
+        _factory.CreateClient();
+        await Page.EmulateMediaAsync(new() { ColorScheme = ColorScheme.Light });
+        await Context.AddCookiesAsync(new[]
+        {
+            new Cookie { Name = "ohrbob_theme", Value = "light", Url = _factory.ServerAddress }
+        });
+
+        var boosted = new List<string>();
+        Page.Request += (_, request) =>
+        {
+            var hx = request.Headers.FirstOrDefault(h =>
+                h.Key.Equals("HX-Request", StringComparison.OrdinalIgnoreCase));
+            if (hx.Key != null && hx.Value.Equals("true", StringComparison.OrdinalIgnoreCase))
+            {
+                boosted.Add($"{request.Method} {request.Url}");
+            }
+        };
+
+        await Page.GotoAsync($"{_factory.ServerAddress}/Home/Clients");
+        await Page.ClickAsync("a:has-text('Open Web App')");
+
+        await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex(@"/Home/Login/?$"));
+        Assert.That(boosted, Is.Empty, "the login redirect must be a full navigation, not htmx-boosted");
+
+        await Expect(Page.Locator("body.metro-night")).ToHaveCountAsync(1);
+        await Expect(Page.Locator(".auth-page.metro-night")).ToHaveCountAsync(1);
+
+        var m = await Page.EvaluateAsync<double[]>(@"() => {
+            const parse = (rgb) => {
+                const m = rgb.match(/[\d.]+/g);
+                return { r: +m[0], g: +m[1], b: +m[2], a: m.length > 3 ? +m[3] : 1 };
+            };
+            const lum = (c) => {
+                const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+                return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b);
+            };
+            const page = document.querySelector('.auth-page');
+            const card = document.querySelector('.auth-card');
+            const pageBg = parse(getComputedStyle(page).backgroundColor);
+            const cardBg = parse(getComputedStyle(card).backgroundColor);
+            const bg = {
+                r: cardBg.r * cardBg.a + pageBg.r * (1 - cardBg.a),
+                g: cardBg.g * cardBg.a + pageBg.g * (1 - cardBg.a),
+                b: cardBg.b * cardBg.a + pageBg.b * (1 - cardBg.a)
+            };
+            const ghost = document.querySelector('.auth-card .btn-ghost');
+            if (!ghost) return [lum(pageBg), 0, 0];
+            const fg = parse(getComputedStyle(ghost).color);
+            const ratio = (Math.max(lum(fg), lum(bg)) + 0.05) / (Math.min(lum(fg), lum(bg)) + 0.05);
+            return [lum(pageBg), 1, ratio];
+        }");
+        Assert.That(m[0], Is.LessThan(0.25), "the auth surface must be dark without body tokens");
+        if (m[1] > 0)
+        {
+            Assert.That(m[2], Is.GreaterThanOrEqualTo(3),
+                "ghost provider text must stay legible against the card");
+        }
+    }
+
+    [Test]
     public async Task ConnectAppUsesTheSameNightCard()
     {
         TestAuthHandler.IsAuthenticated = true;
