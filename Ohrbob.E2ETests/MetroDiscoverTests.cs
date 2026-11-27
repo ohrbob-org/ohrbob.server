@@ -110,7 +110,7 @@ public class MetroDiscoverTests : PageTest
 
         await Expect(Page.Locator(".page-head .metro-kicker")).ToHaveTextAsync("find something new");
         await Expect(Page.Locator(".page-head .metro-title")).ToHaveTextAsync("discover");
-        await Expect(Page.Locator(".page-head .metro-hint")).ToBeVisibleAsync();
+        await Expect(Page.Locator(".page-head .metro-hint")).ToHaveCountAsync(0);
 
         var m = await Page.EvaluateAsync<string[]>(@"() => {
             const input = document.querySelector('#discover-search');

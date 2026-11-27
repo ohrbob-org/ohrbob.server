@@ -49,6 +49,7 @@ public class StationSharingTests : PageTest
 
         await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{station.Id}");
         await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync();
+        await Page.ClickAsync("#shareMenuBtn");
         await Expect(Page.Locator("#shareVisibilitySelect")).ToHaveValueAsync("private");
 
         // The inline visibility dropdown persists immediately.
@@ -65,6 +66,7 @@ public class StationSharingTests : PageTest
         await Page.UncheckAsync("#isPublicInput");
         await Page.ClickAsync("#saveStationNameBtn");
         await Expect(Page.Locator("#renameStationModal")).ToBeHiddenAsync(new() { Timeout = 10000 });
+        await Page.ClickAsync("#shareMenuBtn");
         await Expect(Page.Locator("#shareVisibilitySelect")).ToHaveValueAsync("private");
 
         // Anonymous visitors see the read-only overview with exactly one Subscribe action.

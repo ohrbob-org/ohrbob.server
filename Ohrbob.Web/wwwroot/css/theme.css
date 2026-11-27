@@ -1,12 +1,5 @@
 @charset "UTF-8";
 @font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  src: url("../css/fonts/inter-var.woff2") format("woff2");
-}
-@font-face {
   font-family: "Sulphur Point";
   font-style: normal;
   font-weight: 400;
@@ -92,7 +85,7 @@
   --bs-dark-border-subtle: #adb5bd;
   --bs-white-rgb: 255, 255, 255;
   --bs-black-rgb: 0, 0, 0;
-  --bs-font-sans-serif: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --bs-font-sans-serif: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
   --bs-font-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --bs-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
   --bs-body-font-family: var(--bs-font-sans-serif);
@@ -11904,7 +11897,7 @@ textarea.form-control-lg {
   --metro-now-top-fade: linear-gradient(180deg, #ffffffd9 0%, #ffffff8c 55%, #ffffff00 100%);
   --metro-now-scrim: #ffffffe6;
   --metro-display: "Sulphur Point", sans-serif;
-  --metro-body: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --metro-body: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
   --metro-transition: 160ms ease;
   --metro-night-surface: #080d18cc;
   --metro-night-border: #ffffff26;

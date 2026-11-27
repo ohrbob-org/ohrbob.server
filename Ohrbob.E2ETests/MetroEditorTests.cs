@@ -462,6 +462,7 @@ public class MetroEditorTests : PageTest
     {
         await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{_stationId}");
         await Expect(Page.Locator("#renameStationModal")).ToHaveCountAsync(1, new() { Timeout = 15000 });
+        await Page.ClickAsync("#shareMenuBtn");
 
         var styles = await Page.EvaluateAsync<string[]>(@"() => {
             const editorTitle = getComputedStyle(document.querySelector('#renameStationModal .modal-title'));

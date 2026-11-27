@@ -793,6 +793,13 @@ button.profile-color-swatch.is-selected {
     background: var(--metro-orange);
 }
 
+/* Menus are raised white tiles, not the page canvas. */
+.dropdown-menu,
+.profile-menu {
+    background: var(--metro-tile);
+    color: var(--metro-ink);
+}
+
 .app-actions {
     display: flex;
     align-items: center;
@@ -1532,12 +1539,13 @@ body.with-player .app-toast-container {
     justify-content: space-between;
     gap: 16px 24px;
     padding: 0 0 26px;
-    margin-bottom: 26px;
+    margin-bottom: 0;
 }
 
 .page-head__text {
     position: relative;
     min-width: 0;
+    overflow-x: clip;
 }
 
 /* The kicker is the large lavender ghost line behind the page title. */
@@ -2164,6 +2172,99 @@ body.with-player .app-toast-container {
 
 .editor-pane {
     min-width: 0;
+}
+
+.editor-pane__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+    margin-bottom: 16px;
+}
+
+.editor-pane__head .editor-pane__title {
+    margin: 0;
+}
+
+.editor-pane__actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: auto;
+}
+
+.editor-top-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--metro-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: lowercase;
+    cursor: pointer;
+    transition: color var(--metro-transition), background-color var(--metro-transition);
+}
+
+.editor-top-action:hover,
+.editor-top-action:focus {
+    background: color-mix(in srgb, var(--metro-ink) 8%, transparent);
+    color: var(--metro-ink);
+}
+
+.editor-top-action .bi {
+    font-size: 14px;
+}
+
+.editor-share-popover {
+    width: min(340px, 90vw);
+    padding: 12px;
+}
+
+.editor-share-popover__label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--metro-muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: lowercase;
+}
+
+.editor-share-popover .editor-sharebar__field {
+    width: 100%;
+}
+
+.editor-share-popover__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.editor-share-popover__row .editor-sharebar__select {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.editor-share-popover__copy {
+    flex: 0 0 auto;
+    padding: 8px 10px;
+    background: var(--metro-orange);
+    color: var(--metro-on-accent);
+}
+
+.editor-share-popover__copy:hover,
+.editor-share-popover__copy:focus {
+    background: var(--metro-orange-soft);
+    color: var(--metro-navy);
 }
 
 .editor-pane__title {

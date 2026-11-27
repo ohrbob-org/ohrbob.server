@@ -666,3 +666,12 @@ over-corrected into solid rainbow footers. The references are the Avalonia app
 
 Functional density is unchanged: all counts, status labels, feed colours,
 play/edit affordances and hooks remain.
+
+## 17. Amendment (2026-11-27): system UI body type
+
+The body no longer bundles or references Inter. The Metro theme now uses the
+system UI stack (`Segoe UI`, `system-ui`, `-apple-system`, `Helvetica Neue`,
+Arial, sans-serif) for body and control text; Sulphur Point remains the display
+face. Dropdown menus use the raised tile surface (white in light mode, the dark
+tile in dark mode), and the editor feed actions (discover / share / more) sit in
+the pane header rather than below the feed list.

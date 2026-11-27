@@ -694,7 +694,7 @@ public class StationsEditTests : PageTest
         await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 10000 });
 
         // Discover stays a standalone primary action.
-        await Expect(Page.Locator("a.btn[href='/Discover']")).ToBeVisibleAsync();
+        await Expect(Page.Locator(".editor-top-action[href='/Discover']")).ToBeVisibleAsync();
 
         // Feed Url and Import OPML are menu items now, not standalone buttons.
         await Expect(Page.Locator("#stationMoreMenu #manualAddBtn.dropdown-item")).ToHaveCountAsync(1);

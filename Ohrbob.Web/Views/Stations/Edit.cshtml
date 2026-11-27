@@ -37,7 +37,50 @@
 
 <div class="tab-content editor-panes" id="stationTabsContent">
   <div class="tab-pane fade show active editor-pane" id="rotation" role="tabpanel">
-    <h3 class="editor-pane__title d-none d-lg-block">Podcasts</h3>
+    <div class="editor-pane__head">
+        <h3 class="editor-pane__title d-none d-lg-block">Podcasts</h3>
+        <div class="editor-pane__actions">
+            <a href="/Discover" class="editor-top-action" title="Discover podcasts">
+                <i class="bi bi-compass" aria-hidden="true"></i><span>discover</span>
+            </a>
+            <div class="dropdown">
+                <button type="button" class="editor-top-action" id="shareMenuBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-haspopup="true">
+                    <i class="bi bi-share" aria-hidden="true"></i><span>share</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end editor-share-popover" aria-labelledby="shareMenuBtn">
+                    <label class="editor-share-popover__label" for="shareStationUrl">station link</label>
+                    <input type="text" id="shareStationUrl" class="editor-sharebar__field"
+                           readonly value="@Url.Action("Index", "Share", new { code = Model.Station.ShareCode }, Context.Request.Scheme)" aria-label="Station share link" />
+                    <div class="editor-share-popover__row">
+                        <select id="shareVisibilitySelect" class="editor-sharebar__select" aria-label="Station visibility">
+                            <option value="public" selected="@(Model.Station.IsPublic)">public</option>
+                            <option value="private" selected="@(!Model.Station.IsPublic)">private</option>
+                        </select>
+                        <button type="button" class="editor-top-action editor-share-popover__copy" id="copyShareLinkBtn">
+                            <i class="bi bi-clipboard" aria-hidden="true"></i><span>copy</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="dropdown">
+                <button type="button" class="editor-top-action" id="stationMoreMenuBtn" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
+                    <i class="bi bi-three-dots" aria-hidden="true"></i><span>More</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" id="stationMoreMenu" aria-labelledby="stationMoreMenuBtn">
+                    <li>
+                        <button type="button" class="dropdown-item d-flex align-items-center" id="manualAddBtn">
+                            <i class="bi bi-plus-circle me-2"></i>Feed Url
+                        </button>
+                    </li>
+                    <li>
+                        <button type="button" class="dropdown-item d-flex align-items-center" id="importOpmlBtn">
+                            <i class="bi bi-file-earmark-arrow-up me-2"></i>Import OPML
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
     <div class="list-group" id="rotationContainer" data-station-id="@Model.Station.Id" style="max-width: 100%;">
         @{ var feedScheduleIndex = 0; }
         @foreach(var feedSchedule in Model.Station.Schedule.Feeds)
@@ -123,48 +166,6 @@
             }
         }
         
-        
-        <div class="editor-section-label">
-            Add more to Station
-        </div>
-        <div class="editor-add-actions">
-            <a href="/Discover" class="btn btn-primary d-inline-flex align-items-center">
-                <i class="bi bi-compass me-2"></i>Discover
-            </a>
-            <div class="dropdown">
-                <button type="button" class="btn btn-ghost editor-more-btn d-inline-flex align-items-center" id="stationMoreMenuBtn" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">
-                    <i class="bi bi-three-dots me-2"></i>More
-                </button>
-                <ul class="dropdown-menu" id="stationMoreMenu" aria-labelledby="stationMoreMenuBtn">
-                    <li>
-                        <button type="button" class="dropdown-item d-flex align-items-center" id="manualAddBtn">
-                            <i class="bi bi-plus-circle me-2"></i>Feed Url
-                        </button>
-                    </li>
-                    <li>
-                        <button type="button" class="dropdown-item d-flex align-items-center" id="importOpmlBtn">
-                            <i class="bi bi-file-earmark-arrow-up me-2"></i>Import OPML
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="editor-section-label">
-            Share Station
-        </div>
-        <div class="editor-sharebar">
-            <i class="bi bi-link-45deg editor-sharebar__icon" aria-hidden="true"></i>
-            <input type="text" id="shareStationUrl" class="editor-sharebar__field"
-                   readonly value="@Url.Action("Index", "Share", new { code = Model.Station.ShareCode }, Context.Request.Scheme)" aria-label="Station share link" />
-            <select id="shareVisibilitySelect" class="editor-sharebar__select" aria-label="Station visibility">
-                <option value="public" selected="@(Model.Station.IsPublic)">Public</option>
-                <option value="private" selected="@(!Model.Station.IsPublic)">Private</option>
-            </select>
-            <button type="button" class="btn btn-ghost editor-sharebar__copy" id="copyShareLinkBtn">
-                <i class="bi bi-clipboard me-1" aria-hidden="true"></i>Copy
-            </button>
-        </div>
         
     </div>
     
