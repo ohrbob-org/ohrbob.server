@@ -181,14 +181,15 @@ else
             </div>
         </section>
 
-        <div class="radio-landing-container" id="features">
+        <div class="radio-landing-container landing-tiles" id="features">
             @for (int i = 0; i < landingSteps.Length; i++)
             {
                 var isEven = i % 2 == 0;
                 var card = landingSteps[i].Card;
                 // The screenshot is optional: a step still renders as text until its image exists.
                 var hasCard = !string.IsNullOrEmpty(card) && System.IO.File.Exists(System.IO.Path.Combine(Env.WebRootPath ?? "", card));
-                <section class="radio-step @(isEven ? "step-left" : "step-right")" aria-labelledby="feature-title-@i">
+                var isWide = i == 0 || i == landingSteps.Length - 1;
+                <section class="radio-step landing-tile @(isWide ? "landing-tile--wide" : "") @(isEven ? "step-left" : "step-right")" aria-labelledby="feature-title-@i">
                     <div class="step-content @(hasCard ? "" : "text-only")">
                         <div class="step-text-box">
                             <span class="step-index" aria-hidden="true">@((i + 1).ToString("00"))</span>
@@ -203,7 +204,7 @@ else
                         {
                             <div class="step-card-box">
                                 <div class="screenshot-card">
-                                    <img src="@Url.Content($"~/{card}")" asp-append-version="true" loading="lazy" decoding="async" alt="Screenshot: @landingSteps[i].Title" />
+                                    <img src="@Url.Content($"~/{card}")" asp-append-version="true" decoding="async" alt="Screenshot: @landingSteps[i].Title" />
                                 </div>
                             </div>
                         }

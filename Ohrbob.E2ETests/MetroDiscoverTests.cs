@@ -91,12 +91,16 @@ public class MetroDiscoverTests : PageTest
             const add = c && c.querySelector('.card-feed-add');
             return [s.borderBottomLeftRadius, s.borderBottomWidth,
                     parseFloat(getComputedStyle(c).borderRadius).toString(),
-                    add ? parseFloat(getComputedStyle(add).width).toString() : '0'];
+                    add ? parseFloat(getComputedStyle(add).width).toString() : '0',
+                    getComputedStyle(c).borderTopWidth,
+                    getComputedStyle(c).backgroundColor];
         }");
         Assert.That(m[0], Is.EqualTo("0px"), "the search field is square");
         Assert.That(m[1], Is.EqualTo("2px"), "the search field sits on a 2 px rule");
         Assert.That(m[2], Is.EqualTo("0"), "feed cards are square");
         Assert.That(double.Parse(m[3]), Is.GreaterThanOrEqualTo(44), "the add square is at least 44 px");
+        Assert.That(m[4], Is.EqualTo("0px"), "feed cards have no border");
+        Assert.That(m[5], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "feed cards are solid colour tiles");
     }
 
     [Test]
@@ -172,7 +176,8 @@ public class MetroDiscoverTests : PageTest
             return [add.opacity, add.backgroundColor, overlay.visibility];
         }", _seededFeed.Title);
         Assert.That(hidden[0], Is.EqualTo("0"), "the add square waits for hover or focus");
-        Assert.That(hidden[1], Does.Match("rgb\\(252, 93, 0\\)"), "the add square is Metro orange");
+        Assert.That(hidden[1], Does.Match("rgb\\((252, 93, 0|0, 25, 87|84, 79, 244|253, 178, 0)\\)"),
+            "the add square uses one of the tile contrast colours");
         Assert.That(hidden[2], Is.EqualTo("hidden"), "the details overlay is closed by default");
 
         await card.HoverAsync();
@@ -270,7 +275,7 @@ public class MetroDiscoverTests : PageTest
     }
 
     [Test]
-    public async Task Discover_CategoryChipsAreHairlineSquares()
+    public async Task Discover_CategoryChipsAreColorTiles()
     {
         await Page.GotoAsync($"{_factory.ServerAddress}/Discover");
 
@@ -279,23 +284,22 @@ public class MetroDiscoverTests : PageTest
 
         var m = await chip.EvaluateAsync<string[]>(@"el => {
             const s = getComputedStyle(el);
-            return [s.borderRadius, s.borderTopWidth, s.borderTopColor,
-                    s.textTransform, s.fontSize, s.fontWeight, s.backgroundColor];
+            return [s.borderRadius, s.borderTopWidth, s.backgroundColor,
+                    s.textTransform, s.fontSize, s.fontWeight, s.minHeight];
         }");
         Assert.That(m[0], Is.EqualTo("0px"), "chips are square");
-        Assert.That(m[1], Is.EqualTo("1px"), "chips have a hairline");
-        Assert.That(m[2], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "the hairline is visible");
+        Assert.That(m[1], Is.EqualTo("0px"), "chips have no hairline");
+        Assert.That(m[2], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "chips are solid colour tiles");
         Assert.That(m[3], Is.EqualTo("uppercase"));
         Assert.That(m[4], Is.EqualTo("11px"), "chips use the 11 px label size");
         Assert.That(m[5], Is.EqualTo("700"));
-        Assert.That(m[6], Is.EqualTo("rgba(0, 0, 0, 0)"), "chips are flat until hovered");
+        Assert.That(m[6], Is.EqualTo("44px"), "chips meet the touch minimum");
 
         await chip.FocusAsync();
         await Page.WaitForTimeoutAsync(250);
-        var focus = await chip.EvaluateAsync<string[]>(
-            "el => { const s = getComputedStyle(el); return [s.backgroundColor, s.color]; }");
-        Assert.That(focus[0], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "focus fills the chip with ink");
-        Assert.That(focus[1], Is.EqualTo("rgb(244, 241, 234)"), "the focused chip prints in canvas colour");
+        var focusOutline = await chip.EvaluateAsync<string>(
+            "el => getComputedStyle(el).outlineWidth");
+        Assert.That(focusOutline, Is.EqualTo("2px"), "keyboard focus stays visible on the tile");
     }
 
     [Test]
@@ -320,9 +324,10 @@ public class MetroDiscoverTests : PageTest
         }");
         Assert.That(m[0], Is.EqualTo("grid"), "results sit on a Metro grid");
         Assert.That(m[2], Is.EqualTo("0px"), "result cards are square");
-        Assert.That(m[3], Is.EqualTo("18px"), "result titles use the 18 px card title");
-        Assert.That(m[4], Is.EqualTo("uppercase"), "the results heading is uppercase");
-        Assert.That(m[5], Is.EqualTo("11px"), "the results heading uses the lane label size");
+        Assert.That(m[3], Is.EqualTo("20px"), "result titles use the larger tile title");
+        Assert.That(m[4], Is.EqualTo("none"), "the results heading is set in display type");
+        Assert.That(double.Parse(m[5].Replace("px", string.Empty), System.Globalization.CultureInfo.InvariantCulture),
+            Is.GreaterThanOrEqualTo(24), "the results heading is a section title");
     }
 
     [Test]

@@ -613,3 +613,24 @@ document.addEventListener('click', function (e) {
     var link = body && body.querySelector('.card-station-title a');
     if (link) link.click();
 });
+
+// Discover: hide the recommendation shelves as soon as the search box has text.
+// Delegated from the layout (which survives boosted swaps) so this still works
+// when the view's own script runs after the user has already typed.
+(function () {
+    function syncDiscoverLanes(target) {
+        if (!target || target.id !== 'discover-search') return;
+        var lanes = document.getElementById('recommendation-lanes');
+        if (lanes) lanes.classList.toggle('d-none', target.value.trim().length > 0);
+    }
+
+    document.addEventListener('input', function (event) {
+        syncDiscoverLanes(event.target);
+    });
+    document.addEventListener('search', function (event) {
+        syncDiscoverLanes(event.target);
+    }, true);
+    document.addEventListener('htmx:afterSettle', function () {
+        syncDiscoverLanes(document.getElementById('discover-search'));
+    });
+})();

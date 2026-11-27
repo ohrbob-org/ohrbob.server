@@ -639,3 +639,30 @@ Web repo:
    to the kit once they stabilise, so other clients can reuse them.
 3. Optional: a `theme.css` checksum/version comment in the applied file to make
    drift obvious.
+
+## 16. Amendment (2026-11-27): colour tiles over hairline rules
+
+The first implementation leaned on hairline borders and horizontal rules to
+separate sections. The revised direction uses Metro's colour tiles and
+typography instead:
+
+- **Landing**: the six feature steps are now one grid of solid colour tiles
+  (orange, violet, navy, yellow, paper, orange) with large index numerals,
+  display headings and whitespace. The first and last tiles span the grid.
+  Screenshots are borderless and sit inside the tile. The tier comparison is a
+  pale-yellow panel with a solid morebob column and no row rules.
+- **Discover**: lane shelves have no baseline rules; a 46×8 colour marker plus a
+  large Sulphur lane title carries the hierarchy. Feed cards have no border and
+  use solid colour bodies cycling through orange, violet, navy and yellow.
+  Category chips are solid colour tiles rather than hairline outlines. Search
+  remains a single underline field.
+- **Listen**: station tiles split into a mosaic/cover area and a solid colour
+  footer (orange, violet, navy, yellow cycling). The title, count and status
+  chips use the tile's contrast pair; the play button is a high-contrast square
+  on the artwork. The add tile and empty state are solid violet panels.
+- **Shell**: the app bar and page heads lose their bottom hairlines; spacing and
+  typography separate regions instead.
+
+Functional density is unchanged: all counts, status labels, feed colours,
+play/edit affordances and hooks remain. The emphasis is on larger gutters,
+solid colour blocks and display typography rather than outlines.

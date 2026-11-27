@@ -88,6 +88,29 @@ public class LandingPageTests : PageTest
     }
 
     [Test]
+    public async Task LandingPage_FeatureTilesAreColorBlocks()
+    {
+        _factory.CreateClient();
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        await Expect(Page.Locator(".landing-tiles > .landing-tile")).ToHaveCountAsync(6);
+
+        var tiles = await Page.EvaluateAsync<string[]>(@"() => {
+            const tiles = Array.from(document.querySelectorAll('.landing-tiles > .landing-tile'));
+            const backgrounds = tiles.map(t => getComputedStyle(t).backgroundColor);
+            const borders = tiles.map(t => getComputedStyle(t).borderTopWidth);
+            return [...backgrounds, ...borders];
+        }");
+        var backgrounds = tiles.Take(6).ToArray();
+        Assert.That(backgrounds.Distinct().Count(), Is.GreaterThanOrEqualTo(4),
+            "the feature tiles cycle through the brand colours");
+        Assert.That(backgrounds, Has.None.EqualTo("rgba(0, 0, 0, 0)"),
+            "every feature tile is a solid colour block");
+        Assert.That(tiles.Skip(6).ToArray(), Has.All.EqualTo("0px"),
+            "feature tiles have no hairline borders");
+    }
+
+    [Test]
     public async Task LandingPage_StaysDarkAcrossBoostedNavigation()
     {
         _factory.CreateClient();

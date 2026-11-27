@@ -297,7 +297,7 @@ public class NavigationTests : PageTest
     [Test]
     public async Task ShortPage_HasNoPageScrollbarOnDesktop()
     {
-        await Page.SetViewportSizeAsync(1440, 900);
+        await Page.SetViewportSizeAsync(1440, 1200);
         await Page.GotoAsync(_factory.ServerAddress);
 
         var m = await Page.EvaluateAsync<int[]>(@"() => [
