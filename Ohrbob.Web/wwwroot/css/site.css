@@ -4973,7 +4973,7 @@ body:not(.metro-night) .onboarding-page.metro-night {
 
 [data-bs-theme="dark"] .editorial .ohrbob-logo-text .char-1,
 [data-bs-theme="dark"] .editorial .ohrbob-logo-text .char-4 {
-    color: #a9a6ff;
+    color: color-mix(in srgb, var(--metro-violet) 55%, var(--metro-night-text));
 }
 
 [data-bs-theme="dark"] .editorial .ohrbob-logo-text .char-2,

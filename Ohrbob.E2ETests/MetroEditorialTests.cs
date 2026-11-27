@@ -99,6 +99,8 @@ public class MetroEditorialTests : PageTest
         foreach (var path in EditorialPaths.Concat(ErrorPaths))
         {
             await Page.GotoAsync(_factory.ServerAddress + path);
+            await Expect(Page.Locator("html")).ToHaveAttributeAsync(
+                "data-bs-theme", "dark", new() { Timeout = 5000 });
             ContrastChecks.AssertNoIssues(
                 await Page.EvaluateAsync<string[]>(ContrastChecks.Script), path);
         }

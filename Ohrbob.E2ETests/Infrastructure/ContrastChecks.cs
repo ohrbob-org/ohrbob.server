@@ -11,10 +11,13 @@ namespace Ohrbob.E2ETests.Infrastructure;
 public static class ContrastChecks
 {
     public const string Script = @"() => {
-        const parse = (rgb) => {
-            const m = rgb.match(/[\d.]+/g);
+        const parse = (value) => {
+            const m = value.match(/[\d.]+/g);
             if (!m) return { r: 0, g: 0, b: 0, a: 0 };
-            return { r: +m[0], g: +m[1], b: +m[2], a: m.length > 3 ? +m[3] : 1 };
+            // color-mix()/color() results can serialise as color(srgb 0.63 0.62 0.97);
+            // those channels are 0..1, unlike the 0..255 rgb()/rgba() form.
+            const scale = /^\s*color\(/.test(value) ? 255 : 1;
+            return { r: +m[0] * scale, g: +m[1] * scale, b: +m[2] * scale, a: m.length > 3 ? +m[3] : 1 };
         };
         const luma = (c) => (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b) / 255;
         const effectiveBg = (el) => {
