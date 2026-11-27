@@ -32,7 +32,7 @@ if [[ "${1:-}" == "--build" ]]; then
     dotnet build Ohrbob.E2ETests || exit 1
 fi
 
-results_dir="${E2E_RESULTS_DIR:-/tmp/ohrbob-e2e}"
+results_dir="${E2E_RESULTS_DIR:-/tmp/opencode/ohrbob-e2e}"
 mkdir -p "$results_dir"
 
 echo "==> shard 1/2: testcasts (serial)"
