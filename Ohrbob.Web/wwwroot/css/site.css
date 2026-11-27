@@ -69,6 +69,99 @@ body.with-player {
 }
 
 /* --------------------------------------------------------------------------
+   Player — the auto-play prompt. The transport deck and the expanded sheet are
+   owned by theme.css; site.css only tightens the sheet on phones.
+   -------------------------------------------------------------------------- */
+
+.metro-auto-start {
+    position: fixed;
+    right: 16px;
+    bottom: 112px;
+    z-index: 1090;
+    display: none;
+    width: min(320px, calc(100vw - 32px));
+    padding: 16px;
+    overflow: hidden;
+    border: 1px solid var(--metro-hairline);
+    border-radius: 0;
+    background: var(--metro-canvas);
+    color: var(--metro-ink);
+    box-shadow: none;
+}
+
+.metro-auto-start.show {
+    display: block;
+}
+
+.metro-auto-start .ohrbob-auto-start-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--metro-hairline);
+}
+
+.metro-auto-start .ohrbob-auto-start-bar-fill {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--metro-orange);
+}
+
+.metro-auto-start.show .ohrbob-auto-start-bar-fill {
+    animation: ohrbob-autostart-countdown var(--ohrbob-auto-start-duration, 5s) linear forwards;
+}
+
+@keyframes ohrbob-autostart-countdown {
+    from { width: 100%; }
+    to { width: 0; }
+}
+
+.metro-auto-start .ohrbob-auto-start-text {
+    margin: 0 0 12px;
+    color: var(--metro-ink);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1.4;
+    text-transform: uppercase;
+}
+
+.metro-auto-start .ohrbob-auto-start-count {
+    font-weight: 700;
+}
+
+.metro-auto-start .ohrbob-auto-start-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.metro-auto-start .ohrbob-auto-start-actions .btn {
+    border-radius: 0;
+}
+
+@media (max-width: 767.98px) {
+    .metro-auto-start {
+        right: 12px;
+        bottom: 92px;
+        width: min(320px, calc(100vw - 24px));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .audio-widget .audio-expanded-card .expanded-header {
+        padding: 12px 16px;
+    }
+
+    .audio-widget .audio-expanded-card .expanded-body {
+        gap: 16px;
+        padding: 16px;
+    }
+}
+
+/* --------------------------------------------------------------------------
    Profiles — square hairline cards, the colour picker and the profile forms
    -------------------------------------------------------------------------- */
 
