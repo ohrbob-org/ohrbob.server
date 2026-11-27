@@ -12434,6 +12434,12 @@ a:hover {
   background-color: var(--metro-orange);
 }
 
+/* Bootstrap's switch track is a pill, not a checkbox square. The extra
+   `.form-check` keeps this above the square rule for switch checkboxes. */
+.form-check.form-switch .form-check-input {
+  border-radius: 2em;
+}
+
 .form-range {
   accent-color: var(--metro-orange);
 }

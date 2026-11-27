@@ -231,17 +231,107 @@ public class MetroEditorTests : PageTest
         Assert.That(Px(episode[7]), Is.EqualTo(40), "play target");
         Assert.That(episode[8], Does.Match("rgb\\(252, 93, 0\\)"), "play square is orange");
 
-        // Spec 9: keep the small icons but expose a 44 px touch target.
-        var targets = await Page.EvaluateAsync<double[]>(@"() => {
-            const hit = (selector) => parseFloat(getComputedStyle(document.querySelector(selector), '::after').width);
-            return [hit('.episode-mini-btn'), hit('.episode-action-btn'),
-                    parseFloat(getComputedStyle(document.querySelector('.episode-mini-btn')).width),
-                    parseFloat(getComputedStyle(document.querySelector('.episode-action-btn')).width)];
+        // Spec 9: fine pointers keep the compact icons and must not rely on
+        // overlapping pseudo-element hit boxes that steal a neighbour's click.
+        var targets = await Page.EvaluateAsync<string[]>(@"() => {
+            const mini = document.querySelector('.episode-mini-btn');
+            const action = document.querySelector('.episode-action-btn');
+            const after = (el) => getComputedStyle(el, '::after').content;
+            return [getComputedStyle(mini).width, getComputedStyle(action).width,
+                    after(mini), after(action)];
         }");
-        Assert.That(targets[0], Is.GreaterThanOrEqualTo(44), "mini playhead buttons get a 44 px hit box");
-        Assert.That(targets[1], Is.GreaterThanOrEqualTo(44), "episode action buttons get a 44 px hit box");
-        Assert.That(targets[2], Is.EqualTo(26), "the mini icon stays 26 px");
-        Assert.That(targets[3], Is.EqualTo(28), "the action icon stays 28 px");
+        Assert.That(targets[0], Is.EqualTo("26px"), "the mini icon stays 26 px on fine pointers");
+        Assert.That(targets[1], Is.EqualTo("28px"), "the action icon stays 28 px on fine pointers");
+        Assert.That(targets[2], Is.EqualTo("none"), "mini controls have no overlapping ::after hit box");
+        Assert.That(targets[3], Is.EqualTo("none"), "action controls have no overlapping ::after hit box");
+    }
+
+    [Test]
+    public async Task EditorEpisodeControlsAreSeparateTouchTargets()
+    {
+        await using var context = await Browser.NewContextAsync(new()
+        {
+            IgnoreHTTPSErrors = true,
+            HasTouch = true,
+            IsMobile = true,
+            ViewportSize = new ViewportSize { Width = 390, Height = 844 }
+        });
+        var page = await context.NewPageAsync();
+        var requests = new List<string>();
+        page.Request += (_, request) => requests.Add(request.Url);
+
+        await page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{_stationId}");
+        await page.ClickAsync("#resolved-tab");
+        await Expect(page.Locator("#resolvedList .card-episode .episode-mini-btn").First)
+            .ToBeVisibleAsync(new() { Timeout = 15000 });
+
+        static double OverlapArea(double[] a, double[] b)
+        {
+            var width = Math.Min(a[2], b[2]) - Math.Max(a[0], b[0]);
+            var height = Math.Min(a[3], b[3]) - Math.Max(a[1], b[1]);
+            return Math.Max(0, width) * Math.Max(0, height);
+        }
+
+        static void AssertTouchTargets(double[][] boxes, string label)
+        {
+            Assert.That(boxes, Has.Length.EqualTo(2), $"{label} pair");
+            foreach (var box in boxes)
+            {
+                Assert.That(box[4], Is.GreaterThanOrEqualTo(44), $"{label} width");
+                Assert.That(box[5], Is.GreaterThanOrEqualTo(44), $"{label} height");
+            }
+            Assert.That(OverlapArea(boxes[0], boxes[1]), Is.EqualTo(0),
+                $"{label} buttons must not overlap");
+            var span = Math.Max(boxes[0][2], boxes[1][2]) - Math.Min(boxes[0][0], boxes[1][0]);
+            Assert.That(span, Is.LessThanOrEqualTo(88 + 0.5), $"{label} pair stays at most 88 px wide");
+        }
+
+        var miniBoxes = await page.EvaluateAsync<double[][]>(@"() => {
+            const row = document.querySelector('#resolvedList .card-episode');
+            row.scrollIntoView({ block: 'center', behavior: 'instant' });
+            const rect = (el) => {
+                const r = el.getBoundingClientRect();
+                return [r.left, r.top, r.right, r.bottom, r.width, r.height];
+            };
+            return Array.from(row.querySelectorAll('.episode-mini-btn')).map(rect);
+        }");
+        AssertTouchTargets(miniBoxes, "playhead");
+
+        // The outer right edge of reset must hit reset, not the set button.
+        requests.Clear();
+        await page.Mouse.ClickAsync((float)(miniBoxes[0][0] + miniBoxes[0][4] - 2), (float)(miniBoxes[0][1] + miniBoxes[0][5] / 2));
+        await page.WaitForTimeoutAsync(500);
+        await Expect(page.Locator("#setPlayheadModal")).Not.ToBeVisibleAsync();
+        Assert.That(requests, Has.Some.Contains("/Stations/SetPlayhead"),
+            "the reset button handled the edge click");
+        Assert.That(await page.Locator("#setPlayheadModal.show").CountAsync(), Is.EqualTo(0),
+            "the set-playhead modal must not open from the reset button's edge");
+
+        await Expect(page.Locator("#resolvedList .mark-completed-btn").First)
+            .ToBeVisibleAsync(new() { Timeout = 15000 });
+        var actionBoxes = await page.EvaluateAsync<double[][]>(@"() => {
+            const row = Array.from(document.querySelectorAll('#resolvedList .card-episode'))
+                .find((r) => r.querySelector('.mark-completed-btn'));
+            row.scrollIntoView({ block: 'center', behavior: 'instant' });
+            const rect = (el) => {
+                const r = el.getBoundingClientRect();
+                return [r.left, r.top, r.right, r.bottom, r.width, r.height];
+            };
+            return Array.from(row.querySelectorAll('.episode-action-btn')).map(rect);
+        }");
+        AssertTouchTargets(actionBoxes, "action");
+
+        // The bottom edge of mark-completed must not fall into mark-all-until.
+        requests.Clear();
+        await page.Mouse.ClickAsync((float)(actionBoxes[0][0] + actionBoxes[0][4] / 2), (float)(actionBoxes[0][1] + actionBoxes[0][5] - 2));
+        await page.WaitForTimeoutAsync(500);
+        await Expect(page.Locator("#confirmMarkCompletedUntilModal")).Not.ToBeVisibleAsync();
+        Assert.That(await page.Locator("#confirmMarkCompletedUntilModal.show").CountAsync(), Is.EqualTo(0),
+            "the mark-all modal must not open from the mark button's edge");
+        Assert.That(requests, Has.Some.Contains("/Stations/MarkCompleted?"),
+            "the single mark button handled the edge click");
+        Assert.That(requests, Has.None.Contains("/Stations/MarkCompletedUntil"),
+            "the mark-all-until handler must not fire");
     }
 
     [Test]

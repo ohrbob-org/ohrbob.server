@@ -175,14 +175,18 @@ public class MetroListenTests : PageTest
         var m = await Page.EvaluateAsync<string[]>(@"() => {
             const title = getComputedStyle(document.querySelector('.listen-empty__title'));
             const hint = getComputedStyle(document.querySelector('.listen-empty__hint'));
-            const cta = getComputedStyle(document.querySelector('.listen-empty__cta'));
-            return [title.fontFamily, title.fontSize, hint.color, cta.backgroundColor, cta.borderRadius];
+            const ctaEl = document.querySelector('.listen-empty__cta');
+            const cta = getComputedStyle(ctaEl);
+            return [title.fontFamily, title.fontSize, hint.color, cta.backgroundColor, cta.borderRadius,
+                    ctaEl.getBoundingClientRect().height.toString()];
         }");
         Assert.That(m[0], Does.Contain("Sulphur"), "the empty title uses the display face");
         Assert.That(m[1], Is.Not.EqualTo("0px"), "the empty title is rendered");
         Assert.That(m[2], Is.EqualTo("rgb(104, 100, 92)"), "the hint is muted");
         Assert.That(m[3], Is.EqualTo("rgb(252, 93, 0)"), "the empty-state CTA is orange");
         Assert.That(m[4], Is.EqualTo("0px"), "the empty-state CTA is square");
+        Assert.That(double.Parse(m[5], System.Globalization.CultureInfo.InvariantCulture),
+            Is.GreaterThanOrEqualTo(44), "the empty-state CTA is a 44 px touch target");
     }
 
     [Test]

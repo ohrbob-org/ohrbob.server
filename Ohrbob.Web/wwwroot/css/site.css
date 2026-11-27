@@ -1669,7 +1669,9 @@ body.with-player .app-toast-container {
 .listen-empty__cta {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
+    min-height: 44px;
     margin-top: 8px;
     padding: 12px 16px;
     border-radius: 0;
@@ -2147,7 +2149,6 @@ body.with-player .app-toast-container {
 }
 
 .episode-mini-btn {
-    position: relative;
     display: grid;
     place-items: center;
     width: 26px;
@@ -2167,16 +2168,8 @@ body.with-player .app-toast-container {
     color: var(--metro-ink);
 }
 
-/* Keep the 26 px icon but give it a 44 px touch target (spec 9). */
-.episode-mini-btn::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 44px;
-    height: 44px;
-    transform: translate(-50%, -50%);
-}
+/* Fine pointers keep the compact 26 px icon. Touch targets are widened in
+   the coarse-pointer block below rather than with overlapping ::after boxes. */
 
 .episode-row-actions {
     display: flex;
@@ -2194,7 +2187,6 @@ body.with-player .app-toast-container {
 }
 
 .episode-action-btn {
-    position: relative;
     display: grid;
     place-items: center;
     width: 28px;
@@ -2214,15 +2206,29 @@ body.with-player .app-toast-container {
     color: var(--metro-orange);
 }
 
-/* Keep the 28 px icon but give it a 44 px touch target (spec 9). */
-.episode-action-btn::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 44px;
-    height: 44px;
-    transform: translate(-50%, -50%);
+/* Touch devices get real 44 px targets. The pair gap collapses so each
+   two-button group stays at or below 88 px wide/high, and the row grows
+   vertically instead of the hit areas overlapping. */
+@media (hover: none), (pointer: coarse) {
+    .episode-playhead-actions {
+        gap: 0;
+    }
+
+    .episode-mini-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 14px;
+    }
+
+    .episode-actions {
+        gap: 0;
+    }
+
+    .episode-action-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 14px;
+    }
 }
 
 /* Add / share area in the rotation pane. */
