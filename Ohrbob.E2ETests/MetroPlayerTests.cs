@@ -298,6 +298,10 @@ public class MetroPlayerTests : PageTest
             const w = document.getElementById('ohrbob-player');
             return !!w && !!(w.getAttribute('next-episode') || w.getAttribute('prev-episode'));
         }", null, new() { Timeout = 20000 });
+        // The sync id is assigned by player-integration after load; wait for it so the
+        // clear below cannot silently no-op and let the 5 s refresh overwrite the pinned cards.
+        await Page.WaitForFunctionAsync("() => !!window._ohrbobSyncInterval", null,
+            new() { Timeout = 10000 });
         await Page.EvaluateAsync(@"() => {
             if (window._ohrbobSyncInterval) clearInterval(window._ohrbobSyncInterval);
             const w = document.getElementById('ohrbob-player');
