@@ -38,7 +38,7 @@
 <div class="tab-content editor-panes" id="stationTabsContent">
   <div class="tab-pane fade show active editor-pane" id="rotation" role="tabpanel">
     <h3 class="editor-pane__title d-none d-lg-block">Podcasts</h3>
-    <div class="list-group py-3" id="rotationContainer" data-station-id="@Model.Station.Id" style="max-width: 100%;">
+    <div class="list-group" id="rotationContainer" data-station-id="@Model.Station.Id" style="max-width: 100%;">
         @{ var feedScheduleIndex = 0; }
         @foreach(var feedSchedule in Model.Station.Schedule.Feeds)
         {

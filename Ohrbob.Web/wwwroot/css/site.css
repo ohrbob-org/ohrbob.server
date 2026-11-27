@@ -2194,6 +2194,10 @@ body.with-player .app-toast-container {
     border-left: 4px solid var(--card-episode-accent);
 }
 
+#resolvedList .card-episode:last-child {
+    margin-bottom: 0;
+}
+
 #resolvedList .card-episode::before {
     display: none;
 }
@@ -2498,11 +2502,16 @@ body.with-player .app-toast-container {
         "top"
         "bottom";
     gap: 8px;
+    margin-bottom: 8px;
     padding: 12px 14px;
     border: 0;
     border-left: 4px solid color-mix(in srgb, var(--card-episode-accent) 62%, var(--card-episode-ink));
     background: var(--card-episode-accent);
     color: var(--card-episode-ink);
+}
+
+#resolvedList .card-episode:last-child {
+    margin-bottom: 0;
 }
 
 #resolvedList .card-episode::before {

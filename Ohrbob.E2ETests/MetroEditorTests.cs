@@ -125,7 +125,8 @@ public class MetroEditorTests : PageTest
                 .map(e => ({ h: e.getBoundingClientRect().height,
                              border: parseFloat(getComputedStyle(e).borderTopWidth),
                              left: parseFloat(getComputedStyle(e).borderLeftWidth),
-                             body: e.querySelector('.card-episode-body').getBoundingClientRect().width }));
+                             body: e.querySelector('.card-episode-body').getBoundingClientRect().width,
+                             mb: parseFloat(getComputedStyle(e).marginBottom) }));
             return JSON.stringify({ titles, rows });
         }");
         using var doc = System.Text.Json.JsonDocument.Parse(json);
@@ -143,6 +144,7 @@ public class MetroEditorTests : PageTest
             Border = r.GetProperty("border").GetDouble(),
             Left = r.GetProperty("left").GetDouble(),
             Body = r.GetProperty("body").GetDouble(),
+            Margin = r.GetProperty("mb").GetDouble(),
         }).ToArray();
         Assert.That(rows, Is.Not.Empty, "the playlist has episodes to measure");
         Assert.That(rows.Select(r => r.Height), Has.All.GreaterThanOrEqualTo(58),
@@ -153,6 +155,8 @@ public class MetroEditorTests : PageTest
             "each row carries a full-height 4 px feed border");
         Assert.That(rows.Select(r => r.Body), Has.All.GreaterThan(200),
             "the episode text keeps the main column instead of collapsing");
+        Assert.That(rows.Take(rows.Length - 1).Select(r => r.Margin), Has.All.EqualTo(8),
+            "playlist entries use the same 8 px gap as the feed cards");
     }
 
     [Test]
