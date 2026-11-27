@@ -325,6 +325,12 @@ public class NavigationTests : PageTest
         await Expect(listen).ToHaveAttributeAsync("aria-current", "page");
         await Expect(discover).Not.ToHaveClassAsync(active);
 
+        await Page.WaitForTimeoutAsync(300);
+        var bar = await listen.EvaluateAsync<string[]>(
+            "el => { const s = getComputedStyle(el, '::after'); return [s.height, s.backgroundColor]; }");
+        Assert.That(bar[0], Is.EqualTo("5px"), "the active nav gets a thick bar");
+        Assert.That(bar[1], Does.Match("rgb\\(252, 93, 0\\)"), "the active bar is Metro orange");
+
         // The header is outside #main-content, so the highlight must follow the
         // htmx-boosted navigation instead of relying on a new page render.
         await discover.ClickAsync();
