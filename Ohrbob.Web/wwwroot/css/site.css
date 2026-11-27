@@ -704,6 +704,23 @@ button.profile-color-swatch.is-selected {
 .btn-check:checked + label .station-check-overlay {
     opacity: 1;
 }
+/* No grey hairlines anywhere in the web UI. Coloured feed bars, focus rings
+   and brand accents remain; this only removes the neutral 1 px rules. */
+:root,
+[data-bs-theme="dark"],
+.metro-night {
+    --metro-hairline: transparent;
+}
+
+/* Keep scrollbars usable even though their default colour is the hairline. */
+* {
+    scrollbar-color: var(--metro-muted) transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--metro-muted);
+}
+
 /* --------------------------------------------------------------------------
    Shell — flat Metro app bar, footer, profile menu, toasts
    -------------------------------------------------------------------------- */
@@ -2386,7 +2403,7 @@ body.with-player .app-toast-container {
 .episode-playhead-actions {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
+    gap: 0;
 }
 
 .episode-mini-btn {
@@ -2470,6 +2487,147 @@ body.with-player .app-toast-container {
         height: 44px;
         font-size: 14px;
     }
+}
+
+/* Episode tile: feed-colour background, cover top-left, meta + play on the
+   top row, description + completion actions on the second row. */
+#resolvedList .card-episode {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+        "top"
+        "bottom";
+    gap: 8px;
+    padding: 12px 14px;
+    border: 0;
+    border-left: 4px solid color-mix(in srgb, var(--card-episode-accent) 62%, var(--card-episode-ink));
+    background: var(--card-episode-accent);
+    color: var(--card-episode-ink);
+}
+
+#resolvedList .card-episode::before {
+    display: none;
+}
+
+#resolvedList .card-episode:hover,
+#resolvedList .card-episode.is-playing {
+    background: color-mix(in srgb, var(--card-episode-accent) 92%, var(--card-episode-ink));
+}
+
+.episode-top {
+    grid-area: top;
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr) 40px;
+    gap: 12px;
+    align-items: start;
+}
+
+.episode-top > .card-episode-cover,
+.episode-top > .card-episode-badge {
+    grid-column: 1;
+    width: 58px;
+    height: 58px;
+}
+
+.episode-top .card-episode-body {
+    grid-column: 2;
+    min-width: 0;
+}
+
+.episode-top .card-episode-play {
+    grid-column: 3;
+    align-self: start;
+}
+
+#resolvedList .card-episode-badge {
+    background: color-mix(in srgb, var(--card-episode-ink) 10%, transparent);
+    color: var(--card-episode-ink);
+}
+
+#resolvedList .card-episode-title,
+#resolvedList .card-episode-title a {
+    color: var(--card-episode-ink);
+}
+
+#resolvedList .card-episode-title strong {
+    font-weight: 600;
+}
+
+#resolvedList .card-episode-artist,
+#resolvedList .card-episode-date {
+    color: color-mix(in srgb, var(--card-episode-ink) 72%, transparent);
+}
+
+#resolvedList .card-episode-play {
+    background: var(--card-episode-ink);
+    color: var(--card-episode-accent);
+}
+
+#resolvedList .card-episode-play:hover {
+    background: color-mix(in srgb, var(--card-episode-ink) 82%, var(--card-episode-accent));
+}
+
+.episode-bottom {
+    grid-area: bottom;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 10px 12px;
+}
+
+.episode-bottom .episode-description {
+    flex: 1 1 240px;
+    margin: 0;
+    color: color-mix(in srgb, var(--card-episode-ink) 80%, transparent);
+}
+
+.episode-bottom-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+}
+
+.episode-position-label {
+    color: color-mix(in srgb, var(--card-episode-ink) 70%, transparent);
+    white-space: nowrap;
+}
+
+#resolvedList .episode-mini-btn {
+    color: color-mix(in srgb, var(--card-episode-ink) 80%, transparent);
+}
+
+#resolvedList .episode-mini-btn:hover,
+#resolvedList .episode-mini-btn:focus-visible {
+    border-color: color-mix(in srgb, var(--card-episode-ink) 40%, transparent);
+    background: color-mix(in srgb, var(--card-episode-ink) 10%, transparent);
+    color: var(--card-episode-ink);
+}
+
+#resolvedList .episode-actions {
+    flex-direction: row;
+    gap: 0;
+}
+
+#resolvedList .episode-action-btn {
+    background: transparent;
+    border-color: color-mix(in srgb, var(--card-episode-ink) 40%, transparent);
+    color: var(--card-episode-ink);
+}
+
+#resolvedList .episode-action-btn:hover,
+#resolvedList .episode-action-btn:focus-visible {
+    border-color: var(--card-episode-ink);
+    background: color-mix(in srgb, var(--card-episode-ink) 10%, transparent);
+    color: var(--card-episode-ink);
+}
+
+#resolvedList .card-episode.is-played {
+    opacity: 0.68;
+}
+
+#resolvedList .card-episode.is-played .card-episode-title {
+    color: color-mix(in srgb, var(--card-episode-ink) 75%, transparent);
 }
 
 /* Add / share area in the rotation pane. */

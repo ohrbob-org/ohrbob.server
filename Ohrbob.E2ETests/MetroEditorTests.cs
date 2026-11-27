@@ -156,13 +156,13 @@ public class MetroEditorTests : PageTest
     }
 
     [Test]
-    public async Task EditorHeaderOffersABackLinkToStations()
+    public async Task EditorHeaderOffersABackLinkToListen()
     {
         await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{_stationId}");
         var back = Page.Locator("#dockable-header .editor-back-btn");
         await Expect(back).ToBeVisibleAsync(new() { Timeout = 15000 });
-        Assert.That(await back.GetAttributeAsync("href"), Is.EqualTo("/Stations"));
-        Assert.That(await back.GetAttributeAsync("aria-label"), Is.EqualTo("Back to stations"));
+        Assert.That(await back.GetAttributeAsync("href"), Is.EqualTo("/"));
+        Assert.That(await back.GetAttributeAsync("aria-label"), Is.EqualTo("Back to listen"));
 
         // The gear sits between the back arrow and the station title.
         var gear = Page.Locator("#dockable-header #renameStationBtn");
@@ -175,8 +175,8 @@ public class MetroEditorTests : PageTest
         Assert.That(order[1], Is.LessThan(order[2]), "the title follows the gear");
 
         await back.ClickAsync();
-        await Page.WaitForURLAsync("**/Stations", new() { Timeout = 15000 });
-        await Expect(Page.Locator(".page-head .metro-title")).ToContainTextAsync("stations");
+        await Page.WaitForURLAsync(new System.Text.RegularExpressions.Regex("/$"), new() { Timeout = 15000 });
+        await Expect(Page.Locator(".page-head .metro-title")).ToContainTextAsync("listen");
     }
 
     [Test]
@@ -184,11 +184,18 @@ public class MetroEditorTests : PageTest
     {
         await Page.GotoAsync($"{_factory.ServerAddress}/Stations/Edit/{_stationId}");
         var feed = await Page.EvaluateAsync<string[]>(
-            @"() => { const s = getComputedStyle(document.querySelector('.card-station-feed'));
-                     return [s.borderLeftWidth, s.borderTopWidth, s.backgroundColor]; }");
+            @"() => { const el = document.querySelector('.card-station-feed');
+                     const s = getComputedStyle(el);
+                     const accent = getComputedStyle(el).getPropertyValue('--station-feed-accent').trim();
+                     const probe = document.createElement('span');
+                     probe.style.backgroundColor = accent;
+                     document.body.appendChild(probe);
+                     const expected = getComputedStyle(probe).backgroundColor;
+                     probe.remove();
+                     return [s.borderLeftWidth, s.borderTopWidth, s.backgroundColor, expected]; }");
         Assert.That(feed[0], Is.EqualTo("4px"), "the feed bar stays 4 px");
         Assert.That(feed[1], Is.EqualTo("0px"), "feed cards have no outline");
-        Assert.That(feed[2], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "feed cards are filled with the feed colour");
+        Assert.That(feed[2], Is.EqualTo(feed[3]), "feed cards are filled with the feed colour");
 
         var placeholder = await Page.EvaluateAsync<string[]>(@"() => {
             const el = document.querySelector('.card-station-feed-cover-empty');
@@ -237,7 +244,7 @@ public class MetroEditorTests : PageTest
             document.body.appendChild(probe);
             const expected = getComputedStyle(probe).backgroundColor;
             probe.remove();
-            return [getComputedStyle(el).borderLeftColor,
+            return [getComputedStyle(el).backgroundColor,
                     expected,
                     el.getAttribute('style') || ''];
         }");
@@ -293,7 +300,8 @@ public class MetroEditorTests : PageTest
                     bar,
                     playStyle.width,
                     playStyle.height,
-                    playStyle.backgroundColor];
+                    playStyle.backgroundColor,
+                    getComputedStyle(row).backgroundColor];
         }");
         static double Px(string value) => double.Parse(value.Replace("px", ""), System.Globalization.CultureInfo.InvariantCulture);
         Assert.That(Px(episode[0]), Is.EqualTo(58), "episode cover");
@@ -304,7 +312,8 @@ public class MetroEditorTests : PageTest
         Assert.That(Px(episode[5]), Is.EqualTo(4), "episode feed bar");
         Assert.That(Px(episode[6]), Is.EqualTo(40), "play target");
         Assert.That(Px(episode[7]), Is.EqualTo(40), "play target");
-        Assert.That(episode[8], Does.Match("rgb\\(252, 93, 0\\)"), "play square is orange");
+        Assert.That(episode[8], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "play square is filled");
+        Assert.That(episode[8], Is.Not.EqualTo(episode[9]), "play square contrasts with the feed tile");
 
         // Spec 9: fine pointers keep the compact icons and must not rely on
         // overlapping pseudo-element hit boxes that steal a neighbour's click.

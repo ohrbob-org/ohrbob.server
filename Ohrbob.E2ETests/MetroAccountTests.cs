@@ -218,7 +218,7 @@ public class MetroAccountTests : PageTest
                     getComputedStyle(panel).borderRadius];
         }");
         Assert.That(m[0], Is.EqualTo("1px"), "panels are hairline-separated");
-        Assert.That(m[1], Is.EqualTo("rgb(216, 210, 197)"), "the rule uses the hairline colour");
+        Assert.That(m[1], Is.EqualTo("rgba(0, 0, 0, 0)"), "the hairline is gone");
         Assert.That(m[2], Does.Contain("Sulphur"), "panel titles use the display face");
         Assert.That(m[3], Is.EqualTo("1px"), "table rows have a hairline rule");
         Assert.That(m[4], Is.EqualTo("lowercase"), "row labels are lowercase");

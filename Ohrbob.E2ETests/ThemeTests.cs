@@ -270,11 +270,9 @@ public class ThemeTests : PageTest
             .ToHaveCountAsync(1, new() { Timeout = 15000 });
     }
 
-    /// <summary>The station editor's episode rows keep their feed-colour 4 px bar (Task 2's
-    /// always-on bar) on a surface that stays dark in dark mode, so neither the row nor the
-    /// bar glares.</summary>
+    /// <summary>The station editor's episode rows are feed-colour tiles, matching the feed card.</summary>
     [Test]
-    public async Task Theme_Dark_EpisodeRowsUseFeedColourOnADarkSurface()
+    public async Task Theme_EpisodeRowsUseTheirFeedColourBackground()
     {
         if (!await TestCasts.IsAvailableAsync())
         {
@@ -310,32 +308,11 @@ public class ThemeTests : PageTest
 
         // The editor re-renders the playlist in place (feed refresh), which detaches the
         // card for a moment; a detached element has an empty computed style, so retry.
-        var computed = string.Empty;
+        var measured = Array.Empty<string>();
         var deadline = DateTime.UtcNow.AddSeconds(10);
         while (DateTime.UtcNow < deadline)
         {
-            computed = await Page.EvaluateAsync<string>(
-                "() => { const el = document.querySelector('#resolvedList .card-episode.resolved-item'); " +
-                "return el ? getComputedStyle(el).backgroundColor : ''; }");
-            if (computed.StartsWith("rgb", StringComparison.Ordinal)) break;
-            await Page.WaitForTimeoutAsync(200);
-        }
-        var rgb = System.Text.RegularExpressions.Regex.Matches(computed, @"[\d.]+")
-            .Select(m => (int)double.Parse(m.Value, System.Globalization.CultureInfo.InvariantCulture))
-            .Take(3)
-            .ToArray();
-        Assert.That(rgb, Has.Length.EqualTo(3), $"Unexpected computed background-color '{computed}'");
-
-        var luma = (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255;
-        Assert.That(luma, Is.LessThan(0.25),
-            $"The dark-theme episode row surface must be dark (was '{computed}')");
-
-        // The 4 px bar is always the feed colour, resolved from the row's custom property.
-        var bar = Array.Empty<string>();
-        deadline = DateTime.UtcNow.AddSeconds(10);
-        while (DateTime.UtcNow < deadline)
-        {
-            bar = await Page.EvaluateAsync<string[]>(@"() => {
+            measured = await Page.EvaluateAsync<string[]>(@"() => {
                 const el = document.querySelector('#resolvedList .card-episode.resolved-item');
                 if (!el) return [];
                 const accent = getComputedStyle(el).getPropertyValue('--card-episode-accent').trim();
@@ -344,14 +321,20 @@ public class ThemeTests : PageTest
                 document.body.appendChild(probe);
                 const expected = getComputedStyle(probe).backgroundColor;
                 probe.remove();
-                return [getComputedStyle(el).borderLeftColor, expected];
+                const s = getComputedStyle(el);
+                return [s.backgroundColor, expected, s.borderLeftWidth];
             }");
-            if (bar.Length == 2 && bar[0].StartsWith("rgb", StringComparison.Ordinal)) break;
+            if (measured.Length == 3 && measured[0].StartsWith("rgb", StringComparison.Ordinal))
+            {
+                break;
+            }
             await Page.WaitForTimeoutAsync(200);
         }
-        Assert.That(bar, Has.Length.EqualTo(2), "Could not read the episode row's bar colours");
-        Assert.That(bar[0], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "The feed bar must not be transparent");
-        Assert.That(bar[0], Is.EqualTo(bar[1]), "The feed bar must be the row's feed colour");
+
+        Assert.That(measured, Has.Length.EqualTo(3), "Could not read the episode row surface");
+        Assert.That(measured[0], Is.EqualTo(measured[1]),
+            "the episode row is filled with its feed colour, like the feed card");
+        Assert.That(measured[2], Is.EqualTo("4px"), "the row keeps its 4 px feed border");
     }
 
     private async Task AssertNoContrastIssuesAsync(string path)

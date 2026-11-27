@@ -9,7 +9,7 @@
 <header class="editor-header" id="dockable-header">
     <div class="editor-header__inner">
         <div class="editor-header__lead">
-            <a href="/Stations" class="editor-icon-btn editor-back-btn" aria-label="Back to stations" title="Back to stations">
+            <a href="/" class="editor-icon-btn editor-back-btn" aria-label="Back to listen" title="Back to listen">
                 <i class="bi bi-arrow-left" aria-hidden="true"></i>
             </a>
             <button type="button" class="editor-icon-btn" id="renameStationBtn" title="Station Settings" aria-label="Station Settings">
@@ -179,34 +179,42 @@
                 @foreach (var item in playlist)
                 {
                     var scheduleFeed = Model.Station.Schedule.Feeds.FirstOrDefault(f => f.Url == item.Episode.FeedUrl);
-                    var feedColor = string.IsNullOrEmpty(scheduleFeed?.Color) ? "var(--metro-hairline)" : scheduleFeed.Color;
+                    var feedColor = string.IsNullOrEmpty(scheduleFeed?.Color) ? "var(--metro-tile)" : scheduleFeed.Color;
+                    var episodeInk = string.IsNullOrEmpty(scheduleFeed?.Color) ? "var(--metro-ink)" : ProfileColorInk.For(scheduleFeed.Color);
                     var feedTitle = Model.Feeds.FirstOrDefault(f => f.Url == item.Episode.FeedUrl)?.Title ?? "Podcast";
                     var episodeTitle = HtmlText.ToDisplayText(item.Episode.Title);
                     <li class="card-episode resolved-item @(item.IsActive ? "is-playing" : "") @(item.IsCompleted ? "is-played" : "")"
                         data-episode-id="@item.Episode.Id"
                         data-feed-color="@(feedColor)"
-                        style="--card-episode-accent: @feedColor;">
+                        style="--card-episode-accent: @feedColor; --card-episode-ink: @episodeInk;">
 
-                        <!-- Cover (left) -->
-                        @if (!string.IsNullOrEmpty(item.Episode.ImageUrl))
-                        {
-                            <img src="@item.Episode.ImageUrl" class="card-episode-cover" alt="" loading="lazy" />
-                        }
-                        else
-                        {
-                            <span class="card-episode-badge" aria-hidden="true"><i class="bi bi-mic"></i></span>
-                        }
+                        <div class="episode-top">
+                            @if (!string.IsNullOrEmpty(item.Episode.ImageUrl))
+                            {
+                                <img src="@item.Episode.ImageUrl" class="card-episode-cover" alt="" loading="lazy" />
+                            }
+                            else
+                            {
+                                <span class="card-episode-badge" aria-hidden="true"><i class="bi bi-mic"></i></span>
+                            }
 
-                        <!-- Metadata (Middle) -->
-                        <div class="card-episode-body">
-                            <div class="card-episode-byline">
-                                <span class="card-episode-artist" title="@feedTitle">@feedTitle</span>
-                                <span class="card-episode-date">@(item.Episode.PublishedAt?.ToString("MMM d, yyyy"))</span>
+                            <div class="card-episode-body">
+                                <div class="card-episode-byline">
+                                    <span class="card-episode-artist" title="@feedTitle">@feedTitle</span>
+                                    <span class="card-episode-date">@(item.Episode.PublishedAt?.ToString("MMM d, yyyy"))</span>
+                                </div>
+                                <h3 class="card-episode-title" title="@episodeTitle"><strong>@episodeTitle</strong></h3>
                             </div>
-                            <h3 class="card-episode-title" title="@episodeTitle"><strong>@episodeTitle</strong></h3>
+
+                            <button type="button" class="card-episode-play continue-episode-btn" title="Continue playing from @(item.PositionSeconds)s" aria-label="Play @episodeTitle from @(item.PositionSeconds) seconds" data-station-id="@Model.Station.Id" data-episode-id="@item.Episode.Id" data-position="@item.PositionSeconds">
+                                <i class="bi bi-play-fill" aria-hidden="true"></i>
+                            </button>
+                        </div>
+
+                        <div class="episode-bottom">
                             <p class="card-episode-meta episode-description">@HtmlText.ToDisplayText(item.Episode.PlainDescription)</p>
-                            <div class="card-episode-status">
-                                <small class="card-episode-meta">
+                            <div class="episode-bottom-actions">
+                                <small class="card-episode-meta episode-position-label">
                                     Position: <span class="episode-position">@(item.PositionSeconds)</span>s
                                 </small>
                                 <span class="episode-playhead-actions">
@@ -217,33 +225,26 @@
                                         <i class="bi bi-sliders" aria-hidden="true"></i>
                                     </button>
                                 </span>
-                            </div>
-                        </div>
-
-                        <!-- Play + Action Controls (Right) -->
-                        <div class="episode-row-actions">
-                            <button type="button" class="card-episode-play continue-episode-btn" title="Continue playing from @(item.PositionSeconds)s" aria-label="Play @episodeTitle from @(item.PositionSeconds) seconds" data-station-id="@Model.Station.Id" data-episode-id="@item.Episode.Id" data-position="@item.PositionSeconds">
-                                <i class="bi bi-play-fill" aria-hidden="true"></i>
-                            </button>
-                            <div class="button-container episode-actions">
-                                @if (item.IsCompleted)
-                                {
-                                    <button type="button" class="episode-action-btn clear-completed-btn" title="Clear completed state" aria-label="Clear completed state for @episodeTitle">
-                                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
-                                    </button>
-                                    <button type="button" class="episode-action-btn clear-completed-until-btn" title="Clear everything until here" aria-label="Clear completed state until @episodeTitle">
-                                        <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button type="button" class="episode-action-btn mark-completed-btn" title="Mark Completed" aria-label="Mark @episodeTitle completed">
-                                        <i class="bi bi-check-lg" aria-hidden="true"></i>
-                                    </button>
-                                    <button type="button" class="episode-action-btn mark-completed-until-btn" title="Mark All Until Here Completed" aria-label="Mark everything until @episodeTitle completed">
-                                        <i class="bi bi-check2-all" aria-hidden="true"></i>
-                                    </button>
-                                }
+                                <div class="button-container episode-actions">
+                                    @if (item.IsCompleted)
+                                    {
+                                        <button type="button" class="episode-action-btn clear-completed-btn" title="Clear completed state" aria-label="Clear completed state for @episodeTitle">
+                                            <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                                        </button>
+                                        <button type="button" class="episode-action-btn clear-completed-until-btn" title="Clear everything until here" aria-label="Clear completed state until @episodeTitle">
+                                            <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="episode-action-btn mark-completed-btn" title="Mark Completed" aria-label="Mark @episodeTitle completed">
+                                            <i class="bi bi-check-lg" aria-hidden="true"></i>
+                                        </button>
+                                        <button type="button" class="episode-action-btn mark-completed-until-btn" title="Mark All Until Here Completed" aria-label="Mark everything until @episodeTitle completed">
+                                            <i class="bi bi-check2-all" aria-hidden="true"></i>
+                                        </button>
+                                    }
+                                </div>
                             </div>
                         </div>
                     </li>

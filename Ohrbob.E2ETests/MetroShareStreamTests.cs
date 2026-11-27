@@ -207,7 +207,7 @@ public class MetroShareStreamTests : PageTest
         }");
 
         Assert.That(m[0], Is.EqualTo("1px"), "stream rows sit on a hairline");
-        Assert.That(m[1], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "the hairline is visible");
+        Assert.That(m[1], Is.EqualTo("rgba(0, 0, 0, 0)"), "the hairline is gone");
         Assert.That(m[2].ToLowerInvariant(), Does.Contain("mono"), "stream URLs use a mono face");
         Assert.That(m[3], Is.EqualTo("12px"), "stream URLs print at 12 px");
         Assert.That(m[4], Is.EqualTo("0px"), "the copy control is square");

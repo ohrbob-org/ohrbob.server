@@ -143,7 +143,7 @@ public class MetroEditorialTests : PageTest
         }");
 
         Assert.That(m[0], Is.EqualTo("1px"), "client tiles sit on a hairline");
-        Assert.That(m[1], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "the hairline is visible");
+        Assert.That(m[1], Is.EqualTo("rgba(0, 0, 0, 0)"), "the hairline is gone");
         Assert.That(m[2], Is.EqualTo("0px"), "client tiles are square");
         Assert.That(m[3], Is.EqualTo("none"), "client tiles carry no shadow");
         Assert.That(m[4], Is.EqualTo("64px"), "the icon area is 64 px wide");
@@ -222,7 +222,7 @@ public class MetroEditorialTests : PageTest
         Assert.That(m[0], Is.EqualTo(m[1]), "the code block sits on the canvas");
         Assert.That(m[2], Is.EqualTo(m[3]), "the code block prints in ink");
         Assert.That(m[4], Is.EqualTo("1px"), "the code block has a hairline");
-        Assert.That(m[5], Is.Not.EqualTo("rgba(0, 0, 0, 0)"), "the hairline is visible");
+        Assert.That(m[5], Is.EqualTo("rgba(0, 0, 0, 0)"), "the hairline is gone");
         Assert.That(m[6].ToLowerInvariant(), Does.Contain("mono"), "the code block is monospaced");
         Assert.That(m[7], Is.EqualTo("13px"), "the code block prints at 13 px");
         Assert.That(m[8], Is.EqualTo("0px"), "the code block is square");
