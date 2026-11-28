@@ -680,7 +680,7 @@ the pane header rather than below the feed list.
 
 - The landing tier table is a plain white panel: no yellow morebob column, no
   orange vertical rule and no internal scrollbar.
-- The hero places a translucent logo silhouette over the decorative squares.
+- The hero places a large translucent logo silhouette across both decorative squares: it covers the lower-left of the violet square and overlaps the top edge of the lower tile.
 - The closing wordmark uses the individually coloured letters plus the logo
   icon again.
 - The first automatically assigned feed colour is now Ohrbob orange

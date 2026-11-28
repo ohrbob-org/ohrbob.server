@@ -1100,12 +1100,12 @@ body.with-player .app-toast-container {
     opacity: 0.14;
 }
 
-/* A white silhouette of the logo sits over the two decorative squares. */
+/* A white silhouette of the logo sits over both decorative squares. */
 .landing-hero-mark {
     position: absolute;
-    top: 16%;
+    top: 15.5%;
     right: 7%;
-    width: clamp(140px, 18vw, 250px);
+    width: clamp(240px, 32vw, 560px);
     height: auto;
     filter: brightness(0) invert(1);
     opacity: 0.16;
