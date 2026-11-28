@@ -8,12 +8,12 @@ document.body.addEventListener('showToast', function (evt) {
     if (toastEl && toastBody && evt.detail && evt.detail.message) {
         toastBody.textContent = evt.detail.message;
         
-        // Color based on type (success / danger)
-        toastEl.classList.remove('bg-danger', 'bg-success');
+        // Status accent based on type (success / danger)
+        toastEl.classList.remove('is-danger', 'is-success');
         if (evt.detail.type === 'success') {
-            toastEl.classList.add('bg-success');
+            toastEl.classList.add('is-success');
         } else {
-            toastEl.classList.add('bg-danger');
+            toastEl.classList.add('is-danger');
         }
         
         if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
@@ -503,7 +503,7 @@ window.initMoveFeed = function (sourceStationId) {
 (function () {
     function syncActiveNav() {
         var path = window.location.pathname.toLowerCase();
-        document.querySelectorAll('.floating-nav-pill-center a').forEach(function (link) {
+        document.querySelectorAll('.app-nav-link').forEach(function (link) {
             var href = new URL(link.href, window.location.origin).pathname.toLowerCase();
             var active = href === '/' ? path === '/' : (path === href || path.indexOf(href + '/') === 0);
             link.classList.toggle('active', active);
@@ -516,6 +516,27 @@ window.initMoveFeed = function (sourceStationId) {
     document.addEventListener('htmx:afterSettle', syncActiveNav);
     document.addEventListener('htmx:historyRestore', syncActiveNav);
     window.addEventListener('popstate', syncActiveNav);
+})();
+
+// Always-dark views carry the night tokens on <body> during a full render. A
+// boosted navigation only swaps #main-content, so mirror the swapped view's
+// data-body-class marker onto <body> (and drop it when the next view has none).
+(function () {
+    var NIGHT_CLASS = 'metro-night';
+
+    function syncBodyTheme() {
+        var marker = document.querySelector('#main-content [data-body-class]');
+        var wanted = marker ? marker.getAttribute('data-body-class').trim() : '';
+        var hasNight = document.body.classList.contains(NIGHT_CLASS);
+        var wantsNight = wanted === NIGHT_CLASS;
+
+        if (wantsNight === hasNight) return;
+        if (wantsNight) document.body.classList.add(NIGHT_CLASS);
+        else document.body.classList.remove(NIGHT_CLASS);
+    }
+
+    document.addEventListener('htmx:afterSettle', syncBodyTheme);
+    document.addEventListener('htmx:historyRestore', syncBodyTheme);
 })();
 
 // Thin bar at the top of the screen while htmx requests are in flight.
@@ -592,3 +613,24 @@ document.addEventListener('click', function (e) {
     var link = body && body.querySelector('.card-station-title a');
     if (link) link.click();
 });
+
+// Discover: hide the recommendation shelves as soon as the search box has text.
+// Delegated from the layout (which survives boosted swaps) so this still works
+// when the view's own script runs after the user has already typed.
+(function () {
+    function syncDiscoverLanes(target) {
+        if (!target || target.id !== 'discover-search') return;
+        var lanes = document.getElementById('recommendation-lanes');
+        if (lanes) lanes.classList.toggle('d-none', target.value.trim().length > 0);
+    }
+
+    document.addEventListener('input', function (event) {
+        syncDiscoverLanes(event.target);
+    });
+    document.addEventListener('search', function (event) {
+        syncDiscoverLanes(event.target);
+    }, true);
+    document.addEventListener('htmx:afterSettle', function () {
+        syncDiscoverLanes(document.getElementById('discover-search'));
+    });
+})();

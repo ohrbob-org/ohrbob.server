@@ -2,7 +2,7 @@
 
 @if (Model == null || !Model.Any())
 {
-    <div class="col-12 text-center text-muted py-4">
+    <div class="col-12 onboarding-empty">
         <p>No podcasts found.</p>
     </div>
 }
@@ -11,27 +11,25 @@ else
     @foreach (var podcast in Model)
     {
         <div class="col">
-            <div class="card h-100 shadow-sm">
-                <div class="row g-0">
-                    <div class="col-4">
-                        @if (!string.IsNullOrEmpty(podcast.Image))
-                        {
-                            <img src="@podcast.Image" class="img-fluid rounded-start h-100" alt="Cover" style="object-fit: cover;">
-                        }
-                    </div>
-                    <div class="col-8">
-                        <div class="card-body p-2 d-flex flex-column h-100">
-                            <h6 class="card-title text-truncate mb-1" title="@podcast.Title" style="font-size: 0.9rem;">@podcast.Title</h6>
-                            <p class="card-text text-muted small text-truncate mb-2" style="font-size: 0.75rem;">@podcast.Author</p>
-                            <div class="mt-auto">
-                                <button type="button" class="btn btn-outline-primary btn-sm w-100 add-feed-btn" data-url="@podcast.Url">
-                                    <i class="bi bi-plus-circle"></i> Add
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+            <article class="onboarding-result">
+                <div class="onboarding-result__cover">
+                    @if (!string.IsNullOrEmpty(podcast.Image))
+                    {
+                        <img src="@podcast.Image" alt="Cover" loading="lazy">
+                    }
+                    else
+                    {
+                        <span class="onboarding-result__placeholder" aria-hidden="true"><i class="bi bi-mic"></i></span>
+                    }
                 </div>
-            </div>
+                <div class="onboarding-result__body">
+                    <h3 class="onboarding-result__title" title="@podcast.Title">@podcast.Title</h3>
+                    <p class="onboarding-result__author">@podcast.Author</p>
+                    <button type="button" class="btn btn-outline-primary onboarding-result__add add-feed-btn" data-url="@podcast.Url">
+                        <i class="bi bi-plus-circle"></i> Add
+                    </button>
+                </div>
+            </article>
         </div>
     }
 }

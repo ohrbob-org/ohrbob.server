@@ -7,10 +7,8 @@ using Ohrbob.Web.Services;
 
 namespace Ohrbob.E2ETests;
 
-[NonParallelizable]
-public class StreamPageTests : PageTest
+public class StreamPageTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private AccountApiService _accountService = null!;
     private string _accountId = string.Empty;
 
@@ -19,23 +17,21 @@ public class StreamPageTests : PageTest
     [SetUp]
     public async Task Setup()
     {
-        TestAuthHandler.IsAuthenticated = true;
-        _factory = new PlaywrightWebApplicationFactory();
+        SignIn();
         _accountService = _factory.Services.GetRequiredService<AccountApiService>();
 
         var account = await _accountService.CreateOrUpdateAccountAsync(
             "E2E Stream Test", $"stream-{Guid.NewGuid()}@test.com", "", "Test", Guid.NewGuid().ToString());
         _accountId = account!.Id;
         await _accountService.CompleteOnboardingAsync(_accountId);
-        TestAuthHandler.TestAccountId = _accountId;
+        SetAccount(_accountId);
     }
 
     [TearDown]
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory?.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]

@@ -19,10 +19,11 @@ namespace Ohrbob.E2ETests;
 /// Address selection matches <see cref="PlaybackOrderTests"/>: load fixtures via
 /// <c>OHRBOB_TESTCASTS_URL</c> and store feed URLs via <c>OHRBOB_TESTCASTS_FEED_URL</c>.
 /// </summary>
+[Category("TestCasts")]
+[Category("TestCastsA")]
 [NonParallelizable]
-public class EpisodeDescriptionTests : PageTest
+public class EpisodeDescriptionTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _accountId = string.Empty;
 
     public override BrowserNewContextOptions ContextOptions() => new()
@@ -47,7 +48,6 @@ public class EpisodeDescriptionTests : PageTest
                 "OHRBOB_TESTCASTS_FEED_URL=http://testcasts:5004 so stored feed URLs use the service name.");
         }
 
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, err) => Console.WriteLine($"BROWSER ERROR: {err}");
 
@@ -64,7 +64,7 @@ public class EpisodeDescriptionTests : PageTest
             await profileService.CreateProfileAsync(_accountId, new Profile { Name = "Main Profile" });
         }
 
-        TestAuthHandler.TestAccountId = _accountId;
+        SetAccount(_accountId);
         _factory.CreateClient();
     }
 
@@ -72,8 +72,7 @@ public class EpisodeDescriptionTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory?.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]

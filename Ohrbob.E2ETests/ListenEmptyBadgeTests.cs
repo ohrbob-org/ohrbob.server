@@ -13,10 +13,11 @@ namespace Ohrbob.E2ETests;
 /// its raw episode count is greater than zero. The Listen view must surface that with the red
 /// "Empty" badge on the station card.
 /// </summary>
+[Category("TestCasts")]
+[Category("TestCastsB")]
 [NonParallelizable]
-public class ListenEmptyBadgeTests : PageTest
+public class ListenEmptyBadgeTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _accountId = string.Empty;
     private string _profileId = string.Empty;
 
@@ -32,7 +33,6 @@ public class ListenEmptyBadgeTests : PageTest
             Assert.Ignore($"podcast-testcasts is not reachable at {TestCasts.ConfigureBaseUrl}.");
         }
 
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
 
@@ -51,7 +51,7 @@ public class ListenEmptyBadgeTests : PageTest
         }
         _profileId = profiles!.First().Id;
 
-        TestAuthHandler.TestAccountId = _accountId;
+        SetAccount(_accountId);
         _factory.CreateClient();
     }
 
@@ -59,8 +59,7 @@ public class ListenEmptyBadgeTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory?.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]
@@ -79,7 +78,7 @@ public class ListenEmptyBadgeTests : PageTest
         var card = StationCard("Badge Station");
         await card.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 20000 });
         await Expect(card.Locator(".card-station-count")).ToContainTextAsync("1 podcast");
-        await Expect(card.Locator(".badge.bg-danger")).Not.ToBeVisibleAsync();
+        await Expect(card.Locator(".status-label.is-empty")).Not.ToBeVisibleAsync();
 
         // Complete every episode for the active profile.
         var stationsApi = _factory.Services.GetRequiredService<StationsApiService>();
@@ -95,7 +94,7 @@ public class ListenEmptyBadgeTests : PageTest
         var cardAfter = StationCard("Badge Station");
         await cardAfter.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 20000 });
         await Expect(cardAfter.Locator(".card-station-count")).ToContainTextAsync("1 podcast");
-        var badge = cardAfter.Locator(".badge.bg-danger");
+        var badge = cardAfter.Locator(".status-label.is-empty");
         await Expect(badge).ToBeVisibleAsync(new() { Timeout = 15000 });
         await Expect(badge).ToHaveTextAsync(new Regex("Empty"));
     }

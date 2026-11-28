@@ -5,6 +5,9 @@ namespace Ohrbob.Server.Shared.Data;
 #nullable enable
 public static class ProfileColors
 {
+    /// <summary>Fallback shown in the custom-colour input when no custom colour is set.</summary>
+    public const string CustomDefault = "#8b5cf6";
+
     public static readonly string[] Palette =
     {
         "#ef4444", "#f97316", "#f59e0b", "#ca8a04", "#65a30d",

@@ -8,10 +8,8 @@ using Ohrbob.Web.Services;
 
 namespace Ohrbob.E2ETests;
 
-[NonParallelizable]
-public class AccountDeletionTests : PageTest
+public class AccountDeletionTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _accountId = string.Empty;
 
     public override BrowserNewContextOptions ContextOptions() => new() { IgnoreHTTPSErrors = true };
@@ -20,9 +18,8 @@ public class AccountDeletionTests : PageTest
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        TestAuthHandler.IsAuthenticated = true;
+        SignIn();
 
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
 
@@ -32,7 +29,7 @@ public class AccountDeletionTests : PageTest
         await accountService.CompleteOnboardingAsync(account!.Id);
         _accountId = account.Id;
 
-        TestAuthHandler.TestAccountId = _accountId;
+        SetAccount(_accountId);
         _factory.CreateClient();
     }
 
@@ -40,16 +37,15 @@ public class AccountDeletionTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory?.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
-        TestAuthHandler.IsAuthenticated = true;
+        SetAccount(string.Empty);
+        SignIn();
     }
 
     [Test]
     public async Task DeleteAccount_FromConfirmationPage_RemovesAccountAndSignsOut()
     {
         await Page.GotoAsync($"{_factory.ServerAddress}/Account");
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Manage Account");
+        await Expect(Page.Locator("h1")).ToHaveTextAsync("account");
 
         await Page.ClickAsync("#delete-tab");
         await Expect(Page.Locator("#delete-pane")).ToBeVisibleAsync();

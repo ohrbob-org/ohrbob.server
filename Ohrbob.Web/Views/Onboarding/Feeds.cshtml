@@ -1,59 +1,58 @@
 @model List<Ohrbob.Web.Models.PodcastSearchResult>
 @{
     ViewData["Title"] = "Add Podcasts";
+    ViewData["BodyClass"] = "metro-night";
     Layout = "_Layout_Minimal";
 }
 
-<div class="container mt-5">
-    <div class="row mb-4">
-        <div class="col-12 col-md-10 mx-auto text-center">
-            <h2 class="fw-bold text-primary mb-2">Fill "@ViewBag.StationName"</h2>
-            <p class="text-muted">Search for your favorite podcasts and add them to your station.</p>
-            
-            <div class="input-group input-group-lg mt-4 shadow-sm">
-                <span class="input-group-text bg-body"><i class="bi bi-search"></i></span>
-                <input type="search" 
-                       class="form-control border-start-0" 
-                       placeholder="Search podcasts by name..." 
-                       name="query"
-                       hx-get="/Onboarding/SearchFeeds"
-                       hx-target="#search-results"
-                       hx-trigger="keyup changed delay:500ms, search" />
-            </div>
-        </div>
+<div class="onboarding-page onboarding-page--wide onboarding-page--feeds metro-night">
+    <div class="onboarding-intro">
+        <p class="onboarding-kicker">step 3 · podcasts</p>
+        <h2 class="onboarding-subtitle">Fill "@ViewBag.StationName"</h2>
+        <p class="onboarding-hint">Search for your favorite podcasts and add them to your station.</p>
     </div>
-    
-    <div class="row">
-        <div class="col-12 col-md-8 mx-auto">
-            <div id="search-results" class="row row-cols-1 row-cols-sm-2 g-3">
-                @if (Model != null && Model.Any())
-                {
-                    <partial name="_FeedSearchResults" model="Model" />
-                }
-            </div>
+
+    <div class="onboarding-card onboarding-card--wide">
+        <div class="onboarding-search">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input type="search"
+                   class="form-control"
+                   placeholder="Search podcasts by name..."
+                   aria-label="Search podcasts by name"
+                   name="query"
+                   hx-get="/Onboarding/SearchFeeds"
+                   hx-target="#search-results"
+                   hx-trigger="keyup changed delay:500ms, search" />
+        </div>
+
+        <div id="search-results" class="row row-cols-1 row-cols-sm-2 g-2">
+            @if (Model != null && Model.Any())
+            {
+                <partial name="_FeedSearchResults" model="Model" />
+            }
         </div>
     </div>
 </div>
 
 <!-- Floating Finish Button -->
-<div class="position-fixed bottom-0 start-0 w-100 p-3 bg-body border-top shadow-lg" id="finish-bar" style="display: none; z-index: 1050;">
-    <div class="container d-flex justify-content-between align-items-center">
-        <div>
-            <span id="selected-count" class="badge bg-primary fs-6">0</span> <span class="fw-bold">podcasts added</span>
+<div class="onboarding-finishbar" id="finish-bar" style="display: none;">
+    <div class="onboarding-finishbar__inner">
+        <div class="onboarding-finishbar__count">
+            <span id="selected-count" class="onboarding-count">0</span> <span>podcasts added</span>
         </div>
-        <form asp-action="Finish" method="post" id="finish-form">
+        <form asp-action="Finish" method="post" id="finish-form" class="onboarding-finishbar__form">
             <input type="hidden" name="profileId" value="@ViewBag.ProfileId" />
             <input type="hidden" name="stationName" value="@ViewBag.StationName" />
             <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
             <!-- Hidden inputs added dynamically -->
-            <button type="submit" class="btn btn-success btn-lg rounded-pill px-5">Complete Setup <i class="bi bi-check-circle ms-2"></i></button>
+            <button type="submit" class="btn btn-primary onboarding-finishbar__button">Complete Setup <i class="bi bi-check-circle ms-2"></i></button>
         </form>
     </div>
 </div>
 
 <script>
     var selectedFeeds = new Set();
-    
+
     @if (Model != null && Model.Any())
     {
         foreach(var feed in Model)
@@ -77,11 +76,11 @@
         const bar = document.getElementById('finish-bar');
         const count = document.getElementById('selected-count');
         const form = document.getElementById('finish-form');
-        
+
         if (!bar || !count || !form) return;
 
         count.innerText = selectedFeeds.size;
-        
+
         // Update hidden inputs
         form.querySelectorAll('input[name="selectedFeeds"]').forEach(el => el.remove());
         selectedFeeds.forEach(url => {
@@ -117,7 +116,7 @@
             if (e.target && e.target.closest('.add-feed-btn')) {
                 const btn = e.target.closest('.add-feed-btn');
                 const url = btn.getAttribute('data-url');
-                
+
                 if (selectedFeeds.has(url)) {
                     selectedFeeds.delete(url);
                     btn.classList.remove('btn-success');
@@ -129,7 +128,7 @@
                     btn.classList.add('btn-success');
                     btn.innerHTML = '<i class="bi bi-check-circle"></i> Added';
                 }
-                
+
                 window.updateFinishBar();
             }
         });

@@ -7,14 +7,33 @@
 
 @if (User.Identity?.IsAuthenticated == true)
 {
-    @* The nav highlight carries the title visually; keep it for screen readers. *@
-    <h2 class="visually-hidden">Listen</h2>
-    
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
-        @if (Model != null)
+    var subscribedIds = ViewBag.SubscribedStationIds as HashSet<string> ?? new HashSet<string>();
+    var stations = Model ?? new List<StationWithFeedsDto>();
+
+    <div class="page-head">
+        <div class="page-head__text">
+            <p class="metro-kicker" aria-hidden="true">your stations</p>
+            <h1 class="metro-title metro-title--listen">listen</h1>
+        </div>
+        <a asp-controller="Stations" asp-action="Create" class="page-head__action">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> new station
+        </a>
+    </div>
+
+    @if (stations.Count == 0)
+    {
+        <section class="listen-empty" aria-labelledby="listen-empty-title">
+            <h2 class="listen-empty__title" id="listen-empty-title">no stations yet</h2>
+            <p class="metro-hint listen-empty__hint">Create a station, add a few podcasts, and ohrbob will keep your place.</p>
+            <a asp-controller="Stations" asp-action="Create" class="listen-empty__cta">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i> build your first station
+            </a>
+        </section>
+    }
+
+    <div class="station-grid">
+        @foreach (var dto in stations)
         {
-            @foreach (var dto in Model)
-            {
                 var feedCount = dto.Feeds?.Count ?? 0;
                 var displayFeeds = dto.Feeds?.Take(4).ToList() ?? new List<FeedStatsDto>();
                 var totalEpisodes = dto.Feeds?.Sum(f => f.EpisodeCount) ?? 0;
@@ -22,172 +41,172 @@
 
                 var isActive = ViewBag.ActiveStationId == dto.Station.Id;
                 var cardClass = isActive ? "is-active" : "";
-                var subscribedIds = ViewBag.SubscribedStationIds as HashSet<string> ?? new HashSet<string>();
                 var isSubscribed = subscribedIds.Contains(dto.Station.Id);
 
-                <div class="col">
-                    <div class="card-station @(feedCount == 0 ? "is-empty" : "") @cardClass active-station-card" data-station-id="@dto.Station.Id">
-                        <div class="card-station-art">
-                            @if (!displayFeeds.Any())
+                <div class="card-station card-station--listen @(feedCount == 0 ? "is-empty" : "") @cardClass active-station-card" data-station-id="@dto.Station.Id">
+                    <div class="card-station-art">
+                        @if (!displayFeeds.Any())
+                        {
+                            <div class="card-station-cover card-station-cover-empty" aria-hidden="true">@stationInitial</div>
+                        }
+                        else
+                        {
+                            foreach (var feed in displayFeeds)
                             {
-                                <div class="card-station-cover card-station-cover-empty" aria-hidden="true">@stationInitial</div>
-                            }
-                            else
-                            {
-                                foreach (var feed in displayFeeds)
+                                var feedInitial = (feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper();
+                                if (!string.IsNullOrEmpty(feed.ImageUrl))
                                 {
-                                    var feedInitial = (feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper();
-                                    if (!string.IsNullOrEmpty(feed.ImageUrl))
-                                    {
-                                        <img src="@feed.ImageUrl" class="card-station-cover" alt="" onerror="this.outerHTML='<div class=\'card-station-cover card-station-cover-empty\'>@feedInitial</div>'" />
-                                    }
-                                    else
-                                    {
-                                        <div class="card-station-cover card-station-cover-empty">@feedInitial</div>
-                                    }
-                                }
-                            }
-                            <span class="card-station-badge" aria-hidden="true"><i class="bi bi-broadcast"></i></span>
-                            <span class="card-station-count">@feedCount @(feedCount == 1 ? "podcast" : "podcasts")</span>
-                            <button type="button" class="card-station-play" aria-label="Play @dto.Station.Name">
-                                <i class="bi bi-play-fill" aria-hidden="true"></i>
-                            </button>
-                        </div>
-                        <div class="card-station-body">
-                            <i class="bi bi-soundwave card-station-watermark" aria-hidden="true"></i>
-                            <div class="d-flex align-items-start gap-2">
-                                <h3 class="card-station-title flex-grow-1" title="@dto.Station.Name">
-                                    @* Only stations you can manage link to the editor; subscribed ones cannot. *@
-                                    @if (isSubscribed)
-                                    {
-                                        @dto.Station.Name
-                                    }
-                                    else
-                                    {
-                                        <a asp-controller="Stations" asp-action="Edit" asp-route-id="@dto.Station.Id">@dto.Station.Name</a>
-                                    }
-                                </h3>
-                                @if (isSubscribed)
-                                {
-                                    <form asp-controller="Stations" asp-action="Unsubscribe" asp-route-id="@dto.Station.Id"
-                                          method="post" hx-target="#main-content" hx-swap="innerHTML" class="mb-0">
-                                        <button type="button" class="btn btn-link p-0 text-white-50" title="Unsubscribe"
-                                                onclick="window.showConfirmationModal('Unsubscribe from this station?', () => this.closest('form').requestSubmit());">
-                                            <i class="bi bi-x-circle"></i>
-                                        </button>
-                                    </form>
+                                    <img src="@feed.ImageUrl" class="card-station-cover" alt="" onerror="this.outerHTML='<div class=\'card-station-cover card-station-cover-empty\'>@feedInitial</div>'" />
                                 }
                                 else
                                 {
-                                    <a asp-controller="Stations" asp-action="Edit" asp-route-id="@dto.Station.Id" class="text-white-50" title="Manage Station">
-                                        <i class="bi bi-gear"></i>
-                                    </a>
+                                    <div class="card-station-cover card-station-cover-empty">@feedInitial</div>
                                 }
-                            </div>
-                            <p class="card-station-meta d-flex align-items-center flex-wrap gap-2">
-                                <span><strong>@totalEpisodes</strong> episodes</span>
+                            }
+                        }
+                    </div>
+
+                    <button type="button" class="card-station-play" aria-label="Play @dto.Station.Name">
+                        <i class="bi bi-play-fill" aria-hidden="true"></i>
+                    </button>
+
+                    <div class="card-station-body">
+                        <div class="card-station-title-row">
+                            <h2 class="card-station-title" title="@dto.Station.Name">
+                                @* Only stations you can manage link to the editor; subscribed ones cannot. *@
                                 @if (isSubscribed)
                                 {
-                                    <span class="badge bg-info text-white">Subscribed</span>
+                                    @dto.Station.Name
                                 }
-                                @if (dto.Station.HostPaceEnabled)
+                                else
                                 {
-                                    <span class="badge bg-info text-white" title="Only episodes the host has completed are available">Host Pace</span>
+                                    <a asp-controller="Stations" asp-action="Edit" asp-route-id="@dto.Station.Id">@dto.Station.Name</a>
                                 }
-                                @if (dto.IsUpdating)
-                                {
-                                    <span class="badge bg-warning text-dark" title="We are fetching the latest episodes for your station.">
-                                        <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true" style="width: 0.7rem; height: 0.7rem; border-width: 0.15em;"></span>Compiling...
-                                    </span>
-                                }
-                                else if (!dto.Station.EndlessSpin && (dto.UnplayedEpisodeCount is 0 || (dto.UnplayedEpisodeCount is null && totalEpisodes == 0)))
-                                {
-                                    <span class="badge bg-danger" title="There are no episodes left to play in this station: it either has no episodes yet, or you have already completed every episode.">
-                                        Empty
-                                    </span>
-                                }
-                            </p>
+                            </h2>
+                            @if (isSubscribed)
+                            {
+                                <form asp-controller="Stations" asp-action="Unsubscribe" asp-route-id="@dto.Station.Id"
+                                      method="post" hx-target="#main-content" hx-swap="innerHTML" class="card-station-action-form">
+                                    <button type="button" class="card-station-action" title="Unsubscribe"
+                                            onclick="window.showConfirmationModal('Unsubscribe from this station?', () => this.closest('form').requestSubmit());">
+                                        <i class="bi bi-x-circle" aria-hidden="true"></i>
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <a asp-controller="Stations" asp-action="Edit" asp-route-id="@dto.Station.Id" class="card-station-action" title="Manage Station">
+                                    <i class="bi bi-gear" aria-hidden="true"></i>
+                                </a>
+                            }
                         </div>
+                        <p class="card-station-meta">
+                            <span class="card-station-count">@feedCount @(feedCount == 1 ? "podcast" : "podcasts")</span>
+                            @if (isSubscribed)
+                            {
+                                <span class="status-label is-subscribed">Subscribed</span>
+                            }
+                            @if (dto.Station.HostPaceEnabled)
+                            {
+                                <span class="status-label is-pacing" title="Only episodes the host has completed are available">Host Pace</span>
+                            }
+                            @if (dto.IsUpdating)
+                            {
+                                <span class="status-label is-compiling" title="We are fetching the latest episodes for your station.">
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Compiling...
+                                </span>
+                            }
+                            else if (!dto.Station.EndlessSpin && (dto.UnplayedEpisodeCount is 0 || (dto.UnplayedEpisodeCount is null && totalEpisodes == 0)))
+                            {
+                                <span class="status-label is-empty" title="There are no episodes left to play in this station: it either has no episodes yet, or you have already completed every episode.">
+                                    Empty
+                                </span>
+                            }
+                        </p>
                     </div>
                 </div>
             }
-        }
 
-        <!-- Big friendly plus symbol inside a grey circle -->
-        <div class="col d-flex align-items-center justify-content-center">
-            <a asp-controller="Discover" asp-action="Index" class="text-decoration-none d-flex align-items-center justify-content-center w-100 h-100" title="Discover Stations" style="min-height: 140px;">
-                <div class="discover-plus-circle d-flex align-items-center justify-content-center rounded-circle shadow-sm">
-                    <i class="bi bi-plus-lg"></i>
-                </div>
-            </a>
-        </div>
+        <a asp-controller="Discover" asp-action="Index" class="station-add" title="Discover Stations">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            <span class="station-add__label">discover</span>
+        </a>
     </div>
 }
 else
 {
+    // The landing is a poster: it stays dark regardless of the saved theme.
+    ViewData["BodyClass"] = "metro-night";
+    ViewData["LandingPage"] = true;
+
     var landingSteps = new[] {
         new { Title = "Build your own radio stations", Desc = "<p>Combine your favorite podcasts into personalized radio stations that you can tune into whenever you want.</p><p>The best part? Your stations are made just for you—they pause when you leave and wait for your return, so you never miss a moment.</p>", 
             Card = "images/screenshots/stations.png", Badge = "" },
         new { Title = "Tune the rotation", Desc = "<p>Open the rotation editor and decide exactly which episodes play in each station: reorder them, skip what you have already heard and keep the queue in your hands.</p><p>News content is supported too, so time-sensitive shows age out on their own and your station always sounds current. Your listening experience, fully personalized.</p>", 
             Card = "images/screenshots/rotation.png", Badge = "" },
         new { Title = "Profiles for everyone", Desc = "<p>Got a unique taste in podcasts? Create different profiles to keep your listening habits separate from your family and friends.</p><p>With ohrbob Profiles, everyone gets their own personalized listening state without mixing up episodes.</p>", 
-            Card = "images/screenshots/profiles.png", Badge = "" },
+            Card = "", Badge = "" },
         new { Title = "Listen together", Desc = "<p>Share your favorite stations and listen to the same episodes with your friends and family. Say goodbye to unwanted true crime spoilers!</p><p>Turn on <strong>Host Pace</strong> and pick one of your profiles as the host: everyone else can only play episodes the host has already completed, so nobody gets ahead.</p>", 
             Card = "images/screenshots/together.png", Badge = "" },
         new { Title = "Stream anywhere", Desc = "<p>Take your stations wherever you go. Whether you're on the move or relaxing at home, stream directly to your Wi-Fi radio or any web-enabled device.</p>", 
             Card = "images/screenshots/radio.png", Badge = "morebob" },
         new { Title = "Proudly Open Source", Desc = "<p>We believe in full transparency. Enjoy our hosted service, or take control and host it yourself.</p><p>Missing a feature? Our community is always growing, and we'd love for you to join us as a contributor! Check us out on <a href=\"https://github.com/ohrbob-org/\" target=\"_blank\" rel=\"noopener\">GitHub</a>.</p>", 
-            Card = "images/screenshots/opensource.png", Badge = "" }
+            Card = "", Badge = "" }
     };
 
 
-    <div class="full-width-escape">
-        <section class="landing-hero text-center" aria-labelledby="landing-title">
-            <div class="ohrbob-logo ohrbob-logo-above landing-hero-logo" aria-hidden="true">
-                <span class="ohrbob-logo-icon">
-                    <img src="~/images/ohrbob-logo.svg" alt="" />
-                </span>
-                <span class="ohrbob-logo-text">
-                    <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
-                </span>
+    <div class="full-width-escape landing-page metro-night" data-body-class="metro-night">
+        <section class="landing-hero" aria-labelledby="landing-title">
+            <div class="landing-decor" aria-hidden="true">
+                <span class="landing-square landing-square--violet"></span>
+                <span class="landing-square landing-square--yellow"></span>
+                <img src="~/images/ohrbob-logo.svg" class="landing-hero-mark" alt="" />
             </div>
 
-            <h1 id="landing-title" class="display-4 fw-bold">Your own radio station,<br class="d-none d-sm-block" /> built from the podcasts you love.</h1>
-            <p class="lead text-body-secondary mx-auto landing-hero-lead">
+            <div class="landing-bars" aria-hidden="true">
+                <span class="landing-bar landing-bar--orange"></span>
+                <span class="landing-bar landing-bar--violet"></span>
+                <span class="landing-bar landing-bar--yellow"></span>
+            </div>
+
+            <p class="metro-kicker landing-kicker">your own radio station</p>
+            <h1 id="landing-title" class="landing-title metro-title">Built from the podcasts you love.</h1>
+            <p class="landing-lead">
                 Bundle your favorite podcasts into stations, press play, and let ohrbob pick up exactly where you left off &mdash; on any device, for everyone in your household.
             </p>
 
-            <div class="d-flex flex-column flex-sm-row justify-content-center gap-3 mt-4" hx-boost="false">
-                <a asp-controller="Home" asp-action="Login" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-primary btn-lg px-4 rounded-pill" hx-boost="false">
+            <div class="landing-cta" hx-boost="false">
+                <a asp-controller="Home" asp-action="Login" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-primary landing-cta-primary" hx-boost="false">
                     Sign-Up for free!
                 </a>
-                <a href="#features" class="btn btn-outline-secondary btn-lg px-4 rounded-pill" hx-boost="false">See how it works</a>
+                <a href="#features" class="landing-ghost-link" hx-boost="false">See how it works</a>
             </div>
         </section>
 
-        <div class="radio-landing-container" id="features">
+        <div class="radio-landing-container landing-tiles" id="features">
             @for (int i = 0; i < landingSteps.Length; i++)
             {
                 var isEven = i % 2 == 0;
                 var card = landingSteps[i].Card;
                 // The screenshot is optional: a step still renders as text until its image exists.
                 var hasCard = !string.IsNullOrEmpty(card) && System.IO.File.Exists(System.IO.Path.Combine(Env.WebRootPath ?? "", card));
-                <section class="radio-step @(isEven ? "step-left" : "step-right")" aria-labelledby="feature-title-@i">
+                var isWide = i == 0 || i == landingSteps.Length - 1;
+                <section class="radio-step landing-tile @(isWide ? "landing-tile--wide" : "") @(isEven ? "step-left" : "step-right")" aria-labelledby="feature-title-@i">
                     <div class="step-content @(hasCard ? "" : "text-only")">
                         <div class="step-text-box">
-                            <span class="step-index" aria-hidden="true">@(i + 1)</span>
-                            <h2 id="feature-title-@i" class="display-6 fw-bold">@landingSteps[i].Title</h2>
-                            <div class="lead text-body-secondary">@Html.Raw(landingSteps[i].Desc)</div>
+                            <span class="step-index" aria-hidden="true">@((i + 1).ToString("00"))</span>
+                            <h2 id="feature-title-@i" class="step-title">@landingSteps[i].Title</h2>
+                            <div class="step-body">@Html.Raw(landingSteps[i].Desc)</div>
                             @if (!string.IsNullOrEmpty(landingSteps[i].Badge))
                             {
-                                <p class="mt-3 mb-0"><span class="badge tier-badge-premium">@landingSteps[i].Badge tier</span></p>
+                                <p class="step-badge"><span class="landing-tier-badge">@landingSteps[i].Badge tier</span></p>
                             }
                         </div>
                         @if (hasCard)
                         {
                             <div class="step-card-box">
-                                <div class="screenshot-card shadow-sm">
-                                    <img src="@Url.Content($"~/{card}")" asp-append-version="true" loading="lazy" decoding="async" alt="Screenshot: @landingSteps[i].Title" />
+                                <div class="screenshot-card">
+                                    <img src="@Url.Content($"~/{card}")" asp-append-version="true" decoding="async" alt="Screenshot: @landingSteps[i].Title" />
                                 </div>
                             </div>
                         }
@@ -196,45 +215,27 @@ else
             }
         </div>
 
-        <section class="landing-footer text-center" aria-labelledby="start-heading">
-            <div class="landing-logo-wrapper" aria-hidden="true">
-                <div class="ohrbob-logo ohrbob-logo-above">
-                    <span class="ohrbob-logo-icon">
-                        <img src="~/images/ohrbob-logo.svg" alt="" />
-                    </span>
-                    <span class="ohrbob-logo-text">
-                        <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
-                    </span>
-                </div>
-            </div>
-            <h2 id="start-heading" class="h3 fw-bold mt-4 mb-2">Start your journey.</h2>
-            <p class="text-body-secondary mb-4">Free to use. No credit card required.</p>
-
-            <div class="d-flex flex-column flex-sm-row justify-content-center gap-3" hx-boost="false">
-                <a asp-controller="Home" asp-action="Login" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-primary btn-lg px-4 rounded-pill" hx-boost="false">
-                    Sign-Up for free!
-                </a>
-                <a href="https://github.com/ohrbob-org/" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-lg px-4 rounded-pill" title="ohrbob on GitHub">
-                    <i class="bi bi-github me-2"></i>GitHub
-                </a>
-            </div>
-        </section>
-
         @* shortcut: the tier numbers below mirror SubscriptionTiersOptions; move them to configuration if they change often. *@
         <section class="landing-tiers" aria-labelledby="tiers-heading">
-            <h2 id="tiers-heading" class="display-6 fw-bold text-center">Free or morebob?</h2>
-            <p class="lead text-body-secondary text-center mb-4">
+            <p class="metro-kicker landing-kicker">plans</p>
+            <h2 id="tiers-heading" class="landing-section-title">Free or morebob?</h2>
+            <p class="landing-section-lead">
                 Start for free. Move to morebob when you want more stations, more profiles and streaming.
             </p>
 
             <div class="landing-tier-card">
                 <table class="table landing-tier-table align-middle">
                     <caption class="visually-hidden">Comparison of the Free and morebob subscription tiers.</caption>
+                    <colgroup>
+                        <col class="landing-tier-col landing-tier-col--label" />
+                        <col class="landing-tier-col landing-tier-col--free" />
+                        <col class="landing-tier-col landing-tier-col--premium" />
+                    </colgroup>
                     <thead>
                         <tr>
                             <th scope="col">What you get</th>
                             <th scope="col">Free</th>
-                            <th scope="col" class="landing-tier-premium">morebob</th>
+                            <th scope="col">morebob</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -255,35 +256,58 @@ else
                         </tr>
                         <tr>
                             <th scope="row">Streaming to Wi-Fi radios &amp; other devices</th>
-                            <td><span aria-hidden="true" class="text-body-tertiary">&mdash;</span><span class="visually-hidden">Not included</span></td>
-                            <td><i class="bi bi-check-lg text-success" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
+                            <td><span aria-hidden="true" class="landing-dash">&mdash;</span><span class="visually-hidden">Not included</span></td>
+                            <td><i class="bi bi-check-lg landing-check" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
                         </tr>
                         <tr>
                             <th scope="row">App support</th>
-                            <td colspan="2" class="text-center">Android Auto, Linux, Windows, Mac</td>
+                            <td>Android Auto, Linux, Windows, Mac</td>
+                            <td>Android Auto, Linux, Windows, Mac</td>
                         </tr>
                         <tr>
                             <th scope="row">Your own listening progress per profile</th>
-                            <td><i class="bi bi-check-lg text-success" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
-                            <td><i class="bi bi-check-lg text-success" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
+                            <td><i class="bi bi-check-lg landing-check landing-check--both" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
+                            <td><i class="bi bi-check-lg landing-check landing-check--both" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
                         </tr>
                         <tr>
                             <th scope="row">Share stations with family &amp; friends</th>
-                            <td><i class="bi bi-check-lg text-success" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
-                            <td><i class="bi bi-check-lg text-success" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
+                            <td><i class="bi bi-check-lg landing-check landing-check--both" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
+                            <td><i class="bi bi-check-lg landing-check landing-check--both" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
                         </tr>
                         <tr>
                             <th scope="row">Host Pace for shared stations</th>
-                            <td><i class="bi bi-check-lg text-success" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
-                            <td><i class="bi bi-check-lg text-success" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
+                            <td><i class="bi bi-check-lg landing-check landing-check--both" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
+                            <td><i class="bi bi-check-lg landing-check landing-check--both" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
                         </tr>
                         <tr>
                             <th scope="row">Open source &amp; self-hostable</th>
-                            <td><i class="bi bi-check-lg text-success" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
-                            <td><i class="bi bi-check-lg text-success" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
+                            <td><i class="bi bi-check-lg landing-check landing-check--both" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
+                            <td><i class="bi bi-check-lg landing-check landing-check--both" aria-hidden="true"></i><span class="visually-hidden">Included</span></td>
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </section>
+
+        <section class="landing-closing" aria-labelledby="start-heading">
+            <div class="landing-wordmark landing-brand ohrbob-logo" aria-hidden="true">
+                <span class="ohrbob-logo-icon">
+                    <img src="~/images/ohrbob-logo.svg" alt="" />
+                </span>
+                <span class="ohrbob-logo-text">
+                    <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
+                </span>
+            </div>
+            <h2 id="start-heading" class="landing-section-title">Start your journey.</h2>
+            <p class="landing-section-lead">Free to use. No credit card required.</p>
+
+            <div class="landing-cta" hx-boost="false">
+                <a asp-controller="Home" asp-action="Login" asp-route-returnUrl="@ViewBag.ReturnUrl" class="btn btn-primary landing-cta-primary" hx-boost="false">
+                    Sign-Up for free!
+                </a>
+                <a href="https://github.com/ohrbob-org/" target="_blank" rel="noopener" class="landing-ghost-link" hx-boost="false" title="ohrbob on GitHub">
+                    <i class="bi bi-github me-2"></i>GitHub
+                </a>
             </div>
         </section>
     </div>

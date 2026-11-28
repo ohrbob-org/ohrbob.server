@@ -28,10 +28,11 @@ namespace Ohrbob.E2ETests;
 /// <c>OHRBOB_TESTCASTS_FEED_URL</c> (default: the same). When the Api runs inside Docker
 /// Compose, set <c>OHRBOB_TESTCASTS_FEED_URL=http://testcasts:5004</c>.
 /// </summary>
+[Category("TestCasts")]
+[Category("TestCastsA")]
 [NonParallelizable]
-public class PlaybackOrderTests : PageTest
+public class PlaybackOrderTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _accountId = string.Empty;
     private string _profileId = string.Empty;
 
@@ -51,7 +52,6 @@ public class PlaybackOrderTests : PageTest
                 "OHRBOB_TESTCASTS_FEED_URL=http://testcasts:5004 so stored feed URLs use the service name.");
         }
 
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
         await InstallMockAudioAsync();
@@ -71,7 +71,7 @@ public class PlaybackOrderTests : PageTest
         }
         _profileId = profiles!.First().Id;
 
-        TestAuthHandler.TestAccountId = _accountId;
+        SetAccount(_accountId);
         _factory.CreateClient();
     }
 
@@ -80,8 +80,7 @@ public class PlaybackOrderTests : PageTest
     {
         await Context.CloseAsync();
         // SetUp may have called Assert.Ignore before the factory was created.
-        _factory?.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]

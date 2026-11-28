@@ -7,10 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Ohrbob.E2ETests;
 
-[NonParallelizable]
-public class OnboardingTests : PageTest
+public class OnboardingTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _testAccountId = string.Empty;
 
     public override BrowserNewContextOptions ContextOptions()
@@ -24,7 +22,6 @@ public class OnboardingTests : PageTest
     [SetUp]
     public async Task Setup()
     {
-        _factory = new PlaywrightWebApplicationFactory();
         
         // Use the injected AccountApiService to create a fresh user in the running backend
         var accountService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.AccountApiService>();
@@ -32,13 +29,12 @@ public class OnboardingTests : PageTest
         var account = await accountService.CreateOrUpdateAccountAsync("E2E Onboarding Test", uniqueEmail, "", "Test", Guid.NewGuid().ToString());
         
         _testAccountId = account!.Id;
-        TestAuthHandler.TestAccountId = _testAccountId;
+        SetAccount(_testAccountId);
     }
 
     [TearDown]
     public void TearDown()
     {
-        _factory.Dispose();
     }
 
     [Test]
@@ -55,6 +51,14 @@ public class OnboardingTests : PageTest
         // We should be on the Onboarding Welcome page
         await Expect(Page.Locator("h1")).ToContainTextAsync("Welcome to Ohrbob!");
 
+        var onboarding = await Page.EvaluateAsync<double[]>(@"() => {
+            const c = document.querySelector('.onboarding-card');
+            return [parseFloat(getComputedStyle(c).borderRadius), parseFloat(getComputedStyle(c).borderTopWidth)];
+        }");
+        Assert.That(onboarding[0], Is.EqualTo(0), "onboarding card must be square");
+        Assert.That(onboarding[1], Is.EqualTo(7), "onboarding card keeps the orange accent bar");
+        await Expect(Page.Locator(".onboarding-page.metro-night")).ToHaveCountAsync(1);
+
         // Step 1: Create Profile
         await Page.FillAsync("input[name='profileName']", "My E2E Profile");
         await Page.CheckAsync("input[name='acceptTerms']");
@@ -62,6 +66,10 @@ public class OnboardingTests : PageTest
 
         // Step 2: Create Station
         await Expect(Page.Locator("h2")).ToContainTextAsync("Create Your First Station");
+        // The onboarding flow navigates full-page: the minimal chrome must not be
+        // swapped into itself by a boosted form post.
+        await Expect(Page.Locator(".minimal-brandline")).ToHaveCountAsync(1);
+        await Expect(Page.Locator("body.metro-night")).ToHaveCountAsync(1);
         await Page.FillAsync("input[name='stationName']", "History");
         await Page.ClickAsync("button[type='submit']");
 
@@ -79,10 +87,25 @@ public class OnboardingTests : PageTest
         // The finish bar should now be visible and we can submit
         var finishBtn = Page.Locator("#finish-form button[type='submit']");
         await Expect(finishBtn).ToBeVisibleAsync();
+
+        // At phone width the fixed finish bar must not cover the minimal footer.
+        await Page.SetViewportSizeAsync(390, 844);
+        var phoneLayout = await Page.EvaluateAsync<double[]>(@"() => {
+            document.documentElement.style.scrollBehavior = 'auto';
+            window.scrollTo(0, document.body.scrollHeight);
+            const bar = document.getElementById('finish-bar').getBoundingClientRect();
+            const footer = document.querySelector('.minimal-footer__inner').getBoundingClientRect();
+            const overflow = document.documentElement.scrollWidth > document.documentElement.clientWidth + 1;
+            return [footer.bottom - bar.top, overflow ? 1 : 0];
+        }");
+        Assert.That(phoneLayout[0], Is.LessThanOrEqualTo(0),
+            "the finish bar must leave the minimal footer visible");
+        Assert.That(phoneLayout[1], Is.EqualTo(0), "onboarding must not scroll sideways at 390 px");
+
         await finishBtn.ClickAsync();
 
-        // After finish, we should end up on Home/Index which displays "Listen"
-        await Expect(Page.Locator("h2")).ToContainTextAsync("Listen", new() { Timeout = 15000 });
+        // After finish, we should end up on Home/Index, which renders the station grid.
+        await Expect(Page.Locator(".page-head .metro-title")).ToContainTextAsync("listen", new() { Timeout = 15000 });
 
         // Assert Profile is selected
         var profileDropdown = Page.Locator("#profileDropdown");

@@ -11,10 +11,11 @@ namespace Ohrbob.E2ETests;
 /// Issue #7: ohrbob.web dark mode. The theme follows the browser/OS preference by default and
 /// can be overridden (system/light/dark) from the Appearance section on /Account.
 /// </summary>
+[Category("TestCasts")]
+[Category("TestCastsB")]
 [NonParallelizable]
-public class ThemeTests : PageTest
+public class ThemeTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _accountId = string.Empty;
     private string _profileId = string.Empty;
 
@@ -24,7 +25,6 @@ public class ThemeTests : PageTest
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
 
@@ -43,7 +43,7 @@ public class ThemeTests : PageTest
         }
         _profileId = profiles!.First().Id;
 
-        TestAuthHandler.TestAccountId = _accountId;
+        SetAccount(_accountId);
         _factory.CreateClient();
     }
 
@@ -51,8 +51,20 @@ public class ThemeTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory?.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
+    }
+
+    [Test]
+    public async Task ThemeCssSourceMapIsServed()
+    {
+        await Page.GotoAsync(_factory.ServerAddress);
+        var response = await Page.GotoAsync($"{_factory.ServerAddress}/css/theme.css.map");
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response!.Status, Is.EqualTo(200), "theme.css advertises a source map that must not 404");
+        Assert.That(response.Headers.TryGetValue("content-type", out var contentType), Is.True);
+        Assert.That(contentType, Does.Contain("json"));
+        var body = await Page.EvaluateAsync<string>("() => document.body.innerText");
+        Assert.That(body, Does.Contain("\"version\""), "the served file is a real source map");
     }
 
     [Test]
@@ -89,6 +101,7 @@ public class ThemeTests : PageTest
     public async Task Account_CanChangeTheme_AndItPersists()
     {
         await Page.GotoAsync($"{_factory.ServerAddress}/Account");
+        await OpenAppearanceAsync();
 
         var darkLabel = Page.Locator("label[for='themeDark']");
         await darkLabel.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 15000 });
@@ -102,12 +115,23 @@ public class ThemeTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
         Assert.That(await CurrentThemeAsync(), Is.EqualTo("dark"), "The saved theme must survive navigation");
         await Page.GotoAsync($"{_factory.ServerAddress}/Account");
+        await OpenAppearanceAsync();
         await Expect(Page.Locator("input[name='theme'][value='dark']")).ToBeCheckedAsync();
 
         // Switching back to "system" is stored as such.
         await Page.Locator("label[for='themeSystem']").ClickAsync();
         Assert.That(await CookieValueAsync("ohrbob_theme"), Is.EqualTo("system"),
             "Choosing System must store the system mode, not a resolved light/dark value");
+    }
+
+    /// <summary>
+    /// /Account shows the overview tiles first; the Appearance selector lives in
+    /// the hidden details container until its tile is opened.
+    /// </summary>
+    private async Task OpenAppearanceAsync()
+    {
+        await Page.Locator("#appearance-tab").ClickAsync();
+        await Expect(Page.Locator("#appearance-pane")).ToBeVisibleAsync(new() { Timeout = 15000 });
     }
 
     private async Task<string?> CurrentThemeAsync() =>
@@ -155,17 +179,17 @@ public class ThemeTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
         await Page.EvaluateAsync("() => { document.getElementById('ohrbob-player').isExpanded = true; }");
         await Page.WaitForTimeoutAsync(400);
-        AssertNoContrastIssues(await Page.EvaluateAsync<string[]>(ContrastScript), "expanded player");
+        ContrastChecks.AssertNoIssues(await Page.EvaluateAsync<string[]>(ContrastChecks.Script), "expanded player");
 
         // The anonymous landing page (which carries its own inline styles).
-        TestAuthHandler.IsAuthenticated = false;
+        SignOut();
         try
         {
             await AssertNoContrastIssuesAsync("/");
         }
         finally
         {
-            TestAuthHandler.IsAuthenticated = true;
+            SignIn();
         }
     }
 
@@ -245,10 +269,9 @@ public class ThemeTests : PageTest
             .ToHaveCountAsync(1, new() { Timeout = 15000 });
     }
 
-    /// <summary>The station editor's episode cards carry the light theme's paper surface in
-    /// theme.css. In dark mode they must not glare, so they get a dark yellow surface.</summary>
+    /// <summary>The station editor's episode rows are feed-colour tiles, matching the feed card.</summary>
     [Test]
-    public async Task Theme_Dark_EpisodeCardsUseDarkYellowSurface()
+    public async Task Theme_EpisodeRowsUseTheirFeedColourBackground()
     {
         if (!await TestCasts.IsAvailableAsync())
         {
@@ -284,39 +307,41 @@ public class ThemeTests : PageTest
 
         // The editor re-renders the playlist in place (feed refresh), which detaches the
         // card for a moment; a detached element has an empty computed style, so retry.
-        var computed = string.Empty;
+        var measured = Array.Empty<string>();
         var deadline = DateTime.UtcNow.AddSeconds(10);
         while (DateTime.UtcNow < deadline)
         {
-            computed = await Page.EvaluateAsync<string>(
-                "() => { const el = document.querySelector('#resolvedList .card-episode.resolved-item'); " +
-                "return el ? getComputedStyle(el).backgroundColor : ''; }");
-            if (computed.StartsWith("rgb", StringComparison.Ordinal)) break;
+            measured = await Page.EvaluateAsync<string[]>(@"() => {
+                const el = document.querySelector('#resolvedList .card-episode.resolved-item');
+                if (!el) return [];
+                const accent = getComputedStyle(el).getPropertyValue('--card-episode-accent').trim();
+                const probe = document.createElement('span');
+                probe.style.backgroundColor = accent;
+                document.body.appendChild(probe);
+                const expected = getComputedStyle(probe).backgroundColor;
+                probe.remove();
+                const s = getComputedStyle(el);
+                return [s.backgroundColor, expected, s.borderLeftWidth];
+            }");
+            if (measured.Length == 3 && measured[0].StartsWith("rgb", StringComparison.Ordinal))
+            {
+                break;
+            }
             await Page.WaitForTimeoutAsync(200);
         }
-        var rgb = System.Text.RegularExpressions.Regex.Matches(computed, @"[\d.]+")
-            .Select(m => (int)double.Parse(m.Value, System.Globalization.CultureInfo.InvariantCulture))
-            .Take(3)
-            .ToArray();
-        Assert.That(rgb, Has.Length.EqualTo(3), $"Unexpected computed background-color '{computed}'");
 
-        var luma = (0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]) / 255;
-        Assert.That(luma, Is.LessThan(0.25),
-            $"The dark-theme episode card surface must not be light (was '{computed}')");
-        Assert.That(rgb[0], Is.GreaterThan(rgb[1]), "The dark surface must be yellow (red above green)");
-        Assert.That(rgb[1], Is.GreaterThan(rgb[2]), "The dark surface must be yellow (green above blue)");
+        Assert.That(measured, Has.Length.EqualTo(3), "Could not read the episode row surface");
+        Assert.That(measured[0], Is.EqualTo(measured[1]),
+            "the episode row is filled with its feed colour, like the feed card");
+        Assert.That(measured[2], Is.EqualTo("4px"), "the row keeps its 4 px feed border");
     }
 
     private async Task AssertNoContrastIssuesAsync(string path)
     {
         await Page.GotoAsync(_factory.ServerAddress + path);
         Assert.That(await CurrentThemeAsync(), Is.EqualTo("dark"), $"Expected the dark theme on {path}");
-        AssertNoContrastIssues(await Page.EvaluateAsync<string[]>(ContrastScript), path);
+        ContrastChecks.AssertNoIssues(await Page.EvaluateAsync<string[]>(ContrastChecks.Script), path);
     }
-
-    private static void AssertNoContrastIssues(string[] offenders, string label) =>
-        Assert.That(offenders, Is.Empty,
-            $"Unreadable text/controls in dark mode ({label}):\n  {string.Join("\n  ", offenders)}");
 
     private async Task WaitForEpisodesAsync(string stationId, int minimum)
     {
@@ -331,55 +356,6 @@ public class ThemeTests : PageTest
         }
         Assert.Fail($"Feed episodes were not parsed within the timeout (station {stationId}).");
     }
-
-    // Composites translucent backgrounds/text colours over their ancestors so a
-    // subtle white-on-dark surface is not mistaken for a light one.
-    private const string ContrastScript = @"() => {
-        const parse = (rgb) => {
-            const m = rgb.match(/[\d.]+/g);
-            if (!m) return { r: 0, g: 0, b: 0, a: 0 };
-            return { r: +m[0], g: +m[1], b: +m[2], a: m.length > 3 ? +m[3] : 1 };
-        };
-        const luma = (c) => (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b) / 255;
-        const effectiveBg = (el) => {
-            const chain = [];
-            let node = el;
-            while (node && node.nodeType === 1) { chain.push(node); node = node.parentElement; }
-            let acc = { r: 255, g: 255, b: 255 };
-            for (let i = chain.length - 1; i >= 0; i--) {
-                const c = parse(getComputedStyle(chain[i]).backgroundColor);
-                if (c.a <= 0) continue;
-                acc = { r: c.r * c.a + acc.r * (1 - c.a), g: c.g * c.a + acc.g * (1 - c.a), b: c.b * c.a + acc.b * (1 - c.a) };
-            }
-            return acc;
-        };
-        const offenders = [];
-        document.querySelectorAll('body *').forEach((el) => {
-            if (el instanceof SVGElement) return;
-            const direct = Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent.trim().length > 0);
-            const isControl = el.matches('button, a, .btn, [role=""button""], [role=""slider""]');
-            if (!direct && !isControl) return;
-            const cs = getComputedStyle(el);
-            if (cs.display === 'none' || cs.visibility === 'hidden' || parseFloat(cs.opacity) === 0) return;
-            const rect = el.getBoundingClientRect();
-            if (rect.width === 0 || rect.height === 0) return;
-
-            const bg = effectiveBg(el);
-            const fgColor = parse(cs.color);
-            const fg = {
-                r: fgColor.r * fgColor.a + bg.r * (1 - fgColor.a),
-                g: fgColor.g * fgColor.a + bg.g * (1 - fgColor.a),
-                b: fgColor.b * fgColor.a + bg.b * (1 - fgColor.a)
-            };
-            const bl = luma(bg);
-            const fl = luma(fg);
-            if ((bl < 0.4 && fl < 0.45) || (bl > 0.6 && fl > 0.55)) {
-                const cls = typeof el.className === 'string' ? el.className : '';
-                offenders.push(el.tagName + '.' + cls + ' (fg=' + fl.toFixed(2) + ', bg=' + bl.toFixed(2) + ')');
-            }
-        });
-        return offenders.slice(0, 25);
-    }";
 
     private async Task<string?> CookieValueAsync(string name)
     {

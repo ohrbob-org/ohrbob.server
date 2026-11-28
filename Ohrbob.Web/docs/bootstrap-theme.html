@@ -1,460 +1,549 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ohrbob Theme</title>
+    <title>Ohrbob Metro UI Kit</title>
     <link rel="stylesheet" href="css/theme.css">
-    <!-- Prism for syntax highlighting -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
-<body>
-    <div class="container mt-5">
-        <div class="d-flex align-items-center mb-4 gap-4">
-            <img src="images/ohrbob-logo.svg" alt="Ohrbob Logo" width="120" height="120" class="logo">
-            <h1 class="mb-0">Ohrbob UI Kit</h1>
-        </div>
-        
-        <section class="mb-5">
-            <h2 class="mb-4">Brand Colors</h2>
-            <div class="d-flex flex-wrap gap-3">
-                <div class="card glass-panel" style="width: 150px;">
-                    <div style="height: 100px; background-color: #001957; border-radius: var(--bs-card-inner-border-radius) var(--bs-card-inner-border-radius) 0 0;"></div>
-                    <div class="card-body text-center p-2">
-                        <strong>Dark Blue</strong>
-                        <div class="small">#001957</div>
-                    </div>
-                </div>
-                <div class="card glass-panel" style="width: 150px;">
-                    <div style="height: 100px; background-color: #544ff4; border-radius: var(--bs-card-inner-border-radius) var(--bs-card-inner-border-radius) 0 0;"></div>
-                    <div class="card-body text-center p-2">
-                        <strong>Light Blue</strong>
-                        <div class="small">#544ff4</div>
-                    </div>
-                </div>
-                <div class="card glass-panel" style="width: 150px;">
-                    <div style="height: 100px; background-color: #fdb200; border-radius: var(--bs-card-inner-border-radius) var(--bs-card-inner-border-radius) 0 0;"></div>
-                    <div class="card-body text-center p-2">
-                        <strong>Yellow</strong>
-                        <div class="small">#fdb200</div>
-                    </div>
-                </div>
-                <div class="card glass-panel" style="width: 150px;">
-                    <div style="height: 100px; background-color: #ff9a00; border-radius: var(--bs-card-inner-border-radius) var(--bs-card-inner-border-radius) 0 0;"></div>
-                    <div class="card-body text-center p-2">
-                        <strong>Orange Light</strong>
-                        <div class="small">#ff9a00</div>
-                    </div>
-                </div>
-                <div class="card glass-panel" style="width: 150px;">
-                    <div style="height: 100px; background-color: #fc5d00; border-radius: var(--bs-card-inner-border-radius) var(--bs-card-inner-border-radius) 0 0;"></div>
-                    <div class="card-body text-center p-2">
-                        <strong>Strong Orange</strong>
-                        <div class="small">#fc5d00</div>
-                    </div>
-                </div>
-                <div class="card glass-panel" style="width: 150px;">
-                    <div style="height: 100px; background-color: #fff4d8; border-radius: var(--bs-card-inner-border-radius) var(--bs-card-inner-border-radius) 0 0;"></div>
-                    <div class="card-body text-center p-2">
-                        <strong>Pale Yellow</strong>
-                        <div class="small">#fff4d8</div>
-                    </div>
-                </div>
-                <div class="card glass-panel" style="width: 150px;">
-                    <div style="height: 100px; background-color: #e9e8fd; border-radius: var(--bs-card-inner-border-radius) var(--bs-card-inner-border-radius) 0 0;"></div>
-                    <div class="card-body text-center p-2">
-                        <strong>Pale Violet</strong>
-                        <div class="small">#e9e8fd</div>
-                    </div>
-                </div>
-            </div>
-        </section>
+<body class="metro-app">
 
-        <section class="mb-5">
-            <h2 class="mb-4">Ohrbob Logo Component</h2>
-            <p>A highly configurable logo component that scales with <code>font-size</code> and supports multiple layouts.</p>
-            
-            <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                    <div class="card h-100 glass-panel">
-                        <div class="card-body">
-                            <h5 class="card-title">Text Only</h5>
-                            <p class="text-muted small">Scales exactly with the parent's font size.</p>
-                            
-                            <div class="d-flex justify-content-center py-3">
-                                <div style="font-size: 2rem;">
-                                    <div class="ohrbob-logo">
-                                        <span class="ohrbob-logo-text">
-                                            <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-3 text-start" style="font-size: 0.85rem;">
-<pre class="mb-0"><code class="language-html">&lt;div style="font-size: 2rem;"&gt;
-  &lt;div class="ohrbob-logo"&gt;
-    &lt;span class="ohrbob-logo-text"&gt;
-      &lt;span class="char-1"&gt;o&lt;/span&gt;&lt;span class="char-2"&gt;h&lt;/span&gt;&lt;span class="char-3"&gt;r&lt;/span&gt;&lt;span class="char-4"&gt;b&lt;/span&gt;&lt;span class="char-5"&gt;o&lt;/span&gt;&lt;span class="char-6"&gt;b&lt;/span&gt;
-    &lt;/span&gt;
-  &lt;/div&gt;
-&lt;/div&gt;</code></pre>
-                            </div>
-                        </div>
+    <header class="metro-page" style="padding-bottom: 0;">
+        <div class="metro-header">
+            <div class="metro-brandline">
+                <img src="images/ohrbob-logo.svg" alt="">
+                <div>
+                    <div class="ohrbob-logo">
+                        <span class="ohrbob-logo-text">
+                            <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
+                        </span>
                     </div>
-                </div>
-                
-                <div class="col-md-6">
-                    <div class="card h-100 glass-panel">
-                        <div class="card-body">
-                            <h5 class="card-title">Logo Left (Inline)</h5>
-                            <p class="text-muted small">Icon scales automatically to match line-height of text.</p>
-                            
-                            <div class="d-flex justify-content-center py-3">
-                                <div style="font-size: 3rem;">
-                                    <div class="ohrbob-logo ohrbob-logo-left">
-                                        <span class="ohrbob-logo-icon">
-                                            <img src="images/ohrbob-logo.svg" alt="Icon">
-                                        </span>
-                                        <span class="ohrbob-logo-text">
-                                            <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-3 text-start" style="font-size: 0.85rem;">
-<pre class="mb-0"><code class="language-html">&lt;div style="font-size: 3rem;"&gt;
-  &lt;div class="ohrbob-logo ohrbob-logo-left"&gt;
-    &lt;span class="ohrbob-logo-icon"&gt;
-      &lt;img src="images/ohrbob-logo.svg" alt="Icon"&gt;
-    &lt;/span&gt;
-    &lt;span class="ohrbob-logo-text"&gt;
-      &lt;span class="char-1"&gt;o&lt;/span&gt;&lt;span class="char-2"&gt;h&lt;/span&gt;&lt;span class="char-3"&gt;r&lt;/span&gt;&lt;span class="char-4"&gt;b&lt;/span&gt;&lt;span class="char-5"&gt;o&lt;/span&gt;&lt;span class="char-6"&gt;b&lt;/span&gt;
-    &lt;/span&gt;
-  &lt;/div&gt;
-&lt;/div&gt;</code></pre>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="metro-brandline__sub">metro ui kit</div>
                 </div>
             </div>
 
-            <div class="row g-4 mb-4">
-                <div class="col-md-6">
-                    <div class="card h-100 glass-panel">
-                        <div class="card-body text-center">
-                            <h5 class="card-title">Logo Above (Stacked)</h5>
-                            <p class="text-muted small">Icon automatically spans the entire width of the text. Controlled by parent's <code>font-size</code>.</p>
-                            
-                            <div class="py-3">
-                                <div style="font-size: 4rem;">
-                                    <div class="ohrbob-logo ohrbob-logo-above">
-                                        <span class="ohrbob-logo-icon">
-                                            <img src="images/ohrbob-logo.svg" alt="Icon">
-                                        </span>
-                                        <span class="ohrbob-logo-text">
-                                            <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="mt-3 text-start" style="font-size: 0.85rem;">
-<pre class="mb-0"><code class="language-html">&lt;div style="font-size: 4rem;"&gt;
-  &lt;div class="ohrbob-logo ohrbob-logo-above"&gt;
-    &lt;span class="ohrbob-logo-icon"&gt;
-      &lt;img src="images/ohrbob-logo.svg" alt="Icon"&gt;
-    &lt;/span&gt;
-    &lt;span class="ohrbob-logo-text"&gt;
-      &lt;span class="char-1"&gt;o&lt;/span&gt;&lt;span class="char-2"&gt;h&lt;/span&gt;&lt;span class="char-3"&gt;r&lt;/span&gt;&lt;span class="char-4"&gt;b&lt;/span&gt;&lt;span class="char-5"&gt;o&lt;/span&gt;&lt;span class="char-6"&gt;b&lt;/span&gt;
-    &lt;/span&gt;
-  &lt;/div&gt;
-&lt;/div&gt;</code></pre>
-                            </div>
-                        </div>
-                    </div>
+            <div class="d-flex align-items-center gap-2">
+                <button id="themeToggle" class="btn btn-ghost btn-sm" type="button" aria-label="Toggle colour theme">
+                    <i class="bi bi-sun me-1" aria-hidden="true"></i><span>light</span>
+                </button>
+                <div class="dropdown">
+                    <button class="profile-avatar" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Profile menu">K</button>
+                    <ul class="dropdown-menu dropdown-menu-end profile-menu">
+                        <li><a class="dropdown-item" href="#">manage</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item is-danger" href="#">disconnect</a></li>
+                    </ul>
                 </div>
-
-                <div class="col-md-6">
-                    <div class="card h-100 glass-panel">
-                        <div class="card-body text-center">
-                            <h5 class="card-title">Logo Above (Width Controlled)</h5>
-                            <p class="text-muted small">Using CSS container queries (<code>container-type</code> + <code>cqi</code>) to scale by <strong>width</strong> instead of font-size.</p>
-                            
-                            <div class="py-3">
-                                <div style="width: 200px; margin: 0 auto; container-type: inline-size;">
-                                    <div style="font-size: 15cqi;">
-                                        <div class="ohrbob-logo ohrbob-logo-above">
-                                            <span class="ohrbob-logo-icon">
-                                                <img src="images/ohrbob-logo.svg" alt="Icon">
-                                            </span>
-                                            <span class="ohrbob-logo-text">
-                                                <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-3 text-start" style="font-size: 0.85rem;">
-<pre class="mb-0"><code class="language-html">&lt;div style="width: 200px; container-type: inline-size;"&gt;
-  &lt;div style="font-size: 15cqi;"&gt;
-    &lt;div class="ohrbob-logo ohrbob-logo-above"&gt;
-      &lt;span class="ohrbob-logo-icon"&gt;
-        &lt;img src="images/ohrbob-logo.svg" alt="Icon"&gt;
-      &lt;/span&gt;
-      &lt;span class="ohrbob-logo-text"&gt;
-        &lt;span class="char-1"&gt;o&lt;/span&gt;&lt;span class="char-2"&gt;h&lt;/span&gt;&lt;span class="char-3"&gt;r&lt;/span&gt;&lt;span class="char-4"&gt;b&lt;/span&gt;&lt;span class="char-5"&gt;o&lt;/span&gt;&lt;span class="char-6"&gt;b&lt;/span&gt;
-      &lt;/span&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-&lt;/div&gt;</code></pre>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="mb-5">
-            <h2 class="mb-4">Theme Semantic Colors</h2>
-            
-            <h4 class="mb-3">Alerts</h4>
-            <div class="alert alert-primary" role="alert">A simple primary alert—check it out!</div>
-            <div class="alert alert-secondary" role="alert">A simple secondary alert—check it out!</div>
-            <div class="alert alert-success" role="alert">A simple success alert—check it out!</div>
-            <div class="alert alert-danger" role="alert">A simple danger alert—check it out!</div>
-            <div class="alert alert-warning" role="alert">A simple warning alert—check it out!</div>
-            <div class="alert alert-info" role="alert">A simple info alert—check it out!</div>
-            <div class="alert alert-light" role="alert">A simple light alert—check it out!</div>
-            <div class="alert alert-dark" role="alert">A simple dark alert—check it out!</div>
-
-            <h4 class="mb-3 mt-4">Buttons</h4>
-            <div class="d-flex flex-wrap gap-2 mb-3">
-                <button type="button" class="btn btn-primary">Primary</button>
-                <button type="button" class="btn btn-secondary">Secondary</button>
-                <button type="button" class="btn btn-success">Success</button>
-                <button type="button" class="btn btn-danger">Danger</button>
-                <button type="button" class="btn btn-warning">Warning</button>
-                <button type="button" class="btn btn-info">Info</button>
-                <button type="button" class="btn btn-light">Light</button>
-                <button type="button" class="btn btn-dark">Dark</button>
-            </div>
-            
-            <h4 class="mb-3 mt-4">Badges</h4>
-            <div class="d-flex flex-wrap gap-2">
-                <span class="badge bg-primary">Primary</span>
-                <span class="badge bg-secondary">Secondary</span>
-                <span class="badge bg-success">Success</span>
-                <span class="badge bg-danger">Danger</span>
-                <span class="badge bg-warning text-dark">Warning</span>
-                <span class="badge bg-info text-dark">Info</span>
-                <span class="badge bg-light text-dark">Light</span>
-                <span class="badge bg-dark">Dark</span>
-            </div>
-        </section>
-
-        <section class="mb-5">
-            <h2 class="mb-4">Audio Widget Component</h2>
-            <p>The <code>&lt;audio-widget&gt;</code> is a custom web component that docks to the bottom of the screen (<code>position: fixed</code>). In this showcase, we use the <code>.audio-widget-inline</code> utility class to embed it statically within the documentation flow.</p>
-            
-            <div class="row g-4 mb-4">
-                <div class="col-12">
-                    <div class="card glass-panel">
-                        <div class="card-body">
-                            <h5 class="card-title mb-4">Desktop View (Default)</h5>
-                            
-                            <!-- Inline wrapper to enforce the inline showcase style -->
-                            <div class="position-relative w-100 pb-3">
-                                <audio-widget class="audio-widget-inline audio-widget-desktop"
-                                    station="Radio 1"
-                                    track="Cosmic Journey"
-                                    artist="Space Explorer"
-                                    cover="https://images.unsplash.com/photo-1619983081563-430f63602796?auto=format&fit=crop&q=80&w=150&h=150">
-                                </audio-widget>
-                            </div>
-                            
-                            <div class="mt-3 text-start" style="font-size: 0.85rem;">
-<pre class="mb-0"><code class="language-html">&lt;audio-widget 
-    station="Radio 1"
-    track="Cosmic Journey"
-    artist="Space Explorer"
-    cover="images/cover.png"&gt;
-&lt;/audio-widget&gt;</code></pre>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-12 col-lg-6">
-                    <div class="card glass-panel">
-                        <div class="card-body">
-                            <h5 class="card-title mb-4">Mobile View</h5>
-                            <p class="text-muted small">We apply <code>.audio-widget-mobile</code> here to force the mobile breakpoint styles for the showcase.</p>
-                            
-                            <!-- Inline wrapper to enforce the inline showcase style -->
-                            <div class="position-relative w-100 mx-auto pb-3" style="max-width: 400px;">
-                                <audio-widget class="audio-widget-inline audio-widget-mobile"
-                                    station="Radio 1"
-                                    track="Cosmic Journey"
-                                    artist="Space Explorer"
-                                    cover="https://images.unsplash.com/photo-1619983081563-430f63602796?auto=format&fit=crop&q=80&w=150&h=150"
-                                    next-episode='{"track":"Secrets of the Deep","artist":"Oceanographer","cover":"https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=150&h=150","duration":3600}'
-                                    prev-episode='{"track":"First Steps","artist":"Neil Armstrong","cover":"https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=150&h=150","duration":1800}'>
-                                </audio-widget>
-                            </div>
-                            
-                            <div class="mt-3 text-start" style="font-size: 0.85rem;">
-<pre class="mb-0"><code class="language-html">&lt;!-- On screens < 768px, this layout is automatically applied. --&gt;
-&lt;audio-widget 
-    station="Radio 1"
-    track="Cosmic Journey"
-    artist="Space Explorer"
-    cover="images/cover.png"&gt;
-&lt;/audio-widget&gt;</code></pre>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <h2 class="mb-4">Components</h2>
-        <div class="card glass-panel mb-4">
-            <div class="card-body">
-                <h5 class="card-title">Glass Card</h5>
-                <p class="card-text">This is a glassmorphism card.</p>
-                <button class="btn btn-primary btn-glow">Primary Button</button>
             </div>
         </div>
 
-        <input type="text" class="form-control glass-input mb-4" placeholder="Glass Input">
+        <h1 class="metro-title">ohrbob</h1>
+        <p class="metro-hint">The player, playlist and onboarding surfaces translated into Bootstrap.</p>
+    </header>
 
-        <h4 class="mb-3 mt-4">Audio Widget</h4>
-        <p>The <code>&lt;audio-widget&gt;</code> is a custom web component styled as a glass panel with a frosted glass edge. It's a full-width player bar docked to the bottom of the viewport. Here is the code structure used for it:</p>
-        <div class="card glass-panel mb-5">
-            <div class="card-body">
-                <pre class="mb-0" style="color: var(--bs-body-color); overflow-x: auto;"><code>&lt;audio-widget 
-    station="My Station" 
-    track="Track Name" 
-    artist="Artist"
-    cover="image-url.jpg"&gt;
-&lt;/audio-widget&gt;
+    <main class="metro-page">
+        <ul class="nav nav-tabs metro-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#preview-stations" type="button" role="tab">stations</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#preview-player" type="button" role="tab">player</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#preview-playlist" type="button" role="tab">playlist</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#preview-connect" type="button" role="tab">connect</button>
+            </li>
+        </ul>
 
-&lt;script&gt;
-    const widget = document.querySelector('audio-widget');
-    widget.addEventListener('play', () => console.log('Playing...'));
-    widget.addEventListener('pause', () => console.log('Paused.'));
-    widget.addEventListener('forward', () => console.log('Next track'));
-    widget.addEventListener('back', () => console.log('Previous track'));
-    widget.addEventListener('settings', () => console.log('Settings'));
-&lt;/script&gt;</code></pre>
+        <div class="tab-content metro-preview">
+            <!-- Stations ------------------------------------------------------>
+            <div class="tab-pane fade show active" id="preview-stations" role="tabpanel">
+                <div class="metro-preview-frame">
+                    <div class="metro-app-bar">
+                        <div class="metro-brandline">
+                            <img src="images/ohrbob-logo.svg" alt="">
+                            <div class="ohrbob-logo"><span class="ohrbob-logo-text"><span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span></span></div>
+                        </div>
+                        <span class="profile-avatar" style="--metro-avatar: #5b7fa6;">K</span>
+                    </div>
+
+                    <h2 class="metro-title">stations</h2>
+
+                    <div class="station-grid mt-3">
+                        <div class="card-station">
+                            <div class="card-station-art">
+                                <img class="card-station-cover" src="https://images.unsplash.com/photo-1619983081563-430f63602796?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                                <img class="card-station-cover" src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                                <img class="card-station-cover" src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                                <img class="card-station-cover" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                            </div>
+                            <div class="card-station-body">
+                                <h3 class="card-station-title"><a class="stretched-link" href="#">Laberpodcasts</a></h3>
+                            </div>
+                        </div>
+
+                        <div class="card-station">
+                            <div class="card-station-art">
+                                <img class="card-station-cover" src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                                <img class="card-station-cover" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                                <img class="card-station-cover" src="https://images.unsplash.com/photo-1619983081563-430f63602796?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                                <img class="card-station-cover" src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                            </div>
+                            <div class="card-station-body">
+                                <h3 class="card-station-title"><a class="stretched-link" href="#">Die Maus zum Hören</a></h3>
+                            </div>
+                        </div>
+
+                        <div class="card-station">
+                            <div class="card-station-art">
+                                <img class="card-station-cover" src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                                <img class="card-station-cover" src="https://images.unsplash.com/photo-1619983081563-430f63602796?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                                <img class="card-station-cover" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                                <img class="card-station-cover" src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                            </div>
+                            <div class="card-station-body">
+                                <h3 class="card-station-title"><a class="stretched-link" href="#">Berlin Daily</a></h3>
+                            </div>
+                        </div>
+
+                        <div class="card-station">
+                            <div class="card-station-art">
+                                <img class="card-station-cover" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                                <img class="card-station-cover" src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                                <img class="card-station-cover" src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                                <img class="card-station-cover" src="https://images.unsplash.com/photo-1619983081563-430f63602796?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                            </div>
+                            <div class="card-station-body">
+                                <h3 class="card-station-title"><a class="stretched-link" href="#">Morning Briefing</a></h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Player -------------------------------------------------------->
+            <div class="tab-pane fade" id="preview-player" role="tabpanel">
+                <div class="metro-player-grid">
+                    <section class="now-playing">
+                        <img class="now-playing__cover" src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=80&w=1400" alt="">
+                        <div class="now-playing__fade"></div>
+                        <div class="now-playing__top-fade"></div>
+
+                        <header class="now-playing__header">
+                            <button class="btn-metro-icon" type="button" aria-label="Stations"><i class="bi bi-arrow-left"></i></button>
+                            <button class="btn-metro-icon" type="button" aria-label="Station settings"><i class="bi bi-gear"></i></button>
+                        </header>
+
+                        <h2 class="now-playing__title">Laberpodcasts</h2>
+
+                        <div class="now-playing__body">
+                            <h3 class="now-playing__episode-title">Die Folge, die es nie gab</h3>
+                            <p class="now-playing__date">Nov 24, 2026</p>
+                            <p class="now-playing__description">Ausgiebig diskutieren Kalk und Welk den neuen Bond-Schauspieler, Robert Pattinson. Endlich! Ansonsten sind dieses Mal mentale Fähigkeiten gefragt: Es geht ums Vergessen z.B. schlimmer Filme und Serien und um Erinnerungen an tolle Leinwandkunst.</p>
+                        </div>
+
+                        <div class="transport-deck">
+                            <div class="transport-progress">
+                                <span class="time">06:10</span>
+                                <input type="range" min="0" max="100" value="22" aria-label="Playback position">
+                                <span class="time">56:34</span>
+                            </div>
+                            <div class="transport-buttons">
+                                <button class="transport-btn" type="button" aria-label="Previous episode"><i class="bi bi-skip-start-fill"></i></button>
+                                <button class="transport-btn" type="button" aria-label="Back 15 seconds"><i class="bi bi-arrow-counterclockwise"></i></button>
+                                <button class="transport-btn transport-btn--play" type="button" aria-label="Play"><i class="bi bi-play-fill"></i></button>
+                                <button class="transport-btn" type="button" aria-label="Forward 30 seconds"><i class="bi bi-arrow-clockwise"></i></button>
+                                <button class="transport-btn" type="button" aria-label="Next episode"><i class="bi bi-skip-end-fill"></i></button>
+                                <span class="transport-volume ms-2">
+                                    <i class="bi bi-volume-up"></i>
+                                    <input type="range" min="0" max="100" value="70" aria-label="Volume">
+                                </span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <aside class="playlist-pane">
+                        <h2 class="playlist-title">playlist</h2>
+                        <p class="playlist-hint">long-press an episode to mark it completed</p>
+                        <div class="metro-warning">Set a buffer in Settings to download episodes.</div>
+
+                        <div class="episode-list">
+                            <a class="episode-row is-current" href="#">
+                                <span class="episode-row__bar"></span>
+                                <img class="episode-row__cover" src="https://images.unsplash.com/photo-1619983081563-430f63602796?auto=format&fit=crop&q=80&w=160&h=160" alt="">
+                                <span class="episode-row__body">
+                                    <span class="episode-row__title">Die Folge, die es nie gab</span>
+                                    <span class="episode-row__artist">Kalk &amp; Welk – Die fabelhaften Boomer Boys</span>
+                                    <span class="episode-row__meta">Nov 24, 2026</span>
+                                </span>
+                            </a>
+                            <a class="episode-row" href="#">
+                                <span class="episode-row__bar"></span>
+                                <img class="episode-row__cover" src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&q=80&w=160&h=160" alt="">
+                                <span class="episode-row__body">
+                                    <span class="episode-row__title">Was schmuggeln wir ins Kino? Einen Hammer!</span>
+                                    <span class="episode-row__artist">Talk ohne Gast</span>
+                                    <span class="episode-row__meta">Apr 26, 2019</span>
+                                </span>
+                            </a>
+                            <a class="episode-row" href="#">
+                                <span class="episode-row__bar"></span>
+                                <img class="episode-row__cover" src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=160&h=160" alt="">
+                                <span class="episode-row__body">
+                                    <span class="episode-row__title">Mark Forster ist seine Fußpflege sehr wichtig!</span>
+                                    <span class="episode-row__artist">Talk ohne Gast</span>
+                                    <span class="episode-row__meta">May 10, 2019</span>
+                                </span>
+                            </a>
+                            <a class="episode-row is-completed" href="#">
+                                <span class="episode-row__bar"></span>
+                                <img class="episode-row__cover" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=160&h=160" alt="">
+                                <span class="episode-row__body">
+                                    <span class="episode-row__title">Boomer im Weltall</span>
+                                    <span class="episode-row__artist">Kalk &amp; Welk – Die fabelhaften Boomer Boys</span>
+                                    <span class="episode-row__meta">Sep 15, 2026</span>
+                                </span>
+                                <span class="episode-row__check">✓</span>
+                            </a>
+                            <a class="episode-row" href="#">
+                                <span class="episode-row__bar"></span>
+                                <img class="episode-row__cover" src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=80&w=160&h=160" alt="">
+                                <span class="episode-row__body">
+                                    <span class="episode-row__title">Über Action-Dates und Zugfahrten bis nach Peking</span>
+                                    <span class="episode-row__artist">Talk ohne Gast</span>
+                                    <span class="episode-row__meta">May 24, 2019</span>
+                                </span>
+                            </a>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+
+            <!-- Playlist ------------------------------------------------------>
+            <div class="tab-pane fade" id="preview-playlist" role="tabpanel">
+                <div class="playlist-pane metro-preview-frame" style="max-width: 480px; border: 1px solid var(--metro-hairline);">
+                    <h2 class="playlist-title">playlist</h2>
+                    <p class="playlist-hint">long-press an episode to mark it completed</p>
+                    <div class="metro-warning">Set a buffer in Settings to download episodes.</div>
+                    <div class="episode-list">
+                        <a class="episode-row is-current" href="#">
+                            <span class="episode-row__bar"></span>
+                            <img class="episode-row__cover" src="https://images.unsplash.com/photo-1619983081563-430f63602796?auto=format&fit=crop&q=80&w=160&h=160" alt="">
+                            <span class="episode-row__body">
+                                <span class="episode-row__title">Die Folge, die es nie gab</span>
+                                <span class="episode-row__artist">Kalk &amp; Welk</span>
+                                <span class="episode-row__meta">Nov 24, 2026</span>
+                            </span>
+                        </a>
+                        <a class="episode-row" href="#">
+                            <span class="episode-row__bar"></span>
+                            <img class="episode-row__cover" src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&q=80&w=160&h=160" alt="">
+                            <span class="episode-row__body">
+                                <span class="episode-row__title">Was schmuggeln wir ins Kino?</span>
+                                <span class="episode-row__artist">Talk ohne Gast</span>
+                                <span class="episode-row__meta">Apr 26, 2019</span>
+                            </span>
+                        </a>
+                        <a class="episode-row" href="#">
+                            <span class="episode-row__bar"></span>
+                            <img class="episode-row__cover" src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=160&h=160" alt="">
+                            <span class="episode-row__body">
+                                <span class="episode-row__title">Mark Forster ist seine Fußpflege sehr wichtig!</span>
+                                <span class="episode-row__artist">Talk ohne Gast</span>
+                                <span class="episode-row__meta">May 10, 2019</span>
+                            </span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connect ------------------------------------------------------->
+            <div class="tab-pane fade" id="preview-connect" role="tabpanel">
+                <div class="connect-page connect-page--preview">
+                    <div class="connect-page__intro">
+                        <div class="connect-brand">
+                            <img src="images/ohrbob-logo.svg" alt="">
+                            <div>
+                                <div class="connect-brand__name">ohrbob</div>
+                                <div class="connect-brand__sub">private podcast player</div>
+                            </div>
+                        </div>
+                        <h2 class="connect-display">ohrbob</h2>
+                        <p class="connect-tagline">podcasts, paced like radio.</p>
+                        <p class="connect-copy">Stations curate your feeds into a single queue. Connect this app to your own Ohrbob server and listen without the noise.</p>
+                    </div>
+
+                    <div class="connect-card">
+                        <div class="connect-card__accent"></div>
+                        <div class="connect-card__body">
+                            <h3 class="connect-card__title">connect</h3>
+                            <p class="connect-card__hint">one link and your stations are here.</p>
+                            <p class="connect-card__label">Connect with ohrbob.org</p>
+                            <button class="btn btn-primary" type="button">Connect with ohrbob.org</button>
+                            <button class="btn btn-secondary" type="button">Scan QR code</button>
+                            <a class="connect-card__link" href="#">I have a server link</a>
+                        </div>
+                    </div>
+
+                    <a class="connect-footnote" href="https://ohrbob.org">learn more on ohrbob.org</a>
+                    <span class="connect-version">v0.2.2</span>
+                </div>
             </div>
         </div>
-    </div>
 
+        <!-- Components ----------------------------------------------------->
+        <section class="metro-section mt-5">
+            <div class="metro-kicker">components</div>
+            <h2 class="metro-title metro-title--compact mt-2">buttons &amp; fields</h2>
+
+            <div class="row g-4 mt-1">
+                <div class="col-lg-6">
+                    <div class="glass-panel p-4 h-100">
+                        <p class="metro-kicker mb-3">actions</p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-primary" type="button">primary</button>
+                            <button class="btn btn-secondary" type="button">secondary</button>
+                            <button class="btn btn-ghost" type="button">ghost</button>
+                            <button class="btn btn-danger" type="button">danger</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="glass-panel p-4 h-100">
+                        <p class="metro-kicker mb-3">fields</p>
+                        <label class="form-label" for="serverUrl">server url</label>
+                        <input class="form-control mb-3" id="serverUrl" placeholder="https://player.ohrbob.org">
+                        <label class="form-label" for="token">stream token</label>
+                        <input class="form-control" id="token" placeholder="Paste your stream token">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="metro-section">
+            <div class="metro-kicker">cards</div>
+            <h2 class="metro-title metro-title--compact mt-2">station, feed &amp; episode</h2>
+
+            <div class="row g-4 mt-1">
+                <div class="col-md-6 col-xl-3">
+                    <div class="card-station h-100">
+                        <div class="card-station-art">
+                            <img class="card-station-cover" src="https://images.unsplash.com/photo-1619983081563-430f63602796?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                            <img class="card-station-cover" src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                            <img class="card-station-cover" src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                            <img class="card-station-cover" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                        </div>
+                        <div class="card-station-body">
+                            <h3 class="card-station-title"><a class="stretched-link" href="#">Laberpodcasts</a></h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-xl-3">
+                    <div class="card-feed h-100">
+                        <div class="card-feed-art">
+                            <img class="card-feed-cover" src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&q=80&w=600&h=600" alt="">
+                            <button class="card-feed-add" type="button" aria-label="Add feed"><i class="bi bi-plus-lg"></i></button>
+                        </div>
+                        <div class="card-feed-body">
+                            <h3 class="card-feed-title"><a class="stretched-link" href="#">Talk ohne Gast</a></h3>
+                            <p class="card-feed-author">Fritz</p>
+                            <p class="card-feed-meta">104 episodes · Updated 12 Nov</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 col-xl-6">
+                    <div class="d-flex flex-column gap-2">
+                        <div class="card-episode is-playing">
+                            <img class="card-episode-cover" src="https://images.unsplash.com/photo-1619983081563-430f63602796?auto=format&fit=crop&q=80&w=160&h=160" alt="">
+                            <div class="card-episode-body">
+                                <h3 class="card-episode-title"><a class="stretched-link" href="#">Die Folge, die es nie gab</a></h3>
+                                <p class="card-episode-meta">Kalk &amp; Welk · 12 Nov</p>
+                                <div class="card-episode-progress"><span style="width: 38%"></span></div>
+                            </div>
+                            <button class="card-episode-play" type="button" aria-label="Pause"><i class="bi bi-pause-fill"></i></button>
+                        </div>
+                        <div class="card-episode has-progress">
+                            <img class="card-episode-cover" src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=80&w=160&h=160" alt="">
+                            <div class="card-episode-body">
+                                <h3 class="card-episode-title"><a class="stretched-link" href="#">Über Action-Dates und Zugfahrten bis nach Peking</a></h3>
+                                <p class="card-episode-meta">Talk ohne Gast · 24 May</p>
+                                <div class="card-episode-progress"><span style="width: 72%"></span></div>
+                            </div>
+                            <button class="card-episode-play" type="button" aria-label="Play"><i class="bi bi-play-fill"></i></button>
+                        </div>
+                        <div class="card-episode is-played">
+                            <img class="card-episode-cover" src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&q=80&w=160&h=160" alt="">
+                            <div class="card-episode-body">
+                                <h3 class="card-episode-title"><a class="stretched-link" href="#">Boomer im Weltall</a></h3>
+                                <p class="card-episode-meta">Kalk &amp; Welk · 15 Sep</p>
+                            </div>
+                            <button class="card-episode-play" type="button" aria-label="Replay"><i class="bi bi-arrow-counterclockwise"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="metro-section">
+            <div class="metro-kicker">overlays</div>
+            <h2 class="metro-title metro-title--compact mt-2">settings &amp; actions</h2>
+
+            <div class="d-flex flex-wrap gap-2 mt-3">
+                <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#stationSettingsModal">station settings</button>
+                <button class="btn btn-secondary" type="button" data-bs-toggle="modal" data-bs-target="#episodeActionsModal">episode actions</button>
+            </div>
+
+            <div class="modal fade" id="stationSettingsModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="metro-modal-accent"></div>
+                        <div class="modal-body p-4">
+                            <h2 class="h3 mb-1">station settings</h2>
+                            <p class="metro-kicker">Laberpodcasts</p>
+                            <label class="form-label mt-4" for="bufferAhead">buffer ahead</label>
+                            <select class="form-select mb-3" id="bufferAhead">
+                                <option>Do not download</option>
+                                <option selected>30 minutes</option>
+                                <option>1 hour</option>
+                            </select>
+                            <p class="text-metro-muted small">Whole upcoming episodes of this station are downloaded. More buffer uses more storage.</p>
+                            <div class="d-flex justify-content-between align-items-center mt-4">
+                                <button class="btn btn-ghost px-0" type="button">more settings</button>
+                                <button class="btn btn-ghost" type="button" data-bs-dismiss="modal">done</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="episodeActionsModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="metro-modal-accent metro-modal-accent--violet"></div>
+                        <div class="modal-body p-4">
+                            <h2 class="h3 mb-1">episode</h2>
+                            <p class="text-metro-muted small">Die Folge, die es nie gab</p>
+                            <p class="mt-4 mb-2"><span class="text-metro-violet fw-bold">✓</span> up next</p>
+                            <p class="text-metro-muted small">Completed episodes stay in the station playlist and sync with your profile.</p>
+                            <button class="btn btn-secondary w-100 mt-3" type="button">Mark as completed</button>
+                            <button class="btn btn-ghost w-100 mt-2" type="button" data-bs-dismiss="modal">close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="metro-section">
+            <div class="metro-kicker">transport</div>
+            <h2 class="metro-title metro-title--compact mt-2">audio widget</h2>
+            <p class="metro-hint">The web component keeps its markup; the Metro theme flattens it into the player deck.</p>
+
+            <div class="glass-panel p-3 mt-3">
+                <audio-widget class="audio-widget-inline audio-widget-desktop"
+                    station="Laberpodcasts"
+                    track="Die Folge, die es nie gab"
+                    artist="Kalk &amp; Welk"
+                    cover="https://images.unsplash.com/photo-1619983081563-430f63602796?auto=format&fit=crop&q=80&w=200&h=200">
+                </audio-widget>
+            </div>
+        </section>
+
+        <section class="metro-section">
+            <div class="metro-kicker">station editor</div>
+            <h2 class="metro-title metro-title--compact mt-2">rotation row</h2>
+
+            <div class="glass-panel p-3 mt-3">
+                <div class="list-group">
+                    <div class="list-group-item card-station-feed rotation-item" draggable="true" data-url="https://example.com/kalk-welk.xml" style="--station-feed-accent: #fc5d00;">
+                        <i class="bi bi-soundwave card-station-feed-watermark" aria-hidden="true"></i>
+                        <img class="card-station-feed-cover" src="https://images.unsplash.com/photo-1619983081563-430f63602796?auto=format&fit=crop&q=80&w=200&h=200" alt="">
+                        <div class="card-station-feed-body">
+                            <div class="card-station-feed-title-row">
+                                <span class="card-station-feed-dot" aria-hidden="true"></span>
+                                <strong class="card-station-feed-title">Kalk &amp; Welk – Die fabelhaften Boomer Boys</strong>
+                            </div>
+                            <div class="card-station-feed-controls">
+                                <div class="card-station-feed-controls-left">
+                                    <span class="playback-order-toggle-container">
+                                        <span class="playback-order-toggle" role="slider" tabindex="0" aria-label="Playback order" aria-valuemin="0" aria-valuemax="2" aria-valuenow="1">
+                                            <span class="slider-thumb-container" aria-hidden="true"><i class="bi bi-sort-down"></i></span>
+                                            <button class="playback-node-btn" type="button" aria-label="Backwards: Newest to Oldest"><i class="bi bi-sort-down"></i></button>
+                                            <button class="playback-node-btn" type="button" aria-label="Random"><i class="bi bi-shuffle"></i></button>
+                                            <button class="playback-node-btn" type="button" aria-label="Forwards: Oldest to Newest"><i class="bi bi-sort-up"></i></button>
+                                        </span>
+                                        <input type="hidden" class="playback-order-value" value="1">
+                                    </span>
+                                    <label class="card-station-feed-span">
+                                        episodes
+                                        <input class="form-control episodes-input" type="number" value="12">
+                                    </label>
+                                    <button class="btn btn-ghost btn-sm move-feed" type="button" aria-label="Move feed"><i class="bi bi-arrows-move"></i></button>
+                                    <button class="btn btn-ghost btn-sm remove-feed" type="button" aria-label="Remove feed"><i class="bi bi-x-lg"></i></button>
+                                </div>
+                                <button class="btn btn-ghost btn-sm card-station-feed-menu" type="button" aria-label="Feed options"><i class="bi bi-three-dots-vertical"></i></button>
+                            </div>
+                            <div class="card-station-feed-meta">104 episodes · Updated 12 Nov 2026, 20:36</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="metro-section">
+            <div class="metro-kicker">palette</div>
+            <h2 class="metro-title metro-title--compact mt-2">colour</h2>
+            <div class="d-flex flex-wrap gap-3 mt-3">
+                <span class="badge text-bg-dark p-3">dark blue #001957</span>
+                <span class="badge bg-metro-violet p-3">violet #544ff4</span>
+                <span class="badge bg-metro-orange p-3">orange #fc5d00</span>
+                <span class="badge bg-metro-yellow p-3 text-dark">yellow #fdb200</span>
+                <span class="badge bg-light text-dark p-3">paper #f4f1ea</span>
+                <span class="badge bg-dark p-3">ink #111217</span>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/audio-widget.js"></script>
+    <script src="js/rotation-control.js"></script>
     <script>
-        const widgets = document.querySelectorAll('audio-widget');
-        
-        widgets.forEach(widget => {
-            widget.duration = 2532; // 42:12
-            let interval = null;
-            
-            widget.addEventListener('play', () => {
-                console.log('Playing...');
-                interval = setInterval(() => {
-                    if (widget.currentTime < widget.duration) {
-                        widget.currentTime += 1;
-                    } else {
-                        widget.isPlaying = false;
-                        clearInterval(interval);
-                    }
-                }, 1000);
-            });
-            
-            widget.addEventListener('pause', () => {
-                console.log('Paused.');
-                clearInterval(interval);
-            });
-            
-            widget.addEventListener('seek', (e) => {
-                console.log('Seeked to', e.detail.time);
-                widget.currentTime = e.detail.time;
-            });
-
-            widget.addEventListener('volumechange', (e) => console.log('Volume:', e.detail.volume));
-            widget.addEventListener('mutechange', (e) => console.log('Muted:', e.detail.muted));
-            widget.addEventListener('skipback', (e) => {
-                console.log('Skip back', e.detail.seconds);
-                widget.currentTime = Math.max(0, widget.currentTime - e.detail.seconds);
-            });
-            widget.addEventListener('skipforward', (e) => {
-                console.log('Skip forward', e.detail.seconds);
-                widget.currentTime = Math.min(widget.duration, widget.currentTime + e.detail.seconds);
-            });
-            widget.addEventListener('forward', () => console.log('Next track requested.'));
-            widget.addEventListener('back', () => console.log('Previous track requested.'));
-            widget.addEventListener('settings', () => console.log('Settings opened.'));
-            widget.addEventListener('coverclick', () => console.log('Cover art tapped!'));
-
-            widget.addEventListener('jumpnext', (e) => {
-                console.log('Jump next triggered with', e.detail.episode);
-                const ep = e.detail.episode;
-                if (!ep) return;
-                
-                // Swap episodes: next becomes current, current becomes previous
-                const currentEp = {
-                    track: widget.getAttribute('track'),
-                    artist: widget.getAttribute('artist'),
-                    cover: widget.getAttribute('cover'),
-                    duration: widget.duration
-                };
-                
-                widget.setAttribute('track', ep.track);
-                widget.setAttribute('artist', ep.artist || '');
-                if (ep.cover) widget.setAttribute('cover', ep.cover);
-                widget.duration = ep.duration || 1800;
-                widget.currentTime = 0;
-                
-                widget.prevEpisode = currentEp;
-                widget.nextEpisode = {
-                    track: "The Future of AI",
-                    artist: "Computer Scientist",
-                    cover: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&q=80&w=150&h=150",
-                    duration: 2400
-                };
-            });
-
-            widget.addEventListener('jumpprev', (e) => {
-                console.log('Jump prev triggered with', e.detail.episode);
-                const ep = e.detail.episode;
-                if (!ep) return;
-                
-                const currentEp = {
-                    track: widget.getAttribute('track'),
-                    artist: widget.getAttribute('artist'),
-                    cover: widget.getAttribute('cover'),
-                    duration: widget.duration
-                };
-
-                widget.setAttribute('track', ep.track);
-                widget.setAttribute('artist', ep.artist || '');
-                if (ep.cover) widget.setAttribute('cover', ep.cover);
-                widget.duration = ep.duration || 1800;
-                widget.currentTime = 0;
-                
-                widget.nextEpisode = currentEp;
-                widget.prevEpisode = {
-                    track: "Big Bang Theories",
-                    artist: "Astrophysicist",
-                    cover: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&q=80&w=150&h=150",
-                    duration: 3200
-                };
-            });
+        document.querySelectorAll('audio-widget').forEach(function (widget) {
+            widget.duration = 56 * 60 + 34;
+            widget.currentTime = 6 * 60 + 10;
         });
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script>
+        (function () {
+            const root = document.documentElement;
+            const params = new URLSearchParams(window.location.search);
+            const forced = params.get('theme');
+            const stored = localStorage.getItem('ohrbob-theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const initial = forced || stored || (prefersDark ? 'dark' : 'light');
+            root.dataset.bsTheme = initial;
+
+            const button = document.getElementById('themeToggle');
+            const icon = button.querySelector('i');
+            const label = button.querySelector('span');
+
+            function paintButton() {
+                const dark = root.dataset.bsTheme === 'dark';
+                icon.className = dark ? 'bi bi-sun me-1' : 'bi bi-moon-stars me-1';
+                label.textContent = dark ? 'light' : 'dark';
+            }
+
+            button.addEventListener('click', function () {
+                const next = root.dataset.bsTheme === 'dark' ? 'light' : 'dark';
+                root.dataset.bsTheme = next;
+                localStorage.setItem('ohrbob-theme', next);
+                paintButton();
+            });
+
+            paintButton();
+        })();
+    </script>
 </body>
 </html>

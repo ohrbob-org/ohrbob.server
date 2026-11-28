@@ -12,17 +12,14 @@ using System.Threading.Tasks;
 
 namespace Ohrbob.E2ETests;
 
-[NonParallelizable]
-public class ProfilesTests : PageTest
+public class ProfilesTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _testAccountId = string.Empty;
 
     [SetUp]
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        _factory = new PlaywrightWebApplicationFactory();
         
         var accountService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.AccountApiService>();
         var uniqueEmail = $"profile-test-{Guid.NewGuid()}@test.com";
@@ -43,7 +40,7 @@ public class ProfilesTests : PageTest
         }
         
         _testAccountId = account!.Id;
-        TestAuthHandler.TestAccountId = _testAccountId;
+        SetAccount(_testAccountId);
         
         _factory.CreateClient();
     }
@@ -52,8 +49,7 @@ public class ProfilesTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]
@@ -62,7 +58,7 @@ public class ProfilesTests : PageTest
         await Page.GotoAsync($"{_factory.ServerAddress}/Profiles");
 
         // Ensure exactly 1 profile card is shown
-        var profileCards = Page.Locator(".card");
+        var profileCards = Page.Locator(".profile-card");
         await Expect(profileCards).ToHaveCountAsync(1);
 
         // Verify the Delete button is disabled
@@ -70,7 +66,7 @@ public class ProfilesTests : PageTest
         await Expect(deleteBtn).ToBeDisabledAsync();
 
         // Create a second profile
-        await Page.ClickAsync("text=Create New Profile");
+        await Page.ClickAsync(".page-head__action");
         await Page.FillAsync("input[name='Name']", "Secondary Profile");
         await Page.ClickAsync("input[type='submit']");
 
@@ -105,10 +101,19 @@ public class ProfilesTests : PageTest
 
         await Page.WaitForURLAsync("**/Profiles");
 
-        await Expect(Page.Locator(".profile-avatar").First)
+        var cardAvatar = Page.Locator("#main-content .profile-avatar[data-profile-id]").First;
+        await Expect(cardAvatar)
             .ToHaveCSSAsync("background-color", "rgb(59, 130, 246)");
-        await Expect(Page.Locator("#profileDropdown div.rounded-circle").First)
+
+        var navAvatar = Page.Locator("#profileDropdown .profile-avatar[data-profile-id]").First;
+        await Expect(navAvatar)
             .ToHaveCSSAsync("background-color", "rgb(59, 130, 246)");
+
+        // The header is outside #main-content, so the new colour can only reach it
+        // through profile-color.js reacting to the boosted edit/htmx swap.
+        var inlineNavBackground = await navAvatar.EvaluateAsync<string>("el => el.style.backgroundColor");
+        Assert.That(inlineNavBackground, Is.EqualTo("rgb(59, 130, 246)"),
+            "The header avatar must be synced by the htmx swap handler");
     }
 
     private static async Task SetAccountTierAsync(string accountId, SubscriptionTier tier)

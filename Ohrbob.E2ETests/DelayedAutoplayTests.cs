@@ -12,15 +12,16 @@ namespace Ohrbob.E2ETests;
 /// Automatic playback (page load / sync / recovery) counts down before it starts, so the
 /// user can stop it and pause globally. Explicit play actions start immediately.
 /// </summary>
+[Category("TestCasts")]
+[Category("TestCastsB")]
 [NonParallelizable]
-public class DelayedAutoplayTests : PageTest
+public class DelayedAutoplayTests : E2EPageTest
 {
     // The testcasts host is not resolvable from the browser, so record play() attempts and
     // resolve them; the assertions are about playback intent.
     private const string MockPlayScript = @"window.__playCalls = 0;
         HTMLMediaElement.prototype.play = function () { window.__playCalls++; return Promise.resolve(); };";
 
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _accountId = string.Empty;
     private string _profileId = string.Empty;
 
@@ -35,7 +36,6 @@ public class DelayedAutoplayTests : PageTest
             Assert.Ignore($"podcast-testcasts is not reachable at {TestCasts.ConfigureBaseUrl}.");
         }
 
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
         await Page.AddInitScriptAsync(MockPlayScript);
@@ -55,7 +55,7 @@ public class DelayedAutoplayTests : PageTest
         }
         _profileId = list!.First().Id;
 
-        TestAuthHandler.TestAccountId = _accountId;
+        SetAccount(_accountId);
         _factory.CreateClient();
     }
 
@@ -63,8 +63,7 @@ public class DelayedAutoplayTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory?.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]
@@ -112,6 +111,26 @@ public class DelayedAutoplayTests : PageTest
 
         await Page.WaitForFunctionAsync("() => window.__playCalls > 0", null, new() { Timeout = 12000 });
         await Expect(overlay).ToBeHiddenAsync();
+    }
+
+    [Test]
+    public async Task AutoPlayPrompt_IsReadableInDarkMode()
+    {
+        await StartStationAsync();
+        await Context.AddCookiesAsync(new[]
+        {
+            new Cookie { Name = "ohrbob_theme", Value = "dark", Url = _factory.ServerAddress }
+        });
+
+        await Page.ReloadAsync();
+        await Expect(Page.Locator("html")).ToHaveAttributeAsync("data-bs-theme", "dark",
+            new() { Timeout = 5000 });
+        var overlay = Page.Locator("#ohrbob-auto-start.show");
+        await Expect(overlay).ToBeVisibleAsync(new() { Timeout = 20000 });
+        await Expect(overlay.Locator(".js-auto-start-pause")).ToBeVisibleAsync();
+
+        ContrastChecks.AssertNoIssues(
+            await Page.EvaluateAsync<string[]>(ContrastChecks.Script), "auto-start prompt");
     }
 
     [Test]

@@ -4,39 +4,42 @@
     ViewData["Title"] = "Edit Profile";
 }
 
-<h1>Edit Profile</h1>
+<div class="page-head">
+    <div class="page-head__text">
+        <p class="metro-kicker" aria-hidden="true">profiles</p>
+        <h1 class="metro-title metro-title--compact">edit profile</h1>
+    </div>
+</div>
 
-<h4>Profile</h4>
-<hr />
-<div class="row">
-    <div class="col-12">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <input type="hidden" asp-for="AccountId" />
-            
-            <div class="form-group mb-3">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" required />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
+<form asp-action="Edit" class="profile-form profile-form--wide">
+    <div class="profile-form__col">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="AccountId" />
 
-            @await Html.PartialAsync("_ColorPicker", Model)
-            
-            <div class="form-group mb-3">
-                <label class="control-label">Stream Token</label>
-                <input type="text" class="form-control" value="@Model.StreamToken" readonly />
-                <small class="text-muted">Stream tokens are generated automatically and cannot be changed.</small>
-            </div>
+        <div class="form-group">
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control" required />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
 
-            <div class="form-group mb-4">
-                <label class="control-label fw-bold">Allowed Stations</label>
-                <div class="border rounded p-3">
-                @{ var stationsList = ViewBag.Stations as IEnumerable<Ohrbob.Server.Shared.Requests.StationWithFeedsDto>; }
-                @if (stationsList != null && stationsList.Any())
-                {
-                    var allowed = Model.AllowedStationIds?.ToList() ?? new List<string>();
-                    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-6 g-3 mt-1">
+        @await Html.PartialAsync("_ColorPicker", Model)
+
+        <div class="form-group">
+            <label class="form-label">Stream Token</label>
+            <input type="text" class="form-control profile-token" value="@Model.StreamToken" readonly />
+            <p class="metro-hint">Stream tokens are generated automatically and cannot be changed.</p>
+        </div>
+    </div>
+
+    <div class="profile-form__col profile-form__col--stations">
+        @{ var stationsList = ViewBag.Stations as IEnumerable<Ohrbob.Server.Shared.Requests.StationWithFeedsDto>; }
+        <fieldset class="profile-stations">
+            <legend class="form-label">Allowed Stations</legend>
+            @if (stationsList != null && stationsList.Any())
+            {
+                var allowed = Model.AllowedStationIds?.ToList() ?? new List<string>();
+                <div class="profile-station-grid">
                     @foreach (var station in stationsList)
                     {
                         var isChecked = allowed.Contains(station.Station.Id) ? "checked" : "";
@@ -45,63 +48,58 @@
                         if (feedCount > 1 && feedCount <= 4) gridClass = "collage-grid-2";
                         else if (feedCount > 4 && feedCount <= 9) gridClass = "collage-grid-3";
                         else if (feedCount > 9) gridClass = "collage-grid-4";
-                        
+
                         var displayFeeds = station.Feeds?.Take(16).ToList() ?? new List<Ohrbob.Server.Shared.Requests.FeedStatsDto>();
 
-                        <div class="col">
+                        <div class="profile-station-tile">
                             <input type="checkbox" class="btn-check" name="selectedStations" value="@station.Station.Id" id="station_@station.Station.Id" @isChecked autocomplete="off">
-                            <label class="w-100 p-0 text-start h-100 overflow-hidden d-block cursor-pointer" for="station_@station.Station.Id">
-                                <div class="card h-100 border-0 bg-transparent position-relative">
-                                    <div class="station-check-overlay">
-                                        <i class="bi bi-check-circle-fill"></i>
-                                    </div>
-                                    <div class="collage-container @gridClass card-img-top">
-                                        @if (!displayFeeds.Any())
+                            <label class="profile-station-tile__label" for="station_@station.Station.Id">
+                                <span class="profile-station-tile__art collage-container @gridClass">
+                                    @if (!displayFeeds.Any())
+                                    {
+                                        <span class="collage-fallback">?</span>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var feed in displayFeeds)
                                         {
-                                            <div class="collage-fallback">?</div>
-                                        }
-                                        else
-                                        {
-                                            @foreach (var feed in displayFeeds)
+                                            var feedInitial = (feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper();
+                                            if (!string.IsNullOrEmpty(feed.ImageUrl))
                                             {
-                                                if (!string.IsNullOrEmpty(feed.ImageUrl))
-                                                {
-                                                    <img src="@feed.ImageUrl" class="collage-item" alt="@feed.Title" onerror="this.outerHTML='<div class=\'collage-fallback\'>@((feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper())</div>'" />
-                                                }
-                                                else
-                                                {
-                                                    <div class="collage-fallback">@((feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper())</div>
-                                                }
+                                                <img src="@feed.ImageUrl" class="collage-item" alt="@feed.Title" onerror="this.outerHTML='<span class=\'collage-fallback\'>@feedInitial</span>'" />
+                                            }
+                                            else
+                                            {
+                                                <span class="collage-fallback">@feedInitial</span>
                                             }
                                         }
-                                    </div>
-                                    <div class="card-body p-2">
-                                        <h6 class="card-title text-truncate mb-0" title="@station.Station.Name">@station.Station.Name</h6>
-                                        <small>@feedCount feeds</small>
-                                    </div>
-                                </div>
+                                    }
+                                </span>
+                                <span class="station-check-overlay" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+                                <span class="profile-station-tile__body">
+                                    <span class="profile-station-tile__name" title="@station.Station.Name">@station.Station.Name</span>
+                                    <span class="profile-station-tile__meta">@feedCount @(feedCount == 1 ? "feed" : "feeds")</span>
+                                </span>
                             </label>
                         </div>
                     }
-                    </div>
-                }
-                else
-                {
-                    <div class="alert alert-info mb-0">
-                        You don't have any stations assigned to this profile yet. 
-                        Go to <a asp-controller="Stations" asp-action="Index">Stations</a> to create some, or use the Discover tab.
-                    </div>
-                }
                 </div>
-            </div>
-
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-            </div>
-        </form>
+            }
+            else
+            {
+                <p class="profile-stations__empty">
+                    You don't have any stations assigned to this profile yet.
+                    Go to <a asp-controller="Stations" asp-action="Index">Stations</a> to create some, or use the Discover tab.
+                </p>
+            }
+        </fieldset>
     </div>
-</div>
+
+    <div class="profile-form__actions form-actions">
+        <input type="submit" value="Save" class="btn btn-primary" />
+        <a asp-action="Index" class="btn btn-ghost">Back to List</a>
+    </div>
+</form>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

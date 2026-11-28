@@ -1,14 +1,22 @@
 @model string
 @{
     ViewData["Title"] = "Opening the Ohrbob App";
+    ViewData["BodyClass"] = "metro-night";
 }
 
-<div class="card mx-auto mt-4 shadow-sm" style="max-width: 26rem;">
-    <div class="card-body p-4 text-center">
-        <h1 class="h4 mb-2">Opening the Ohrbob app…</h1>
-        <p class="text-muted">Your API key was created. If nothing happens, open the link manually.</p>
+<div class="auth-page metro-night">
+    <div class="auth-page__intro">
+        <p class="auth-page__kicker">connect</p>
+    </div>
 
-        <a id="ohrbob-handoff-link" class="btn btn-primary w-100" href="@Model">Open in the Ohrbob app</a>
+    <div class="connect-card">
+        <div class="connect-card__accent"></div>
+        <div class="connect-card__body text-center">
+            <h1 class="connect-card__title">opening the app…</h1>
+            <p class="connect-card__hint">Your API key was created. If nothing happens, open the link manually.</p>
+
+            <a id="ohrbob-handoff-link" class="btn btn-primary w-100" href="@Model">Open in the Ohrbob app</a>
+        </div>
     </div>
 </div>
 

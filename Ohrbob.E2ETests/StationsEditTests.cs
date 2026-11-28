@@ -10,10 +10,8 @@ using System.IO;
 
 namespace Ohrbob.E2ETests;
 
-[NonParallelizable]
-public class StationsEditTests : PageTest
+public class StationsEditTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _testAccountId = string.Empty;
 
     public override BrowserNewContextOptions ContextOptions()
@@ -29,7 +27,6 @@ public class StationsEditTests : PageTest
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        _factory = new PlaywrightWebApplicationFactory();
         
         var accountService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.AccountApiService>();
         var uniqueEmail = $"stations-{Guid.NewGuid()}@test.com";
@@ -40,7 +37,7 @@ public class StationsEditTests : PageTest
         }
         
         _testAccountId = account!.Id;
-        TestAuthHandler.TestAccountId = _testAccountId;
+        SetAccount(_testAccountId);
 
         _factory.CreateClient();
     }
@@ -49,8 +46,7 @@ public class StationsEditTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]
@@ -77,9 +73,8 @@ public class StationsEditTests : PageTest
         var firstFeed = feeds.First(l => !string.IsNullOrWhiteSpace(l));
 
         // Go to Stations and Create
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
         
         await Page.FillAsync("input[name='Name']", "Test Edit Station");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
@@ -96,7 +91,7 @@ public class StationsEditTests : PageTest
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
         
         // Wait for feeds to sync (not showing "0 podcasts")
-        await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
+        await Expect(stationCard.Locator(".card-station-count")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
         
         // Click the edit gear icon
         await stationCard.Locator("a[title='Manage Station']").ClickAsync();
@@ -107,8 +102,8 @@ public class StationsEditTests : PageTest
         // Click the Resolved tab to see the playlist
         await Page.ClickAsync("#resolved-tab");
 
-        // We should see the upcoming playlist section
-        await Expect(Page.Locator("h4:has-text('Upcoming Playlist & Playhead')")).ToBeVisibleAsync();
+        // We should see the playlist section
+        await Expect(Page.Locator("#resolvedList")).ToBeVisibleAsync();
         
         // Find the first episode in the list and click "Mark Completed"
         var firstEpisode = Page.Locator(".resolved-item").First;
@@ -121,9 +116,11 @@ public class StationsEditTests : PageTest
         Page.Dialog += (_, dialog) => dialog.AcceptAsync();
         await firstEpisode.Locator("button.mark-completed-btn").ClickAsync();
         
-        // Wait for completed overlay to be visible/active on the marked episode (using its unique ID since playhead advances and shifts list)
+        // Wait for the marked episode to carry the completed state (using its unique ID
+        // since the playhead advances and shifts the list).
         var markedEpisode = Page.Locator($".resolved-item[data-episode-id='{episodeId}']");
-        await Expect(markedEpisode.Locator(".completed-overlay")).ToBeVisibleAsync(new() { Timeout = 10000 });
+        await Expect(markedEpisode).ToHaveClassAsync(
+            new System.Text.RegularExpressions.Regex(@"\bis-played\b"), new() { Timeout = 10000 });
     }
 
     [Test]
@@ -151,9 +148,8 @@ public class StationsEditTests : PageTest
         var secondFeed = feeds.Skip(1).First(l => !string.IsNullOrWhiteSpace(l));
 
         // Go to Stations and Create
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
         
         await Page.FillAsync("input[name='Name']", "Test Feed Station");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
@@ -178,7 +174,7 @@ public class StationsEditTests : PageTest
         }
         
         // Wait for feeds to sync (not showing "0 podcasts")
-        await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
+        await Expect(stationCard.Locator(".card-station-count")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
         
         // Click the edit gear icon
         await stationCard.Locator("a[title='Manage Station']").ClickAsync();
@@ -289,9 +285,8 @@ public class StationsEditTests : PageTest
         var firstFeed = feeds.First(l => !string.IsNullOrWhiteSpace(l));
 
         // Go to Stations and Create
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
         
         await Page.FillAsync("input[name='Name']", "Original Station Name");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
@@ -365,9 +360,8 @@ public class StationsEditTests : PageTest
         var firstFeed = feeds.First(l => !string.IsNullOrWhiteSpace(l));
 
         // Go to Stations and Create
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
         
         await Page.FillAsync("input[name='Name']", "Station To Delete");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
@@ -406,7 +400,7 @@ public class StationsEditTests : PageTest
         
         // Should be taken back to the stations list
         await Page.WaitForURLAsync("**/Stations", new() { Timeout = 15000 });
-        await Expect(Page.Locator("h1")).ToContainTextAsync("My Stations", new() { Timeout = 10000 });
+        await Expect(Page.Locator(".page-head .metro-title")).ToContainTextAsync("stations", new() { Timeout = 10000 });
         
         // The deleted station should no longer be listed
         await Expect(Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Station To Delete" })).ToHaveCountAsync(0);
@@ -448,9 +442,19 @@ public class StationsEditTests : PageTest
         // Set Span = 7 on the source feed and persist it
         var spanInput = Page.Locator("#rotationContainer .rotation-item .episodes-input").First;
         await spanInput.FillAsync("7");
+        // Mark the current row so we can wait for the in-place playlist re-render that
+        // follows the schedule update (it replaces the rotation rows' inner HTML).
+        await Page.EvaluateAsync(
+            "() => document.querySelector('#rotationContainer .rotation-item').setAttribute('data-test-stale', '1')");
         await Page.RunAndWaitForResponseAsync(
             async () => await spanInput.DispatchEventAsync("change"),
             r => r.Url.Contains("/Stations/UpdateSchedule/"));
+        await Page.WaitForFunctionAsync(
+            "() => { const row = document.querySelector('#rotationContainer .rotation-item'); return row && !row.hasAttribute('data-test-stale'); }",
+            null, new() { Timeout = 10000 });
+        // The refresh can also smooth-scroll to the active episode; let the layout settle
+        // before clicking a control inside the re-rendered row.
+        await Page.WaitForTimeoutAsync(500);
 
         // Marker that survives only if there is no full page reload
         await Page.EvaluateAsync("() => { window.__moveMarker = 'kept'; }");
@@ -459,6 +463,7 @@ public class StationsEditTests : PageTest
         var srcRow = Page.Locator("#rotationContainer .rotation-item").First;
         await Expect(srcRow.Locator(".feed-actions-menu")).ToBeVisibleAsync();
         await srcRow.Locator(".feed-actions-menu").ClickAsync();
+        await Expect(srcRow.Locator(".feed-actions-menu")).ToHaveAttributeAsync("aria-expanded", "true", new() { Timeout = 5000 });
         await Expect(srcRow.Locator(".move-feed")).ToBeVisibleAsync();
 
         // Regression (Review Focus #1): the menu must be painted where it is clicked,
@@ -685,7 +690,7 @@ public class StationsEditTests : PageTest
         await Expect(Page.Locator("h1 #stationNameDisplay")).ToBeVisibleAsync(new() { Timeout = 10000 });
 
         // Discover stays a standalone primary action.
-        await Expect(Page.Locator("a.btn[href='/Discover']")).ToBeVisibleAsync();
+        await Expect(Page.Locator(".editor-top-action[href='/Discover']")).ToBeVisibleAsync();
 
         // Feed Url and Import OPML are menu items now, not standalone buttons.
         await Expect(Page.Locator("#stationMoreMenu #manualAddBtn.dropdown-item")).ToHaveCountAsync(1);

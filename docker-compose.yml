@@ -25,6 +25,17 @@ services:
     ports:
       - "${TESTCASTS_PORT:-5004}:5004"
 
+  # Second testcasts instance. The server keeps one global configuration, so the
+  # E2E suite runs its testcasts-dependent classes as two serial shards against
+  # two servers instead of one (see test-e2e.sh). The Api/Player reach it as
+  # http://testcasts-b:5004; the host reaches it at
+  # http://localhost:${TESTCASTS_B_PORT:-5005}.
+  testcasts-b:
+    image: ${TESTCASTS_IMAGE:-kaiwegner/ohrbob.testcasts:latest}
+    container_name: ohrbob-testcasts-b
+    ports:
+      - "${TESTCASTS_B_PORT:-5005}:5004"
+
   ohrbob.api:
     image: ${DOCKER_REGISTRY-}ohrbob.api:${RELEASE_TAG:-beta}
     build:

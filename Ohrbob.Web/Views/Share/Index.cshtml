@@ -7,214 +7,222 @@
     var feedSchedules = station.Schedule?.Feeds ?? new List<Ohrbob.Server.Shared.Data.StationFeedSchedule>();
     var firstAvailableProfile = Model.Profiles.FirstOrDefault(p => !p.IsSubscribed);
     var totalEpisodes = feeds.Sum(f => f.EpisodeCount);
+    var hasLabels = Model.AllProfilesSubscribed || station.HostPaceEnabled || station.IsAging;
 
-    string gridClass = "collage-grid-1";
-    if (feeds.Count > 1 && feeds.Count <= 4) gridClass = "collage-grid-2";
-    else if (feeds.Count > 4 && feeds.Count <= 9) gridClass = "collage-grid-3";
-    else if (feeds.Count > 9) gridClass = "collage-grid-4";
+    string mosaicClass = feeds.Count > 1 ? "collage-grid-2" : "collage-grid-1";
 }
 
-<div class="container py-4 py-lg-5" style="max-width: 1080px;">
-    <div class="row align-items-center g-4 g-lg-5 mb-5">
-        <div class="col-12 col-md-auto">
-            <div class="position-relative mx-auto" style="width: 280px; max-width: 100%;">
-                <div class="collage-container @gridClass shadow" style="width: 280px; height: 280px; max-width: 100%; aspect-ratio: 1 / 1; border-radius: 1rem; overflow: hidden; position: relative;">
-                    @if (!feeds.Any())
-                    {
-                        <div class="collage-fallback">?</div>
-                    }
-                    else
-                    {
-                        foreach (var feed in feeds.Take(16))
-                        {
-                            if (!string.IsNullOrEmpty(feed.ImageUrl))
-                            {
-                                <img src="@feed.ImageUrl" class="collage-item" alt="@feed.Title" />
-                            }
-                            else
-                            {
-                                <div class="collage-fallback">@((feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper())</div>
-                            }
-                        }
-                    }
-                </div>
-
-                <div class="position-absolute" style="right: 12px; bottom: 12px;">
-                    @if (Model.IsOwner)
-                    {
-                        <button type="button" class="btn btn-primary btn-lg rounded-pill px-4 shadow" disabled>Your station</button>
-                    }
-                    else if (!Model.IsAuthenticated)
-                    {
-                        <a asp-controller="Home" asp-action="Login"
-                           asp-route-returnUrl="@Url.Action("Index", "Share", new { code = Model.Code })"
-                           class="btn btn-primary btn-lg rounded-pill px-4 shadow" hx-boost="false">Subscribe</a>
-                    }
-                    else if (Model.AllProfilesSubscribed || firstAvailableProfile == null)
-                    {
-                        <button type="button" class="btn btn-success btn-lg rounded-pill px-4 shadow" disabled>Subscribed</button>
-                    }
-                    else
-                    {
-                        <button type="button" class="btn btn-primary btn-lg rounded-pill px-4 shadow"
-                                data-bs-toggle="modal" data-bs-target="#subscribeProfileModal">Subscribe</button>
-                    }
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-md text-center text-md-start">
-            <div class="mb-2">
-                <span class="badge bg-success">Shared station</span>
-                @if (station.HostPaceEnabled)
+<div class="share-page">
+    <header class="share-hero">
+        <div class="share-hero__mosaic">
+            <div class="collage-container @mosaicClass share-hero__collage">
+                @if (!feeds.Any())
                 {
-                    <span class="badge bg-info text-white ms-1" title="Only episodes the host has completed are available">Host Pace</span>
+                    <div class="collage-fallback">?</div>
                 }
-            </div>
-            <h1 class="display-5 fw-bold mb-2">@station.Name</h1>
-            @if (!string.IsNullOrEmpty(Model.OwnerName))
-            {
-                <p class="lead text-body-secondary mb-2">by @Model.OwnerName</p>
-            }
-            <p class="mb-1">
-                <strong>@feeds.Count</strong> podcast@(feeds.Count == 1 ? "" : "s")
-                <span class="text-body-secondary mx-1">&middot;</span>
-                <strong>@totalEpisodes</strong> episode@(totalEpisodes == 1 ? "" : "s")
-            </p>
-            @if (station.IsAging)
-            {
-                <span class="badge bg-secondary">Aging content enabled</span>
-            }
-        </div>
-    </div>
-
-    <h2 class="h4 mb-3">Podcasts in this station</h2>
-    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3 mb-4">
-        @foreach (var feed in feeds)
-        {
-            var schedule = feedSchedules.FirstOrDefault(f => f.Url == feed.Url);
-            var color = string.IsNullOrEmpty(schedule?.Color) ? "#ccc" : schedule.Color;
-            var safeId = Guid.NewGuid().ToString("N");
-            var hasStations = Model.OwnStations.Any();
-            <div class="col">
-                <div class="card h-100 shadow-sm" style="border-left: 4px solid @color !important;">
-                    <div class="position-relative">
-                        @if (!string.IsNullOrEmpty(feed.ImageUrl))
+                else
+                {
+                    foreach (var feed in feeds.Take(4))
+                    {
+                        if (!string.IsNullOrEmpty(feed.ImageUrl))
                         {
-                            <img src="@feed.ImageUrl" class="card-img-top" alt="@feed.Title" style="aspect-ratio: 1 / 1; object-fit: cover;" />
+                            <img src="@feed.ImageUrl" class="collage-item" alt="@feed.Title" />
                         }
                         else
                         {
-                            <div class="card-img-top d-flex align-items-center justify-content-center bg-secondary-subtle" style="aspect-ratio: 1 / 1;">
-                                <span class="display-5">@((feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper())</span>
-                            </div>
+                            <div class="collage-fallback">@((feed.Title.Length > 0 ? feed.Title[0].ToString() : "?").ToUpper())</div>
                         }
+                    }
+                }
+            </div>
+            <span class="share-hero__bar" aria-hidden="true"></span>
+        </div>
+
+        <div class="share-hero__body">
+            <p class="metro-kicker">shared station</p>
+            @if (hasLabels)
+            {
+                <div class="share-hero__labels">
+                    @if (Model.AllProfilesSubscribed)
+                    {
+                        <span class="status-label is-subscribed">Subscribed</span>
+                    }
+                    @if (station.HostPaceEnabled)
+                    {
+                        <span class="status-label is-pacing" title="Only episodes the host has completed are available">Host Pace</span>
+                    }
+                    @if (station.IsAging)
+                    {
+                        <span class="status-label">Aging content</span>
+                    }
+                </div>
+            }
+            <h1 class="metro-title">@station.Name</h1>
+            @if (!string.IsNullOrEmpty(Model.OwnerName))
+            {
+                <p class="share-hero__owner">by @Model.OwnerName</p>
+            }
+            <p class="share-hero__meta">
+                <strong>@feeds.Count</strong> podcast@(feeds.Count == 1 ? "" : "s")
+                <span aria-hidden="true">&middot;</span>
+                <strong>@totalEpisodes</strong> episode@(totalEpisodes == 1 ? "" : "s")
+            </p>
+
+            <div class="share-hero__actions">
+                @if (Model.IsOwner)
+                {
+                    <button type="button" class="btn share-hero__action" disabled>Your station</button>
+                }
+                else if (!Model.IsAuthenticated)
+                {
+                    <a asp-controller="Home" asp-action="Login"
+                       asp-route-returnUrl="@Url.Action("Index", "Share", new { code = Model.Code })"
+                       class="btn share-hero__action" hx-boost="false">Subscribe</a>
+                }
+                else if (!Model.AllProfilesSubscribed && firstAvailableProfile != null)
+                {
+                    <button type="button" class="btn share-hero__action"
+                            data-bs-toggle="modal" data-bs-target="#subscribeProfileModal">Subscribe</button>
+                }
+            </div>
+        </div>
+    </header>
+
+    <section class="share-feeds" aria-labelledby="share-feeds-title">
+        <h2 class="share-feeds__title" id="share-feeds-title">podcasts in this station</h2>
+
+        @if (!feeds.Any())
+        {
+            <p class="share-empty">This station has no podcasts yet.</p>
+        }
+        else
+        {
+            <div class="share-feed-grid">
+                @foreach (var feed in feeds)
+                {
+                    var schedule = feedSchedules.FirstOrDefault(f => f.Url == feed.Url);
+                    var color = string.IsNullOrEmpty(schedule?.Color) ? "var(--metro-orange)" : schedule.Color;
+                    var safeId = Guid.NewGuid().ToString("N");
+                    var hasStations = Model.OwnStations.Any();
+                    var feedTitle = string.IsNullOrWhiteSpace(feed.Title) ? "Untitled podcast" : feed.Title;
+                    <div class="share-feed-grid__cell">
+                        <article class="card-feed share-feed" style="--station-feed-accent: @color;">
+                            <div class="card-feed-art">
+                                @if (!string.IsNullOrEmpty(feed.ImageUrl))
+                                {
+                                    <img src="@feed.ImageUrl" class="card-feed-cover" alt="@feedTitle" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <div class="card-feed-cover card-feed-cover-empty" role="img" aria-label="No cover art">@((feedTitle.Length > 0 ? feedTitle[0].ToString() : "?").ToUpper())</div>
+                                }
+                                @if (Model.IsAuthenticated)
+                                {
+                                    <button type="button" class="card-feed-add"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#add-to-station-modal-@safeId"
+                                            aria-label="Add @feedTitle to a station"
+                                            title="Add this podcast to a station">
+                                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                                    </button>
+                                }
+                            </div>
+                            <div class="card-feed-body">
+                                <h3 class="card-feed-title" title="@feedTitle">@feedTitle</h3>
+                                <p class="card-feed-author">
+                                    @feed.EpisodeCount episode@(feed.EpisodeCount == 1 ? "" : "s")
+                                    @if (schedule != null)
+                                    {
+                                        <span aria-hidden="true">&middot;</span>
+                                        <text>@(schedule.EpisodesToPlay) per rotation</text>
+                                    }
+                                </p>
+                                @if (feed.LastUpdated.HasValue)
+                                {
+                                    <p class="card-feed-meta" title="Updated @feed.LastUpdated.Value.ToLocalTime().ToString("g")">
+                                        Updated @feed.LastUpdated.Value.ToLocalTime().ToString("d")
+                                    </p>
+                                }
+                            </div>
+                        </article>
+
                         @if (Model.IsAuthenticated)
                         {
-                            <button class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center shadow-lg"
-                                    type="button"
-                                    style="position: absolute; right: 12px; bottom: -25px; width: 50px; height: 50px; z-index: 10;"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#add-to-station-modal-@safeId"
-                                    title="Add this podcast to a station">
-                                <i class="bi bi-plus-lg" style="font-size: 1.5rem; color: white;"></i>
-                            </button>
-                        }
-                    </div>
-                    <div class="card-body py-2" style="padding-top: 30px;">
-                        <h3 class="h6 card-title text-truncate mb-1" title="@feed.Title">@feed.Title</h3>
-                        <div class="small text-body-secondary">
-                            @feed.EpisodeCount episode@(feed.EpisodeCount == 1 ? "" : "s")
-                        </div>
-                        @if (schedule != null)
-                        {
-                            <div class="small text-body-secondary">
-                                @(schedule.EpisodesToPlay) per rotation
-                            </div>
-                        }
-                        @if (feed.LastUpdated.HasValue)
-                        {
-                            <div class="small text-body-secondary text-truncate" title="Updated @feed.LastUpdated.Value.ToLocalTime().ToString("g")">
-                                Updated @feed.LastUpdated.Value.ToLocalTime().ToString("d")
-                            </div>
-                        }
-                    </div>
-                </div>
+                            <div class="modal fade share-modal" id="add-to-station-modal-@safeId" tabindex="-1" aria-labelledby="add-to-station-modal-label-@safeId" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="metro-modal-accent"></div>
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="add-to-station-modal-label-@safeId">Add to Station</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body text-start">
+                                            <form id="add-feed-form-@safeId" hx-boost="false" onsubmit="window.submitAddFeedJson(event, '@safeId')">
+                                                <input type="hidden" name="feedUrl" value="@feed.Url" />
+                                                <input type="hidden" name="feedTitle" value="@feedTitle" />
 
-                @if (Model.IsAuthenticated)
-                {
-                    <div class="modal fade" id="add-to-station-modal-@safeId" tabindex="-1" aria-labelledby="add-to-station-modal-label-@safeId" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title text-body" id="add-to-station-modal-label-@safeId">Add to Station</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body text-body text-start">
-                                    <form id="add-feed-form-@safeId" hx-boost="false" onsubmit="window.submitAddFeedJson(event, '@safeId')">
-                                        <input type="hidden" name="feedUrl" value="@feed.Url" />
-                                        <input type="hidden" name="feedTitle" value="@feed.Title" />
-
-                                        @if (hasStations)
-                                        {
-                                            <div class="mb-2 fw-bold small text-muted text-start">Select Stations:</div>
-                                            <div class="station-list-container mb-3 text-start" style="max-height: 200px; overflow-y: auto;">
-                                                @foreach (var ownStation in Model.OwnStations)
+                                                @if (hasStations)
                                                 {
-                                                    <div class="form-check mb-2">
-                                                        <input class="form-check-input" type="checkbox" name="stationIds" value="@ownStation.Station.Id"
-                                                               id="station-@ownStation.Station.Id-@safeId"
-                                                               data-feeds="@string.Join(";", ownStation.Station.Feeds ?? Array.Empty<string>())"
-                                                               onchange="window.validateFormSelection('@safeId')">
-                                                        <label class="form-check-label" for="station-@ownStation.Station.Id-@safeId">
-                                                            @ownStation.Station.Name
-                                                        </label>
+                                                    <div class="mb-2 fw-bold small text-muted text-start">Select Stations:</div>
+                                                    <div class="station-list-container mb-3 text-start">
+                                                        @foreach (var ownStation in Model.OwnStations)
+                                                        {
+                                                            <div class="form-check mb-2">
+                                                                <input class="form-check-input" type="checkbox" name="stationIds" value="@ownStation.Station.Id"
+                                                                       id="station-@ownStation.Station.Id-@safeId"
+                                                                       data-feeds="@string.Join(";", ownStation.Station.Feeds ?? Array.Empty<string>())"
+                                                                       onchange="window.validateFormSelection('@safeId')">
+                                                                <label class="form-check-label" for="station-@ownStation.Station.Id-@safeId">
+                                                                    @ownStation.Station.Name
+                                                                </label>
+                                                            </div>
+                                                        }
                                                     </div>
                                                 }
-                                            </div>
-                                        }
 
-                                        <div class="form-check mb-3 @(hasStations ? "border-bottom pb-2" : "")">
-                                            <input class="form-check-input" type="checkbox" name="createNewStation" value="true"
-                                                   id="create-new-@safeId" @(!hasStations ? "checked" : "")
-                                                   onchange="window.toggleNewStationInput('@safeId')">
-                                            <label class="form-check-label fw-bold" for="create-new-@safeId">
-                                                Create a new station from this feed
-                                            </label>
-                                        </div>
-                                        <div class="mb-3" id="new-station-name-container-@safeId" style="display: @(hasStations ? "none" : "block");">
-                                            <label class="form-label small text-muted">New Station Name</label>
-                                            <input type="text" class="form-control form-control-sm" name="newStationName" value="@feed.Title" placeholder="Station Name" />
-                                        </div>
+                                                <div class="form-check mb-3 @(hasStations ? "border-bottom pb-2" : "")">
+                                                    <input class="form-check-input" type="checkbox" name="createNewStation" value="true"
+                                                           id="create-new-@safeId" @(!hasStations ? "checked" : "")
+                                                           onchange="window.toggleNewStationInput('@safeId')">
+                                                    <label class="form-check-label fw-bold" for="create-new-@safeId">
+                                                        Create a new station from this feed
+                                                    </label>
+                                                </div>
+                                                <div class="mb-3" id="new-station-name-container-@safeId" style="display: @(hasStations ? "none" : "block");">
+                                                    <label class="form-label small text-muted">New Station Name</label>
+                                                    <input type="text" class="form-control form-control-sm" name="newStationName" value="@feedTitle" placeholder="Station Name" />
+                                                </div>
 
-                                        <div class="modal-footer px-0 pb-0">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                            <button type="submit" class="btn btn-primary" id="confirm-btn-@safeId" @(hasStations ? "disabled" : "")>Confirm Add</button>
+                                                <div class="modal-footer px-0 pb-0">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary" id="confirm-btn-@safeId" @(hasStations ? "disabled" : "")>Confirm Add</button>
+                                                </div>
+                                            </form>
                                         </div>
-                                    </form>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        }
                     </div>
                 }
             </div>
         }
-    </div>
-
+    </section>
 </div>
 
 @if (Model.IsAuthenticated && !Model.IsOwner && firstAvailableProfile != null)
 {
-    <div class="modal fade" id="subscribeProfileModal" tabindex="-1" aria-labelledby="subscribeProfileModalLabel" aria-hidden="true">
+    <div class="modal fade share-modal" id="subscribeProfileModal" tabindex="-1" aria-labelledby="subscribeProfileModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
+                <div class="metro-modal-accent"></div>
                 <form asp-controller="Share" asp-action="Subscribe" asp-route-code="@Model.Code" method="post" hx-boost="false">
                     <div class="modal-header">
                         <h5 class="modal-title" id="subscribeProfileModalLabel">Who is listening?</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body text-body">
-                        <p class="text-body-secondary">Choose the profile that should have this station in its Listen grid.</p>
+                    <div class="modal-body">
+                        <p class="text-muted">Choose the profile that should have this station in its Listen grid.</p>
                         @foreach (var profile in Model.Profiles)
                         {
                             var isFirstAvailable = firstAvailableProfile.Id == profile.Id;
@@ -227,11 +235,11 @@
                                     @profile.Name
                                     @if (profile.IsSubscribed)
                                     {
-                                        <span class="badge bg-success ms-1">Subscribed</span>
+                                        <span class="status-label is-subscribed ms-1">Subscribed</span>
                                     }
                                     else if (profile.IsActive)
                                     {
-                                        <span class="badge bg-secondary ms-1">Active</span>
+                                        <span class="status-label ms-1">Active</span>
                                     }
                                 </label>
                             </div>

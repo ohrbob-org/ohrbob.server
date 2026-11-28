@@ -14,16 +14,13 @@ namespace Ohrbob.E2ETests;
 /// content, otherwise the recommendation lanes stay visible and the search results
 /// are buried below them — which looks like search does nothing.
 /// </summary>
-[NonParallelizable]
-public class DiscoverSearchNavigationTests : PageTest
+public class DiscoverSearchNavigationTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
 
     [SetUp]
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        _factory = new PlaywrightWebApplicationFactory();
 
         var accountService = _factory.Services.GetRequiredService<AccountApiService>();
         var account = await accountService.CreateOrUpdateAccountAsync(
@@ -37,15 +34,14 @@ public class DiscoverSearchNavigationTests : PageTest
             await profileService.CreateProfileAsync(account.Id, new Profile { Name = "Main Profile" });
         }
 
-        TestAuthHandler.TestAccountId = account.Id;
+        SetAccount(account.Id);
     }
 
     [TearDown]
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]
@@ -53,7 +49,7 @@ public class DiscoverSearchNavigationTests : PageTest
     {
         await Page.GotoAsync(_factory.ServerAddress);
 
-        await Page.ClickAsync(".discover-plus-circle");
+        await Page.ClickAsync(".station-add");
         var input = Page.Locator("#discover-search");
         await Expect(input).ToBeVisibleAsync(new() { Timeout = 10000 });
 
@@ -70,7 +66,7 @@ public class DiscoverSearchNavigationTests : PageTest
 
         // Browser back/forward restores the view from htmx history; search must work there too.
         await Page.GoBackAsync();
-        await Expect(Page.Locator("h2")).ToContainTextAsync("Listen", new() { Timeout = 10000 });
+        await Expect(Page.Locator(".page-head .metro-title")).ToContainTextAsync("listen", new() { Timeout = 10000 });
         await Page.GoForwardAsync();
 
         var restoredInput = Page.Locator("#discover-search");

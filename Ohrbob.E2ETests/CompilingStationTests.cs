@@ -9,21 +9,17 @@ using System.Threading.Tasks;
 using MongoDB.Driver;
 using Ohrbob.Server.Shared.Data;
 
-[assembly: NonParallelizable]
-
 namespace Ohrbob.E2ETests;
 
 [NonParallelizable]
-public class CompilingStationTests : PageTest
+public class CompilingStationTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _testAccountId = string.Empty;
 
     [SetUp]
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        _factory = new PlaywrightWebApplicationFactory();
         
         var accountService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.AccountApiService>();
         var uniqueEmail = $"compiling-test-{Guid.NewGuid()}@test.com";
@@ -40,7 +36,7 @@ public class CompilingStationTests : PageTest
         }
         
         _testAccountId = account!.Id;
-        TestAuthHandler.TestAccountId = _testAccountId;
+        SetAccount(_testAccountId);
         
         // Seed a dummy compiling feed in MongoDB so ValidateAndEnsureFeedsExistAsync succeeds immediately but shows as compiling
         var client = new MongoClient("mongodb://localhost:27019");
@@ -132,8 +128,7 @@ public class CompilingStationTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
         
         var client = new MongoClient("mongodb://localhost:27019");
         var database = client.GetDatabase("OhrbobData");
@@ -152,9 +147,8 @@ public class CompilingStationTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
 
         // Create a new station with a nonexistent fresh feed URL
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
         await Page.FillAsync("input[name='Name']", "Fresh Station");
         await Page.FillAsync("input[name='Feeds']", "https://example.com/compiling-test-feed.xml");
         
@@ -330,9 +324,8 @@ public class CompilingStationTests : PageTest
         // Create 2 stations first (which is the Free tier limit)
         for (int i = 1; i <= 2; i++)
         {
-            await Page.ClickAsync("#profileDropdown");
-            await Page.ClickAsync("text=\"Stations\"");
-            await Page.ClickAsync("text=Create New Station");
+            await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+            await Page.ClickAsync("text=new station");
             await Page.FillAsync("input[name='Name']", $"Station {i}");
             await Page.FillAsync("input[name='Feeds']", "https://example.com/compiling-test-feed.xml");
             var submitBtn = Page.Locator("input[type='submit']");
@@ -371,9 +364,9 @@ public class CompilingStationTests : PageTest
         var toastBody = Page.Locator("#toast-body-text");
         await Expect(toastBody).ToHaveTextAsync("Station limit reached for Free tier.", new() { Timeout = 10000 });
 
-        // Verify that the Toast container has the red background class
+        // Verify that the Toast container has the danger status class
         var toast = Page.Locator("#liveToast");
-        await Expect(toast).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("bg-danger"));
+        await Expect(toast).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("is-danger"));
 
         // Crucial: Verify that the form modal remains fully visible and intact!
         await Expect(modal).ToBeVisibleAsync();
@@ -391,7 +384,7 @@ public class CompilingStationTests : PageTest
 
         // Verify that the green success Toast notification appears!
         await Expect(toastBody).ToHaveTextAsync("Added podcast to: Station 1", new() { Timeout = 10000 });
-        await Expect(toast).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("bg-success"));
+        await Expect(toast).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("is-success"));
 
         // Verify that the modal is now closed
         await Expect(modal).Not.ToBeVisibleAsync();
@@ -416,9 +409,8 @@ public class CompilingStationTests : PageTest
         Assert.That(feedUrl, Is.Not.Null.And.Not.Empty);
 
         // Go to Stations and create 1 station "Duplicate Station" with that dynamic feed URL
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
         await Page.FillAsync("input[name='Name']", "Duplicate Station");
         await Page.FillAsync("input[name='Feeds']", feedUrl);
         var submitBtn = Page.Locator("input[type='submit']");

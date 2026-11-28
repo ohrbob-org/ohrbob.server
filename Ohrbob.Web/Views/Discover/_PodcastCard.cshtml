@@ -22,17 +22,18 @@
                 <span class="podcast-cover-media">
                     @if (!string.IsNullOrEmpty(Model.Image))
                     {
-                        <img src="@Model.Image" class="podcast-card-cover-img" alt="Cover">
+                        <img src="@Model.Image" class="card-feed-cover podcast-card-cover-img" alt="Cover" loading="lazy">
                     }
                     else
                     {
-                        <div class="card-feed-cover card-feed-cover-empty" role="img" aria-label="No cover art">@((Model.Title.Length > 0 ? Model.Title[0].ToString() : "?").ToUpper())</div>
+                        <span class="card-feed-cover card-feed-cover-empty" role="img" aria-label="No cover art">@((Model.Title.Length > 0 ? Model.Title[0].ToString() : "?").ToUpper())</span>
                     }
                 </span>
                 <span class="podcast-details-overlay" id="podcast-details-@safeId">
                     <span class="podcast-details-text">@description</span>
                 </span>
             </button>
+            <span class="podcast-details-close" aria-hidden="true">&times;</span>
             <span class="card-feed-badge" aria-hidden="true"><i class="bi bi-rss"></i></span>
             <button class="card-feed-add"
                     type="button"
@@ -53,9 +54,10 @@
     </div>
 
     <!-- Modal -->
-    <div class="modal fade" id="add-to-station-modal-@safeId" tabindex="-1" aria-labelledby="add-to-station-modal-label-@safeId" aria-hidden="true">
+    <div class="modal fade discover-modal" id="add-to-station-modal-@safeId" tabindex="-1" aria-labelledby="add-to-station-modal-label-@safeId" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
+                <div class="metro-modal-accent"></div>
                 <div class="modal-header">
                     <h5 class="modal-title text-body" id="add-to-station-modal-label-@safeId">Add to Station</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

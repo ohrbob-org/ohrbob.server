@@ -57,7 +57,7 @@
 
             el = document.createElement('div');
             el.id = 'ohrbob-auto-start';
-            el.className = 'ohrbob-auto-start';
+            el.className = 'ohrbob-auto-start metro-auto-start';
             el.setAttribute('role', 'status');
             el.style.setProperty('--ohrbob-auto-start-duration', AUTO_START_SECONDS + 's');
             el.innerHTML =

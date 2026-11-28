@@ -36,7 +36,8 @@ public class ServiceUnavailableTests : PageTest
         // We use CreateClient() to force the factory to build the internal host.
         var _ = _factory.CreateClient();
         
-        TestAuthHandler.TestAccountId = "test-account-id"; // Provide a dummy auth to trigger backend calls
+        // Provide a dummy auth to trigger backend calls.
+        _factory.AuthState.AccountId = "test-account-id";
     }
 
     [TearDown]

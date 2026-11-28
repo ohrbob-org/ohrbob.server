@@ -4,6 +4,8 @@
 @inject IOptions<HtmxNavigationOptions> HtmxNavOptions
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
 @{
+    var isLandingPage = ViewData["LandingPage"] is true;
+
     bool IsHtmxEnabled(string controller, string action)
     {
         var path = $"/{controller}";
@@ -30,128 +32,137 @@
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/profiles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/collage.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Ohrbob.Web.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" asp-append-version="true" />
 </head>
-<body hx-boost="true" hx-target="#main-content" class="@(User.Identity?.IsAuthenticated == true ? "with-player" : "") d-flex flex-column min-vh-100">
+<body class="metro-app @(ViewData["BodyClass"]) @(User.Identity?.IsAuthenticated == true ? "with-player" : "")"
+      hx-boost="true" hx-target="#main-content">
     <div id="htmx-progress" aria-hidden="true"></div>
-    <header>
-        <div class="floating-nav-pill">
-            <!-- Left: Logo -->
-            <a asp-area="" asp-controller="Home" asp-action="Index" hx-boost="@(IsHtmxEnabled("Home", "Index") ? "true" : "false")" style="display: flex; align-items: center;">
-                <div style="font-size: 2rem;    height: 1rem;    position: relative;    top: -.7rem;    left: -0.2rem;">
-                    <div class="ohrbob-logo ohrbob-logo-left">
-                        <span class="ohrbob-logo-icon">
-                            <img src="~/images/ohrbob-logo.svg" alt="Icon">
-                        </span>
-                        <span class="ohrbob-logo-text">
-                            <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
-                        </span>
-                    </div>
-                </div>
+    <header class="app-header @(isLandingPage ? "app-header--landing" : "")">
+        <div class="metro-page app-header__inner">
+            <a class="metro-brandline" asp-area="" asp-controller="Home" asp-action="Index" hx-boost="@(IsHtmxEnabled("Home", "Index") ? "true" : "false")">
+                <img src="~/images/ohrbob-logo.svg" alt="ohrbob" />
+                <span class="ohrbob-logo">
+                    <span class="ohrbob-logo-text">
+                        <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
+                    </span>
+                </span>
             </a>
 
-            <!-- Center: Links (if auth'd) -->
-            <div class="floating-nav-pill-center">
+            <nav class="app-nav" aria-label="Primary">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <a asp-area="" asp-controller="Discover" asp-action="Index" hx-boost="@(IsHtmxEnabled("Discover", "Index") ? "true" : "false")">Discover</a>
-                    <a asp-area="" asp-controller="Home" asp-action="Index" hx-boost="@(IsHtmxEnabled("Home", "Index") ? "true" : "false")">Listen</a>
+                    <a class="app-nav-link" asp-area="" asp-controller="Discover" asp-action="Index" hx-boost="@(IsHtmxEnabled("Discover", "Index") ? "true" : "false")">Discover</a>
+                    <a class="app-nav-link" asp-area="" asp-controller="Home" asp-action="Index" hx-boost="@(IsHtmxEnabled("Home", "Index") ? "true" : "false")">Listen</a>
                 }
-            </div>
+            </nav>
 
-            <!-- Right: Profile or Login -->
-            <div class="d-flex align-items-center gap-2">
+            <div class="app-actions">
+                <div class="dropdown">
+                    <button class="btn btn-ghost border-0 p-1" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="More information" title="More information">
+                        <i class="bi bi-three-dots-vertical fs-5"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="d-md-none"><a class="dropdown-item py-2" asp-controller="Discover" asp-action="Index" hx-boost="@(IsHtmxEnabled("Discover", "Index") ? "true" : "false")"><i class="bi bi-compass me-2"></i> Discover</a></li>
+                            <li class="d-md-none"><a class="dropdown-item py-2" asp-controller="Home" asp-action="Index" hx-boost="@(IsHtmxEnabled("Home", "Index") ? "true" : "false")"><i class="bi bi-broadcast me-2"></i> Listen</a></li>
+                            <li class="d-md-none"><hr class="dropdown-divider"></li>
+                        }
+                        <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Features" hx-boost="@(IsHtmxEnabled("Home", "Features") ? "true" : "false")"><i class="bi bi-star me-2"></i> Features</a></li>
+                        <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Clients" hx-boost="@(IsHtmxEnabled("Home", "Clients") ? "true" : "false")"><i class="bi bi-display me-2"></i> Clients</a></li>
+                        <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="About" hx-boost="@(IsHtmxEnabled("Home", "About") ? "true" : "false")"><i class="bi bi-book me-2"></i> Our Story</a></li>
+                        <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="SelfHost" hx-boost="@(IsHtmxEnabled("Home", "SelfHost") ? "true" : "false")"><i class="bi bi-server me-2"></i> Self-Hosting</a></li>
+                        <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Faq" hx-boost="@(IsHtmxEnabled("Home", "Faq") ? "true" : "false")"><i class="bi bi-question-circle me-2"></i> FAQ</a></li>
+                        <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Status" hx-boost="@(IsHtmxEnabled("Home", "Status") ? "true" : "false")"><i class="bi bi-activity me-2"></i> Status</a></li>
+                        <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Privacy" hx-boost="@(IsHtmxEnabled("Home", "Privacy") ? "true" : "false")"><i class="bi bi-shield-lock me-2"></i> Privacy Policy</a></li>
+                        @if (LegalOptions.Value.IsConfigured)
+                        {
+                            <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Legal" hx-boost="@(IsHtmxEnabled("Home", "Legal") ? "true" : "false")"><i class="bi bi-shield-check me-2"></i> Legal</a></li>
+                        }
+                        <li><a class="dropdown-item py-2" href="https://github.com/ohrbob-org/ohrbob.server" target="_blank" rel="noopener"><i class="bi bi-github me-2"></i> Source Code</a></li>
+                    </ul>
+                </div>
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <div class="dropdown">
-                        <button class="btn btn-link text-decoration-none text-body p-1" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="More Information">
-                            <i class="bi bi-three-dots-vertical fs-5"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow">
-                            <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Features" hx-boost="@(IsHtmxEnabled("Home", "Features") ? "true" : "false")"><i class="bi bi-star me-2"></i> Features</a></li>
-                            <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Clients" hx-boost="@(IsHtmxEnabled("Home", "Clients") ? "true" : "false")"><i class="bi bi-display me-2"></i> Clients</a></li>
-                            <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="About" hx-boost="@(IsHtmxEnabled("Home", "About") ? "true" : "false")"><i class="bi bi-book me-2"></i> Our Story</a></li>
-                            <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="SelfHost" hx-boost="@(IsHtmxEnabled("Home", "SelfHost") ? "true" : "false")"><i class="bi bi-server me-2"></i> Self-Hosting</a></li>
-                            <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Faq" hx-boost="@(IsHtmxEnabled("Home", "Faq") ? "true" : "false")"><i class="bi bi-question-circle me-2"></i> FAQ</a></li>
-                            <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Status" hx-boost="@(IsHtmxEnabled("Home", "Status") ? "true" : "false")"><i class="bi bi-activity me-2"></i> Status</a></li>
-                            <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Privacy" hx-boost="@(IsHtmxEnabled("Home", "Privacy") ? "true" : "false")"><i class="bi bi-shield-lock me-2"></i> Privacy Policy</a></li>
-                            @if (LegalOptions.Value.IsConfigured)
-                            {
-                                <li><a class="dropdown-item py-2" asp-controller="Home" asp-action="Legal" hx-boost="@(IsHtmxEnabled("Home", "Legal") ? "true" : "false")"><i class="bi bi-shield-check me-2"></i> Legal</a></li>
-                            }
-                            <li><a class="dropdown-item py-2" href="https://github.com/ohrbob-org/ohrbob.server" target="_blank" rel="noopener"><i class="bi bi-github me-2"></i> Source Code</a></li>
-                        </ul>
-                    </div>
                     @await Component.InvokeAsync("ProfileSelector")
                 }
                 else
                 {
-                    <a asp-controller="Home" asp-action="Login" class="btn btn-primary rounded-pill" hx-boost="false">Login</a>
+                    <a asp-controller="Home" asp-action="Login" class="btn btn-primary" hx-boost="false">Login</a>
                 }
             </div>
         </div>
     </header>
-    <div class="container" id="main-content" hx-history-elt>
-        <main role="main" class="pb-3">
+
+    <div class="metro-page" id="main-content" hx-history-elt>
+        <main role="main">
             @RenderBody()
         </main>
     </div>
 
     @if (User.Identity?.IsAuthenticated != true)
     {
-        <footer class="border-top footer text-muted py-5 bg-body-tertiary mt-auto">
-            <div class="container">
-                <div class="row gy-4">
-                    <div class="col-lg-4 col-md-6">
-                        <div style="font-size: 1.5rem; margin-bottom: 1rem;">
-                            <div class="ohrbob-logo">
-                                <span class="ohrbob-logo-text">
-                                    <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
-                                </span>
-                            </div>
-                        </div>
-                        <p class="small text-muted">
-                            The multi-platform, open-source podcast sync server and player. Organize your podcasts into stations and keep your listening state consistent everywhere.
-                        </p>
-                    </div>
+        <footer class="app-footer">
+            <div class="metro-page app-footer__inner">
+                <div class="app-footer__brand">
+                    <a class="metro-brandline" asp-area="" asp-controller="Home" asp-action="Index">
+                        <img src="~/images/ohrbob-logo.svg" alt="ohrbob" />
+                        <span class="ohrbob-logo">
+                            <span class="ohrbob-logo-text">
+                                <span class="char-1">o</span><span class="char-2">h</span><span class="char-3">r</span><span class="char-4">b</span><span class="char-5">o</span><span class="char-6">b</span>
+                            </span>
+                        </span>
+                    </a>
+                    <p>
+                        The multi-platform, open-source podcast sync server and player. Organize your podcasts into stations and keep your listening state consistent everywhere.
+                    </p>
+                </div>
 
-                    <div class="col-lg-2 col-md-3 col-6">
-                        <h5 class="text-body mb-3">Product</h5>
-                        <ul class="list-unstyled small mb-0">
-                            <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="Features" class="text-muted text-decoration-none">Features</a></li>
-                            <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="Clients" class="text-muted text-decoration-none">Clients</a></li>
-                            <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="About" class="text-muted text-decoration-none">About</a></li>
-                        </ul>
-                    </div>
+                <nav class="app-footer__col" aria-label="Product">
+                    <h2 class="app-footer__title">Product</h2>
+                    <ul class="app-footer__links">
+                        <li><a asp-area="" asp-controller="Home" asp-action="Features" class="app-footer__link">Features</a></li>
+                        <li><a asp-area="" asp-controller="Home" asp-action="Clients" class="app-footer__link">Clients</a></li>
+                        <li><a asp-area="" asp-controller="Home" asp-action="About" class="app-footer__link">About</a></li>
+                    </ul>
+                </nav>
 
-                    <div class="col-lg-2 col-md-3 col-6">
-                        <h5 class="text-body mb-3">Resources</h5>
-                        <ul class="list-unstyled small mb-0">
-                            <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="SelfHost" class="text-muted text-decoration-none">Self-Hosting</a></li>
-                            <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="Faq" class="text-muted text-decoration-none">FAQ</a></li>
-                            <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="Status" class="text-muted text-decoration-none">Status</a></li>
-                            <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="Privacy" class="text-muted text-decoration-none">Privacy Policy</a></li>
-                            <li class="mb-2"><a href="https://github.com/ohrbob-org/ohrbob.server" target="_blank" rel="noopener" class="text-muted text-decoration-none">Source Code</a></li>
-                        </ul>
-                    </div>
+                <nav class="app-footer__col" aria-label="Resources">
+                    <h2 class="app-footer__title">Resources</h2>
+                    <ul class="app-footer__links">
+                        <li><a asp-area="" asp-controller="Home" asp-action="SelfHost" class="app-footer__link">Self-Hosting</a></li>
+                        <li><a asp-area="" asp-controller="Home" asp-action="Faq" class="app-footer__link">FAQ</a></li>
+                        <li><a asp-area="" asp-controller="Home" asp-action="Status" class="app-footer__link">Status</a></li>
+                    </ul>
+                </nav>
 
-                    <div class="col-lg-4 col-md-12">
-                        <h5 class="text-body mb-3">Community & Legal</h5>
-                        <div class="d-flex align-items-center gap-3 mb-3">
-                            <a href="https://github.com/ohrbob-org/" target="_blank" rel="noopener" class="text-muted text-decoration-none" title="ohrbob on GitHub">
-                                <i class="bi bi-github" style="font-size: 1.5rem;"></i>
-                            </a>
-                        </div>
-                        <ul class="list-unstyled small mb-0">
-                            @if (LegalOptions.Value.IsConfigured)
-                            {
-                                <li class="mb-2"><a asp-area="" asp-controller="Home" asp-action="Legal" class="text-muted text-decoration-none">Legal & Privacy</a></li>
-                            }
-                        </ul>
-                    </div>
+                <nav class="app-footer__col" aria-label="Community">
+                    <h2 class="app-footer__title">Community</h2>
+                    <ul class="app-footer__links">
+                        <li><a href="https://github.com/ohrbob-org/" target="_blank" rel="noopener" class="app-footer__link">GitHub</a></li>
+                    </ul>
+                </nav>
+
+                <nav class="app-footer__col" aria-label="Legal">
+                    <h2 class="app-footer__title">Legal</h2>
+                    <ul class="app-footer__links">
+                        <li><a asp-area="" asp-controller="Home" asp-action="Privacy" class="app-footer__link">Privacy Policy</a></li>
+                        @if (LegalOptions.Value.IsConfigured)
+                        {
+                            <li><a asp-area="" asp-controller="Home" asp-action="Legal" class="app-footer__link">Legal</a></li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="metro-page app-footer__legal">
+                <span>&copy; 2026 ohrbob</span>
+                <div class="app-footer__legal-links">
+                    <a asp-area="" asp-controller="Home" asp-action="Privacy" class="app-footer__link">Privacy Policy</a>
+                    @if (LegalOptions.Value.IsConfigured)
+                    {
+                        <a asp-area="" asp-controller="Home" asp-action="Legal" class="app-footer__link">Legal</a>
+                    }
                 </div>
             </div>
         </footer>
@@ -167,15 +178,16 @@
     <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
+                <div class="metro-modal-accent"></div>
                 <div class="modal-header">
                     <h5 class="modal-title" id="confirmationModalLabel">Confirm Action</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body text-body" id="confirmationModalBody">
+                <div class="modal-body" id="confirmationModalBody">
                     Are you sure?
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="confirmationModalCancelBtn">Cancel</button>
+                    <button type="button" class="btn btn-ghost" data-bs-dismiss="modal" id="confirmationModalCancelBtn">Cancel</button>
                     <button type="button" class="btn btn-primary" id="confirmationModalConfirmBtn">OK</button>
                 </div>
             </div>
@@ -183,19 +195,19 @@
     </div>
 
     <!-- Toast Container for HTMX notifications -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
-        <div id="liveToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-container position-fixed end-0 p-3 app-toast-container" style="z-index: 1100;">
+        <div id="liveToast" class="toast metro-toast" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
                 <div class="toast-body" id="toast-body-text">
                     Error message
                 </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="~/lib/htmx/htmx.min.js" asp-append-version="true"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/station-opml-import.js" asp-append-version="true"></script>

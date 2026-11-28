@@ -10,10 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Ohrbob.E2ETests;
 
-[NonParallelizable]
-public class AudioPlaybackTests : PageTest
+public class AudioPlaybackTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _testAccountId = string.Empty;
 
     public override BrowserNewContextOptions ContextOptions()
@@ -29,7 +27,6 @@ public class AudioPlaybackTests : PageTest
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
         
@@ -127,15 +124,14 @@ public class AudioPlaybackTests : PageTest
         }
         
         _testAccountId = account!.Id;
-        TestAuthHandler.TestAccountId = _testAccountId;
+        SetAccount(_testAccountId);
     }
 
     [TearDown]
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]
@@ -152,9 +148,8 @@ public class AudioPlaybackTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
 
         // Create a station
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
         await Page.FillAsync("input[name='Name']", "Link Target Station");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
         await Page.ClickAsync("input[type='submit']");
@@ -164,7 +159,7 @@ public class AudioPlaybackTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
         var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Link Target Station" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
-        await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
+        await Expect(stationCard.Locator(".card-station-count")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
         // The expected target: the station's edit view, as linked by the card's edit gear
         var editHref = await stationCard.Locator("a[title='Manage Station']").GetAttributeAsync("href");
@@ -176,7 +171,7 @@ public class AudioPlaybackTests : PageTest
 
         // The widget's station link must point to the station edit view as a full absolute URL
         // (built by Razor on the server, not concatenated in JavaScript)
-        var stationLink = Page.Locator("#ohrbob-player .audio-bar .station-link-icon");
+        var stationLink = Page.Locator("#ohrbob-player .station-link-icon");
         await Expect(stationLink).ToBeVisibleAsync(new() { Timeout = 10000 });
         var href = await stationLink.GetAttributeAsync("href");
         Assert.That(href, Is.Not.Null.And.Not.Empty);
@@ -202,9 +197,8 @@ public class AudioPlaybackTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
 
         // Create a station
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
         await Page.FillAsync("input[name='Name']", "Pause State Station");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
         await Page.ClickAsync("input[type='submit']");
@@ -214,7 +208,7 @@ public class AudioPlaybackTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
         var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Pause State Station" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
-        await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
+        await Expect(stationCard.Locator(".card-station-count")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
         // Start playback via the station card (explicit user action)
         await stationCard.Locator(".card-station-play").ClickAsync();
@@ -268,9 +262,8 @@ public class AudioPlaybackTests : PageTest
         await Page.GotoAsync(_factory.ServerAddress);
         
         // Go to Stations and Create
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
 
         // Fill form
         await Page.FillAsync("input[name='Name']", "Test E2E Station");
@@ -288,7 +281,7 @@ public class AudioPlaybackTests : PageTest
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
 
         // Poll until feed is parsed (worker finishes). Check if "feeds" count updates (or podcasts)
-        await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
+        await Expect(stationCard.Locator(".card-station-count")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
         // Click the station card to switch to it
         await stationCard.Locator(".card-station-play").ClickAsync();
@@ -296,13 +289,11 @@ public class AudioPlaybackTests : PageTest
         // Wait for the player to load the episode metadata (meaning it's not the placeholder "Track Name" anymore)
         await Expect(Page.Locator("#ohrbob-player .expanded-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
 
-        // If the player is not already playing (which it should be after clicking the card, but let's be safe), click play
         var playBtn = Page.Locator("#ohrbob-player .js-play");
-        var rectCount = await playBtn.Locator("rect").CountAsync();
-        if (rectCount == 0)
-        {
-            await playBtn.ClickAsync();
-        }
+        // The station card click is already an explicit play action. Wait for the widget
+        // to register it instead of toggling the transport, which would pause playback in
+        // the short window before the player updates its icon.
+        await Expect(Page.Locator("#ohrbob-player")).ToHaveJSPropertyAsync("isPlaying", true, new() { Timeout = 45000 });
         
         // Wait for the pause icon to appear (meaning it is playing)
         await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 45000 });
@@ -332,9 +323,8 @@ public class AudioPlaybackTests : PageTest
 
         await Page.GotoAsync(_factory.ServerAddress);
         
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
 
         await Page.FillAsync("input[name='Name']", "Test E2E Station");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
@@ -348,7 +338,7 @@ public class AudioPlaybackTests : PageTest
 
         var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Test E2E Station" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
-        await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
+        await Expect(stationCard.Locator(".card-station-count")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
         // Play the station first
         await stationCard.Locator(".card-station-play").ClickAsync();
@@ -357,11 +347,10 @@ public class AudioPlaybackTests : PageTest
         await Expect(Page.Locator("#ohrbob-player .expanded-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
         
         var playBtn = Page.Locator("#ohrbob-player .js-play");
-        var rectCount = await playBtn.Locator("rect").CountAsync();
-        if (rectCount == 0)
-        {
-            await playBtn.ClickAsync();
-        }
+        // The station card click is already an explicit play action. Wait for the widget
+        // to register it instead of toggling the transport, which would pause playback in
+        // the short window before the player updates its icon.
+        await Expect(Page.Locator("#ohrbob-player")).ToHaveJSPropertyAsync("isPlaying", true, new() { Timeout = 45000 });
         
         try
         {
@@ -407,9 +396,8 @@ public class AudioPlaybackTests : PageTest
 
         await Page.GotoAsync(_factory.ServerAddress);
         
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
 
         await Page.FillAsync("input[name='Name']", "Test E2E Station");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
@@ -423,7 +411,7 @@ public class AudioPlaybackTests : PageTest
 
         var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = "Test E2E Station" }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
-        await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
+        await Expect(stationCard.Locator(".card-station-count")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
         // Play the station first
         await stationCard.Locator(".card-station-play").ClickAsync();
@@ -432,11 +420,10 @@ public class AudioPlaybackTests : PageTest
         await Expect(Page.Locator("#ohrbob-player .expanded-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
         
         var playBtn = Page.Locator("#ohrbob-player .js-play");
-        var rectCount = await playBtn.Locator("rect").CountAsync();
-        if (rectCount == 0)
-        {
-            await playBtn.ClickAsync();
-        }
+        // The station card click is already an explicit play action. Wait for the widget
+        // to register it instead of toggling the transport, which would pause playback in
+        // the short window before the player updates its icon.
+        await Expect(Page.Locator("#ohrbob-player")).ToHaveJSPropertyAsync("isPlaying", true, new() { Timeout = 45000 });
         
         try
         {
@@ -450,7 +437,7 @@ public class AudioPlaybackTests : PageTest
         }
 
         // Click the "Discover" link in the header
-        await Page.ClickAsync(".floating-nav-pill-center a:has-text(\"Discover\")");
+        await Page.ClickAsync(".app-nav-link:has-text(\"Discover\")");
 
         // Wait for the URL to change to /Discover
         await Page.WaitForURLAsync("**/Discover", new() { Timeout = 10000 });
@@ -461,7 +448,7 @@ public class AudioPlaybackTests : PageTest
         Assert.That(isPlaying, Is.True);
 
         // Click the "Listen" link in the header
-        await Page.ClickAsync(".floating-nav-pill-center a:has-text(\"Listen\")");
+        await Page.ClickAsync(".app-nav-link:has-text(\"Listen\")");
 
         // Verify that the player is still playing
         await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 10000 });
@@ -488,9 +475,8 @@ public class AudioPlaybackTests : PageTest
 
         await Page.GotoAsync(_factory.ServerAddress);
         
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
 
         await Page.FillAsync("input[name='Name']", stationName);
         await Page.FillAsync("input[name='Feeds']", firstFeed);
@@ -502,18 +488,17 @@ public class AudioPlaybackTests : PageTest
 
         var stationCard = Page.Locator(".card-station", new PageLocatorOptions { HasTextString = stationName }).First;
         await stationCard.WaitForAsync(new LocatorWaitForOptions { State = WaitForSelectorState.Visible, Timeout = 10000 });
-        await Expect(stationCard.Locator("small.text-muted")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
+        await Expect(stationCard.Locator(".card-station-count")).Not.ToContainTextAsync("0 podcasts", new() { Timeout = 30000 });
 
         await stationCard.Locator(".card-station-play").ClickAsync();
         
         await Expect(Page.Locator("#ohrbob-player .expanded-title")).Not.ToHaveTextAsync("Track Name", new() { Timeout = 15000 });
         
         var playBtn = Page.Locator("#ohrbob-player .js-play");
-        var rectCount = await playBtn.Locator("rect").CountAsync();
-        if (rectCount == 0)
-        {
-            await playBtn.ClickAsync();
-        }
+        // The station card click is already an explicit play action. Wait for the widget
+        // to register it instead of toggling the transport, which would pause playback in
+        // the short window before the player updates its icon.
+        await Expect(Page.Locator("#ohrbob-player")).ToHaveJSPropertyAsync("isPlaying", true, new() { Timeout = 45000 });
         
         await Expect(playBtn.Locator("rect")).ToHaveCountAsync(2, new() { Timeout = 45000 });
 

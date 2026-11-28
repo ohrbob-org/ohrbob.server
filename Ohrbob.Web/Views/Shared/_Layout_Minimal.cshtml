@@ -11,27 +11,42 @@
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/profiles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/collage.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/Ohrbob.Web.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" asp-append-version="true" />
 </head>
-<body hx-boost="true" hx-target="#main-content">
+@{
+    var bodyClass = ViewData["BodyClass"] as string;
+    var isNight = bodyClass?.Contains("metro-night", StringComparison.Ordinal) == true;
+}
+<body class="metro-app minimal-shell @bodyClass" hx-boost="false">
     <div id="htmx-progress" aria-hidden="true"></div>
-    <div class="container" id="main-content">
-        <main role="main" class="pb-3 mt-4">
+
+    @if (isNight)
+    {
+        <header class="minimal-brandline">
+            <div class="minimal-brandline__inner">
+                <a class="minimal-brandline__brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/ohrbob-logo-white.svg" alt="" />
+                    <span class="minimal-brandline__name">ohrbob</span>
+                </a>
+                <span class="minimal-brandline__kicker">connect</span>
+            </div>
+        </header>
+    }
+
+    <div class="minimal-main" id="main-content">
+        <main role="main">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted fixed-bottom mb-3">
-        <div class="container text-center">
+    <footer class="minimal-footer">
+        <div class="minimal-footer__inner">
             &copy; 2026 - Ohrbob.Web
         </div>
     </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="~/lib/htmx/htmx.min.js" asp-append-version="true"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)

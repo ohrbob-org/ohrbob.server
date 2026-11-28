@@ -5,10 +5,11 @@
     var selected = hasColor ? current : Ohrbob.Server.Shared.Data.ProfileColors.Resolve(Model);
     var isCustom = hasColor && !Ohrbob.Server.Shared.Data.ProfileColors.Palette.Contains(selected, StringComparer.OrdinalIgnoreCase);
     var initial = string.IsNullOrEmpty(Model.Name) ? "?" : Model.Name[0].ToString().ToUpper();
+    var previewInk = Ohrbob.Web.ProfileColorInk.For(selected);
 }
-<div class="form-group mb-4" data-profile-color>
-    <label class="control-label fw-bold">Profile color</label>
-    <div class="profile-color-picker mt-2">
+<div class="form-group profile-color-field" data-profile-color>
+    <label class="form-label">Profile color</label>
+    <div class="profile-color-picker">
         <div class="profile-color-swatches">
             @foreach (var color in Ohrbob.Server.Shared.Data.ProfileColors.Palette)
             {
@@ -19,10 +20,10 @@
                         aria-label="Color @color"></button>
             }
             <label class="profile-color-swatch profile-color-custom @(isCustom ? "is-selected" : "")" title="Custom color">
-                <input type="color" value="@(isCustom ? selected : "#8b5cf6")" data-color-custom aria-label="Custom color" />
+                <input type="color" value="@(isCustom ? selected : Ohrbob.Server.Shared.Data.ProfileColors.CustomDefault)" data-color-custom aria-label="Custom color" />
             </label>
         </div>
-        <div class="profile-color-preview" data-color-preview style="background-color: @selected">@initial</div>
+        <div class="profile-color-preview" data-color-preview style="background-color: @selected; color: @previewInk">@initial</div>
     </div>
     <input type="hidden" name="Color" value="@selected" data-color-value />
     <span class="text-danger" asp-validation-for="Color"></span>

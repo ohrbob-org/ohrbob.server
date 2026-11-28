@@ -1,35 +1,43 @@
 @model Ohrbob.Web.Models.ConnectAppViewModel
 @{
     ViewData["Title"] = "Connect the Ohrbob App";
+    ViewData["BodyClass"] = "metro-night";
 }
 
-<div class="card mx-auto mt-4 shadow-sm" style="max-width: 26rem;">
-    <div class="card-body p-4">
-        <h1 class="h4 mb-2">Connect the Ohrbob App</h1>
-        <p class="text-muted">Create an API key to connect the Ohrbob app to this account.</p>
+<div class="auth-page metro-night">
+    <div class="auth-page__intro">
+        <p class="auth-page__kicker">connect</p>
+    </div>
 
-        @if (TempData["Error"] != null)
-        {
-            <div class="alert alert-danger" role="alert">@TempData["Error"]</div>
-        }
+    <div class="connect-card">
+        <div class="connect-card__accent"></div>
+        <div class="connect-card__body">
+            <h1 class="connect-card__title">Connect the Ohrbob App</h1>
+            <p class="connect-card__hint">Create an API key to connect the Ohrbob app to this account.</p>
 
-        <form asp-action="App" method="post">
-            @Html.AntiForgeryToken()
-            <div class="mb-3">
-                <label for="name" class="form-label">Client name</label>
-                <input type="text" class="form-control" id="name" name="name" value="@Model.Name" placeholder="e.g. My Phone" required />
-            </div>
-            <div class="mb-3">
-                <label for="profileId" class="form-label">Profile scope</label>
-                <select class="form-select" id="profileId" name="profileId">
-                    <option value="" selected="@(string.IsNullOrEmpty(Model.ProfileId) ? "selected" : null)">All Profiles (account level)</option>
-                    @foreach (var p in Model.Profiles)
-                    {
-                        <option value="@p.Id" selected="@(Model.ProfileId == p.Id ? "selected" : null)">@p.Name</option>
-                    }
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Create key</button>
-        </form>
+            @if (TempData["Error"] != null)
+            {
+                <div class="auth-error" role="alert">@TempData["Error"]</div>
+            }
+
+            <form asp-action="App" method="post" class="auth-form">
+                @Html.AntiForgeryToken()
+                <div class="auth-field">
+                    <label for="name" class="form-label">Client name</label>
+                    <input type="text" class="form-control" id="name" name="name" value="@Model.Name" placeholder="e.g. My Phone" required />
+                </div>
+                <div class="auth-field">
+                    <label for="profileId" class="form-label">Profile scope</label>
+                    <select class="form-select" id="profileId" name="profileId">
+                        <option value="" selected="@(string.IsNullOrEmpty(Model.ProfileId) ? "selected" : null)">All Profiles (account level)</option>
+                        @foreach (var p in Model.Profiles)
+                        {
+                            <option value="@p.Id" selected="@(Model.ProfileId == p.Id ? "selected" : null)">@p.Name</option>
+                        }
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Create key</button>
+            </form>
+        </div>
     </div>
 </div>

@@ -12,10 +12,11 @@ namespace Ohrbob.E2ETests;
 /// Issue #4: the Edit view's "Resolved Episodes" playlist must show the whole station, not a
 /// truncated window. A feed with more episodes than the old 50-item cap must render every one.
 /// </summary>
+[Category("TestCasts")]
+[Category("TestCastsB")]
 [NonParallelizable]
-public class StationPlaylistTests : PageTest
+public class StationPlaylistTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _accountId = string.Empty;
 
     public override BrowserNewContextOptions ContextOptions() => new()
@@ -40,7 +41,6 @@ public class StationPlaylistTests : PageTest
                 "OHRBOB_TESTCASTS_FEED_URL=http://testcasts:5004 so stored feed URLs use the service name.");
         }
 
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, err) => Console.WriteLine($"BROWSER ERROR: {err}");
 
@@ -57,7 +57,7 @@ public class StationPlaylistTests : PageTest
             await profileService.CreateProfileAsync(_accountId, new Profile { Name = "Main Profile" });
         }
 
-        TestAuthHandler.TestAccountId = _accountId;
+        SetAccount(_accountId);
         _factory.CreateClient();
     }
 
@@ -65,8 +65,7 @@ public class StationPlaylistTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory?.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [Test]

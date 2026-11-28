@@ -9,10 +9,8 @@ using Ohrbob.Web.Services;
 
 namespace Ohrbob.E2ETests;
 
-[NonParallelizable]
-public class AccountBillingTests : PageTest
+public class AccountBillingTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _accountId = string.Empty;
 
     public override BrowserNewContextOptions ContextOptions() => new() { IgnoreHTTPSErrors = true };
@@ -21,9 +19,8 @@ public class AccountBillingTests : PageTest
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        TestAuthHandler.IsAuthenticated = true;
+        SignIn();
 
-        _factory = new PlaywrightWebApplicationFactory();
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
 
@@ -32,7 +29,7 @@ public class AccountBillingTests : PageTest
             "Billing User", $"billing-{Guid.NewGuid()}@test.com", "", "Test", Guid.NewGuid().ToString());
         await accountService.CompleteOnboardingAsync(account!.Id);
 
-        TestAuthHandler.TestAccountId = account.Id;
+        SetAccount(account.Id);
         _accountId = account.Id;
         _factory.CreateClient();
     }
@@ -41,9 +38,8 @@ public class AccountBillingTests : PageTest
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory?.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
-        TestAuthHandler.IsAuthenticated = true;
+        SetAccount(string.Empty);
+        SignIn();
     }
 
     [Test]
@@ -100,7 +96,8 @@ public class AccountBillingTests : PageTest
         await Page.GotoAsync($"{_factory.ServerAddress}/Account");
         await Page.ClickAsync("#account-tab");
 
-        await Expect(Page.Locator("h1")).ToContainTextAsync("Manage Account");
+        await Expect(Page.Locator("h1")).ToHaveTextAsync("account");
+        await Expect(Page.Locator(".metro-kicker")).ToHaveTextAsync("your account");
         await Expect(Page.Locator("form[action='/Account/Upgrade'] button")).ToContainTextAsync("Upgrade to Morebob");
         await Expect(Page.Locator("text=Stripe Card Billing Integration Coming Soon")).ToHaveCountAsync(0);
     }

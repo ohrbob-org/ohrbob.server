@@ -8,17 +8,17 @@ using System.IO;
 
 namespace Ohrbob.E2ETests;
 
+[Category("TestCasts")]
+[Category("TestCastsB")]
 [NonParallelizable]
-public class NavigationTests : PageTest
+public class NavigationTests : E2EPageTest
 {
-    private PlaywrightWebApplicationFactory _factory = null!;
     private string _testAccountId = string.Empty;
 
     [SetUp]
     public async Task Setup()
     {
         await Context.ClearCookiesAsync();
-        _factory = new PlaywrightWebApplicationFactory();
         
         var accountService = _factory.Services.GetRequiredService<Ohrbob.Web.Services.AccountApiService>();
         var uniqueEmail = $"nav-{Guid.NewGuid()}@test.com";
@@ -35,15 +35,14 @@ public class NavigationTests : PageTest
         }
         
         _testAccountId = account!.Id;
-        TestAuthHandler.TestAccountId = _testAccountId;
+        SetAccount(_testAccountId);
     }
 
     [TearDown]
     public async Task TearDown()
     {
         await Context.CloseAsync();
-        _factory.Dispose();
-        TestAuthHandler.TestAccountId = string.Empty;
+        SetAccount(string.Empty);
     }
 
     [TestCase(320)]
@@ -56,14 +55,15 @@ public class NavigationTests : PageTest
         await Page.SetViewportSizeAsync(width, 800);
         await Page.GotoAsync(_factory.ServerAddress);
 
-        var pill = Page.Locator(".floating-nav-pill");
-        await Expect(pill).ToBeVisibleAsync();
+        var header = Page.Locator(".app-header");
+        await Expect(header).ToBeVisibleAsync();
 
         var overflow = await Page.EvaluateAsync<bool>(@"() => {
-            const pill = document.querySelector('.floating-nav-pill');
-            const bounds = pill.getBoundingClientRect();
-            if (pill.scrollWidth > pill.clientWidth + 1) return true;
-            return Array.from(pill.querySelectorAll('a, button')).some(el => {
+            const header = document.querySelector('.app-header');
+            const bounds = header.getBoundingClientRect();
+            if (header.scrollWidth > header.clientWidth + 1) return true;
+            return Array.from(header.querySelectorAll('a, button')).some(el => {
+                if (getComputedStyle(el).display === 'none') return false;
                 const r = el.getBoundingClientRect();
                 return r.left < bounds.left - 1 || r.right > bounds.right + 1;
             });
@@ -88,10 +88,11 @@ public class NavigationTests : PageTest
         Page.Console += (_, msg) => Console.WriteLine($"BROWSER CONSOLE: {msg.Text}");
         Page.PageError += (_, msg) => Console.WriteLine($"BROWSER ERROR: {msg}");
         
-        // Create station
-        await Page.ClickAsync("#profileDropdown");
-        await Page.ClickAsync("text=\"Stations\"");
-        await Page.ClickAsync("text=Create New Station");
+        // Create station. The profile menu no longer carries a Stations entry, so
+        // open the management page directly; the dropdown behaviour itself is
+        // asserted further down on the editor page.
+        await Page.GotoAsync($"{_factory.ServerAddress}/Stations");
+        await Page.ClickAsync("text=new station");
         await Page.FillAsync("input[name='Name']", "Nav Test Station");
         await Page.FillAsync("input[name='Feeds']", firstFeed);
         await Page.ClickAsync("input[type='submit']");
@@ -132,7 +133,7 @@ public class NavigationTests : PageTest
         await Page.GoBackAsync();
         
         // Wait for dashboard to reload
-        await Expect(Page.Locator("h2")).ToContainTextAsync("Listen", new() { Timeout = 10000 });
+        await Expect(Page.Locator(".page-head .metro-title")).ToContainTextAsync("listen", new() { Timeout = 10000 });
         await Task.Delay(1000); // Give the browser a moment to settle after popstate
 
         // Try to click dropdown again
@@ -183,6 +184,16 @@ public class NavigationTests : PageTest
         // Check for menu items
         await Expect(Page.Locator("text=About")).ToBeVisibleAsync();
         await Expect(Page.Locator("text=GitHub")).ToBeVisibleAsync();
+
+        // The menu must paint above the page heading/cards, not behind them.
+        var onTop = await Page.EvaluateAsync<bool>(@"() => {
+            const menu = document.querySelector('.dropdown-menu.show');
+            if (!menu) return false;
+            const r = menu.getBoundingClientRect();
+            const hit = document.elementFromPoint(r.left + 12, r.top + 12);
+            return !!hit && menu.contains(hit);
+        }");
+        Assert.That(onTop, Is.True, "the profile dropdown must sit above the page content");
     }
 
     [Test]
@@ -232,8 +243,8 @@ public class NavigationTests : PageTest
             await Page.GotoAsync(_factory.ServerAddress);
             await Expect(Page.Locator(".card-station").First).ToBeVisibleAsync(new() { Timeout = 15000 });
 
-            var discoverLink = Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Discover" });
-            var listenLink = Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Listen" });
+            var discoverLink = Page.Locator(".app-nav-link", new() { HasTextString = "Discover" });
+            var listenLink = Page.Locator(".app-nav-link", new() { HasTextString = "Listen" });
 
             // Listen -> Discover while scrolled down: the new page starts at the top.
             Assert.That(await Page.EvaluateAsync<int>("() => document.documentElement.scrollHeight"),
@@ -283,7 +294,7 @@ public class NavigationTests : PageTest
             await route.ContinueAsync();
         });
 
-        await Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Discover" }).ClickAsync();
+        await Page.Locator(".app-nav-link", new() { HasTextString = "Discover" }).ClickAsync();
         await Expect(bar).ToHaveClassAsync(new System.Text.RegularExpressions.Regex(@"\bis-loading\b"));
         await Expect(bar).ToHaveCSSAsync("opacity", "1");
 
@@ -293,9 +304,37 @@ public class NavigationTests : PageTest
     }
 
     [Test]
+    public async Task PageHeadKickerIsTheLargeLavenderGhostLine()
+    {
+        await Page.SetViewportSizeAsync(1280, 900);
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        var m = await Page.EvaluateAsync<string[]>(@"() => {
+            const kicker = document.querySelector('.page-head .metro-kicker');
+            const title = document.querySelector('.page-head .metro-title');
+            const ks = getComputedStyle(kicker);
+            const kr = kicker.getBoundingClientRect();
+            const tr = title.getBoundingClientRect();
+            return [ks.fontSize, ks.color, ks.textTransform,
+                    String(tr.top >= kr.top), ks.lineHeight,
+                    getComputedStyle(document.querySelector('.page-head')).paddingTop,
+                    getComputedStyle(document.querySelector('#main-content')).paddingTop];
+        }");
+        Assert.That(double.Parse(m[0].Replace("px", string.Empty),
+            System.Globalization.CultureInfo.InvariantCulture), Is.GreaterThanOrEqualTo(72),
+            "the kicker is a display-sized ghost line");
+        Assert.That(m[1], Does.Not.EqualTo("rgb(17, 18, 23)"), "the ghost line is lavender, not ink");
+        Assert.That(m[2], Is.EqualTo("lowercase"));
+        Assert.That(m[3], Is.EqualTo("true"), "the title starts on the ghost line");
+        Assert.That(m[4], Is.EqualTo("8px"), "the ghost line uses the 0.5rem leading");
+        Assert.That(m[5], Is.EqualTo("0px"), "the page head has no top padding");
+        Assert.That(m[6], Is.EqualTo("0px"), "the metro page has no top padding");
+    }
+
+    [Test]
     public async Task ShortPage_HasNoPageScrollbarOnDesktop()
     {
-        await Page.SetViewportSizeAsync(1440, 900);
+        await Page.SetViewportSizeAsync(1440, 1200);
         await Page.GotoAsync(_factory.ServerAddress);
 
         var m = await Page.EvaluateAsync<int[]>(@"() => [
@@ -315,13 +354,19 @@ public class NavigationTests : PageTest
         await Page.SetViewportSizeAsync(1280, 900);
         await Page.GotoAsync(_factory.ServerAddress);
 
-        var listen = Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Listen" });
-        var discover = Page.Locator(".floating-nav-pill-center a", new() { HasTextString = "Discover" });
+        var listen = Page.Locator(".app-nav-link", new() { HasTextString = "Listen" });
+        var discover = Page.Locator(".app-nav-link", new() { HasTextString = "Discover" });
         var active = new System.Text.RegularExpressions.Regex(@"\bactive\b");
 
         await Expect(listen).ToHaveClassAsync(active);
         await Expect(listen).ToHaveAttributeAsync("aria-current", "page");
         await Expect(discover).Not.ToHaveClassAsync(active);
+
+        await Page.WaitForTimeoutAsync(300);
+        var bar = await listen.EvaluateAsync<string[]>(
+            "el => { const s = getComputedStyle(el, '::after'); return [s.height, s.backgroundColor]; }");
+        Assert.That(bar[0], Is.EqualTo("5px"), "the active nav gets a thick bar");
+        Assert.That(bar[1], Does.Match("rgb\\(252, 93, 0\\)"), "the active bar is Metro orange");
 
         // The header is outside #main-content, so the highlight must follow the
         // htmx-boosted navigation instead of relying on a new page render.
