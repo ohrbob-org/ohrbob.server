@@ -158,6 +158,36 @@ public class LandingPageTests : E2EPageTest
     }
 
     [Test]
+    public async Task LandingPage_UsesOneCentredContentColumn()
+    {
+        _factory.CreateClient();
+        await Page.SetViewportSizeAsync(1440, 900);
+        await Page.GotoAsync(_factory.ServerAddress);
+
+        // The landing grid has one right edge: Login, the hero decor, the tier
+        // card and the feature tiles all end where the content column ends.
+        var edges = await Page.EvaluateAsync<double[]>(@"() => {
+            const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
+            return [
+                rect('.app-header .btn-primary').right,
+                rect('.landing-square--violet').right,
+                rect('.landing-tier-card').right,
+                rect('.landing-tiles .landing-tile').right,
+                rect('.app-header .metro-brandline').left,
+                rect('.landing-hero .landing-title').left,
+                rect('.landing-tier-card').left
+            ];
+        }");
+
+        var right = edges[0];
+        Assert.That(edges[1], Is.EqualTo(right).Within(1), "hero decor aligns with Login");
+        Assert.That(edges[2], Is.EqualTo(right).Within(1), "tier card aligns with Login");
+        Assert.That(edges[3], Is.EqualTo(right).Within(1), "feature tiles align with Login");
+        Assert.That(edges[4], Is.EqualTo(edges[5]).Within(1), "brandline aligns with the hero title");
+        Assert.That(edges[6], Is.EqualTo(edges[4]).Within(1), "tier card starts where the content starts");
+    }
+
+    [Test]
     public async Task LandingPage_ComparesFreeAndMorebobTiers()
     {
         _factory.CreateClient(); // Start the server

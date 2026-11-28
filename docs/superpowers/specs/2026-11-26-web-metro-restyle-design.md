@@ -731,3 +731,14 @@ shards cannot share an instance. The compose stack now also runs
   fixture calls `TestCasts.ConfigureAsync` without the serial/shards markers
   (or is tagged without calling it), so a new testcasts class cannot silently
   run in the wrong shard.
+
+## 21. Amendment (2026-11-28): landing content column
+
+The landing page uses one centred content column. `--landing-max: 1320px` and
+`--landing-gutter: clamp(20px, 4vw, 72px)` feed `--landing-inset`, which is
+applied as `padding-inline` to the hero, the feature tiles, the tier section and
+the closing section. Backgrounds stay full-bleed; only the content is capped.
+
+The anonymous app bar uses the same inset, and `.landing-decor` is inset by it,
+so `Login`, the violet decorative square, the tier card and the feature tiles
+share exactly one right edge. `LandingPageTests` asserts those edges.

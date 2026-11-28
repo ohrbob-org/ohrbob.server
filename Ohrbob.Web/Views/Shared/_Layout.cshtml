@@ -4,6 +4,8 @@
 @inject IOptions<HtmxNavigationOptions> HtmxNavOptions
 @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
 @{
+    var isLandingPage = ViewData["LandingPage"] is true;
+
     bool IsHtmxEnabled(string controller, string action)
     {
         var path = $"/{controller}";
@@ -35,7 +37,7 @@
 <body class="metro-app @(ViewData["BodyClass"]) @(User.Identity?.IsAuthenticated == true ? "with-player" : "")"
       hx-boost="true" hx-target="#main-content">
     <div id="htmx-progress" aria-hidden="true"></div>
-    <header class="app-header">
+    <header class="app-header @(isLandingPage ? "app-header--landing" : "")">
         <div class="metro-page app-header__inner">
             <a class="metro-brandline" asp-area="" asp-controller="Home" asp-action="Index" hx-boost="@(IsHtmxEnabled("Home", "Index") ? "true" : "false")">
                 <img src="~/images/ohrbob-logo.svg" alt="ohrbob" />
