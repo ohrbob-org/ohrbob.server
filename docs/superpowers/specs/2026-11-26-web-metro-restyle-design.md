@@ -710,3 +710,22 @@ the pane header rather than below the feed list.
   loopback port (`WebApplicationFactory.UseKestrel()` plus `UseUrls("…:0")`).
   The old double build (in-memory TestServer + Kestrel) sometimes left the
   TestServer unstarted, so `CreateClient()` failed when fixtures ran in parallel.
+
+## 20. Amendment (2026-11-28): two testcasts servers, three shards
+
+`podcast-testcasts` stores one global configuration per server, so serial
+shards cannot share an instance. The compose stack now also runs
+`testcasts-b` (host port 5005, reachable from Api/Player as
+`http://testcasts-b:5004`).
+
+- The testcasts fixtures are split into `TestCastsA` (PlaybackOrder, MetroEditor,
+  EpisodePlayhead, MetroListen, EpisodeDescription) and `TestCastsB` (Delayed
+  Autoplay, MetroPlayer, Theme, MultiSessionPlayback, StationSharing,
+  EndOfEpisode, ListenEmptyBadge, StationPlaylist, Navigation). Both keep
+  `[NonParallelizable]` and the umbrella `TestCasts` category.
+- `test-e2e.sh` runs three concurrent shards: A against instance A, B against
+  instance B, and all remaining fixtures in parallel.
+- `TestCastsShardingTests` reflects over the assembly's IL and fails when a
+  fixture calls `TestCasts.ConfigureAsync` without the serial/shards markers
+  (or is tagged without calling it), so a new testcasts class cannot silently
+  run in the wrong shard.

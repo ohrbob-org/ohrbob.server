@@ -13,6 +13,7 @@ namespace Ohrbob.E2ETests;
 /// user can stop it and pause globally. Explicit play actions start immediately.
 /// </summary>
 [Category("TestCasts")]
+[Category("TestCastsB")]
 [NonParallelizable]
 public class DelayedAutoplayTests : E2EPageTest
 {

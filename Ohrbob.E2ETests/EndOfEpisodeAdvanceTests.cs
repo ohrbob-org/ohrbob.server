@@ -15,6 +15,7 @@ namespace Ohrbob.E2ETests;
 /// they are fast and independent of real media.
 /// </summary>
 [Category("TestCasts")]
+[Category("TestCastsB")]
 [NonParallelizable]
 public class EndOfEpisodeAdvanceTests : E2EPageTest
 {

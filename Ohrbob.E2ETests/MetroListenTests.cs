@@ -13,6 +13,7 @@ namespace Ohrbob.E2ETests;
 /// 27 px station title.
 /// </summary>
 [Category("TestCasts")]
+[Category("TestCastsA")]
 [NonParallelizable]
 public class MetroListenTests : E2EPageTest
 {

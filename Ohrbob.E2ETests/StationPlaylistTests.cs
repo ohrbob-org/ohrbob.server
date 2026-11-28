@@ -13,6 +13,7 @@ namespace Ohrbob.E2ETests;
 /// truncated window. A feed with more episodes than the old 50-item cap must render every one.
 /// </summary>
 [Category("TestCasts")]
+[Category("TestCastsB")]
 [NonParallelizable]
 public class StationPlaylistTests : E2EPageTest
 {

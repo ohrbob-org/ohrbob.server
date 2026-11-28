@@ -13,6 +13,7 @@ namespace Ohrbob.E2ETests;
 /// "reset playhead" and "set playhead" control.
 /// </summary>
 [Category("TestCasts")]
+[Category("TestCastsA")]
 [NonParallelizable]
 public class EpisodePlayheadTests : E2EPageTest
 {

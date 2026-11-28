@@ -13,6 +13,7 @@ namespace Ohrbob.E2ETests;
 /// session must not make another open session start playing by itself.
 /// </summary>
 [Category("TestCasts")]
+[Category("TestCastsB")]
 [NonParallelizable]
 public class MultiSessionPlaybackTests : E2EPageTest
 {

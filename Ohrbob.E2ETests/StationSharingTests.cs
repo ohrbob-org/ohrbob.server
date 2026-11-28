@@ -10,6 +10,7 @@ using Ohrbob.Web.Services;
 namespace Ohrbob.E2ETests;
 
 [Category("TestCasts")]
+[Category("TestCastsB")]
 [NonParallelizable]
 public class StationSharingTests : E2EPageTest
 {

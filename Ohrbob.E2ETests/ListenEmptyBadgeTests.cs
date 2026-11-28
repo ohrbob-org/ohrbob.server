@@ -14,6 +14,7 @@ namespace Ohrbob.E2ETests;
 /// "Empty" badge on the station card.
 /// </summary>
 [Category("TestCasts")]
+[Category("TestCastsB")]
 [NonParallelizable]
 public class ListenEmptyBadgeTests : E2EPageTest
 {

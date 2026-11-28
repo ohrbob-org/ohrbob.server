@@ -20,6 +20,7 @@ namespace Ohrbob.E2ETests;
 /// <c>OHRBOB_TESTCASTS_URL</c> and store feed URLs via <c>OHRBOB_TESTCASTS_FEED_URL</c>.
 /// </summary>
 [Category("TestCasts")]
+[Category("TestCastsA")]
 [NonParallelizable]
 public class EpisodeDescriptionTests : E2EPageTest
 {

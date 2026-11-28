@@ -12,6 +12,7 @@ namespace Ohrbob.E2ETests;
 /// underline tabs, two canvas panes, and feed/episode rows that carry their feed colour.
 /// </summary>
 [Category("TestCasts")]
+[Category("TestCastsA")]
 [NonParallelizable]
 public class MetroEditorTests : E2EPageTest
 {

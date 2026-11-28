@@ -14,6 +14,7 @@ namespace Ohrbob.E2ETests;
 /// canvas panel with an orange countdown rule.
 /// </summary>
 [Category("TestCasts")]
+[Category("TestCastsB")]
 [NonParallelizable]
 public class MetroPlayerTests : E2EPageTest
 {

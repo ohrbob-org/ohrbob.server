@@ -9,6 +9,7 @@ using System.IO;
 namespace Ohrbob.E2ETests;
 
 [Category("TestCasts")]
+[Category("TestCastsB")]
 [NonParallelizable]
 public class NavigationTests : E2EPageTest
 {

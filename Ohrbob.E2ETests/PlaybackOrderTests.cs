@@ -29,6 +29,7 @@ namespace Ohrbob.E2ETests;
 /// Compose, set <c>OHRBOB_TESTCASTS_FEED_URL=http://testcasts:5004</c>.
 /// </summary>
 [Category("TestCasts")]
+[Category("TestCastsA")]
 [NonParallelizable]
 public class PlaybackOrderTests : E2EPageTest
 {

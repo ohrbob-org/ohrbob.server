@@ -12,6 +12,7 @@ namespace Ohrbob.E2ETests;
 /// can be overridden (system/light/dark) from the Appearance section on /Account.
 /// </summary>
 [Category("TestCasts")]
+[Category("TestCastsB")]
 [NonParallelizable]
 public class ThemeTests : E2EPageTest
 {
