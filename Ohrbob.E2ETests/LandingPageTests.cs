@@ -176,7 +176,11 @@ public class LandingPageTests : E2EPageTest
             .ToContainTextAsync("10");
         await Expect(table.Locator("tbody tr", new LocatorLocatorOptions { HasTextString = "Listening profiles" }))
             .ToContainTextAsync("Up to 5");
-        await Expect(table.Locator("tbody tr", new LocatorLocatorOptions { HasTextString = "App support" }))
-            .ToContainTextAsync("Android Auto, Linux, Windows, Mac");
+        // App support applies to both plans, so the platforms are listed under
+        // each tier column rather than in one centred, spanning cell.
+        var appSupport = table.Locator("tbody tr", new LocatorLocatorOptions { HasTextString = "App support" });
+        await Expect(appSupport.Locator("td")).ToHaveCountAsync(2);
+        await Expect(appSupport.Locator("td").Nth(0)).ToContainTextAsync("Android Auto, Linux, Windows, Mac");
+        await Expect(appSupport.Locator("td").Nth(1)).ToContainTextAsync("Android Auto, Linux, Windows, Mac");
     }
 }

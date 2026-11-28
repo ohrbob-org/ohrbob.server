@@ -679,7 +679,9 @@ the pane header rather than below the feed list.
 ## 18. Amendment (2026-11-27): landing table, brand and feed orange
 
 - The landing tier table is a plain white panel: no yellow morebob column, no
-  orange vertical rule and no internal scrollbar.
+  orange vertical rule and no internal scrollbar. Rows that apply to both plans
+  list their value under each tier column (App support), so nothing reads as a
+  single, ambiguous spanning cell.
 - The hero places a large translucent logo silhouette across both decorative squares: it covers the lower-left of the violet square and overlaps the top edge of the lower tile.
 - The closing wordmark uses the individually coloured letters plus the logo
   icon again.
